@@ -16,6 +16,7 @@ describe('routeDepth', () => {
         expect(routeDepth('/settings')).toBe(1);
         expect(routeDepth('/summary')).toBe(1);
         expect(routeDepth('/categories')).toBe(2);
+        expect(routeDepth('/charts')).toBe(2);
     });
 
     it('takes a page it does not know for the home screen', () => {
@@ -29,6 +30,7 @@ describe('slideTypes', () => {
         expect(between('/settings', '/categories')).toEqual(['forward']);
         expect(between('/', '/categories')).toEqual(['forward']);
         expect(between('/', '/summary')).toEqual(['forward']);
+        expect(between('/summary', '/charts')).toEqual(['forward']);
     });
 
     it('goes back when the new screen is shallower', () => {
@@ -36,6 +38,7 @@ describe('slideTypes', () => {
         expect(between('/categories', '/settings')).toEqual(['back']);
         expect(between('/categories', '/')).toEqual(['back']);
         expect(between('/summary', '/')).toEqual(['back']);
+        expect(between('/charts', '/summary')).toEqual(['back']);
     });
 
     it('does not slide for the first screen, for the same screen or for a change that is not of path', () => {

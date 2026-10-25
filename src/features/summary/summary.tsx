@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
@@ -82,6 +83,10 @@ function Summary() {
             )}
 
             <IncomeForm month={month} monthName={monthName} income={set} />
+
+            <Link className="summary__link" to="/charts">
+                {t('chartsLink')}
+            </Link>
         </section>
     );
 }

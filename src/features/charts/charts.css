@@ -1,0 +1,45 @@
+.charts {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.charts__title {
+    font-size: var(--font-size-l);
+    margin: 0;
+}
+
+.charts__field {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.charts__dates {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.charts__reset {
+    justify-self: start;
+}
+
+.charts__error {
+    border-left: var(--size-1) solid var(--color-danger);
+    margin: 0;
+    padding-left: var(--size-3);
+}
+
+.charts__total {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding-inline: var(--size-3);
+}
+
+.charts__empty {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}

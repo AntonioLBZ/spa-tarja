@@ -205,6 +205,7 @@
         "title": "Resumen",
         "previousMonth": "Mes anterior",
         "nextMonth": "Mes siguiente",
+        "chartsLink": "Ver gráficos",
         "income": "Ingresos",
         "voucher": "Tarjeta restaurante",
         "spent": "Gastado",
@@ -221,5 +222,25 @@
             "saveFailed": "No se pudieron guardar los ingresos. Inténtalo de nuevo.",
             "removeFailed": "No se pudieron quitar los ingresos. Inténtalo de nuevo."
         }
+    },
+    "charts": {
+        "title": "Gráficos",
+        "group": {
+            "title": "Agrupar por",
+            "day": "Día",
+            "week": "Semana",
+            "month": "Mes"
+        },
+        "category": "Categoría",
+        "allCategories": "Todas las categorías",
+        "from": "Desde",
+        "to": "Hasta",
+        "resetRange": "Restablecer fechas",
+        "rangeInvalid": "El inicio no puede ser posterior al final.",
+        "spendingTitle": "Gasto",
+        "weekOf": "Semana del {date}",
+        "total": "Total",
+        "byCategory": "Por categoría",
+        "empty": "No hay gastos en este periodo."
     }
 }

@@ -131,6 +131,15 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.
 - The month's numbers are notch-bordered rows: income (what the person set, or "Not set"), restaurant card (only when something was paid that way), spent, and left. Left is the row that matters: bold, and in `--color-danger` below zero. It stays hidden, with a hint, until the income is set.
 - Under the rows, one form sets the income: an amount field and Save, and Remove once there is one. Setting it needs a connection (`ARCHITECTURE.md` §5), so offline the form is disabled and says why; the numbers themselves still show from the local copy.
+- A link at the bottom leads to the charts.
+
+### Charts
+
+- `/charts`, one level deeper than the summary it is reached from. Everything is computed on the device from the local expenses, so it works offline.
+- Filters on top: group by (day, week or month, a choice group), category (a select that starts at all of them) and from/to dates. Until the person picks dates the range follows the grouping: the month so far for days, twelve weeks for weeks, twelve months for months. Picking dates keeps them whatever the grouping, and a button brings the defaults back. A start after the end is refused with a message instead of an empty chart. Weeks start on Monday.
+- The first chart is a list with a row for each day, week or month, oldest first, empty ones included: its name, a bar and the amount. The bar is flat, in the accent color, and is a `scaleX` of the biggest row, so a change animates over `--duration-base` like everything else. The name and the amount are text, so the bar is only a help.
+- Under it, the total of the range and its split by category, the biggest first: the icon with the name (the color alone says nothing), the amount, the share and a bar like the others. The split ignores the category filter, so it still answers where the money went. A category that was deleted shows as the fallback category, like in the list.
+- Category colors paint the icon only (see Category colors), so the bars never use them.
 
 ## 6. Motion
 
@@ -138,7 +147,7 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - Always use `--duration-fast`, `--duration-base` and `--duration-slow` (120, 200 and 360 ms) and `--ease-standard`, `--ease-enter` and `--ease-exit`. Never literal values.
 - `prefers-reduced-motion` zeroes the durations in one place (`tokens.css`). Components don't special-case it.
 - Prefer animating `transform` and `opacity`.
-- **Routes slide horizontally.** Each route has a depth: `/` is 0, `/settings` and `/summary` 1, `/categories` 2. Going deeper, the new screen enters from the right and the old one leaves to the left; going back, the other way round. Fade plus `translateX`, over `--duration-base`. With reduced motion the durations are zero, so the screen just changes.
+- **Routes slide horizontally.** Each route has a depth: `/` is 0, `/settings` and `/summary` 1, `/categories` and `/charts` 2. Going deeper, the new screen enters from the right and the old one leaves to the left; going back, the other way round. Fade plus `translateX`, over `--duration-base`. With reduced motion the durations are zero, so the screen just changes.
 - **Lists.** A new expense enters from above with a fade and a short vertical shift; a deleted one fades out before it leaves.
 
 ## 7. CSS and copy conventions
