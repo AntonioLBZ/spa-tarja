@@ -13,6 +13,12 @@
     gap: var(--size-1);
 }
 
+.expense-form__category {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+}
+
 .expense-form__hint {
     color: var(--color-content-secondary);
     margin: 0;

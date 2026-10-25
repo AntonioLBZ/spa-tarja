@@ -60,8 +60,11 @@
 }
 
 .category-manager__built-in {
+    align-items: center;
     border-color: var(--color-border);
     border-style: solid;
     border-width: 0 0 var(--size-1) var(--size-1);
+    display: flex;
+    gap: var(--size-2);
     padding: var(--size-2) var(--size-3);
 }

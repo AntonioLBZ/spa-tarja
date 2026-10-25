@@ -3,11 +3,14 @@ import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { categoriesQuery } from '@/lib/api';
-import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
+
+import type { CategoryStyle } from '@core/category-style';
 
 interface CategoryOption {
     id: string;
     label: string;
+    style: CategoryStyle;
 }
 
 // The categories a person can file an expense under: the built-in ones, then their own
@@ -17,17 +20,21 @@ function useCategoryOptions() {
 
     return useMemo(() => {
         const options: CategoryOption[] = [
-            ...DEFAULT_CATEGORY_IDS.map((id) => ({ id, label: t(id) })),
-            ...(custom ?? []).map(({ id, name }) => ({ id, label: name })),
+            ...DEFAULT_CATEGORY_IDS.map((id) => ({ id, label: t(id), style: DEFAULT_CATEGORY_STYLES[id] })),
+            ...(custom ?? []).map(({ id, name, color, icon }) => ({ id, label: name, style: { color, icon } })),
         ];
-        const labels = new Map(options.map((option) => [option.id, option.label]));
+        const byId = new Map(options.map((option) => [option.id, option]));
 
         // An id with no category behind it (deleted, or not heard of yet) reads as the fallback
         function labelOf(id: string): string {
-            return labels.get(id) ?? t(FALLBACK_CATEGORY_ID);
+            return byId.get(id)?.label ?? t(FALLBACK_CATEGORY_ID);
         }
 
-        return { options, labelOf };
+        function styleOf(id: string): CategoryStyle {
+            return byId.get(id)?.style ?? DEFAULT_CATEGORY_STYLES[FALLBACK_CATEGORY_ID];
+        }
+
+        return { options, labelOf, styleOf };
     }, [custom, t]);
 }
 

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { fromDateString } from '@core/date';
@@ -15,7 +16,7 @@ function ExpenseList() {
     const t = useTranslations('expenses.list');
     const { locale } = useLocale();
     const save = useSaveExpense();
-    const { labelOf } = useCategoryOptions();
+    const { labelOf, styleOf } = useCategoryOptions();
     const { groups, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenseGroups();
     const dayFormat = useMemo(
         () => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
@@ -46,7 +47,10 @@ function ExpenseList() {
                             const pending = pendingIds.has(expense.id);
                             return (
                                 <li className="expense-item" key={expense.id}>
-                                    <span className="expense-item__name">{name}</span>
+                                    <span className="expense-item__name">
+                                        <CategoryBadge style={styleOf(expense.categoryId)} />
+                                        <span className="expense-item__text">{name}</span>
+                                    </span>
                                     <span className="expense-item__amount">
                                         {formatAmount(expense.amountCents, expense.currency, locale)}
                                     </span>

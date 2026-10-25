@@ -64,6 +64,24 @@ describe('listing', () => {
         expect(screen.queryByRole('button', { name: named(text.deleteItem, en.categories.food) })).toBeNull();
     });
 
+    it('shows the look of every category, the built-in ones and the person’s own', async () => {
+        await open({ categories: [gym, plainCategory('Pets')] });
+        await screen.findByText('Gym');
+
+        const row = (label: string) => screen.getByText(label).closest('li')!;
+        const look = (label: string) => {
+            const element = row(label);
+            return {
+                icon: element.querySelector('[data-icon]')?.getAttribute('data-icon'),
+                color: /category-badge--(\w+)/.exec(element.querySelector('.category-badge')?.className ?? '')?.[1],
+            };
+        };
+        expect(look(en.categories.food)).toEqual({ icon: 'restaurant', color: 'vermillion' });
+        expect(look(en.categories.other)).toEqual({ icon: 'more_horiz', color: 'gray' });
+        expect(look('Gym')).toEqual({ icon: 'fitness_center', color: 'blue' });
+        expect(look('Pets')).toEqual({ icon: 'category', color: 'gray' });
+    });
+
     it('says there are none of the person’s own yet', async () => {
         await open();
 

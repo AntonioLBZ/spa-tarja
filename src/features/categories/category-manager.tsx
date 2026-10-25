@@ -4,10 +4,11 @@ import { useTranslations } from 'use-intl';
 
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
-import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
 import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey } from '@core/category';
 import { DEFAULT_CATEGORY_ICON, nextCategoryColor } from '@core/category-style';
 
+import { CategoryBadge } from './category-badge';
 import { CategoryRow } from './category-row';
 import { useCategoryActions } from './use-category-actions';
 
@@ -147,7 +148,8 @@ function CategoryManager() {
                 <ul className="category-manager__list">
                     {DEFAULT_CATEGORY_IDS.map((categoryId) => (
                         <li className="category-manager__built-in" key={categoryId}>
-                            {tCategory(categoryId)}
+                            <CategoryBadge style={DEFAULT_CATEGORY_STYLES[categoryId]} />
+                            <span>{tCategory(categoryId)}</span>
                         </li>
                     ))}
                 </ul>

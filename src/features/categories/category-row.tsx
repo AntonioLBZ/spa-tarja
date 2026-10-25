@@ -3,6 +3,8 @@ import { useTranslations } from 'use-intl';
 
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
+import { CategoryBadge } from './category-badge';
+
 import './category-row.css';
 
 interface CategoryRowProps {
@@ -138,7 +140,10 @@ function CategoryRow(props: CategoryRowProps) {
 
     return (
         <li className="category-row">
-            <span className="category-row__name">{category.name}</span>
+            <span className="category-row__label">
+                <CategoryBadge style={category} />
+                <span className="category-row__name">{category.name}</span>
+            </span>
             <div className="category-row__actions">
                 <button
                     ref={opener === 'rename' ? setFocusTarget : undefined}

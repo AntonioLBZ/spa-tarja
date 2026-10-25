@@ -242,6 +242,51 @@ describe('custom categories', () => {
     });
 });
 
+function lookOf(element: HTMLElement) {
+    const icon = element.querySelector('[data-icon]')?.getAttribute('data-icon') ?? null;
+    const color = /category-badge--(\w+)/.exec(element.querySelector('.category-badge')?.className ?? '')?.[1] ?? null;
+    return { icon, color };
+}
+
+describe('category looks', () => {
+    const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
+
+    it('mark each row with the icon and color of its category, built-in or not', async () => {
+        stubApi(
+            createFakeApi({
+                categories: [gym],
+                expenses: [
+                    expense({ text: 'Lunch', categoryId: 'food' }),
+                    expense({ text: 'Monthly fee', categoryId: gym.id }),
+                    expense({ text: 'Long gone', categoryId: crypto.randomUUID() }),
+                ],
+            }).handler
+        );
+
+        renderApp();
+
+        const row = async (text: string) => (await screen.findByText(text)).closest('li')!;
+        expect(lookOf(await row('Lunch'))).toEqual({ icon: 'restaurant', color: 'vermillion' });
+        await waitFor(() => expect(lookOf(screen.getByText('Monthly fee').closest('li')!).icon).toBe('fitness_center'));
+        expect(lookOf(await row('Monthly fee'))).toEqual({ icon: 'fitness_center', color: 'blue' });
+        expect(lookOf(await row('Long gone'))).toEqual({ icon: 'more_horiz', color: 'gray' });
+    });
+
+    it('show next to the category picker, following the pick and the suggestion', async () => {
+        stubApi(createFakeApi({ categories: [gym] }).handler);
+        renderApp();
+        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+        const picker = () => field(en.expenses.form.category).closest('.expense-form__field') as HTMLElement;
+        expect(lookOf(picker())).toEqual({ icon: 'more_horiz', color: 'gray' });
+
+        fireEvent.change(field(en.expenses.form.text), { target: { value: 'coffee' } });
+        expect(lookOf(picker())).toEqual({ icon: 'restaurant', color: 'vermillion' });
+
+        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+        expect(lookOf(picker())).toEqual({ icon: 'fitness_center', color: 'blue' });
+    });
+});
+
 describe('deleting an expense', () => {
     it('marks it as deleted and removes it from the list', async () => {
         const lunch = expense({ text: 'Lunch' });

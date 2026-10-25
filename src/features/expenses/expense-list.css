@@ -55,7 +55,14 @@
 }
 
 .expense-item__name {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
     grid-area: name;
+    min-width: 0;
+}
+
+.expense-item__text {
     min-width: 0;
     overflow-wrap: anywhere;
 }

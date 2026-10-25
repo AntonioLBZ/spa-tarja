@@ -1,0 +1,36 @@
+.category-badge {
+    display: inline-flex;
+    flex: none;
+}
+
+.category-badge--vermillion {
+    color: var(--color-category-vermillion);
+}
+
+.category-badge--green {
+    color: var(--color-category-green);
+}
+
+.category-badge--purple {
+    color: var(--color-category-purple);
+}
+
+.category-badge--blue {
+    color: var(--color-category-blue);
+}
+
+.category-badge--orange {
+    color: var(--color-category-orange);
+}
+
+.category-badge--sky {
+    color: var(--color-category-sky);
+}
+
+.category-badge--yellow {
+    color: var(--color-category-yellow);
+}
+
+.category-badge--gray {
+    color: var(--color-category-gray);
+}
