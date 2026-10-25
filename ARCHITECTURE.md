@@ -61,7 +61,7 @@ public/   static files
 - `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier and the money helpers will live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
-- **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release is `pnpm db:migrate:remote`, then `pnpm deploy:prod`; the migrations go first so the new code never meets an old schema. Secrets go up with `wrangler secret put`.
+- **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release goes out on its own: every push to `main` that passes the checks is deployed by GitHub Actions (§10), after applying the migrations if `db/migrations` changed. By hand it is `pnpm db:migrate:remote`, then `pnpm deploy:prod`. The migrations go first so the new code never meets an old schema, which means each one must work with the code still running: add, never rename or drop. Secrets go up with `wrangler secret put`.
 
 ## 5. Data
 
@@ -123,7 +123,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 
 - Vitest with three projects. `core`: node, for the pure logic. `server`: `@cloudflare/vitest-plugin` runs the tests in `workerd` with a real local D1 (`env` from `cloudflare:workers`). `front`: jsdom and Testing Library, with `stubApi` and `renderApp` in `src/lib/test/render-app.tsx`; `renderApp` mounts the real `AppProviders` (language, theme, sign-in gate and per-user data) over memory storage and a fake sign-in (`createFakeAuth`: signed in as `TEST_USER` unless told otherwise), and tests read their expected copy from `en.json`.
 - A request without a handler in a test fails; it never reaches the network.
-- **CI and the hook**: a husky `pre-commit` runs `format:check`, `types:check`, `lint` and `test`. GitHub Actions (`.github/workflows/ci.yml`) runs the same plus `build` on every push to `main`. It needs no secrets; the deployment isn't part of it yet.
+- **CI and the hook**: a husky `pre-commit` runs `format:check`, `types:check`, `lint` and `test`. GitHub Actions (`.github/workflows/ci.yml`) runs the same plus `build` on every push to `main`. Once `check` passes, the `release` job applies `db/migrations` to the production D1 (`pnpm db:migrate:remote`) if that folder differs from the last commit whose CI run went green, then runs `pnpm deploy:prod`. The baseline is the last green run, not the push, because a queued run can be dropped and its migrations would go unseen. A failed migration stops the deployment. The job has its own `concurrency` group that never cancels a run in progress. They need two repository secrets: `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` (the "Edit Cloudflare Workers" template plus Account → D1 → Edit). The Worker's own secrets stay in `wrangler secret`.
 
 ## 11. Roadmap
 
@@ -134,7 +134,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 4. Google login and per-user data (done).
 5. Custom categories (create, edit, delete) (done).
 6. Visual identity and transitions (done).
-7. CI and husky (done), then Cloudflare deployment.
+7. CI and husky (done), then automatic migrations and deployment to Cloudflare from GitHub Actions.
 
 ## 12. Discarded and open decisions
 
