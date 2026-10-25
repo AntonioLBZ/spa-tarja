@@ -1,19 +1,23 @@
 import * as v from 'valibot';
 
 import { isDefaultCategoryId } from './categories';
+import { categoryColorSchema, categoryIconSchema, type CategoryStyle } from './category-style';
 
 const CATEGORY_NAME_MAX_LENGTH = 40;
 
 const categoryIdSchema = v.pipe(v.string(), v.uuid());
 
+// The style is optional so that a write which only renames keeps what the category looks like
 const categoryInputSchema = v.object({
     name: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(CATEGORY_NAME_MAX_LENGTH)),
+    color: v.optional(categoryColorSchema),
+    icon: v.optional(categoryIconSchema),
 });
 
 type CategoryInput = v.InferOutput<typeof categoryInputSchema>;
 
 // A custom category; the default ones live in `categories.ts` and have no row
-type Category = CategoryInput & { id: string };
+type Category = { id: string; name: string } & CategoryStyle;
 
 // What two names must differ in to count as different: case, accents and spacing don't
 function categoryNameKey(name: string): string {

@@ -7,6 +7,13 @@ import { signIn, type TestSession } from '@server/test/session';
 interface CategoryBody {
     id: string;
     name: string;
+    color: string;
+    icon: string;
+}
+
+// What a category looks like when nobody chose a style
+function plain(id: string, name: string): CategoryBody {
+    return { id, name, color: 'gray', icon: 'category' };
 }
 
 let session: TestSession;
@@ -51,10 +58,7 @@ describe('GET /api/categories', () => {
         await put(second, { name: 'Pets' });
         await insertForeign(crypto.randomUUID(), 'Not yours');
 
-        expect(await list()).toEqual([
-            { id: first, name: 'Gym' },
-            { id: second, name: 'Pets' },
-        ]);
+        expect(await list()).toEqual([plain(first, 'Gym'), plain(second, 'Pets')]);
     });
 });
 
@@ -65,7 +69,7 @@ describe('PUT /api/categories/:id', () => {
         const response = await put(id, { name: '  Gym ' });
 
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ id, name: 'Gym' });
+        expect(await response.json()).toEqual(plain(id, 'Gym'));
     });
 
     it('is idempotent: repeating the same write changes nothing', async () => {
@@ -75,7 +79,7 @@ describe('PUT /api/categories/:id', () => {
         const again = await put(id, { name: 'Gym' });
 
         expect(again.status).toBe(200);
-        expect(await list()).toEqual([{ id, name: 'Gym' }]);
+        expect(await list()).toEqual([plain(id, 'Gym')]);
     });
 
     it('renames an existing category, also when only the case changes', async () => {
@@ -83,10 +87,57 @@ describe('PUT /api/categories/:id', () => {
         await put(id, { name: 'gym' });
 
         await put(id, { name: 'Gym' });
-        expect(await list()).toEqual([{ id, name: 'Gym' }]);
+        expect(await list()).toEqual([plain(id, 'Gym')]);
 
         await put(id, { name: 'Fitness' });
-        expect(await list()).toEqual([{ id, name: 'Fitness' }]);
+        expect(await list()).toEqual([plain(id, 'Fitness')]);
+    });
+
+    it('stores the color and the icon it is given', async () => {
+        const id = crypto.randomUUID();
+
+        const response = await put(id, { name: 'Gym', color: 'blue', icon: 'fitness_center' });
+
+        expect(await response.json()).toEqual({ id, name: 'Gym', color: 'blue', icon: 'fitness_center' });
+        expect(await list()).toEqual([{ id, name: 'Gym', color: 'blue', icon: 'fitness_center' }]);
+    });
+
+    it('changes the color and the icon of an existing category', async () => {
+        const id = crypto.randomUUID();
+        await put(id, { name: 'Gym', color: 'blue', icon: 'fitness_center' });
+
+        await put(id, { name: 'Gym', color: 'green', icon: 'spa' });
+
+        expect(await list()).toEqual([{ id, name: 'Gym', color: 'green', icon: 'spa' }]);
+    });
+
+    it('keeps the style when a write only renames', async () => {
+        const id = crypto.randomUUID();
+        await put(id, { name: 'Gym', color: 'blue', icon: 'fitness_center' });
+
+        await put(id, { name: 'Fitness' });
+
+        expect(await list()).toEqual([{ id, name: 'Fitness', color: 'blue', icon: 'fitness_center' }]);
+    });
+
+    it('changes one of the two and keeps the other', async () => {
+        const id = crypto.randomUUID();
+        await put(id, { name: 'Gym', color: 'blue', icon: 'fitness_center' });
+
+        await put(id, { name: 'Gym', color: 'green' });
+
+        expect(await list()).toEqual([{ id, name: 'Gym', color: 'green', icon: 'fitness_center' }]);
+    });
+
+    it('gives a category created before styles existed the gray generic look', async () => {
+        const id = crypto.randomUUID();
+        await env.DB.prepare(
+            `INSERT INTO categories (id, user_id, name, name_key, created_at) VALUES (?1, ?2, 'Old', 'old', 1)`
+        )
+            .bind(id, session.userId)
+            .run();
+
+        expect(await list()).toEqual([plain(id, 'Old')]);
     });
 
     it.each([
@@ -94,6 +145,8 @@ describe('PUT /api/categories/:id', () => {
         ['an empty name', crypto.randomUUID(), { name: '   ' }],
         ['a name that is too long', crypto.randomUUID(), { name: 'x'.repeat(41) }],
         ['no name', crypto.randomUUID(), {}],
+        ['a color that is not in the list', crypto.randomUUID(), { name: 'Gym', color: 'red' }],
+        ['an icon that is not in the list', crypto.randomUUID(), { name: 'Gym', icon: 'rocket' }],
     ])('rejects %s', async (_, id, body) => {
         const response = await put(id, body);
 

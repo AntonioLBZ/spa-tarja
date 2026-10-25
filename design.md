@@ -79,7 +79,7 @@ Every category has a color and an icon (see Icons). The color only helps to find
 - Seven of them are the Okabe-Ito set, designed for color-vision deficiency; gray is for "Other". Each tone is adjusted per theme to reach 3:1 against both surfaces (3.08:1 at worst in light, 3.55:1 in dark), the WCAG minimum for graphics.
 - Tokens are `--color-category-<key>`, defined with `light-dark()`. The database stores the key, never the value, so retuning a tone is a CSS change.
 - A category color paints its icon (and nothing else). It is never used for text, borders or fills behind text.
-- Default categories have a fixed color and icon, defined in `core/` next to their ids. Custom categories choose one of the eight colors and one icon when created or edited; the default is the next color the user's categories haven't used yet (cycling once all are used) and the generic icon.
+- Default categories have a fixed color and icon, defined in `core/` next to their ids. Custom categories choose one of the eight colors and one icon when created or edited; the default is the least used by the user's own categories among the seven that stand out (the first one on ties, never gray) and the generic icon.
 - Amber, orange and yellow sit close in hue. It is acceptable because the accent never paints an icon and every icon comes with its name; check it on screen and rebalance a tone if they get confused.
 
 ### Themes

@@ -73,7 +73,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - `date` is the day the user picked, as `YYYY-MM-DD` text (no time zone to get wrong). `created_at`, `updated_at` and `deleted_at` are epoch milliseconds.
 - `updated_at` is the client clock and only decides conflicts (§6). It can't be the sync cursor: an edit made offline last week arrives with an old `updated_at`, and a device whose cursor is already past it would never pull it. The cursor is `seq`, a per-user counter the server bumps on every write (`MAX(seq) + 1` inside the upsert, which D1 serializes).
 - Indexes: `(user_id, date)` for listing and `(user_id, seq)` for the sync by delta. Soft deletes travel as rows with `deleted_at` set, so the delta query sees them.
-- `categories` holds the custom categories (§7), in migration `0002`.
+- `categories` holds the custom categories (§7), in migration `0002`; migration `0004` adds their `color` and `icon`.
 - Rows belong to the signed-in user (§8), resolved in a single place in the server.
 
 ## 6. Offline strategy

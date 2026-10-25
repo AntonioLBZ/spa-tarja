@@ -13,9 +13,9 @@ const categoriesRoutes = new Hono<AppEnv>()
     .get('/', async (c) => c.json({ categories: await listCategories(c.env.DB, c.var.userId) }))
     .put('/:id', idParam, sValidator('json', categoryInputSchema), async (c) => {
         const { id } = c.req.valid('param');
-        const { name } = c.req.valid('json');
+        const input = c.req.valid('json');
 
-        const result = await saveCategory(c.env.DB, c.var.userId, id, name);
+        const result = await saveCategory(c.env.DB, c.var.userId, id, input);
         if ('error' in result) return c.json({ error: result.error }, 409);
         return c.json(result.category, 200);
     })

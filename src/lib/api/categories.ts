@@ -13,8 +13,8 @@ async function fetchCategories(): Promise<Category[]> {
 
 // Creates or renames by id, so sending it twice is harmless. A refusal carries its reason in `code`.
 async function putCategory(category: Category): Promise<Category> {
-    const { id, name } = category;
-    const response = await api.api.categories[':id'].$put({ param: { id }, json: { name } });
+    const { id, name, color, icon } = category;
+    const response = await api.api.categories[':id'].$put({ param: { id }, json: { name, color, icon } });
     if (!response.ok) throw await toApiError(response);
     return response.json();
 }

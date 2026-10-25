@@ -8,7 +8,11 @@ import { renderApp, stubApi } from '@/lib/test/render-app';
 
 const text = en.categoryManager;
 
-const gym = { id: crypto.randomUUID(), name: 'Gym' };
+const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
+
+function plainCategory(name: string) {
+    return { id: crypto.randomUUID(), name, color: 'gray', icon: 'category' } as const;
+}
 
 function named(template: string, name: string) {
     return template.replace('{name}', name);
@@ -67,7 +71,7 @@ describe('listing', () => {
     });
 
     it('lists the person’s own categories', async () => {
-        await open({ categories: [gym, { id: crypto.randomUUID(), name: 'Pets' }] });
+        await open({ categories: [gym, plainCategory('Pets')] });
 
         expect(await screen.findByText('Gym')).toBeDefined();
         expect(screen.getByText('Pets')).toBeDefined();
@@ -91,10 +95,27 @@ describe('adding', () => {
         add('  Pets ');
 
         expect(await screen.findByText('Pets')).toBeDefined();
-        expect(api.categories).toEqual([{ id: expect.any(String), name: 'Pets' }]);
+        expect(api.categories).toEqual([
+            { id: expect.any(String), name: 'Pets', color: 'vermillion', icon: 'category' },
+        ]);
         expect(api.categoryRequests).toEqual([`PUT ${api.categories[0]?.id}`]);
         expect(newNameField().value).toBe('');
         expect(screen.queryByText(text.custom.empty)).toBeNull();
+    });
+
+    it('gives each new category the next color nobody uses, and the generic icon', async () => {
+        const api = await open();
+        await screen.findByText(text.custom.empty);
+
+        add('Pets');
+        await screen.findByText('Pets');
+        add('Books');
+        await screen.findByText('Books');
+
+        expect(api.categories.map(({ name, color, icon }) => ({ name, color, icon }))).toEqual([
+            { name: 'Pets', color: 'vermillion', icon: 'category' },
+            { name: 'Books', color: 'green', icon: 'category' },
+        ]);
     });
 
     it('sends nothing for a blank name', async () => {
@@ -189,7 +210,7 @@ describe('renaming', () => {
         fireEvent.click(button(text.save));
 
         expect(await screen.findByText('Fitness')).toBeDefined();
-        expect(api.categories).toEqual([{ id: gym.id, name: 'Fitness' }]);
+        expect(api.categories).toEqual([{ ...gym, name: 'Fitness' }]);
         expect(screen.queryByLabelText(text.renameInput)).toBeNull();
         expect(screen.queryByText('Gym')).toBeNull();
     });
@@ -201,7 +222,7 @@ describe('renaming', () => {
         fireEvent.click(button(text.save));
 
         expect(await screen.findByText('gym')).toBeDefined();
-        expect(api.categories).toEqual([{ id: gym.id, name: 'gym' }]);
+        expect(api.categories).toEqual([{ ...gym, name: 'gym' }]);
     });
 
     it('goes back untouched when cancelled', async () => {
@@ -216,7 +237,7 @@ describe('renaming', () => {
     });
 
     it('refuses the name of another category', async () => {
-        const api = await open({ categories: [gym, { id: crypto.randomUUID(), name: 'Pets' }] });
+        const api = await open({ categories: [gym, plainCategory('Pets')] });
         await screen.findByText('Gym');
         fireEvent.click(button(named(text.renameItem, 'Gym')));
 

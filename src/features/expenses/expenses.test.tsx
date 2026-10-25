@@ -185,7 +185,7 @@ describe('expense form', () => {
 });
 
 describe('custom categories', () => {
-    const gym = { id: crypto.randomUUID(), name: 'Gym' };
+    const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
 
     it('are offered in the form after the built-in ones', async () => {
         stubApi(createFakeApi({ categories: [gym] }).handler);

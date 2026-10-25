@@ -6,6 +6,7 @@ import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID } from '@core/categories';
 import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey } from '@core/category';
+import { DEFAULT_CATEGORY_ICON, nextCategoryColor } from '@core/category-style';
 
 import { CategoryRow } from './category-row';
 import { useCategoryActions } from './use-category-actions';
@@ -54,7 +55,12 @@ function CategoryManager() {
         setFailure(null);
         setSaving(true);
         try {
-            await save({ id: crypto.randomUUID(), name: trimmed });
+            await save({
+                id: crypto.randomUUID(),
+                name: trimmed,
+                color: nextCategoryColor((custom ?? []).map((category) => category.color)),
+                icon: DEFAULT_CATEGORY_ICON,
+            });
             setName('');
         } catch (error) {
             setFailure(toFailure(error));
@@ -125,7 +131,7 @@ function CategoryManager() {
                                 )
                             }
                             onRename={(renamed) =>
-                                save({ id: category.id, name: renamed }).then(
+                                save({ ...category, name: renamed }).then(
                                     () => null,
                                     (error: unknown) => toFailure(error)
                                 )

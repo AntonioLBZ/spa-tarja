@@ -1,4 +1,5 @@
 import { categoryNameKey, type Category } from '@core/category';
+import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
 
 import type { Handler } from './render-app';
 import type { Expense } from '@core/expense';
@@ -76,15 +77,23 @@ function createFakeApi(options: FakeApiOptions = {}) {
                 return new Response(null, { status: 204 });
             }
 
-            const { name } = JSON.parse(String(init?.body)) as { name: string };
+            const { name, color, icon } = JSON.parse(String(init?.body)) as Partial<Category>;
+            if (!name) return Response.json({ error: 'invalid' }, { status: 400 });
             const clash = categories.some(
                 (category) => category.id !== categoryId && categoryNameKey(category.name) === categoryNameKey(name)
             );
             if (clash) return Response.json({ error: 'name-taken' }, { status: 409 });
             const at = categories.findIndex((category) => category.id === categoryId);
-            if (at >= 0) categories[at] = { id: categoryId, name };
-            else categories.push({ id: categoryId, name });
-            return Response.json({ id: categoryId, name });
+            // Like the Worker: what isn't sent stays as it was, or is the plain look on a new category
+            const saved: Category = {
+                id: categoryId,
+                name,
+                color: color ?? categories[at]?.color ?? DEFAULT_CATEGORY_COLOR,
+                icon: icon ?? categories[at]?.icon ?? DEFAULT_CATEGORY_ICON,
+            };
+            if (at >= 0) categories[at] = saved;
+            else categories.push(saved);
+            return Response.json(saved);
         }
 
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];

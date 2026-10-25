@@ -30,6 +30,28 @@ describe('categoryInputSchema', () => {
     });
 });
 
+describe('categoryInputSchema style', () => {
+    it('keeps a color and an icon', () => {
+        expect(v.parse(categoryInputSchema, { name: 'Gym', color: 'blue', icon: 'fitness_center' })).toEqual({
+            name: 'Gym',
+            color: 'blue',
+            icon: 'fitness_center',
+        });
+    });
+
+    it('leaves them out when they are not sent, so a rename can keep the style', () => {
+        expect(v.parse(categoryInputSchema, { name: 'Gym' })).toEqual({ name: 'Gym' });
+    });
+
+    it.each([
+        ['a color that is not in the list', { color: 'red' }],
+        ['an icon that is not in the list', { icon: 'rocket' }],
+        ['a color that is not a string', { color: 3 }],
+    ])('rejects %s', (_, style) => {
+        expect(v.safeParse(categoryInputSchema, { name: 'Gym', ...style }).success).toBe(false);
+    });
+});
+
 describe('categoryNameKey', () => {
     it('ignores case, accents and extra spaces', () => {
         expect(categoryNameKey('  Café   Con  Leche ')).toBe('cafe con leche');
