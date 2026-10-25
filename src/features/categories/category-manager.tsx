@@ -6,10 +6,11 @@ import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
 import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey } from '@core/category';
-import { DEFAULT_CATEGORY_ICON, nextCategoryColor } from '@core/category-style';
+import { DEFAULT_CATEGORY_ICON, nextCategoryColor, type CategoryStyle } from '@core/category-style';
 
 import { CategoryBadge } from './category-badge';
 import { CategoryRow } from './category-row';
+import { StylePicker } from './style-picker';
 import { useCategoryActions } from './use-category-actions';
 
 import './category-manager.css';
@@ -29,10 +30,16 @@ function CategoryManager() {
     const id = useId();
 
     const [name, setName] = useState('');
+    const [picked, setPicked] = useState<CategoryStyle | null>(null);
     const [failure, setFailure] = useState<Failure | null>(null);
     const [saving, setSaving] = useState(false);
 
     const custom = query.data;
+    // What the new category looks like unless the person picks: the next free color and the generic icon
+    const style: CategoryStyle = picked ?? {
+        color: nextCategoryColor((custom ?? []).map((category) => category.color)),
+        icon: DEFAULT_CATEGORY_ICON,
+    };
     const builtIn = DEFAULT_CATEGORY_IDS.map((categoryId) => tCategory(categoryId));
 
     // The same name twice, whatever its case, would be two options nobody can tell apart
@@ -56,13 +63,9 @@ function CategoryManager() {
         setFailure(null);
         setSaving(true);
         try {
-            await save({
-                id: crypto.randomUUID(),
-                name: trimmed,
-                color: nextCategoryColor((custom ?? []).map((category) => category.color)),
-                icon: DEFAULT_CATEGORY_ICON,
-            });
+            await save({ id: crypto.randomUUID(), name: trimmed, ...style });
             setName('');
+            setPicked(null);
         } catch (error) {
             setFailure(toFailure(error));
         } finally {
@@ -83,6 +86,7 @@ function CategoryManager() {
             <form className="category-manager__add" onSubmit={(event) => void handleAdd(event)}>
                 <label htmlFor={`${id}-name`}>{t('add.label')}</label>
                 <div className="category-manager__add-row">
+                    <CategoryBadge style={style} />
                     <input
                         className="category-manager__input"
                         id={`${id}-name`}
@@ -102,6 +106,10 @@ function CategoryManager() {
                         {t('add.submit')}
                     </button>
                 </div>
+                <details className="category-manager__look">
+                    <summary>{t('look.summary')}</summary>
+                    <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
+                </details>
                 {failure && (
                     <p className="category-manager__error" id={`${id}-error`} role="alert">
                         {t(failure)}
@@ -131,8 +139,8 @@ function CategoryManager() {
                                     () => false
                                 )
                             }
-                            onRename={(renamed) =>
-                                save({ ...category, name: renamed }).then(
+                            onSave={(changes) =>
+                                save({ ...category, ...changes }).then(
                                     () => null,
                                     (error: unknown) => toFailure(error)
                                 )

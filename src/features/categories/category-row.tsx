@@ -4,6 +4,9 @@ import { useTranslations } from 'use-intl';
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
 import { CategoryBadge } from './category-badge';
+import { StylePicker } from './style-picker';
+
+import type { CategoryStyle } from '@core/category-style';
 
 import './category-row.css';
 
@@ -14,19 +17,20 @@ interface CategoryRowProps {
     // Whether another category, or a built-in one, already has this name
     isTaken: (name: string, exceptId: string) => boolean;
     // Resolves to a message key when the change didn't go through
-    onRename: (name: string) => Promise<'nameTaken' | 'saveFailed' | null>;
+    onSave: (changes: { name: string } & CategoryStyle) => Promise<'nameTaken' | 'saveFailed' | null>;
     onDelete: () => Promise<boolean>;
     fallbackLabel: string;
 }
 
 function CategoryRow(props: CategoryRowProps) {
-    const { category, disabled, isTaken, onRename, onDelete, fallbackLabel } = props;
+    const { category, disabled, isTaken, onSave, onDelete, fallbackLabel } = props;
     const t = useTranslations('categoryManager');
-    const [mode, setMode] = useState<'view' | 'rename' | 'delete'>('view');
+    const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
     const [draft, setDraft] = useState(category.name);
+    const [look, setLook] = useState<CategoryStyle>(category);
     const [error, setError] = useState<'nameTaken' | 'saveFailed' | 'deleteFailed' | null>(null);
     const [busy, setBusy] = useState(false);
-    const [opener, setOpener] = useState<'rename' | 'delete'>('rename');
+    const [opener, setOpener] = useState<'edit' | 'delete'>('edit');
 
     // Switching modes replaces the button that was pressed, so the focus is handed on by hand: into the new mode,
     // and back to the button that opened it when the mode closes
@@ -40,9 +44,10 @@ function CategoryRow(props: CategoryRowProps) {
         shownMode.current = mode;
     }, [mode]);
 
-    function open(next: 'rename' | 'delete') {
+    function open(next: 'edit' | 'delete') {
         setOpener(next);
         setDraft(category.name);
+        setLook({ color: category.color, icon: category.icon });
         setMode(next);
     }
 
@@ -51,7 +56,7 @@ function CategoryRow(props: CategoryRowProps) {
         setError(null);
     }
 
-    async function handleRename(event: FormEvent<HTMLFormElement>) {
+    async function handleSave(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         const name = draft.trim();
         if (!name) return;
@@ -61,7 +66,7 @@ function CategoryRow(props: CategoryRowProps) {
         }
         setBusy(true);
         setError(null);
-        const failure = await onRename(name);
+        const failure = await onSave({ name, ...look });
         setBusy(false);
         if (failure) setError(failure);
         else close();
@@ -75,10 +80,10 @@ function CategoryRow(props: CategoryRowProps) {
         if (!deleted) setError('deleteFailed');
     }
 
-    if (mode === 'rename') {
+    if (mode === 'edit') {
         return (
             <li className="category-row">
-                <form className="category-row__form" onSubmit={(event) => void handleRename(event)}>
+                <form className="category-row__form" onSubmit={(event) => void handleSave(event)}>
                     <input
                         ref={setFocusTarget}
                         className="category-row__input"
@@ -93,6 +98,10 @@ function CategoryRow(props: CategoryRowProps) {
                             setError(null);
                         }}
                     />
+                    <details className="category-row__look">
+                        <summary>{t('look.summary')}</summary>
+                        <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
+                    </details>
                     <button disabled={disabled || busy} type="submit">
                         {t('save')}
                     </button>
@@ -146,13 +155,13 @@ function CategoryRow(props: CategoryRowProps) {
             </span>
             <div className="category-row__actions">
                 <button
-                    ref={opener === 'rename' ? setFocusTarget : undefined}
-                    aria-label={t('renameItem', { name: category.name })}
+                    ref={opener === 'edit' ? setFocusTarget : undefined}
+                    aria-label={t('editItem', { name: category.name })}
                     disabled={disabled}
                     type="button"
-                    onClick={() => open('rename')}
+                    onClick={() => open('edit')}
                 >
-                    {t('rename')}
+                    {t('edit')}
                 </button>
                 <button
                     ref={opener === 'delete' ? setFocusTarget : undefined}

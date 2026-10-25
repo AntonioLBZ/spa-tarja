@@ -21,6 +21,7 @@
 }
 
 .category-manager__add-row {
+    align-items: center;
     display: flex;
     gap: var(--size-2);
 }

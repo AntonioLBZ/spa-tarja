@@ -1,0 +1,49 @@
+.style-picker {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.style-picker__group {
+    border: 0;
+    margin: 0;
+    min-inline-size: 0;
+    padding: 0;
+}
+
+.style-picker__legend {
+    font-weight: 700;
+    margin-bottom: var(--size-2);
+    padding: 0;
+}
+
+.style-picker__options {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.style-picker__option {
+    position: relative;
+}
+
+/* Every swatch holds room for the notch, so choosing one doesn't move the others */
+.style-picker__swatch {
+    align-items: center;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    min-height: var(--size-touch);
+    min-width: var(--size-touch);
+}
+
+.style-picker__input:checked + .style-picker__swatch {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+}
+
+.style-picker__input:focus-visible + .style-picker__swatch {
+    outline: 0.125rem solid var(--color-border-focus);
+    outline-offset: 0.125rem;
+}

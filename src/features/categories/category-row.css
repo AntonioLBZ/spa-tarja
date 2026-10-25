@@ -40,6 +40,10 @@
     min-width: 0;
 }
 
+.category-row__look {
+    flex: 1 1 100%;
+}
+
 .category-row__question {
     flex: 1 1 100%;
     margin: 0;

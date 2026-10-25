@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
@@ -60,7 +60,7 @@ describe('listing', () => {
         await open();
 
         for (const name of Object.values(en.categories)) expect(screen.getByText(name)).toBeDefined();
-        expect(screen.queryByRole('button', { name: named(text.renameItem, en.categories.food) })).toBeNull();
+        expect(screen.queryByRole('button', { name: named(text.editItem, en.categories.food) })).toBeNull();
         expect(screen.queryByRole('button', { name: named(text.deleteItem, en.categories.food) })).toBeNull();
     });
 
@@ -105,6 +105,10 @@ describe('listing', () => {
     });
 });
 
+function radio(name: string) {
+    return screen.getByRole('radio', { name }) as HTMLInputElement;
+}
+
 describe('adding', () => {
     it('creates the category, lists it and empties the field', async () => {
         const api = await open();
@@ -134,6 +138,38 @@ describe('adding', () => {
             { name: 'Pets', color: 'vermillion', icon: 'category' },
             { name: 'Books', color: 'green', icon: 'category' },
         ]);
+    });
+
+    it('offers a color and an icon, starting from the next color and the generic icon', async () => {
+        await open();
+        await screen.findByText(text.custom.empty);
+
+        expect(screen.getByText(text.look.summary)).toBeDefined();
+        expect(radio(en.categoryColors.vermillion).checked).toBe(true);
+        expect(radio(en.categoryIcons.category).checked).toBe(true);
+    });
+
+    it('creates the category with the color and the icon that were picked', async () => {
+        const api = await open();
+        await screen.findByText(text.custom.empty);
+
+        fireEvent.click(radio(en.categoryColors.purple));
+        fireEvent.click(radio(en.categoryIcons.pets));
+        add('Pets');
+
+        expect(await screen.findByText('Pets')).toBeDefined();
+        expect(api.categories).toEqual([{ id: expect.any(String), name: 'Pets', color: 'purple', icon: 'pets' }]);
+    });
+
+    it('goes back to the next free color for the following category', async () => {
+        await open();
+        await screen.findByText(text.custom.empty);
+        fireEvent.click(radio(en.categoryColors.purple));
+        add('Pets');
+        await screen.findByText('Pets');
+
+        expect(radio(en.categoryColors.vermillion).checked).toBe(true);
+        expect(radio(en.categoryIcons.category).checked).toBe(true);
     });
 
     it('sends nothing for a blank name', async () => {
@@ -194,11 +230,11 @@ describe('adding', () => {
     });
 });
 
-describe('renaming', () => {
+describe('editing', () => {
     async function startRename() {
         const api = await open({ categories: [gym] });
         await screen.findByText('Gym');
-        fireEvent.click(button(named(text.renameItem, 'Gym')));
+        fireEvent.click(button(named(text.editItem, 'Gym')));
         return api;
     }
 
@@ -218,7 +254,7 @@ describe('renaming', () => {
 
         fireEvent.click(button(text.cancel));
 
-        expect(document.activeElement).toBe(button(named(text.renameItem, 'Gym')));
+        expect(document.activeElement).toBe(button(named(text.editItem, 'Gym')));
     });
 
     it('saves the new name', async () => {
@@ -243,6 +279,42 @@ describe('renaming', () => {
         expect(api.categories).toEqual([{ ...gym, name: 'gym' }]);
     });
 
+    function rowRadio(name: string) {
+        return within(nameField().closest('li')!).getByRole('radio', { name }) as HTMLInputElement;
+    }
+
+    it('starts from the current color and icon', async () => {
+        await startRename();
+
+        expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
+        expect(rowRadio(en.categoryIcons.fitness_center).checked).toBe(true);
+    });
+
+    it('saves a new color and icon with the name', async () => {
+        const api = await startRename();
+
+        fireEvent.click(rowRadio(en.categoryColors.green));
+        fireEvent.click(rowRadio(en.categoryIcons.spa));
+        fireEvent.click(button(text.save));
+
+        await waitFor(() => expect(screen.queryByLabelText(text.renameInput)).toBeNull());
+        expect(api.categories).toEqual([{ id: gym.id, name: 'Gym', color: 'green', icon: 'spa' }]);
+        const row = screen.getByText('Gym').closest('li')!;
+        expect(row.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('spa');
+        expect(row.querySelector('.category-badge')?.className).toContain('category-badge--green');
+    });
+
+    it('drops a color and icon change when cancelled', async () => {
+        const api = await startRename();
+
+        fireEvent.click(rowRadio(en.categoryColors.green));
+        fireEvent.click(button(text.cancel));
+        fireEvent.click(button(named(text.editItem, 'Gym')));
+
+        expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
+        expect(api.categoryRequests).toEqual([]);
+    });
+
     it('goes back untouched when cancelled', async () => {
         const api = await startRename();
 
@@ -257,7 +329,7 @@ describe('renaming', () => {
     it('refuses the name of another category', async () => {
         const api = await open({ categories: [gym, plainCategory('Pets')] });
         await screen.findByText('Gym');
-        fireEvent.click(button(named(text.renameItem, 'Gym')));
+        fireEvent.click(button(named(text.editItem, 'Gym')));
 
         fireEvent.change(nameField(), { target: { value: 'pets' } });
         fireEvent.click(button(text.save));
@@ -342,7 +414,7 @@ describe('without a connection', () => {
 
         expect(await screen.findByText(text.offline)).toBeDefined();
         await waitFor(() => expect(button(text.add.submit).disabled).toBe(true));
-        expect(button(named(text.renameItem, 'Gym')).disabled).toBe(true);
+        expect(button(named(text.editItem, 'Gym')).disabled).toBe(true);
         expect(button(named(text.deleteItem, 'Gym')).disabled).toBe(true);
     });
 
