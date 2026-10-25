@@ -105,8 +105,8 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - Everything is set in **IBM Plex Mono** (SIL OFL 1.1), amounts included: monospace lines the digits up and fits the ledger feeling. It comes from `@fontsource/ibm-plex-mono`, the latin subset (which covers the accents, ñ, ¿, ¡ and €) in weights 400 and 700, about 15 KB each. It is served by the app itself and precached, so it works offline; `font-display: swap` shows the fallback while it loads.
 - Stack: `'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace`.
 - Form controls inherit the page font and its 16 px size.
-- The type scale is open (§8). For now everything is 1 rem and the hierarchy comes from weight, case and spacing.
-- The logo: the name set in the _Dot Matrix_ font (Moonbase Press, on dafont) is being considered, not adopted. See §8.
+- **Type scale**: a standard modular scale, minor third (×1.2) from a 1 rem base. `--font-size-s` is 0.833 rem (secondary text), `--font-size-m` 1 rem (body and form controls), `--font-size-l` 1.2 rem (page titles) and `--font-size-xl` 1.44 rem (the sign-in title). Form controls never go below `--font-size-m`, so iOS doesn't zoom. Hierarchy also uses weight (700) and case, never a size outside the scale.
+- **The logo**: the name _Tarja_ is set in Dot Matrix (Svein Kåre Gunnarson, Dionaea Fonts), whose readme says "the fonts are freeware". Only the letters of the name ship, as a woff2 subset of about 1 KB; the original TTFs aren't in the repo, and `src/assets/fonts/NOTICE.md` credits the author and records how the subset was made. It is for the name only, at large sizes, never for text: a dot matrix face doesn't read small. Its terms say nothing about redistribution, so the subset stays limited to those letters.
 
 ### Icons
 
@@ -114,6 +114,7 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - Only the icons in use are copied into the repo as inline SVG (a few hundred bytes each), with the license notice. No icon font and no package at runtime.
 - Icons are decorative (`aria-hidden`): the name always comes with them. They take `currentColor`, or the color of their category.
 - The default categories use `restaurant`, `shopping_cart`, `sports_esports`, `receipt_long`, `home`, `directions_bus`, `medical_services` and `more_horiz`. A custom category with no pick uses `category`.
+- The icons a custom category can choose from (Material Symbols names), grouped here only for reading: `restaurant`, `local_cafe`, `local_bar`, `fastfood`, `bakery_dining`; `shopping_cart`, `shopping_bag`, `storefront`, `checkroom`, `redeem`; `sports_esports`, `movie`, `music_note`, `sports_soccer`, `fitness_center`, `theater_comedy`, `beach_access`; `directions_bus`, `directions_car`, `local_gas_station`, `train`, `flight`, `two_wheeler`; `home`, `bolt`, `water_drop`, `wifi`, `receipt_long`, `build`, `bed`; `medical_services`, `local_pharmacy`, `spa`; `pets`, `school`, `child_care`, `work`; `savings`, `payments`, `credit_card`, `account_balance`, `subscriptions`; `volunteer_activism`, `more_horiz`, `category`. The stored value is the name; the picker shows them in this order.
 
 ## 5. Layout and mobile-first
 
@@ -142,7 +143,4 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 
 ## 8. Open questions
 
-- Type scale: everything is 1 rem today; decide whether the hierarchy needs sizes.
-- Logo: _Dot Matrix_ is only "100% free" on dafont's label. The license is in the zip's text file and has to be read before the font goes into the repo; then pick the format (a subset with the letters of "Tarja", or an SVG of the name).
-- The notch: the widths, and how a stack of list rows looks with a thick bottom edge each. Tune on screen.
-- The 30 or so icons a custom category can choose from.
+- The notch widths: both edges start at `--size-1`. Tune them on screen when the borders are applied, then record the result in §3.
