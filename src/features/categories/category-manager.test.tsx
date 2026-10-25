@@ -91,6 +91,31 @@ describe('listing', () => {
         expect(look('Pets')).toEqual({ icon: 'category', color: 'gray' });
     });
 
+    it('ends the rows the person can open with a chevron, and leaves the built-in rows without one', async () => {
+        await open({ categories: [gym, plainCategory('Pets')] });
+        await screen.findByText('Gym');
+
+        const chevronOf = (label: string) =>
+            screen.getByText(label).closest('li')!.querySelectorAll('[data-icon="expand_more"]');
+        expect(chevronOf('Gym')).toHaveLength(1);
+        expect(chevronOf('Pets')).toHaveLength(1);
+        expect(chevronOf('Gym')[0]!.getAttribute('aria-hidden')).toBe('true');
+        expect(toggle('Gym').contains(chevronOf('Gym')[0]!)).toBe(true);
+        for (const label of Object.values(en.categories)) expect(chevronOf(label)).toHaveLength(0);
+    });
+
+    it('names a row after the category alone, whatever the chevron', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        expect(toggle('Gym').textContent).toBe('Gym');
+
+        reveal('Gym');
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('true');
+        expect(toggle('Gym').querySelectorAll('[data-icon="expand_more"]')).toHaveLength(1);
+    });
+
     it('says there are none of the person’s own yet', async () => {
         await open();
 

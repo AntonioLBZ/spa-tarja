@@ -1,0 +1,71 @@
+/* A new expense comes in from above; a deleted one fades out and moves aside before it goes (design.md) */
+.expense-item {
+    transition:
+        opacity var(--duration-base) var(--ease-enter),
+        transform var(--duration-base) var(--ease-enter);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-2)));
+    }
+}
+
+.expense-item--leaving {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(var(--size-4));
+    transition-timing-function: var(--ease-exit);
+}
+
+/* What the toggle shows, in the place of the card: the name and the amount, and the details under them */
+.expense-item__body {
+    align-items: center;
+    display: grid;
+    flex: 1;
+    gap: var(--size-1) var(--size-3);
+    grid-template-areas:
+        'name amount'
+        'meta meta';
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-width: 0;
+    padding-block: var(--size-2);
+}
+
+.expense-item__name {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    grid-area: name;
+    min-width: 0;
+}
+
+.expense-item__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.expense-item__amount {
+    font-variant-numeric: tabular-nums;
+    grid-area: amount;
+    white-space: nowrap;
+}
+
+.expense-item__meta {
+    color: var(--color-content-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--font-size-s);
+    gap: 0 var(--size-3);
+    grid-area: meta;
+    min-width: 0;
+}
+
+.expense-item__pending {
+    font-style: italic;
+}
+
+.expense-item__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2) var(--size-4);
+}

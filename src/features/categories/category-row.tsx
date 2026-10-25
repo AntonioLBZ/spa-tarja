@@ -135,6 +135,7 @@ function CategoryRow(props: CategoryRowProps) {
         <Disclosure
             as="li"
             className="category-row"
+            chevron
             summary={
                 <>
                     <CategoryBadge style={category} />

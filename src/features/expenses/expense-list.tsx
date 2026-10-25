@@ -1,23 +1,17 @@
-import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/components/button/button';
-import { Card, CardList } from '@/components/card/card';
+import { CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
-import { CategoryBadge } from '@/features/categories/category-badge';
-import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { readDuration } from '@/lib/motion';
-import { paymentOf } from '@core/counting';
 import { fromDateString } from '@core/date';
 import { groupByDay } from '@core/expense-groups';
-import { collapsePlans, planTotal } from '@core/installments';
-import { formatAmount } from '@core/money';
+import { collapsePlans } from '@core/installments';
 
+import { ExpenseRow } from './expense-row';
 import { useExpenseGroups } from './use-expense-groups';
 import { useSaveExpense } from './use-save-expense';
-import { useShortDate } from './use-short-date';
 
 import type { Expense } from '@core/expense';
 
@@ -25,11 +19,8 @@ import './expense-list.css';
 
 function ExpenseList() {
     const t = useTranslations('expenses.list');
-    const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
-    const shortDate = useShortDate();
     const save = useSaveExpense();
-    const { labelOf, styleOf } = useCategoryOptions();
     const { groups, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenseGroups();
     // Expenses deleted a moment ago, kept on screen until their fade-out is over
     const [leaving, setLeaving] = useState<ReadonlyMap<string, Expense>>(new Map());
@@ -88,51 +79,16 @@ function ExpenseList() {
                     <CardList flush>
                         {collapsePlans(group.expenses).map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
-                            const expense = expenses[0]!;
-                            const category = labelOf(expense.categoryId);
-                            const name = expense.text || category;
-                            const pending = expenses.some((part) => pendingIds.has(part.id));
-                            const isLeaving = leaving.has(expense.id);
-                            const lastCharge = expenses.at(-1)!.chargeDate;
-                            const charged =
-                                item.kind === 'plan'
-                                    ? lastCharge && t('plan', { parts: expenses.length, date: shortDate(lastCharge) })
-                                    : expense.chargeDate && paymentOf(expense) !== 'direct'
-                                      ? t('charged', {
-                                            payment: tPayment(paymentOf(expense)),
-                                            date: shortDate(expense.chargeDate),
-                                        })
-                                      : null;
+                            const first = expenses[0]!;
                             return (
-                                <Card
-                                    as="li"
-                                    className={clsx('expense-item', isLeaving && 'expense-item--leaving')}
-                                    key={expense.id}
-                                >
-                                    <span className="expense-item__name">
-                                        <CategoryBadge style={styleOf(expense.categoryId)} />
-                                        <span className="expense-item__text">{name}</span>
-                                    </span>
-                                    <span className="expense-item__amount">
-                                        {formatAmount(planTotal(expenses), expense.currency, locale)}
-                                    </span>
-                                    {(expense.text || pending || charged) && (
-                                        <span className="expense-item__meta">
-                                            {expense.text && <span>{category}</span>}
-                                            {charged && <span>{charged}</span>}
-                                            {pending && <span className="expense-item__pending">{t('pending')}</span>}
-                                        </span>
-                                    )}
-                                    <Button
-                                        variant="danger"
-                                        className="expense-item__delete"
-                                        aria-label={t('deleteItem', { name })}
-                                        disabled={isLeaving}
-                                        onClick={() => remove(expenses, Date.now())}
-                                    >
-                                        {t('delete')}
-                                    </Button>
-                                </Card>
+                                <ExpenseRow
+                                    key={first.id}
+                                    expenses={expenses}
+                                    isPlan={item.kind === 'plan'}
+                                    pending={expenses.some((part) => pendingIds.has(part.id))}
+                                    leaving={leaving.has(first.id)}
+                                    onDelete={(parts) => remove(parts, Date.now())}
+                                />
                             );
                         })}
                     </CardList>

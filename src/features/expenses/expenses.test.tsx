@@ -60,6 +60,19 @@ function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
     fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
 }
 
+function rowToggle(name: string) {
+    return screen.getByText(name).closest('button')!;
+}
+
+function deleteButton(name: string) {
+    return screen.getByRole('button', { name: t('expenses.list.deleteItem', { name }) }) as HTMLButtonElement;
+}
+
+function deleteExpense(name: string) {
+    fireEvent.click(rowToggle(name));
+    fireEvent.click(deleteButton(name));
+}
+
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 25, 12));
@@ -662,7 +675,7 @@ describe('installments', () => {
         renderApp();
         await screen.findByText('Sofa');
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+        deleteExpense('Sofa');
 
         await waitFor(() => expect(api.writes).toHaveLength(3));
         expect(api.writes.every((write) => write.deletedAt !== null)).toBe(true);
@@ -795,6 +808,150 @@ describe('category looks', () => {
     });
 });
 
+describe('an expense row', () => {
+    const lunch = expense({ text: 'Lunch' });
+    const coffee = expense({ text: 'Coffee', amountCents: 300 });
+
+    async function openList(...expenses: Expense[]) {
+        stubApi(createFakeApi({ expenses }).handler);
+        renderApp();
+        await screen.findByText(expenses[0]!.text);
+    }
+
+    it('is closed to start with, with a toggle that says so and no Delete', async () => {
+        await openList(lunch);
+
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('false');
+        expect(rowToggle('Lunch').hasAttribute('aria-controls')).toBe(false);
+        expect(screen.queryByRole('button', { name: t('expenses.list.deleteItem', { name: 'Lunch' }) })).toBeNull();
+    });
+
+    it('is a toggle that holds the name, the amount and the details', async () => {
+        const charged = expense({ text: 'Dinner', payment: 'credit', chargeDate: '2026-11-05' });
+        await openList(lunch, charged);
+
+        expect(rowToggle('Lunch').textContent).toContain('€12.50');
+        expect(rowToggle('Lunch').textContent).toContain(en.categories.food);
+        expect(rowToggle('Dinner').textContent).toContain(
+            t('expenses.list.charged', { payment: en.expenses.payment.credit, date: shown('2026-11-05') })
+        );
+        expect(rowToggle('Lunch').getAttribute('type')).toBe('button');
+    });
+
+    it('is the toggle that gets the notch, with the panel next to it and not inside', async () => {
+        await openList(lunch);
+
+        fireEvent.click(rowToggle('Lunch'));
+
+        const row = screen.getByRole('listitem');
+        expect(row.classList.contains('card')).toBe(false);
+        expect(rowToggle('Lunch').parentElement).toBe(row);
+        expect(rowToggle('Lunch').contains(deleteButton('Lunch'))).toBe(false);
+        expect(deleteButton('Lunch').closest('li')).toBe(row);
+    });
+
+    it('opens a panel with Delete when pressed, and ties it to the toggle', async () => {
+        await openList(lunch);
+
+        fireEvent.click(rowToggle('Lunch'));
+
+        const panel = deleteButton('Lunch').closest('.disclosure__panel')!;
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('true');
+        expect(rowToggle('Lunch').getAttribute('aria-controls')).toBe(panel.id);
+        expect(panel.id).not.toBe('');
+        expect(rowToggle('Lunch').compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(within(panel as HTMLElement).getAllByRole('button')).toHaveLength(1);
+    });
+
+    it('closes the panel when pressed again', async () => {
+        await openList(lunch);
+        fireEvent.click(rowToggle('Lunch'));
+
+        fireEvent.click(rowToggle('Lunch'));
+
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('false');
+        expect(rowToggle('Lunch').hasAttribute('aria-controls')).toBe(false);
+        expect(screen.queryByRole('button', { name: t('expenses.list.deleteItem', { name: 'Lunch' }) })).toBeNull();
+    });
+
+    it('opens one by one: two rows can be open at once, each with its own Delete', async () => {
+        await openList(lunch, coffee);
+
+        fireEvent.click(rowToggle('Lunch'));
+        fireEvent.click(rowToggle('Coffee'));
+
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('true');
+        expect(rowToggle('Coffee').getAttribute('aria-expanded')).toBe('true');
+        expect(deleteButton('Lunch')).not.toBe(deleteButton('Coffee'));
+        expect(rowToggle('Lunch').getAttribute('aria-controls')).not.toBe(
+            rowToggle('Coffee').getAttribute('aria-controls')
+        );
+
+        fireEvent.click(rowToggle('Lunch'));
+
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('false');
+        expect(rowToggle('Coffee').getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('ends with a chevron that is decoration, and keeps its name to what it says', async () => {
+        await openList(lunch);
+
+        const chevron = rowToggle('Lunch').querySelector('[data-icon="expand_more"]')!;
+
+        expect(chevron.getAttribute('aria-hidden')).toBe('true');
+        expect(rowToggle('Lunch').lastElementChild!.contains(chevron)).toBe(true);
+        expect(rowToggle('Lunch').hasAttribute('aria-label')).toBe(false);
+        expect(screen.getByRole('button', { name: /^Lunch/ })).toBe(rowToggle('Lunch'));
+    });
+
+    it('has the chevron on every row, and still when it is open', async () => {
+        await openList(lunch, coffee);
+
+        fireEvent.click(rowToggle('Coffee'));
+
+        expect(document.querySelectorAll('.expense-item [data-icon="expand_more"]')).toHaveLength(2);
+    });
+
+    it('stays open when another expense comes in', async () => {
+        await openList(lunch);
+        fireEvent.click(rowToggle('Lunch'));
+
+        fillAndSubmit({ amount: '3', text: 'Tea' });
+
+        await screen.findByText('Tea');
+        expect(rowToggle('Lunch').getAttribute('aria-expanded')).toBe('true');
+        expect(rowToggle('Tea').getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('keeps the pending marker in the toggle, where it can be seen without opening the row', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        onlineManager.setOnline(false);
+
+        fillAndSubmit({ amount: '3', text: 'Tea' });
+
+        await screen.findByText('Tea');
+        expect(within(rowToggle('Tea')).getByText(en.expenses.list.pending)).toBeDefined();
+    });
+
+    it('is one row for a plan, with one Delete in its panel', async () => {
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-25', '2026-11-25', '2026-12-25'].map((day, index) =>
+            expense({ text: 'Sofa', chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        await openList(...parts);
+
+        fireEvent.click(rowToggle('Sofa'));
+
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+        expect(screen.getAllByRole('button', { name: t('expenses.list.deleteItem', { name: 'Sofa' }) })).toHaveLength(
+            1
+        );
+    });
+});
+
 describe('deleting an expense', () => {
     it('marks it as deleted and removes it from the list', async () => {
         const lunch = expense({ text: 'Lunch' });
@@ -803,7 +960,7 @@ describe('deleting an expense', () => {
         renderApp();
         await screen.findByText('Lunch');
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Lunch') }));
+        deleteExpense('Lunch');
 
         await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -816,8 +973,7 @@ describe('deleting an expense', () => {
 describe('a deleted expense leaving the list', () => {
     const root = document.documentElement;
     const lunch = expense({ text: 'Lunch' });
-    const deleteLunch = () =>
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Lunch') }));
+    const deleteLunch = () => deleteExpense('Lunch');
 
     afterEach(() => root.style.removeProperty('--duration-base'));
 
@@ -859,10 +1015,7 @@ describe('a deleted expense leaving the list', () => {
 
         deleteLunch();
 
-        const button = screen.getByRole('button', {
-            name: en.expenses.list.deleteItem.replace('{name}', 'Lunch'),
-        }) as HTMLButtonElement;
-        expect(button.disabled).toBe(true);
+        expect(deleteButton('Lunch').disabled).toBe(true);
     });
 
     it('goes at once when there is no motion', async () => {
@@ -894,7 +1047,7 @@ describe('a deleted plan leaving the list', () => {
         renderApp();
         await screen.findByText('Sofa');
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+        deleteExpense('Sofa');
 
         await waitFor(() => expect(api.writes).toHaveLength(3));
         const row = screen.getByText('Sofa').closest('li')!;
@@ -914,7 +1067,7 @@ describe('a deleted plan leaving the list', () => {
         renderApp();
         await screen.findByText('Sofa');
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+        deleteExpense('Sofa');
 
         await waitFor(() => expect(screen.queryByText('Sofa')).toBeNull());
     });
@@ -955,7 +1108,7 @@ describe('working offline', () => {
         fillAndSubmit({ amount: '3', text: 'Coffee' });
         await screen.findByRole('listitem');
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Coffee') }));
+        deleteExpense('Coffee');
         await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull());
         onlineManager.setOnline(true);
 
