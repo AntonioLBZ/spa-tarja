@@ -56,6 +56,15 @@
     "nav": {
         "settings": "Ajustes"
     },
+    "auth": {
+        "title": "Inicia sesión en Tarja",
+        "description": "Tus gastos quedan en tu cuenta, en todos los dispositivos que uses.",
+        "google": "Continuar con Google",
+        "opening": "Abriendo Google…",
+        "loading": "Comprobando tu sesión…",
+        "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
+        "failed": "No se pudo iniciar sesión. Inténtalo de nuevo."
+    },
     "settings": {
         "title": "Ajustes",
         "language": {
@@ -67,7 +76,14 @@
             "light": "Claro",
             "dark": "Oscuro"
         },
-        "categories": "Categorías"
+        "categories": "Categorías",
+        "account": {
+            "title": "Cuenta",
+            "signOut": "Cerrar sesión",
+            "signingOut": "Cerrando sesión…",
+            "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",
+            "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión."
+        }
     },
     "categoryManager": {
         "title": "Categorías",

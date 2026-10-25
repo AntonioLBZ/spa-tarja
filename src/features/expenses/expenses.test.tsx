@@ -4,8 +4,9 @@ import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { createOutbox } from '@/lib/offline';
+import { createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
@@ -324,13 +325,13 @@ describe('working offline', () => {
 
     it('shows what was saved in an earlier session before the server can be reached', async () => {
         const storage = createMemoryStorage();
-        await storage.set('tarja:outbox', [expense({ text: 'From last session' })]);
-        const outbox = createOutbox(storage);
-        await outbox.ready;
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:outbox', [
+            expense({ text: 'From last session' }),
+        ]);
         stubApi(createFakeApi().handler);
         onlineManager.setOnline(false);
 
-        renderApp({ outbox });
+        renderApp({ storage });
 
         const row = await screen.findByRole('listitem');
         expect(row.textContent).toContain('From last session');
@@ -356,10 +357,14 @@ describe('working offline', () => {
     });
 
     it('says so when the expense cannot be stored on this device', async () => {
-        const storage = { ...createMemoryStorage(), set: () => Promise.reject(new Error('quota exceeded')) };
-        const outbox = createOutbox(storage);
+        const memory = createMemoryStorage();
+        const storage = {
+            ...memory,
+            set: (key: string, value: unknown) =>
+                key.startsWith('tarja:outbox') ? Promise.reject(new Error('quota exceeded')) : memory.set(key, value),
+        };
         stubApi(createFakeApi().handler);
-        renderApp({ outbox });
+        renderApp({ storage });
         await screen.findByText(en.expenses.list.empty);
 
         fillAndSubmit({ amount: '12.50', text: 'Lunch' });

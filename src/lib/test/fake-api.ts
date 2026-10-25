@@ -37,6 +37,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         offline: false,
         // An HTTP status to answer every category write with, or null to accept them
         categoryWriteStatus: null as number | null,
+        // Answers 401 to everything that needs a session, like the Worker does once it has ended
+        unauthorized: false,
     };
 
     const handler: Handler = (url, init) => {
@@ -46,6 +48,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         if (state.offline) throw new TypeError('Failed to fetch');
 
         if (url.pathname === '/api/health') return Response.json({ ok: true });
+
+        if (state.unauthorized) return Response.json({ error: 'unauthorized' }, { status: 401 });
 
         if (url.pathname === '/api/expenses' && method === 'GET') {
             const after = Number(url.searchParams.get('after') ?? 0);

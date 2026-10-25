@@ -2,6 +2,7 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Account } from '@/features/auth/account';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { THEMES, useTheme } from '@/lib/theme';
 
@@ -34,6 +35,7 @@ function Settings() {
             <Link className="settings__link" to="/categories">
                 {t('categories')}
             </Link>
+            <Account />
         </section>
     );
 }

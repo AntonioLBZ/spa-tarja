@@ -1,0 +1,27 @@
+.sign-in {
+    align-content: center;
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: auto;
+    max-width: 24rem;
+    min-height: 100dvh;
+    padding: max(var(--size-6), env(safe-area-inset-top)) max(var(--size-4), env(safe-area-inset-right))
+        max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
+}
+
+.sign-in__title {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.sign-in__description {
+    color: var(--color-content-secondary);
+    margin: 0;
+}
+
+.sign-in__error {
+    border-left: var(--size-1) solid var(--color-danger);
+    margin: 0;
+    padding-left: var(--size-3);
+}

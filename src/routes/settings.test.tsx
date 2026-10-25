@@ -1,10 +1,17 @@
+import { onlineManager } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
+import { readCachedUser } from '@/lib/auth';
+import { PERSIST_BUSTER, createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { TEST_USER } from '@/lib/test/fake-auth';
+import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+
+import type { Expense } from '@core/expense';
 
 const root = document.documentElement;
 
@@ -18,6 +25,7 @@ afterEach(() => {
     root.removeAttribute('data-color-transition');
     root.style.removeProperty('--duration-slow');
     document.head.innerHTML = '';
+    onlineManager.setOnline(true);
     vi.unstubAllGlobals();
 });
 
@@ -105,6 +113,110 @@ describe('settings', () => {
 
             expect(root.hasAttribute('data-color-transition')).toBe(true);
             await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));
+        });
+    });
+
+    describe('account', () => {
+        const pendingExpense: Expense = {
+            id: crypto.randomUUID(),
+            categoryId: 'food',
+            text: 'Not sent yet',
+            amountCents: 500,
+            currency: 'EUR',
+            date: '2026-10-25',
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        function signOutButton() {
+            return screen.findByRole('button', { name: en.settings.account.signOut });
+        }
+
+        async function seedCopy(storage: ReturnType<typeof createMemoryStorage>, userId: string) {
+            const { storage: mine } = createUserStorage(storage, userId);
+            await mine.set('tarja:query-cache', {
+                timestamp: Date.now(),
+                buster: PERSIST_BUSTER,
+                clientState: { mutations: [], queries: [] },
+            });
+        }
+
+        it('shows who is signed in', async () => {
+            renderApp({ path: '/settings' });
+
+            expect(await screen.findByText(TEST_USER.name)).toBeDefined();
+            expect(screen.getByText(TEST_USER.email)).toBeDefined();
+        });
+
+        it('signs out and asks to sign in again', async () => {
+            const { fakeAuth } = renderApp({ path: '/settings' });
+
+            fireEvent.click(await signOutButton());
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(fakeAuth.calls.signOut).toBe(1);
+            expect(readCachedUser()).toBeNull();
+        });
+
+        it('says it is signing out while the server answers', async () => {
+            renderApp({ path: '/settings' });
+
+            fireEvent.click(await signOutButton());
+
+            const button = (await screen.findByRole('button', {
+                name: en.settings.account.signingOut,
+            })) as HTMLButtonElement;
+            expect(button.disabled).toBe(true);
+        });
+
+        it('stays signed in, and says why, when there is no connection to sign out', async () => {
+            const { fakeAuth } = renderApp({ path: '/settings' });
+            const button = await signOutButton();
+            fakeAuth.state.offline = true;
+
+            fireEvent.click(button);
+
+            expect((await screen.findByRole('alert')).textContent).toBe(en.settings.account.signOutFailed);
+            expect(screen.getByRole('heading', { name: en.settings.title })).toBeDefined();
+            expect((await signOutButton()).hasAttribute('disabled')).toBe(false);
+            expect(readCachedUser()).toEqual(TEST_USER);
+
+            fakeAuth.state.offline = false;
+            fireEvent.click(await signOutButton());
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(screen.queryByRole('alert')).toBeNull();
+        });
+
+        it('deletes what the user kept on the device when everything was synced', async () => {
+            const storage = createMemoryStorage();
+            await seedCopy(storage, TEST_USER.id);
+            await seedCopy(storage, 'someone-else');
+            renderApp({ path: '/settings', storage });
+
+            fireEvent.click(await signOutButton());
+
+            await waitFor(() => expect(storage.get(`tarja:query-cache:${TEST_USER.id}`)).resolves.toBeUndefined());
+            expect(await storage.get('tarja:query-cache:someone-else')).toBeDefined();
+            expect(screen.queryByText(en.settings.account.unsynced)).toBeNull();
+        });
+
+        it('keeps what has not synced for the next time, and says so', async () => {
+            const storage = createMemoryStorage();
+            await createUserStorage(storage, TEST_USER.id).storage.set('tarja:outbox', [pendingExpense]);
+            await seedCopy(storage, TEST_USER.id);
+            stubApi(createFakeApi().handler);
+            onlineManager.setOnline(false);
+            renderApp({ path: '/settings', storage });
+            expect(await screen.findByText(en.settings.account.unsynced)).toBeDefined();
+
+            fireEvent.click(await signOutButton());
+
+            await screen.findByRole('heading', { name: en.auth.title });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(await storage.get(`tarja:outbox:${TEST_USER.id}`)).toEqual([pendingExpense]);
+            expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
         });
     });
 });

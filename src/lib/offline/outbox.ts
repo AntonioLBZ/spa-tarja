@@ -3,7 +3,7 @@ import { upsertById } from '@core/expense-merge';
 import type { KeyValueStorage } from './storage';
 import type { Expense } from '@core/expense';
 
-const STORAGE_KEY = 'tarja:outbox';
+const OUTBOX_STORAGE_KEY = 'tarja:outbox';
 
 interface OutboxState {
     // The latest version of each expense the server hasn't confirmed, in the order they were first saved
@@ -43,7 +43,7 @@ function createOutbox(storage: KeyValueStorage): Outbox {
 
     // The new state is on disk before anyone sees it, so what's on screen is never lost on a crash
     async function save(next: OutboxState) {
-        await storage.set(STORAGE_KEY, next.pending);
+        await storage.set(OUTBOX_STORAGE_KEY, next.pending);
         commit(next);
     }
 
@@ -60,7 +60,7 @@ function createOutbox(storage: KeyValueStorage): Outbox {
 
     // A failed read leaves the outbox empty; writing still works
     const ready = run(async () => {
-        const stored = await storage.get<Expense[]>(STORAGE_KEY);
+        const stored = await storage.get<Expense[]>(OUTBOX_STORAGE_KEY);
         if (stored?.length) commit({ ...state, pending: stored });
     }).catch(() => undefined);
 
@@ -80,5 +80,5 @@ function createOutbox(storage: KeyValueStorage): Outbox {
     };
 }
 
-export { createOutbox };
+export { OUTBOX_STORAGE_KEY, createOutbox };
 export type { Outbox, OutboxState };

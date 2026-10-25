@@ -3,16 +3,16 @@ import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
 import type { KeyValueStorage } from './storage';
 import type { PersistedClient, Persister, PersistQueryClientOptions } from '@tanstack/react-query-persist-client';
 
-const STORAGE_KEY = 'tarja:query-cache';
+const QUERY_CACHE_STORAGE_KEY = 'tarja:query-cache';
 
 // Bump it when the shape of what the cache holds changes: the old copy is then thrown away
 const PERSIST_BUSTER = '1';
 
 function createPersister(storage: KeyValueStorage): Persister {
     return {
-        persistClient: (client: PersistedClient) => storage.set(STORAGE_KEY, client),
-        restoreClient: () => storage.get<PersistedClient>(STORAGE_KEY),
-        removeClient: () => storage.remove(STORAGE_KEY),
+        persistClient: (client: PersistedClient) => storage.set(QUERY_CACHE_STORAGE_KEY, client),
+        restoreClient: () => storage.get<PersistedClient>(QUERY_CACHE_STORAGE_KEY),
+        removeClient: () => storage.remove(QUERY_CACHE_STORAGE_KEY),
     };
 }
 
@@ -33,4 +33,4 @@ function createPersistOptions(storage: KeyValueStorage): Omit<PersistQueryClient
     };
 }
 
-export { PERSIST_BUSTER, createPersistOptions, createPersister };
+export { PERSIST_BUSTER, QUERY_CACHE_STORAGE_KEY, createPersistOptions, createPersister };

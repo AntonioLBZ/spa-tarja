@@ -46,20 +46,20 @@ db/       D1 SQL migrations (db/migrations)
 core/     pure logic shared by client and server
 ```
 
-- `server/` never imports from `src/`. `src/` imports only **types** from `@server/*`.
+- `server/` never imports from `src/`. `src/` imports only **types** from `@server/*`. `src/lib` and `src/components` never import from `src/features`.
 - `core/` imports nothing from React, Hono or Workers.
 - Chain the Hono routes on one expression (`new Hono().basePath('/api').get(...)`) so `typeof app` carries the route types to the `hc<AppType>` client in `src/lib/api`. Statements like `app.get(...)` on a separate line lose them.
 - `wrangler.jsonc` sends only `/api/*` to the Worker first; every other missing path falls back to `index.html`. A new SPA route needs no config. An unknown `/api/...` answers 404 from the Worker.
 - `src/routeTree.gen.ts` and `worker-configuration.d.ts` are generated but committed (Prettier and ESLint ignore them).
 - Relative imports are `./` inside the same folder; otherwise `@/` (`src/`), `@core/` or `@server/`. Never `../`.
-- Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
-- Login (`ARCHITECTURE.md` §8): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses` and `/api/categories` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them.
+- Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB, stored under the signed-in user's id like the persisted cache) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
+- Login (`ARCHITECTURE.md` §8): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses` and `/api/categories` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them. In the app, `AuthGate` (`src/features/auth`) shows the sign-in screen to anybody not signed in, and `UserDataProvider` (`src/lib/offline`) gives the signed-in user their own outbox and cache; a `401` makes the app ask the session again, and only a definite answer signs the user out, never a network error.
 - Money is an integer in cents plus a currency code, never a float.
 - Schema in hand-written SQL, no ORM. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
 
 ## Frontend
 
-- TanStack Router (file-based) and TanStack Query. The global query client uses `staleTime` 60 s, `retry: false` and `gcTime: Infinity` (the persisted cache is the local copy of the data).
+- TanStack Router (file-based) and TanStack Query. The query client (one per signed-in user) uses `staleTime` 60 s, `retry: false` and `gcTime: Infinity` (the persisted cache is the local copy of the data).
 - Styles: CSS variables from `src/assets/styles/tokens.css`, BEM class names, alphabetical properties, no `!important` (Stylelint enforces it). Combine classes with `clsx`.
 - Transitions always use `--duration-*` and `--ease-*`; `prefers-reduced-motion` zeroes the durations in one place. Animate only `transform` and `opacity` where possible.
 - Colors are flat (no gradients, no shadows) and come only from the semantic `--color-*` tokens in `tokens.css`, defined once with `light-dark()`. Never put a raw color in a component. Don't add a color without updating the palette table in `design.md`.
@@ -72,7 +72,7 @@ core/     pure logic shared by client and server
 - Vitest with `globals: false`: import `describe`, `it`, `expect` and `vi` from `vitest`.
 - Tests sit next to the code they cover (`*.test.ts(x)`), no comments in tests.
 - `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', init, env)`. Routes that need a session get one from `signIn()` (`server/test/session.ts`), which saves a user and a real session cookie in the test database.
-- `front` tests render the real route tree with `renderApp` (it mounts the real `LocaleProvider` and `ThemeProvider`) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB; use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
+- `front` tests render the real route tree with `renderApp` (it mounts the real `AppProviders`, signed in as `TEST_USER` through `createFakeAuth`, `src/lib/test/fake-auth.ts`; pass `fakeAuth` to start signed out or with the server out of reach) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB (pass it as `storage` to `renderApp`); use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
 
 ## Conventions
 

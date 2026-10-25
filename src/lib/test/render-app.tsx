@@ -1,13 +1,13 @@
-import { QueryClientProvider } from '@tanstack/react-query';
+import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory } from '@tanstack/react-router';
 import { render } from '@testing-library/react';
+import { useEffect } from 'react';
 import { vi } from 'vitest';
 
-import { LocaleProvider } from '@/lib/i18n';
-import { OutboxProvider, createOutbox, type Outbox } from '@/lib/offline';
-import { createQueryClient } from '@/lib/query-client';
+import { useOutbox, type KeyValueStorage, type Outbox } from '@/lib/offline';
+import { createFakeAuth } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { ThemeProvider } from '@/lib/theme';
+import { AppProviders } from '@/providers';
 import { createAppRouter } from '@/router';
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
@@ -22,24 +22,48 @@ function stubApi(handler: Handler) {
     return fetchMock;
 }
 
+interface UserData {
+    outbox: Outbox;
+    queryClient: QueryClient;
+}
+
+// Hands the test the outbox and the query client the signed-in user got
+function Probe(props: { onData: (data: UserData) => void }) {
+    const { onData } = props;
+    const outbox = useOutbox();
+    const queryClient = useQueryClient();
+    useEffect(() => {
+        onData({ outbox, queryClient });
+    }, [onData, outbox, queryClient]);
+    return null;
+}
+
+// The app as `main.tsx` mounts it, over memory storage and a fake sign-in. Signed in as the test user unless told so.
+// `outbox` and `queryClient` exist once somebody is signed in.
 function renderApp({
     path = '/',
-    outbox = createOutbox(createMemoryStorage()),
-}: { path?: string; outbox?: Outbox } = {}) {
+    storage = createMemoryStorage(),
+    fakeAuth = createFakeAuth(),
+}: { path?: string; storage?: KeyValueStorage; fakeAuth?: ReturnType<typeof createFakeAuth> } = {}) {
     const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
-    const queryClient = createQueryClient();
+    let data: UserData | undefined;
     const rendered = render(
-        <LocaleProvider>
-            <ThemeProvider>
-                <OutboxProvider outbox={outbox}>
-                    <QueryClientProvider client={queryClient}>
-                        <RouterProvider router={router} />
-                    </QueryClientProvider>
-                </OutboxProvider>
-            </ThemeProvider>
-        </LocaleProvider>
+        <AppProviders auth={fakeAuth.auth} storage={storage}>
+            <RouterProvider router={router} />
+            <Probe onData={(next) => (data = next)} />
+        </AppProviders>
     );
-    return { ...rendered, outbox, queryClient };
+    return {
+        ...rendered,
+        storage,
+        fakeAuth,
+        get outbox() {
+            return data!.outbox;
+        },
+        get queryClient() {
+            return data!.queryClient;
+        },
+    };
 }
 
 export { renderApp, stubApi };

@@ -129,6 +129,17 @@ describe('pushing the outbox', () => {
         expect(outbox.getState().rejected).toBe(0);
     });
 
+    it('keeps everything pending when the session has ended, so the next sign-in delivers it', async () => {
+        const { api, outbox, sync } = setup();
+        api.state.unauthorized = true;
+        await outbox.put(expense('a'));
+
+        await expect(sync()).rejects.toMatchObject({ status: 401 });
+
+        expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a']);
+        expect(outbox.getState().rejected).toBe(0);
+    });
+
     it('keeps everything pending when the connection is down, and delivers it once it is back', async () => {
         const { api, outbox, sync } = setup();
         api.state.offline = true;

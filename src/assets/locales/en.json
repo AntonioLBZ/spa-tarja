@@ -56,6 +56,15 @@
     "nav": {
         "settings": "Settings"
     },
+    "auth": {
+        "title": "Sign in to Tarja",
+        "description": "Your expenses stay with your account, on every device you use.",
+        "google": "Continue with Google",
+        "opening": "Opening Google…",
+        "loading": "Checking your session…",
+        "unreachable": "Can't reach Tarja. Check your connection and try again.",
+        "failed": "Couldn't sign you in. Try again."
+    },
     "settings": {
         "title": "Settings",
         "language": {
@@ -67,7 +76,14 @@
             "light": "Light",
             "dark": "Dark"
         },
-        "categories": "Categories"
+        "categories": "Categories",
+        "account": {
+            "title": "Account",
+            "signOut": "Sign out",
+            "signingOut": "Signing out…",
+            "signOutFailed": "Couldn't sign out. Signing out needs a connection.",
+            "unsynced": "Some expenses haven't synced yet. They stay on this device until you sign in again."
+        }
     },
     "categoryManager": {
         "title": "Categories",

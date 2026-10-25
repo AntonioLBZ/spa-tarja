@@ -4,3 +4,5 @@ export { PERSIST_BUSTER, createPersistOptions, createPersister } from './persist
 export { idbStorage, type KeyValueStorage } from './storage';
 export { expensesQuery } from './sync';
 export { useOnline } from './use-online';
+export { UserDataProvider, useUserData } from './user-data';
+export { createUserStorage } from './user-storage';
