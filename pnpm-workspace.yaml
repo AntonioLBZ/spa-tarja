@@ -2,3 +2,8 @@ allowBuilds:
     esbuild: true
     unrs-resolver: false
     workerd: true
+permissions:
+    '@tanstack/react-router':
+        skills: false
+    '@tanstack/router-plugin':
+        skills: false

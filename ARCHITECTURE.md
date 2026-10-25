@@ -43,7 +43,7 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 | ESLint                             | 9.39.5             | `eslint-plugin-import` doesn't support ESLint 10                                             |
 | Prettier / Stylelint               | 3.9.10 / 17.16.0   |                                                                                              |
 
-Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 12 also offers to approve "agent skills" shipped by some packages; none have been approved.
+Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 12 also offers "agent skills" shipped by some packages; the two that offer them (`@tanstack/react-router` and `@tanstack/router-plugin`) are denied in `pnpm-workspace.yaml`, since they only feed AI assistants and the build doesn't need them.
 
 ## 4. Repo layout
 
@@ -137,4 +137,3 @@ Open:
 - Better Auth or another option for the login.
 - Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. The free path is `workers.dev`.
 - D1 `database_id` on the first deploy: create the database with `wrangler d1 create` or let Wrangler provision it.
-- Whether to approve pnpm's "agent skills".
