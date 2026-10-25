@@ -53,6 +53,17 @@ button:disabled {
     white-space: nowrap;
 }
 
+/* A theme change fades the colors for --duration-slow (see withColorTransition) */
+:root[data-color-transition],
+:root[data-color-transition] *,
+:root[data-color-transition] *::before,
+:root[data-color-transition] *::after {
+    transition:
+        background-color var(--duration-slow) var(--ease-standard),
+        border-color var(--duration-slow) var(--ease-standard),
+        color var(--duration-slow) var(--ease-standard);
+}
+
 body {
     background: var(--color-bg-primary);
     color: var(--color-content-primary);

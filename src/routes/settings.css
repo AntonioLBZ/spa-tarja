@@ -1,0 +1,9 @@
+.settings {
+    display: grid;
+    gap: var(--size-8);
+}
+
+.settings__title {
+    font-size: 1rem;
+    margin: 0;
+}

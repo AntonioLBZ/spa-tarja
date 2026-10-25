@@ -9,15 +9,30 @@
     background: var(--color-bg-secondary);
     border-bottom: var(--size-px) solid var(--color-border);
     display: flex;
+    justify-content: space-between;
     min-height: calc(var(--size-touch) + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
         max(var(--size-4), env(safe-area-inset-left));
+}
+
+.root__brand,
+.root__link {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    min-height: var(--size-touch);
+    text-decoration: none;
 }
 
 .root__brand {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.root__link[aria-current='page'] {
+    text-decoration: underline;
+    text-underline-offset: var(--size-1);
 }
 
 .root__main {

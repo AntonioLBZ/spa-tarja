@@ -103,7 +103,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 
 ## 10. Testing
 
-- Vitest with two projects. `server`: `@cloudflare/vitest-plugin` runs the tests in `workerd` with a real local D1 (`env` from `cloudflare:workers`). `front`: jsdom and Testing Library, with `stubApi` and `renderApp` in `src/lib/test/render-app.tsx`; `renderApp` mounts the real `LocaleProvider`, and tests read their expected copy from `en.json`.
+- Vitest with two projects. `server`: `@cloudflare/vitest-plugin` runs the tests in `workerd` with a real local D1 (`env` from `cloudflare:workers`). `front`: jsdom and Testing Library, with `stubApi` and `renderApp` in `src/lib/test/render-app.tsx`; `renderApp` mounts the real `LocaleProvider` and `ThemeProvider`, and tests read their expected copy from `en.json`.
 - A request without a handler in a test fails; it never reaches the network.
 
 ## 11. Roadmap
@@ -128,7 +128,7 @@ Discarded:
 
 Open:
 
-- Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`) and where the language switcher lives (a settings screen).
+- Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`).
 - Better Auth or another option for the login.
 - Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. The free path is `workers.dev`.
 - D1 `database_id` on the first deploy: create the database with `wrangler d1 create` or let Wrangler provision it.

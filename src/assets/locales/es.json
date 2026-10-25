@@ -52,5 +52,20 @@
         "pending": "{count, plural, one {# cambio pendiente de sincronizar} other {# cambios pendientes de sincronizar}}",
         "rejected": "{count, plural, one {No se pudo guardar # gasto y se descartó.} other {No se pudieron guardar # gastos y se descartaron.}}",
         "dismiss": "Cerrar"
+    },
+    "nav": {
+        "settings": "Ajustes"
+    },
+    "settings": {
+        "title": "Ajustes",
+        "language": {
+            "title": "Idioma"
+        },
+        "theme": {
+            "title": "Tema",
+            "system": "Sistema",
+            "light": "Claro",
+            "dark": "Oscuro"
+        }
     }
 }

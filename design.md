@@ -49,9 +49,8 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 
 - Tokens are defined once with `light-dark()`, with `color-scheme: light dark` on `:root`. An explicit choice sets `data-theme="light"` or `data-theme="dark"` on `<html>`, which forces `color-scheme`. "System" removes the attribute, so the OS preference applies from the first paint, with no flash and no inline script.
 - A theme change fades the colors instead of snapping. Wrap the state update in `withColorTransition`, as `lib/color-transition.ts` does in `spa-anicalendar`: it sets `data-color-transition` on `<html>` for `--duration-slow`. Don't use a View Transition for this: it makes the page inert, and a click in the middle of the fade lands on `<html>`.
-- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference; once the theme setting exists, JS updates it for an explicit choice.
-
-The theme setting itself isn't built yet (see `TODO.md`).
+- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference; JS points them all at the header surface for an explicit choice and puts them back for "system".
+- The choice lives in `localStorage` (`tarja:theme`) and is applied before the first render. The settings screen (`/settings`, linked from the header) holds it, next to the language. Both are a `ChoiceGroup`: a radio group drawn as a row of boxes, the checked one filled with the accent.
 
 ## 3. Shape
 

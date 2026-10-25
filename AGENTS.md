@@ -69,7 +69,7 @@ core/     pure logic shared by client and server (not created yet)
 - Vitest with `globals: false`: import `describe`, `it`, `expect` and `vi` from `vitest`.
 - Tests sit next to the code they cover (`*.test.ts(x)`), no comments in tests.
 - `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', {}, env)`.
-- `front` tests render the real route tree with `renderApp` (it mounts the real `LocaleProvider`) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB; use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
+- `front` tests render the real route tree with `renderApp` (it mounts the real `LocaleProvider` and `ThemeProvider`) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB; use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
 
 ## Conventions
 

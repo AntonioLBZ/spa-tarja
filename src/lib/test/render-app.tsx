@@ -7,6 +7,7 @@ import { LocaleProvider } from '@/lib/i18n';
 import { OutboxProvider, createOutbox, type Outbox } from '@/lib/offline';
 import { createQueryClient } from '@/lib/query-client';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { ThemeProvider } from '@/lib/theme';
 import { createAppRouter } from '@/router';
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
@@ -29,11 +30,13 @@ function renderApp({
     const queryClient = createQueryClient();
     const rendered = render(
         <LocaleProvider>
-            <OutboxProvider outbox={outbox}>
-                <QueryClientProvider client={queryClient}>
-                    <RouterProvider router={router} />
-                </QueryClientProvider>
-            </OutboxProvider>
+            <ThemeProvider>
+                <OutboxProvider outbox={outbox}>
+                    <QueryClientProvider client={queryClient}>
+                        <RouterProvider router={router} />
+                    </QueryClientProvider>
+                </OutboxProvider>
+            </ThemeProvider>
         </LocaleProvider>
     );
     return { ...rendered, outbox, queryClient };

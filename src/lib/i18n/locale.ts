@@ -4,6 +4,9 @@ type AppLocale = (typeof LOCALES)[number];
 
 const DEFAULT_LOCALE: AppLocale = 'en';
 
+// Each language in its own, so a reader can find theirs whatever the current one is
+const LOCALE_NAMES: Record<AppLocale, string> = { en: 'English', es: 'Español' };
+
 const STORAGE_KEY = 'tarja:locale';
 
 function isLocale(value: unknown): value is AppLocale {
@@ -36,5 +39,5 @@ function storeLocale(locale: AppLocale): void {
     }
 }
 
-export { DEFAULT_LOCALE, LOCALES, detectLocale, isLocale, readStoredLocale, storeLocale };
+export { DEFAULT_LOCALE, LOCALES, LOCALE_NAMES, detectLocale, isLocale, readStoredLocale, storeLocale };
 export type { AppLocale };

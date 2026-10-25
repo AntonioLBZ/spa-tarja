@@ -1,4 +1,5 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
+import { useTranslations } from 'use-intl';
 
 import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
 
@@ -7,10 +8,17 @@ import './root.css';
 export const Route = createRootRoute({ component: RootLayout });
 
 function RootLayout() {
+    const t = useTranslations('nav');
+
     return (
         <div className="root">
             <header className="root__header">
-                <span className="root__brand">Tarja</span>
+                <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
+                    Tarja
+                </Link>
+                <Link className="root__link" to="/settings">
+                    {t('settings')}
+                </Link>
             </header>
             <main className="root__main">
                 <Outlet />

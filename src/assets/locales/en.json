@@ -52,5 +52,20 @@
         "pending": "{count, plural, one {# change waiting to sync} other {# changes waiting to sync}}",
         "rejected": "{count, plural, one {# expense couldn't be saved and was discarded.} other {# expenses couldn't be saved and were discarded.}}",
         "dismiss": "Dismiss"
+    },
+    "nav": {
+        "settings": "Settings"
+    },
+    "settings": {
+        "title": "Settings",
+        "language": {
+            "title": "Language"
+        },
+        "theme": {
+            "title": "Theme",
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
+        }
     }
 }
