@@ -5,7 +5,7 @@
 }
 
 .category-manager__title {
-    font-size: 1rem;
+    font-size: var(--font-size-l);
     margin: 0;
 }
 
@@ -43,12 +43,13 @@
 }
 
 .category-manager__heading {
-    font-size: 1rem;
+    font-size: var(--font-size-m);
     margin: 0;
 }
 
 .category-manager__hint {
     color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
     margin: 0;
 }
 
