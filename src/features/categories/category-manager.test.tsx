@@ -22,6 +22,15 @@ function button(name: string) {
     return screen.getByRole('button', { name }) as HTMLButtonElement;
 }
 
+function toggle(name: string) {
+    return button(name);
+}
+
+// Presses the row of a category, which opens the panel under it
+function reveal(name: string) {
+    fireEvent.click(toggle(name));
+}
+
 function newNameField() {
     return screen.getByLabelText(text.add.label) as HTMLInputElement;
 }
@@ -230,10 +239,83 @@ describe('adding', () => {
     });
 });
 
+describe('opening a category', () => {
+    it('shows no way to change it until its row is pressed', async () => {
+        await open({ categories: [gym, plainCategory('Pets')] });
+        await screen.findByText('Gym');
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('button', { name: named(text.editItem, 'Gym') })).toBeNull();
+        expect(screen.queryByRole('button', { name: named(text.deleteItem, 'Gym') })).toBeNull();
+    });
+
+    it('opens Edit and Delete under the category when its row is pressed, and closes them when it is pressed again', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        reveal('Gym');
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('true');
+        expect(button(named(text.editItem, 'Gym'))).toBeDefined();
+        expect(button(named(text.deleteItem, 'Gym'))).toBeDefined();
+
+        reveal('Gym');
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('button', { name: named(text.editItem, 'Gym') })).toBeNull();
+    });
+
+    it('puts the panel in the row of its category, after the row, and ties them together', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        reveal('Gym');
+
+        const item = toggle('Gym').closest('li')!;
+        const panel = within(item)
+            .getByRole('button', { name: named(text.editItem, 'Gym') })
+            .closest('.category-row__panel')!;
+        expect(toggle('Gym').compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(toggle('Gym').getAttribute('aria-controls')).toBe(panel.id);
+        expect(panel.id).not.toBe('');
+    });
+
+    it('does not point at a panel that is not there', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        expect(toggle('Gym').hasAttribute('aria-controls')).toBe(false);
+    });
+
+    it('opens the categories one by one, each with its own panel', async () => {
+        await open({ categories: [gym, plainCategory('Pets')] });
+        await screen.findByText('Gym');
+
+        reveal('Gym');
+        reveal('Pets');
+
+        expect(button(named(text.editItem, 'Gym'))).toBeDefined();
+        expect(button(named(text.editItem, 'Pets'))).toBeDefined();
+
+        reveal('Gym');
+
+        expect(screen.queryByRole('button', { name: named(text.editItem, 'Gym') })).toBeNull();
+        expect(button(named(text.editItem, 'Pets'))).toBeDefined();
+    });
+
+    it('has nothing to open on the built-in categories', async () => {
+        await open();
+
+        expect(screen.queryByRole('button', { name: en.categories.food })).toBeNull();
+        expect(screen.queryByRole('button', { name: named(text.editItem, en.categories.food) })).toBeNull();
+    });
+});
+
 describe('editing', () => {
     async function startRename() {
         const api = await open({ categories: [gym] });
         await screen.findByText('Gym');
+        reveal('Gym');
         fireEvent.click(button(named(text.editItem, 'Gym')));
         return api;
     }
@@ -255,6 +337,52 @@ describe('editing', () => {
         fireEvent.click(button(text.cancel));
 
         expect(document.activeElement).toBe(button(named(text.editItem, 'Gym')));
+    });
+
+    it('turns the name into a field in the row, with the picker and the buttons under it', async () => {
+        await startRename();
+
+        const item = nameField().closest('li')!;
+        const picker = item.querySelector('.category-row__look')!;
+        const save = button(text.save);
+        const cancel = button(text.cancel);
+        const after = (first: Node, second: Node) =>
+            Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+        expect(after(nameField(), picker)).toBe(true);
+        expect(after(picker, save)).toBe(true);
+        expect(after(save, cancel)).toBe(true);
+        expect(picker.closest('.category-row__panel')).not.toBeNull();
+        expect(nameField().closest('.category-row__panel')).toBeNull();
+        expect(within(item).queryByRole('button', { name: 'Gym' })).toBeNull();
+    });
+
+    it('keeps the picker behind its summary, as it was', async () => {
+        await startRename();
+
+        const picker = nameField().closest('li')!.querySelector('details')!;
+
+        expect(picker.open).toBe(false);
+        expect(within(picker).getByText(text.look.summary)).toBeDefined();
+    });
+
+    it('closes the panel once saved', async () => {
+        await startRename();
+
+        fireEvent.change(nameField(), { target: { value: 'Fitness' } });
+        fireEvent.click(button(text.save));
+
+        await screen.findByText('Fitness');
+        expect(toggle('Fitness').getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('button', { name: named(text.editItem, 'Fitness') })).toBeNull();
+    });
+
+    it('keeps the panel open when cancelled, with Edit and Delete again', async () => {
+        await startRename();
+
+        fireEvent.click(button(text.cancel));
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('true');
+        expect(button(named(text.editItem, 'Gym'))).toBeDefined();
     });
 
     it('saves the new name', async () => {
@@ -329,6 +457,7 @@ describe('editing', () => {
     it('refuses the name of another category', async () => {
         const api = await open({ categories: [gym, plainCategory('Pets')] });
         await screen.findByText('Gym');
+        reveal('Gym');
         fireEvent.click(button(named(text.editItem, 'Gym')));
 
         fireEvent.change(nameField(), { target: { value: 'pets' } });
@@ -354,6 +483,7 @@ describe('deleting', () => {
     async function startDelete() {
         const api = await open({ categories: [gym] });
         await screen.findByText('Gym');
+        reveal('Gym');
         fireEvent.click(button(named(text.deleteItem, 'Gym')));
         return api;
     }
@@ -409,6 +539,7 @@ describe('without a connection', () => {
     it('says so and leaves the categories as they are', async () => {
         await open({ categories: [gym] });
         await screen.findByText('Gym');
+        reveal('Gym');
 
         onlineManager.setOnline(false);
 
@@ -416,6 +547,17 @@ describe('without a connection', () => {
         await waitFor(() => expect(button(text.add.submit).disabled).toBe(true));
         expect(button(named(text.editItem, 'Gym')).disabled).toBe(true);
         expect(button(named(text.deleteItem, 'Gym')).disabled).toBe(true);
+    });
+
+    it('still opens a category to look at it', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+        onlineManager.setOnline(false);
+        await screen.findByText(text.offline);
+
+        reveal('Gym');
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('true');
     });
 
     it('lets them be changed again once back online', async () => {

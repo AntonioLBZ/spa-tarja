@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
@@ -22,9 +22,12 @@ interface CategoryRowProps {
     fallbackLabel: string;
 }
 
+// A category the person made. Pressing it opens a panel under it: Edit and Delete, and what each of them needs.
 function CategoryRow(props: CategoryRowProps) {
     const { category, disabled, isTaken, onSave, onDelete, fallbackLabel } = props;
     const t = useTranslations('categoryManager');
+    const panelId = useId();
+    const [expanded, setExpanded] = useState(false);
     const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
     const [draft, setDraft] = useState(category.name);
     const [look, setLook] = useState<CategoryStyle>(category);
@@ -44,7 +47,7 @@ function CategoryRow(props: CategoryRowProps) {
         shownMode.current = mode;
     }, [mode]);
 
-    function open(next: 'edit' | 'delete') {
+    function begin(next: 'edit' | 'delete') {
         setOpener(next);
         setDraft(category.name);
         setLook({ color: category.color, icon: category.icon });
@@ -68,8 +71,12 @@ function CategoryRow(props: CategoryRowProps) {
         setError(null);
         const failure = await onSave({ name, ...look });
         setBusy(false);
-        if (failure) setError(failure);
-        else close();
+        if (failure) {
+            setError(failure);
+            return;
+        }
+        close();
+        setExpanded(false);
     }
 
     async function handleDelete() {
@@ -79,6 +86,12 @@ function CategoryRow(props: CategoryRowProps) {
         setBusy(false);
         if (!deleted) setError('deleteFailed');
     }
+
+    const message = error && (
+        <p className="category-row__error" role="alert">
+            {t(error)}
+        </p>
+    );
 
     if (mode === 'edit') {
         return (
@@ -98,82 +111,86 @@ function CategoryRow(props: CategoryRowProps) {
                             setError(null);
                         }}
                     />
-                    <details className="category-row__look">
-                        <summary>{t('look.summary')}</summary>
-                        <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
-                    </details>
-                    <button disabled={disabled || busy} type="submit">
-                        {t('save')}
-                    </button>
-                    <button type="button" onClick={close}>
-                        {t('cancel')}
-                    </button>
+                    <div className="category-row__panel">
+                        <details className="category-row__look">
+                            <summary>{t('look.summary')}</summary>
+                            <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
+                        </details>
+                        <div className="category-row__actions">
+                            <button disabled={disabled || busy} type="submit">
+                                {t('save')}
+                            </button>
+                            <button type="button" onClick={close}>
+                                {t('cancel')}
+                            </button>
+                        </div>
+                        {message}
+                    </div>
                 </form>
-                {error && (
-                    <p className="category-row__error" role="alert">
-                        {t(error)}
-                    </p>
-                )}
-            </li>
-        );
-    }
-
-    if (mode === 'delete') {
-        return (
-            <li className="category-row">
-                <p className="category-row__question">
-                    {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
-                </p>
-                <div className="category-row__actions">
-                    <button
-                        className="category-row__danger"
-                        aria-label={t('deleteItem', { name: category.name })}
-                        disabled={disabled || busy}
-                        type="button"
-                        onClick={() => void handleDelete()}
-                    >
-                        {t('delete')}
-                    </button>
-                    <button ref={setFocusTarget} type="button" onClick={close}>
-                        {t('cancel')}
-                    </button>
-                </div>
-                {error && (
-                    <p className="category-row__error" role="alert">
-                        {t(error)}
-                    </p>
-                )}
             </li>
         );
     }
 
     return (
         <li className="category-row">
-            <span className="category-row__label">
+            <button
+                className="category-row__toggle"
+                aria-controls={expanded ? panelId : undefined}
+                aria-expanded={expanded}
+                type="button"
+                onClick={() => setExpanded(!expanded)}
+            >
                 <CategoryBadge style={category} />
                 <span className="category-row__name">{category.name}</span>
-            </span>
-            <div className="category-row__actions">
-                <button
-                    ref={opener === 'edit' ? setFocusTarget : undefined}
-                    aria-label={t('editItem', { name: category.name })}
-                    disabled={disabled}
-                    type="button"
-                    onClick={() => open('edit')}
-                >
-                    {t('edit')}
-                </button>
-                <button
-                    ref={opener === 'delete' ? setFocusTarget : undefined}
-                    className="category-row__danger"
-                    aria-label={t('deleteItem', { name: category.name })}
-                    disabled={disabled}
-                    type="button"
-                    onClick={() => open('delete')}
-                >
-                    {t('delete')}
-                </button>
-            </div>
+            </button>
+            {expanded && (
+                <div className="category-row__panel" id={panelId}>
+                    {mode === 'delete' ? (
+                        <>
+                            <p className="category-row__question">
+                                {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
+                            </p>
+                            <div className="category-row__actions">
+                                <button
+                                    className="category-row__danger"
+                                    aria-label={t('deleteItem', { name: category.name })}
+                                    disabled={disabled || busy}
+                                    type="button"
+                                    onClick={() => void handleDelete()}
+                                >
+                                    {t('delete')}
+                                </button>
+                                <button ref={setFocusTarget} type="button" onClick={close}>
+                                    {t('cancel')}
+                                </button>
+                            </div>
+                            {message}
+                        </>
+                    ) : (
+                        <div className="category-row__actions">
+                            <button
+                                ref={opener === 'edit' ? setFocusTarget : undefined}
+                                aria-label={t('editItem', { name: category.name })}
+                                disabled={disabled}
+                                type="button"
+                                onClick={() => begin('edit')}
+                            >
+                                {t('edit')}
+                            </button>
+                            <button
+                                ref={opener === 'delete' ? setFocusTarget : undefined}
+                                className="category-row__danger"
+                                aria-label={t('deleteItem', { name: category.name })}
+                                disabled={disabled}
+                                type="button"
+                                onClick={() => begin('delete')}
+                            >
+                                {t('delete')}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
         </li>
     );
 }

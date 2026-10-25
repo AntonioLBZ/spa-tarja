@@ -128,6 +128,14 @@ Three settings: light (the default), dark and system, which follows the OS.
 - Form controls use 16 px or more, so iOS doesn't zoom in on focus.
 - Layout still needs a check on a real iOS Safari and Android Chrome (`TODO.md`).
 
+### Categories
+
+- `/categories`, reached from a section of the settings that says what categories are for. The person's own categories are rows of the notch with the icon and the name; the built-in ones are rows with nothing to open.
+- A row is a disclosure: pressing it opens a panel right under it with Edit and Delete, and pressing it again closes the panel. Rows open one by one, not as an accordion. The panel comes in with a fade and a short vertical shift over `--duration-base`, like a new expense.
+- Edit turns the name of the row into a field, in the same box, and the panel under it holds the color and icon picker as it always did (still behind its "Color and icon" summary), then Save and Cancel, all outside the L of the field. Saving closes the panel; cancelling goes back to Edit and Delete.
+- Delete asks in the panel, with the question and Delete and Cancel, and says what happens to the expenses.
+- Offline, the rows still open but the buttons in the panel are off, with the notice at the top saying why.
+
 ### Summary
 
 - `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.
