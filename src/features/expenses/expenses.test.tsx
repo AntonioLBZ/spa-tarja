@@ -31,6 +31,12 @@ function expense(overrides: Partial<Expense> = {}): Expense {
     };
 }
 
+function shown(isoDay: string) {
+    return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+        new Date(`${isoDay}T12:00:00`)
+    );
+}
+
 function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement | HTMLSelectElement;
 }
@@ -188,11 +194,6 @@ describe('deferred expenses', () => {
     const paymentField = () => field(en.expenses.form.payment);
     const chargeField = () => field(en.expenses.form.chargeDate);
     const inputDate = (value: string) => fireEvent.change(field(en.expenses.form.date), { target: { value } });
-    const shown = (isoDay: string) =>
-        new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(
-            new Date(`${isoDay}T12:00:00`)
-        );
-
     async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
         const api = createFakeApi(options);
         stubApi(api.handler);
@@ -321,6 +322,336 @@ describe('deferred expenses', () => {
         expect((await row('Coffee')).textContent).not.toContain(en.expenses.payment.credit);
         expect((await row('Coffee')).textContent).not.toContain('charged');
         expect((await row('Spread')).textContent).not.toContain('charged');
+    });
+});
+
+describe('installments', () => {
+    const installments = () => field(en.expenses.form.installments) as HTMLSelectElement;
+    const partLabel = (part: number, parts: number, day: string) =>
+        t('expenses.form.part', { part, parts, date: shown(day) });
+    const partField = (part: number, parts: number, day: string) => field(partLabel(part, parts, day));
+    const DAYS = ['2026-10-25', '2026-11-25', '2026-12-25'];
+    const submit = () => screen.getByRole('button', { name: en.expenses.form.submit }) as HTMLButtonElement;
+    const typeAmount = (value: string) => fireEvent.change(field(en.expenses.form.amount), { target: { value } });
+    const typeText = (value: string) => fireEvent.change(field(en.expenses.form.text), { target: { value } });
+
+    async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
+        const api = createFakeApi(options);
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        return api;
+    }
+
+    it('are one payment unless the person asks for more, with no parts to fill in', async () => {
+        await open();
+
+        expect(installments().value).toBe('1');
+        expect([...installments().options].map((option) => option.textContent)).toEqual([
+            t('expenses.form.installmentsOption', { count: 1 }),
+            ...Array.from({ length: 11 }, (_, index) => t('expenses.form.installmentsOption', { count: index + 2 })),
+        ]);
+        expect(screen.getAllByRole('textbox')).toHaveLength(2);
+    });
+
+    it('are only for what is paid at once: a credit or restaurant card has its own charge date', async () => {
+        await open();
+        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+
+        expect(screen.queryByLabelText(en.expenses.form.installments)).toBeNull();
+    });
+
+    it('split the amount evenly, a part for each month, the remainder going to the first ones', async () => {
+        await open();
+        typeAmount('15.01');
+
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        expect(partField(1, 3, DAYS[0]!).value).toBe('5.01');
+        expect(partField(2, 3, DAYS[1]!).value).toBe('5.00');
+        expect(partField(3, 3, DAYS[2]!).value).toBe('5.00');
+        expect(screen.queryByText(/Remaining/)).toBeNull();
+    });
+
+    it('split again when the total changes', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
+
+        typeAmount('30');
+
+        expect(partField(1, 3, DAYS[0]!).value).toBe('10.00');
+    });
+
+    it('split again when the number of payments changes', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
+
+        fireEvent.change(installments(), { target: { value: '2' } });
+
+        expect(partField(1, 2, DAYS[0]!).value).toBe('7.50');
+        expect(partField(2, 2, DAYS[1]!).value).toBe('7.50');
+    });
+
+    it('keep what was typed when the total is only written another way', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
+
+        typeAmount('15.00');
+
+        expect(partField(1, 3, DAYS[0]!).value).toBe('9');
+    });
+
+    it('follow the day of the purchase', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '2' } });
+
+        fireEvent.change(field(en.expenses.form.date), { target: { value: '2026-01-31' } });
+
+        expect(partField(1, 2, '2026-01-31').value).toBe('7.50');
+        expect(partField(2, 2, '2026-02-28').value).toBe('7.50');
+    });
+
+    it('say what is left to assign, and do not save until the parts add up', async () => {
+        const api = await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
+
+        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' }))).toBeDefined();
+        expect(submit().disabled).toBe(true);
+        fireEvent.submit(submit().closest('form')!);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(api.writes).toHaveLength(0);
+        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' }))).toBeDefined();
+    });
+
+    it('refuse parts that go over the total', async () => {
+        const api = await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '6' } });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(t('expenses.form.over', { amount: '€1.00' }));
+        expect(submit().disabled).toBe(true);
+        expect(api.writes).toHaveLength(0);
+    });
+
+    it('refuse a part that is not an amount above zero', async () => {
+        const api = await open();
+        typeAmount('10');
+        fireEvent.change(installments(), { target: { value: '2' } });
+
+        fireEvent.change(partField(1, 2, DAYS[0]!), { target: { value: '10' } });
+        fireEvent.change(partField(2, 2, DAYS[1]!), { target: { value: '0' } });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.partInvalid);
+        expect(partField(2, 2, DAYS[1]!).getAttribute('aria-invalid')).toBe('true');
+        expect(submit().disabled).toBe(true);
+        expect(api.writes).toHaveLength(0);
+    });
+
+    it('add up again once the parts are fixed', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
+        expect(submit().disabled).toBe(true);
+
+        fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '6' } });
+
+        expect(submit().disabled).toBe(false);
+        expect(screen.queryByText(/Remaining/)).toBeNull();
+    });
+
+    it('are saved as one expense for each part, linked as a plan, each counting in its own month', async () => {
+        const api = await open();
+        typeAmount('15.01');
+        typeText('Sofa');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.click(submit());
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        const planIds = new Set(api.writes.map((write) => write.plan?.id));
+        expect(planIds.size).toBe(1);
+        expect(new Set(api.writes.map((write) => write.id)).size).toBe(3);
+        expect(
+            api.writes.map((write) => [write.plan?.part, write.plan?.parts, write.amountCents, write.chargeDate])
+        ).toEqual([
+            [1, 3, 501, DAYS[0]],
+            [2, 3, 500, DAYS[1]],
+            [3, 3, 500, DAYS[2]],
+        ]);
+        const now = Date.now();
+        for (const write of api.writes) {
+            expect(write).toMatchObject({
+                text: 'Sofa',
+                categoryId: 'other',
+                date: TODAY,
+                payment: 'direct',
+                createdAt: now,
+                updatedAt: now,
+                deletedAt: null,
+            });
+        }
+    });
+
+    it('are saved with the amounts the person set', async () => {
+        const api = await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '5' } });
+        fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '6' } });
+        fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
+
+        fireEvent.click(submit());
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        expect(api.writes.map((write) => write.amountCents)).toEqual([500, 600, 400]);
+    });
+
+    it('are left out when the expense is deferred after all', async () => {
+        const api = await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        fireEvent.click(submit());
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({
+            amountCents: 1500,
+            payment: 'credit',
+            chargeDate: '2026-11-25',
+            plan: null,
+        });
+    });
+
+    it('come back when the expense is paid at once again', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+
+        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'direct' } });
+
+        expect(installments().value).toBe('3');
+        expect(partField(3, 3, DAYS[2]!).value).toBe('5.00');
+    });
+
+    it('start from an even split again for the next expense, whatever was typed in the last one', async () => {
+        const api = await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+        fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '6' } });
+        fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '5' } });
+        fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
+        fireEvent.click(submit());
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        expect(partField(1, 3, DAYS[0]!).value).toBe('5.00');
+        expect(partField(3, 3, DAYS[2]!).value).toBe('5.00');
+    });
+
+    it('go back to one payment after a plan is saved', async () => {
+        await open();
+        typeAmount('15');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.click(submit());
+        await screen.findByRole('listitem');
+
+        expect(installments().value).toBe('1');
+        expect(field(en.expenses.form.amount).value).toBe('');
+    });
+
+    it('show in the list as one expense with the total and where the plan ends', async () => {
+        const plan = crypto.randomUUID();
+        const parts = DAYS.map((day, index) =>
+            expense({
+                text: 'Sofa',
+                amountCents: 500 + index,
+                payment: 'direct',
+                chargeDate: day,
+                plan: { id: plan, part: index + 1, parts: 3 },
+            })
+        );
+        stubApi(createFakeApi({ expenses: [...parts.toReversed(), expense({ text: 'Coffee' })] }).handler);
+
+        renderApp();
+
+        const row = (await screen.findByText('Sofa')).closest('li')!;
+        expect(screen.getAllByRole('listitem')).toHaveLength(2);
+        expect(row.textContent).toContain('€15.03');
+        expect(row.textContent).toContain(t('expenses.list.plan', { parts: 3, date: shown(DAYS[2]!) }));
+    });
+
+    it('are marked as not synced when only one of the parts is waiting', async () => {
+        const plan = crypto.randomUUID();
+        const parts = DAYS.map((day, index) =>
+            expense({ text: 'Sofa', chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        const api = createFakeApi({ expenses: parts });
+        stubApi(api.handler);
+        const { outbox } = renderApp();
+        await screen.findByText(t('expenses.list.plan', { parts: 3, date: shown(DAYS[2]!) }));
+        const row = screen.getByText('Sofa').closest('li')!;
+        expect(within(row).queryByText(en.expenses.list.pending)).toBeNull();
+        api.state.writeStatus = 503;
+
+        await outbox.put({ ...parts[1]!, updatedAt: 2_000 });
+
+        expect(await within(row).findByText(en.expenses.list.pending)).toBeDefined();
+    });
+
+    it('are deleted together from the list', async () => {
+        const plan = crypto.randomUUID();
+        const parts = DAYS.map((day, index) =>
+            expense({ text: 'Sofa', chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        const api = createFakeApi({ expenses: parts });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Sofa');
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        expect(api.writes.every((write) => write.deletedAt !== null)).toBe(true);
+        await waitFor(() => expect(screen.queryByText('Sofa')).toBeNull());
+    });
+
+    it('wait as one expense, with every part, until the connection is back', async () => {
+        const api = await open();
+        onlineManager.setOnline(false);
+        typeAmount('15');
+        typeText('Sofa');
+        fireEvent.change(installments(), { target: { value: '3' } });
+
+        fireEvent.click(submit());
+
+        const row = await screen.findByRole('listitem');
+        expect(within(row).getAllByText(en.expenses.list.pending)).toHaveLength(1);
+        expect(screen.getByText(t('sync.pending', { count: 3 }))).toBeDefined();
+        expect(api.attempts).toHaveLength(0);
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
     });
 });
 
@@ -508,6 +839,47 @@ describe('a deleted expense leaving the list', () => {
 
         expect(row.className).not.toContain('expense-item--leaving');
         await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+    });
+});
+
+describe('a deleted plan leaving the list', () => {
+    const root = document.documentElement;
+    afterEach(() => root.style.removeProperty('--duration-base'));
+
+    it('keeps its total and every payment on screen while it fades out', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-25', '2026-11-25', '2026-12-25'].map((day, index) =>
+            expense({ text: 'Sofa', amountCents: 500, chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        const api = createFakeApi({ expenses: parts });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Sofa');
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        const row = screen.getByText('Sofa').closest('li')!;
+        expect(row.className).toContain('expense-item--leaving');
+        expect(row.textContent).toContain('€15.00');
+        expect(row.textContent).toContain(t('expenses.list.plan', { parts: 3, date: shown('2026-12-25') }));
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    });
+
+    it('goes entirely once the fade is over', async () => {
+        root.style.setProperty('--duration-base', '60ms');
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-25', '2026-11-25', '2026-12-25'].map((day, index) =>
+            expense({ text: 'Sofa', chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        stubApi(createFakeApi({ expenses: parts }).handler);
+        renderApp();
+        await screen.findByText('Sofa');
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Sofa') }));
+
+        await waitFor(() => expect(screen.queryByText('Sofa')).toBeNull());
     });
 });
 

@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 
 import { isCalendarDate } from './date';
+import { MAX_INSTALLMENTS } from './installments';
 import { MAX_AMOUNT_CENTS } from './money';
 
 const TEXT_MAX_LENGTH = 200;
@@ -12,6 +13,16 @@ const timestamp = v.pipe(v.number(), v.integer(), v.minValue(0));
 const PAYMENTS = ['direct', 'credit', 'voucher'] as const;
 
 const paymentSchema = v.picklist(PAYMENTS);
+
+// One part of an expense paid in installments: the plan it belongs to, which part it is and how many there are
+const planSchema = v.pipe(
+    v.object({
+        id: v.pipe(v.string(), v.uuid()),
+        part: v.pipe(v.number(), v.integer(), v.minValue(1)),
+        parts: v.pipe(v.number(), v.integer(), v.minValue(2), v.maxValue(MAX_INSTALLMENTS)),
+    }),
+    v.check(({ part, parts }) => part <= parts, 'There is no such part')
+);
 
 const calendarDate = v.pipe(v.string(), v.check(isCalendarDate, 'Not a calendar day'));
 
@@ -26,6 +37,7 @@ const expenseInputSchema = v.pipe(
         date: calendarDate,
         payment: v.optional(paymentSchema),
         chargeDate: v.optional(v.nullable(calendarDate)),
+        plan: v.optional(v.nullable(planSchema)),
         createdAt: timestamp,
         updatedAt: timestamp,
         deletedAt: v.nullable(timestamp),
@@ -36,6 +48,10 @@ const expenseInputSchema = v.pipe(
             'A credit or restaurant card expense needs a charge date'
         ),
         ['chargeDate']
+    ),
+    v.forward(
+        v.check(({ payment, plan }) => !plan || payment !== 'voucher', 'A restaurant card is not paid in installments'),
+        ['plan']
     ),
     v.forward(
         v.check(({ date, chargeDate }) => !chargeDate || chargeDate >= date, 'It cannot be charged before it is made'),

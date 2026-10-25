@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_CURRENCY, formatAmount, parseAmount } from './money';
+import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from './money';
 
 describe('parseAmount', () => {
     it('reads a whole number as cents', () => {
@@ -54,5 +54,21 @@ describe('formatAmount', () => {
     it('formats cents with the currency and the locale conventions', () => {
         expect(formatAmount(123456, DEFAULT_CURRENCY, 'en')).toBe('€1,234.56');
         expect(formatAmount(123456, DEFAULT_CURRENCY, 'es')).toBe('1234,56 €');
+    });
+});
+
+describe('formatAmountInput', () => {
+    it('writes cents the way a person would type them, with two decimals and no grouping', () => {
+        expect(formatAmountInput(123456, 'en')).toBe('1234.56');
+        expect(formatAmountInput(123456, 'es')).toBe('1234,56');
+        expect(formatAmountInput(500, 'en')).toBe('5.00');
+        expect(formatAmountInput(5, 'en')).toBe('0.05');
+    });
+
+    it('is read back as the same cents', () => {
+        for (const cents of [1, 99, 100, 501, 100000, 123456789]) {
+            for (const locale of ['en', 'es'])
+                expect(parseAmount(formatAmountInput(cents, locale), locale)).toBe(cents);
+        }
     });
 });

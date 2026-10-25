@@ -122,3 +122,62 @@ describe('outbox', () => {
         expect(outbox.getState().rejected).toBe(0);
     });
 });
+
+describe('putAll', () => {
+    it('holds every expense, in the order given, after what was already pending', async () => {
+        const { outbox } = await openOutbox();
+        await outbox.put(expense('a'));
+
+        await outbox.putAll([expense('b'), expense('c')]);
+
+        expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('replaces the entries of expenses that were already there', async () => {
+        const { outbox } = await openOutbox();
+        await outbox.putAll([expense('a'), expense('b')]);
+
+        await outbox.putAll([expense('b', { text: 'edited', updatedAt: 2 }), expense('c')]);
+
+        expect(outbox.getState().pending.map((item) => [item.id, item.text])).toEqual([
+            ['a', 'a'],
+            ['b', 'edited'],
+            ['c', 'c'],
+        ]);
+    });
+
+    it('reaches the disk in one write and tells the subscribers once', async () => {
+        const storage = createMemoryStorage();
+        const set = vi.spyOn(storage, 'set');
+        const { outbox } = await openOutbox(storage);
+        const listener = vi.fn();
+        outbox.subscribe(listener);
+
+        await outbox.putAll([expense('a'), expense('b'), expense('c')]);
+
+        expect(set).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenCalledTimes(1);
+        const reloaded = createOutbox(storage);
+        await reloaded.ready;
+        expect(reloaded.getState().pending.map((item) => item.id)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('keeps none of them when the device cannot store them', async () => {
+        const storage = { ...createMemoryStorage(), set: () => Promise.reject(new Error('quota exceeded')) };
+        const { outbox } = await openOutbox(storage);
+
+        await expect(outbox.putAll([expense('a'), expense('b')])).rejects.toThrow('quota exceeded');
+
+        expect(outbox.getState().pending).toEqual([]);
+    });
+
+    it('does nothing for an empty list', async () => {
+        const storage = createMemoryStorage();
+        const set = vi.spyOn(storage, 'set');
+        const { outbox } = await openOutbox(storage);
+
+        await outbox.putAll([]);
+
+        expect(set).not.toHaveBeenCalled();
+    });
+});

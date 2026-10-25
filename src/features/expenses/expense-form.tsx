@@ -8,16 +8,23 @@ import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { suggestCategory } from '@core/classifier';
 import { addMonths, toDateString } from '@core/date';
 import { PAYMENTS, TEXT_MAX_LENGTH, type Payment } from '@core/expense';
-import { DEFAULT_CURRENCY, parseAmount } from '@core/money';
+import { installmentDates, planBalance, splitEvenly } from '@core/installments';
+import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from '@core/money';
 
+import { createExpenses } from './create-expenses';
 import { useSaveExpense } from './use-save-expense';
+import { useShortDate } from './use-short-date';
 
 import './expense-form.css';
+
+// A year of monthly payments; the data allows longer plans (core/installments)
+const INSTALLMENT_CHOICES = Array.from({ length: 12 }, (_, index) => index + 1);
 
 function ExpenseForm() {
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
+    const shortDate = useShortDate();
     const save = useSaveExpense();
     const { options, styleOf } = useCategoryOptions();
     const id = useId();
@@ -28,6 +35,9 @@ function ExpenseForm() {
     const [date, setDate] = useState(() => toDateString(new Date()));
     const [payment, setPayment] = useState<Payment>('direct');
     const [pickedCharge, setPickedCharge] = useState<string | null>(null);
+    const [installments, setInstallments] = useState(1);
+    // What the person typed in the parts, valid only for the total and the count it was typed for
+    const [editedParts, setEditedParts] = useState<{ key: string; values: string[] } | null>(null);
     const [chargeInvalid, setChargeInvalid] = useState(false);
     const [amountInvalid, setAmountInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -41,14 +51,50 @@ function ExpenseForm() {
     // A deferred expense is charged a month after it was made unless the person picks the day
     const chargeDate = payment === 'direct' ? null : (pickedCharge ?? addMonths(date, 1));
 
+    // Only what is paid at once can be split: a deferred expense is already charged on a day of its own
+    const parts = payment === 'direct' ? installments : 1;
+    const totalCents = parseAmount(amount, locale);
+    const planDates = installmentDates(date, parts);
+    const partsKey = `${totalCents}:${parts}`;
+    const partTexts =
+        editedParts?.key === partsKey
+            ? editedParts.values
+            : totalCents === null
+              ? []
+              : splitEvenly(totalCents, parts).map((cents) => formatAmountInput(cents, locale));
+    const partCents = partTexts.map((value) => parseAmount(value, locale));
+    const balance =
+        totalCents === null
+            ? 0
+            : planBalance(
+                  totalCents,
+                  partCents.map((cents) => cents ?? 0)
+              );
+    const partsProblem =
+        parts === 1
+            ? null
+            : partCents.some((cents) => cents === null || cents < 1)
+              ? 'invalid'
+              : balance < 0
+                ? 'over'
+                : balance > 0
+                  ? 'remaining'
+                  : null;
+
+    function editPart(index: number, value: string) {
+        setEditedParts({ key: partsKey, values: partTexts.map((text, at) => (at === index ? value : text)) });
+    }
+
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
-        const amountCents = parseAmount(amount, locale);
+        const amountCents = totalCents;
         if (amountCents === null || amountCents < 1) {
             setAmountInvalid(true);
             return;
         }
+
+        if (partsProblem !== null) return;
 
         if (chargeDate !== null && chargeDate < date) {
             setChargeInvalid(true);
@@ -59,26 +105,23 @@ function ExpenseForm() {
         setChargeInvalid(false);
         setSaveFailed(false);
         setSaving(true);
-        const now = Date.now();
+        const expenses = createExpenses({
+            categoryId,
+            text: text.trim(),
+            date,
+            payment,
+            chargeDate,
+            amounts: parts === 1 ? [amountCents] : partCents.filter((cents) => cents !== null),
+        });
         try {
-            await save({
-                id: crypto.randomUUID(),
-                categoryId,
-                text: text.trim(),
-                amountCents,
-                currency: DEFAULT_CURRENCY,
-                date,
-                payment,
-                chargeDate,
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-            });
+            await save(expenses);
             setAmount('');
             setText('');
             setPicked(null);
             setPayment('direct');
             setPickedCharge(null);
+            setInstallments(1);
+            setEditedParts(null);
         } catch {
             setSaveFailed(true);
         } finally {
@@ -191,6 +234,59 @@ function ExpenseForm() {
                 </div>
             )}
 
+            {payment === 'direct' && (
+                <div className="expense-form__field">
+                    <label htmlFor={`${id}-installments`}>{t('installments')}</label>
+                    <select
+                        id={`${id}-installments`}
+                        value={installments}
+                        onChange={(event) => setInstallments(Number(event.target.value))}
+                    >
+                        {INSTALLMENT_CHOICES.map((count) => (
+                            <option key={count} value={count}>
+                                {t('installmentsOption', { count })}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {parts > 1 &&
+                partTexts.map((value, index) => (
+                    <div className="expense-form__field" key={planDates[index]}>
+                        <label htmlFor={`${id}-part-${index}`}>
+                            {t('part', { part: index + 1, parts, date: shortDate(planDates[index]!) })}
+                        </label>
+                        <input
+                            id={`${id}-part-${index}`}
+                            aria-describedby={partsProblem === 'invalid' ? `${id}-parts-error` : undefined}
+                            aria-invalid={partCents[index] === null || partCents[index]! < 1}
+                            autoComplete="off"
+                            inputMode="decimal"
+                            required
+                            type="text"
+                            value={value}
+                            onChange={(event) => editPart(index, event.target.value)}
+                        />
+                    </div>
+                ))}
+
+            {partsProblem === 'invalid' && (
+                <p className="expense-form__error" id={`${id}-parts-error`} role="alert">
+                    {t('partInvalid')}
+                </p>
+            )}
+            {partsProblem === 'over' && (
+                <p className="expense-form__error" role="alert">
+                    {t('over', { amount: formatAmount(-balance, DEFAULT_CURRENCY, locale) })}
+                </p>
+            )}
+            {partsProblem === 'remaining' && (
+                <p className="expense-form__hint" role="status">
+                    {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
+                </p>
+            )}
+
             {amountInvalid && (
                 <p className="expense-form__error" id={`${id}-error`} role="alert">
                     {t('amountInvalid')}
@@ -207,7 +303,7 @@ function ExpenseForm() {
                 </p>
             )}
 
-            <button className="expense-form__submit" disabled={saving} type="submit">
+            <button className="expense-form__submit" disabled={saving || partsProblem !== null} type="submit">
                 {t('submit')}
             </button>
         </form>

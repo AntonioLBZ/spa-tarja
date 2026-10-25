@@ -26,9 +26,15 @@
             "date": "Date",
             "payment": "Payment",
             "chargeDate": "Charged on",
+            "installments": "Installments",
+            "installmentsOption": "{count, plural, one {In one payment} other {In # monthly payments}}",
+            "part": "Payment {part} of {parts}, {date}",
+            "remaining": "Remaining {amount}",
+            "over": "{amount} over the total",
             "submit": "Add",
             "amountInvalid": "Enter an amount above zero.",
             "chargeDateInvalid": "It can't be charged before the day of the expense.",
+            "partInvalid": "Each payment needs an amount above zero.",
             "saveFailed": "Couldn't save the expense on this device. Try again."
         },
         "payment": {
@@ -43,7 +49,8 @@
             "delete": "Delete",
             "deleteItem": "Delete {name}",
             "pending": "Not synced yet",
-            "charged": "{payment}, charged {date}"
+            "charged": "{payment}, charged {date}",
+            "plan": "{parts} payments, until {date}"
         }
     },
     "categories": {

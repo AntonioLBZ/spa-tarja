@@ -9,10 +9,12 @@ import { readDuration } from '@/lib/motion';
 import { paymentOf } from '@core/counting';
 import { fromDateString } from '@core/date';
 import { groupByDay } from '@core/expense-groups';
+import { collapsePlans, planTotal } from '@core/installments';
 import { formatAmount } from '@core/money';
 
 import { useExpenseGroups } from './use-expense-groups';
 import { useSaveExpense } from './use-save-expense';
+import { useShortDate } from './use-short-date';
 
 import type { Expense } from '@core/expense';
 
@@ -22,6 +24,7 @@ function ExpenseList() {
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
+    const shortDate = useShortDate();
     const save = useSaveExpense();
     const { labelOf, styleOf } = useCategoryOptions();
     const { groups, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenseGroups();
@@ -39,27 +42,24 @@ function ExpenseList() {
         return groupByDay([...live, ...[...leaving.values()].filter((expense) => !liveIds.has(expense.id))]);
     }, [groups, leaving]);
 
-    function remove(expense: Expense, now: number) {
-        void save({ ...expense, updatedAt: now, deletedAt: now });
+    // All the parts of a plan go together
+    function remove(expenses: readonly Expense[], now: number) {
+        void save(expenses.map((expense) => ({ ...expense, updatedAt: now, deletedAt: now })));
 
         const duration = readDuration('--duration-base');
         if (duration === 0) return;
-        setLeaving((current) => new Map(current).set(expense.id, expense));
+        setLeaving((current) => new Map([...current, ...expenses.map((expense) => [expense.id, expense] as const)]));
         const timer = setTimeout(() => {
             timers.current.delete(timer);
             setLeaving((current) => {
                 const next = new Map(current);
-                next.delete(expense.id);
+                for (const expense of expenses) next.delete(expense.id);
                 return next;
             });
         }, duration);
         timers.current.add(timer);
     }
 
-    const chargeFormat = useMemo(
-        () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }),
-        [locale]
-    );
     const dayFormat = useMemo(
         () => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
         [locale]
@@ -83,18 +83,23 @@ function ExpenseList() {
                 <section className="expense-list__day" key={group.date}>
                     <h3 className="expense-list__date">{dayFormat.format(fromDateString(group.date))}</h3>
                     <ul className="expense-list__items">
-                        {group.expenses.map((expense) => {
+                        {collapsePlans(group.expenses).map((item) => {
+                            const expenses = item.kind === 'plan' ? item.parts : [item.expense];
+                            const expense = expenses[0]!;
                             const category = labelOf(expense.categoryId);
                             const name = expense.text || category;
-                            const pending = pendingIds.has(expense.id);
+                            const pending = expenses.some((part) => pendingIds.has(part.id));
                             const isLeaving = leaving.has(expense.id);
+                            const lastCharge = expenses.at(-1)!.chargeDate;
                             const charged =
-                                expense.chargeDate && paymentOf(expense) !== 'direct'
-                                    ? t('charged', {
-                                          payment: tPayment(paymentOf(expense)),
-                                          date: chargeFormat.format(fromDateString(expense.chargeDate)),
-                                      })
-                                    : null;
+                                item.kind === 'plan'
+                                    ? lastCharge && t('plan', { parts: expenses.length, date: shortDate(lastCharge) })
+                                    : expense.chargeDate && paymentOf(expense) !== 'direct'
+                                      ? t('charged', {
+                                            payment: tPayment(paymentOf(expense)),
+                                            date: shortDate(expense.chargeDate),
+                                        })
+                                      : null;
                             return (
                                 <li
                                     className={clsx('expense-item', isLeaving && 'expense-item--leaving')}
@@ -105,7 +110,7 @@ function ExpenseList() {
                                         <span className="expense-item__text">{name}</span>
                                     </span>
                                     <span className="expense-item__amount">
-                                        {formatAmount(expense.amountCents, expense.currency, locale)}
+                                        {formatAmount(planTotal(expenses), expense.currency, locale)}
                                     </span>
                                     {(expense.text || pending || charged) && (
                                         <span className="expense-item__meta">
@@ -119,7 +124,7 @@ function ExpenseList() {
                                         aria-label={t('deleteItem', { name })}
                                         disabled={isLeaving}
                                         type="button"
-                                        onClick={() => remove(expense, Date.now())}
+                                        onClick={() => remove(expenses, Date.now())}
                                     >
                                         {t('delete')}
                                     </button>

@@ -59,4 +59,36 @@ describe('expenseInputSchema', () => {
     ])('rejects %s', (_name, overrides) => {
         expect(parse(overrides).success).toBe(false);
     });
+
+    describe('plans', () => {
+        const plan = { id: crypto.randomUUID(), part: 2, parts: 3 };
+
+        it('accepts a part of a plan, charged on its own day', () => {
+            const result = parse({ payment: 'direct', chargeDate: '2026-11-25', plan });
+
+            expect(result.success).toBe(true);
+            expect(result.output).toMatchObject({ plan });
+        });
+
+        it('accepts a part of a plan paid with a credit card', () => {
+            expect(parse({ payment: 'credit', chargeDate: '2026-11-25', plan }).success).toBe(true);
+        });
+
+        it('accepts an expense that is in no plan', () => {
+            expect(parse({ plan: null }).success).toBe(true);
+        });
+
+        it.each([
+            ['a plan of one part', { plan: { ...plan, part: 1, parts: 1 } }],
+            ['a plan of more than three years', { plan: { ...plan, parts: 37 } }],
+            ['a part past the last one', { plan: { ...plan, part: 4 } }],
+            ['part zero', { plan: { ...plan, part: 0 } }],
+            ['a fractional part', { plan: { ...plan, part: 1.5 } }],
+            ['an id that is not a UUID', { plan: { ...plan, id: 'plan' } }],
+            ['a plan paid with a restaurant card', { payment: 'voucher', chargeDate: '2026-11-25', plan }],
+            ['a plan with no part number', { plan: { id: plan.id, parts: 3 } }],
+        ])('rejects %s', (_name, overrides) => {
+            expect(parse(overrides).success).toBe(false);
+        });
+    });
 });

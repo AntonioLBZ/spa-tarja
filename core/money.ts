@@ -47,4 +47,13 @@ function formatAmount(cents: number, currency: string, locale: string): string {
     return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(cents / 100);
 }
 
-export { DEFAULT_CURRENCY, MAX_AMOUNT_CENTS, formatAmount, parseAmount };
+// Cents as text for an amount field: what parseAmount reads back, so no grouping and no currency
+function formatAmountInput(cents: number, locale: string): string {
+    return new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: false,
+    }).format(cents / 100);
+}
+
+export { DEFAULT_CURRENCY, MAX_AMOUNT_CENTS, formatAmount, formatAmountInput, parseAmount };

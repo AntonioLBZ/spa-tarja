@@ -17,6 +17,8 @@ interface Outbox {
     getState: () => OutboxState;
     subscribe: (listener: () => void) => () => void;
     put: (expense: Expense) => Promise<void>;
+    // Several at once, written to the device together: either all of them are safe or none is
+    putAll: (expenses: readonly Expense[]) => Promise<void>;
     // Forget an expense the server confirmed, unless it was edited again meanwhile
     settle: (sent: Expense) => Promise<void>;
     // Forget an expense the server refused for good, and count it
@@ -74,6 +76,10 @@ function createOutbox(storage: KeyValueStorage): Outbox {
             };
         },
         put: (expense) => run(() => save({ ...state, pending: upsertById(state.pending, expense) })),
+        putAll: (expenses) =>
+            expenses.length === 0
+                ? Promise.resolve()
+                : run(() => save({ ...state, pending: expenses.reduce(upsertById, state.pending) })),
         settle: (sent) => forget(sent, false),
         reject: (sent) => forget(sent, true),
         dismissRejected: () => commit({ ...state, rejected: 0 }),

@@ -12,6 +12,7 @@ interface Payload {
     date: string;
     payment?: string;
     chargeDate?: string | null;
+    plan?: { id: string; part: number; parts: number } | null;
     createdAt: number;
     updatedAt: number;
     deletedAt: number | null;
@@ -73,7 +74,7 @@ describe('PUT /api/expenses/:id', () => {
         const response = await put(id, payload());
 
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ id, ...payload(), payment: 'direct', chargeDate: null });
+        expect(await response.json()).toEqual({ id, ...payload(), payment: 'direct', chargeDate: null, plan: null });
     });
 
     it('stores when a deferred expense is charged and how it was paid', async () => {
@@ -103,6 +104,45 @@ describe('PUT /api/expenses/:id', () => {
         expect((await changes()).expenses[0]).toMatchObject({ payment: 'direct', chargeDate: null });
     });
 
+    it('stores the part of an installment plan that an expense is', async () => {
+        const id = crypto.randomUUID();
+        const plan = { id: crypto.randomUUID(), part: 2, parts: 3 };
+
+        const response = await put(id, payload({ payment: 'direct', chargeDate: '2026-11-25', plan }));
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toMatchObject({ id, plan });
+        expect((await changes()).expenses[0]).toMatchObject({ plan });
+    });
+
+    it('keeps the parts of a plan as separate expenses, each with its own amount and day', async () => {
+        const plan = crypto.randomUUID();
+        const days = ['2026-10-25', '2026-11-25', '2026-12-25'];
+        for (const [index, chargeDate] of days.entries()) {
+            await put(
+                crypto.randomUUID(),
+                payload({ amountCents: 500 + index, chargeDate, plan: { id: plan, part: index + 1, parts: 3 } })
+            );
+        }
+
+        const { expenses } = await changes();
+
+        expect(expenses.map((expense) => [expense.plan?.part, expense.amountCents, expense.chargeDate])).toEqual([
+            [1, 500, '2026-10-25'],
+            [2, 501, '2026-11-25'],
+            [3, 502, '2026-12-25'],
+        ]);
+    });
+
+    it('takes a plan away when a later write has none', async () => {
+        const id = crypto.randomUUID();
+        await put(id, payload({ plan: { id: crypto.randomUUID(), part: 1, parts: 2 } }));
+
+        await put(id, payload({ plan: null, updatedAt: 2_000 }));
+
+        expect((await changes()).expenses[0]).toMatchObject({ plan: null });
+    });
+
     it('reads an expense saved before payments existed as paid at once', async () => {
         const id = crypto.randomUUID();
         await env.DB.prepare(
@@ -112,7 +152,7 @@ describe('PUT /api/expenses/:id', () => {
             .bind(id, session.userId)
             .run();
 
-        expect((await changes()).expenses[0]).toMatchObject({ id, payment: 'direct', chargeDate: null });
+        expect((await changes()).expenses[0]).toMatchObject({ id, payment: 'direct', chargeDate: null, plan: null });
     });
 
     it('is idempotent: repeating the same write changes nothing', async () => {
@@ -190,6 +230,13 @@ describe('PUT /api/expenses/:id', () => {
         ['a restaurant card expense with no charge date', { payment: 'voucher', chargeDate: null }],
         ['a charge date before the expense', { payment: 'credit', chargeDate: '2026-10-24' }],
         ['a charge date that does not exist', { payment: 'credit', chargeDate: '2026-11-31' }],
+        ['a part past the last one', { plan: { id: crypto.randomUUID(), part: 4, parts: 3 } }],
+        ['a plan of one part', { plan: { id: crypto.randomUUID(), part: 1, parts: 1 } }],
+        ['a plan with an id that is not a UUID', { plan: { id: 'plan', part: 1, parts: 2 } }],
+        [
+            'a restaurant card in installments',
+            { payment: 'voucher', chargeDate: '2026-11-25', plan: { id: crypto.randomUUID(), part: 1, parts: 2 } },
+        ],
     ])('answers 400 for %s', async (_name, overrides) => {
         const response = await put(crypto.randomUUID(), payload(overrides));
 
