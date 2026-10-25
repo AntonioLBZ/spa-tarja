@@ -30,4 +30,19 @@ function addMonths(value: string, months: number): string {
     return `${pad(targetYear, 4)}-${pad(targetMonth + 1, 2)}-${pad(Math.min(day, lastDay), 2)}`;
 }
 
-export { addMonths, fromDateString, isCalendarDate, toDateString };
+// The same day some days later, or earlier when the number is negative
+function addDays(value: string, days: number): string {
+    const [year = 0, month = 1, day = 1] = value.split('-').map(Number);
+    const moved = new Date(Date.UTC(year, month - 1, day + days));
+    const pad = (amount: number, size: number) => String(amount).padStart(size, '0');
+    return `${pad(moved.getUTCFullYear(), 4)}-${pad(moved.getUTCMonth() + 1, 2)}-${pad(moved.getUTCDate(), 2)}`;
+}
+
+// The Monday of the week a day is in, which is where weeks start in the app
+function startOfWeek(value: string): string {
+    const [year = 0, month = 1, day = 1] = value.split('-').map(Number);
+    const sinceMonday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+    return addDays(value, -sinceMonday);
+}
+
+export { addDays, addMonths, fromDateString, isCalendarDate, startOfWeek, toDateString };

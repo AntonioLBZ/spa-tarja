@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { addMonths, fromDateString, isCalendarDate, toDateString } from './date';
+import { addDays, addMonths, fromDateString, isCalendarDate, startOfWeek, toDateString } from './date';
 
 describe('isCalendarDate', () => {
     it('accepts real days, leap day included', () => {
@@ -55,5 +55,44 @@ describe('addMonths', () => {
         ['2026-01-31', 13, '2027-02-28'],
     ])('moves %s by %i months to %s, keeping to the last day of a shorter month', (from, months, to) => {
         expect(addMonths(from, months)).toBe(to);
+    });
+});
+
+describe('addDays', () => {
+    it('moves forward and back within a month', () => {
+        expect(addDays('2026-10-25', 3)).toBe('2026-10-28');
+        expect(addDays('2026-10-25', -3)).toBe('2026-10-22');
+        expect(addDays('2026-10-25', 0)).toBe('2026-10-25');
+    });
+
+    it('crosses months and years', () => {
+        expect(addDays('2026-10-30', 3)).toBe('2026-11-02');
+        expect(addDays('2026-12-30', 3)).toBe('2027-01-02');
+        expect(addDays('2027-01-02', -3)).toBe('2026-12-30');
+        expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+    });
+
+    it('knows leap years', () => {
+        expect(addDays('2028-02-28', 1)).toBe('2028-02-29');
+        expect(addDays('2027-02-28', 1)).toBe('2027-03-01');
+    });
+
+    it('moves a long way', () => {
+        expect(addDays('2026-01-01', 365)).toBe('2027-01-01');
+        expect(addDays('2026-10-25', -84)).toBe('2026-08-02');
+    });
+});
+
+describe('startOfWeek', () => {
+    it('is the Monday of the week the day is in', () => {
+        expect(startOfWeek('2026-10-26')).toBe('2026-10-26');
+        expect(startOfWeek('2026-10-25')).toBe('2026-10-19');
+        expect(startOfWeek('2026-10-21')).toBe('2026-10-19');
+        expect(startOfWeek('2026-10-20')).toBe('2026-10-19');
+    });
+
+    it('can start in the month or the year before', () => {
+        expect(startOfWeek('2026-11-01')).toBe('2026-10-26');
+        expect(startOfWeek('2027-01-01')).toBe('2026-12-28');
     });
 });
