@@ -33,6 +33,8 @@ pnpm format / format:check
 pnpm test                # vitest: `server` project (workerd) + `front` project (jsdom)
 pnpm test -t "name"      # by test name
 pnpm db:migrate          # apply db/migrations to the local D1
+pnpm db:migrate:remote   # the same on the production D1: always before deploying a release that needs it
+pnpm deploy:prod         # build and deploy to Cloudflare (`pnpm deploy` is pnpm's own command, not this one)
 ```
 
 ## Architecture

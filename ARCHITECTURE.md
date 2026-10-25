@@ -59,6 +59,7 @@ public/   static files
 - `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier and the money helpers will live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
+- **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release is `pnpm db:migrate:remote`, then `pnpm deploy:prod`; the migrations go first so the new code never meets an old schema. Until the login exists (§8) every visitor is the same fixed user, so the URL isn't shared.
 
 ## 5. Data
 
@@ -135,5 +136,4 @@ Open:
 
 - Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`).
 - Better Auth or another option for the login.
-- Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. The free path is `workers.dev`.
-- D1 `database_id` on the first deploy: create the database with `wrangler d1 create` or let Wrangler provision it.
+- Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. `workers.dev` is in use; a custom domain would mean updating the Google redirect URIs.

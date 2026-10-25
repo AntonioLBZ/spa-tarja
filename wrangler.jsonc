@@ -11,6 +11,7 @@
         {
             "binding": "DB",
             "database_name": "tarja",
+            "database_id": "5d0422c9-c0bf-431b-8fdf-3583fee20f21",
             "migrations_dir": "db/migrations",
         },
     ],
