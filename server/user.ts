@@ -1,13 +1,15 @@
 import { createMiddleware } from 'hono/factory';
 
+import { createAuth } from '@server/auth';
+
 import type { AppEnv } from '@server/env';
 
-// Until the login exists every request is this user (ARCHITECTURE.md §8); the session replaces it here
-const PROVISIONAL_USER_ID = 'provisional-user';
-
+// The rows a request may touch are the signed-in user's; without a session there is nothing to serve
 const withUser = createMiddleware<AppEnv>(async (c, next) => {
-    c.set('userId', PROVISIONAL_USER_ID);
+    const session = await createAuth(c.env, c.req.raw).api.getSession({ headers: c.req.raw.headers });
+    if (!session) return c.json({ error: 'unauthorized' }, 401);
+    c.set('userId', session.user.id);
     await next();
 });
 
-export { PROVISIONAL_USER_ID, withUser };
+export { withUser };

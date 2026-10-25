@@ -59,7 +59,7 @@ public/   static files
 - `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier and the money helpers will live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
-- **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release is `pnpm db:migrate:remote`, then `pnpm deploy:prod`; the migrations go first so the new code never meets an old schema. Until the login exists (§8) every visitor is the same fixed user, so the URL isn't shared.
+- **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release is `pnpm db:migrate:remote`, then `pnpm deploy:prod`; the migrations go first so the new code never meets an old schema. Secrets go up with `wrangler secret put`.
 
 ## 5. Data
 
@@ -72,7 +72,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - `updated_at` is the client clock and only decides conflicts (§6). It can't be the sync cursor: an edit made offline last week arrives with an old `updated_at`, and a device whose cursor is already past it would never pull it. The cursor is `seq`, a per-user counter the server bumps on every write (`MAX(seq) + 1` inside the upsert, which D1 serializes).
 - Indexes: `(user_id, date)` for listing and `(user_id, seq)` for the sync by delta. Soft deletes travel as rows with `deleted_at` set, so the delta query sees them.
 - `categories` holds the custom categories (§7), in migration `0002`.
-- Until the login exists (§8) every request is served as one fixed user, resolved in a single place in the server.
+- Rows belong to the signed-in user (§8), resolved in a single place in the server.
 
 ## 6. Offline strategy
 
@@ -95,7 +95,16 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 
 ## 8. Authentication
 
-Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 and an `httpOnly` cookie session. It will need the `nodejs_compat` flag in `wrangler.jsonc`. Its fit with D1 is unverified; check it when that phase starts. Secrets go in `.dev.vars` (local) and `wrangler secret` (production), never in the repo.
+Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/auth/*`. Better Auth takes the D1 binding directly. It needs the `nodejs_als` compatibility flag (it uses `AsyncLocalStorage`).
+
+- **Tables**: `user`, `session`, `account` and `verification`, in migration `0003`. They are written by hand, like the rest of the schema, and a test fails if Better Auth asks for a table or column the migration lacks.
+- **Sessions**: an `httpOnly` cookie signed with `BETTER_AUTH_SECRET`, valid for 30 days. A 5 minute cookie cache lets most requests skip D1. A revoked session can therefore stay valid for up to 5 minutes.
+- **Base URL**: the origin of each request, so the same code runs on `localhost`, `workers.dev` and any later domain without configuration. Cloudflare only routes the Worker's own hosts, Google only redirects to the URIs registered in its console, and Better Auth rejects cross-origin `POST`s against that origin.
+- **Access**: `/api/expenses` and `/api/categories` answer `401` without a session; `/api/health` and `/api/auth/*` are public. The owner of every row is the Better Auth `user.id`. Any Google account can sign in. Rows saved while the login didn't exist belong to the old fixed user and are unreachable now.
+- **Client**: no Better Auth client, to keep the bundle small. Three calls: `GET /api/auth/get-session`, `POST /api/auth/sign-in/social` (the answer carries the Google URL to go to) and `POST /api/auth/sign-out`.
+- **Offline**: the signed-in user's profile is kept in `localStorage`, so the app opens signed in with no network. Only a definite answer signs the user out: a `get-session` with no session, or a `401` from the API. A network error or a `5xx` never does. Without a cached profile and without a connection there is nothing to show but the sign-in screen, which says so.
+- **Local data belongs to a user**: the outbox and the persisted cache are stored under the user id, so another account on the same browser never sees or pushes them. Signing out deletes them only when nothing is waiting to sync; otherwise they stay for the next sign-in of that user. Signing out needs a connection, because the cookie is `httpOnly` and only the server can end it.
+- **Secrets**: `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, in `.dev.vars` locally (`.dev.vars.example` lists them) and in `wrangler secret` in production. Google's console must list `<origin>/api/auth/callback/google` for each origin in use.
 
 ## 9. Frontend
 
@@ -118,8 +127,8 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 1. Installable PWA: manifest, icons, service worker, offline shell (done).
 2. D1 schema, expenses and default categories: API and UI (done).
 3. Offline queue and sync (done).
-4. Google login and per-user data.
-5. Custom categories (create, edit, delete) (done, on the provisional user).
+4. Google login and per-user data (done).
+5. Custom categories (create, edit, delete) (done).
 6. Visual identity and transitions.
 7. CI and husky (done), then Cloudflare deployment.
 
@@ -135,5 +144,4 @@ Discarded:
 Open:
 
 - Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`).
-- Better Auth or another option for the login.
 - Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. `workers.dev` is in use; a custom domain would mean updating the Google redirect URIs.

@@ -11,4 +11,7 @@ await applyD1Migrations(env.DB, TEST_MIGRATIONS);
 beforeEach(async () => {
     await env.DB.prepare('DELETE FROM expenses').run();
     await env.DB.prepare('DELETE FROM categories').run();
+    for (const table of ['session', 'account', 'verification', 'user']) {
+        await env.DB.prepare(`DELETE FROM "${table}"`).run();
+    }
 });

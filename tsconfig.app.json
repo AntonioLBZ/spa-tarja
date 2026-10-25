@@ -22,5 +22,5 @@
             "@server/*": ["./server/*"]
         }
     },
-    "include": ["src", "core", "worker-configuration.d.ts"]
+    "include": ["src", "core", "worker-configuration.d.ts", "server/secrets.d.ts"]
 }

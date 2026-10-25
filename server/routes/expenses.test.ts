@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { PROVISIONAL_USER_ID } from '@server/user';
+import { signIn, type TestSession } from '@server/test/session';
 
 interface Payload {
     categoryId: string;
@@ -29,16 +29,20 @@ function payload(overrides: Partial<Payload> = {}): Payload {
     };
 }
 
+let session: TestSession;
+
+beforeEach(async () => {
+    session = await signIn();
+});
+
 function put(id: string, body: unknown) {
-    return app.request(
-        `/api/expenses/${id}`,
-        { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) },
-        env
-    );
+    const headers = new Headers(session.headers);
+    headers.set('content-type', 'application/json');
+    return app.request(`/api/expenses/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) }, env);
 }
 
 function list(query = '') {
-    return app.request(`/api/expenses${query}`, {}, env);
+    return app.request(`/api/expenses${query}`, { headers: session.headers }, env);
 }
 
 async function changes(query = '') {
@@ -209,7 +213,7 @@ describe('GET /api/expenses', () => {
 
         const { expenses } = await changes();
 
-        expect(JSON.stringify(expenses)).not.toContain(PROVISIONAL_USER_ID);
+        expect(JSON.stringify(expenses)).not.toContain(session.userId);
         expect(Object.keys(expenses[0] ?? {})).not.toContain('userId');
     });
 

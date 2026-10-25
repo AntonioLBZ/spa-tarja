@@ -1,0 +1,6 @@
+# Copy to .dev.vars and fill in. .dev.vars is never committed.
+# Generate with: openssl rand -base64 32
+BETTER_AUTH_SECRET=
+# From the Google Cloud console (Google Auth Platform > Clients)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

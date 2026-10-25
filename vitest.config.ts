@@ -19,7 +19,14 @@ export default defineConfig({
                 plugins: [
                     cloudflareTest({
                         wrangler: { configPath: './wrangler.jsonc' },
-                        miniflare: { bindings: { TEST_MIGRATIONS: migrations } },
+                        miniflare: {
+                            bindings: {
+                                TEST_MIGRATIONS: migrations,
+                                BETTER_AUTH_SECRET: 'test-secret-that-is-long-enough-for-better-auth',
+                                GOOGLE_CLIENT_ID: 'test-client-id',
+                                GOOGLE_CLIENT_SECRET: 'test-client-secret',
+                            },
+                        },
                     }),
                 ],
                 resolve: { tsconfigPaths: true },

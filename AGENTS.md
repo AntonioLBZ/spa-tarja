@@ -43,7 +43,7 @@ pnpm deploy:prod         # build and deploy to Cloudflare (`pnpm deploy` is pnpm
 server/   Hono Worker: app.ts (routes, exports AppType), index.ts (entry)
 src/      SPA: routes/ (file-based), features/, components/, lib/, assets/styles/
 db/       D1 SQL migrations (db/migrations)
-core/     pure logic shared by client and server (not created yet)
+core/     pure logic shared by client and server
 ```
 
 - `server/` never imports from `src/`. `src/` imports only **types** from `@server/*`.
@@ -53,6 +53,7 @@ core/     pure logic shared by client and server (not created yet)
 - `src/routeTree.gen.ts` and `worker-configuration.d.ts` are generated but committed (Prettier and ESLint ignore them).
 - Relative imports are `./` inside the same folder; otherwise `@/` (`src/`), `@core/` or `@server/`. Never `../`.
 - Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
+- Login (`ARCHITECTURE.md` §8): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses` and `/api/categories` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them.
 - Money is an integer in cents plus a currency code, never a float.
 - Schema in hand-written SQL, no ORM. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
 
@@ -70,7 +71,7 @@ core/     pure logic shared by client and server (not created yet)
 
 - Vitest with `globals: false`: import `describe`, `it`, `expect` and `vi` from `vitest`.
 - Tests sit next to the code they cover (`*.test.ts(x)`), no comments in tests.
-- `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', {}, env)`.
+- `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', init, env)`. Routes that need a session get one from `signIn()` (`server/test/session.ts`), which saves a user and a real session cookie in the test database.
 - `front` tests render the real route tree with `renderApp` (it mounts the real `LocaleProvider` and `ThemeProvider`) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB; use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
 
 ## Conventions

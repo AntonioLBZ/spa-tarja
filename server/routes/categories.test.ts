@@ -1,27 +1,32 @@
 import { env } from 'cloudflare:workers';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
+import { signIn, type TestSession } from '@server/test/session';
 
 interface CategoryBody {
     id: string;
     name: string;
 }
 
+let session: TestSession;
+
+beforeEach(async () => {
+    session = await signIn();
+});
+
 function put(id: string, body: unknown) {
-    return app.request(
-        `/api/categories/${id}`,
-        { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) },
-        env
-    );
+    const headers = new Headers(session.headers);
+    headers.set('content-type', 'application/json');
+    return app.request(`/api/categories/${id}`, { method: 'PUT', headers, body: JSON.stringify(body) }, env);
 }
 
 function remove(id: string) {
-    return app.request(`/api/categories/${id}`, { method: 'DELETE' }, env);
+    return app.request(`/api/categories/${id}`, { method: 'DELETE', headers: session.headers }, env);
 }
 
 async function list() {
-    const response = await app.request('/api/categories', {}, env);
+    const response = await app.request('/api/categories', { headers: session.headers }, env);
     expect(response.status).toBe(200);
     return ((await response.json()) as { categories: CategoryBody[] }).categories;
 }
