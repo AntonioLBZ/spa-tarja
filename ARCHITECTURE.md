@@ -28,19 +28,20 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 
 ## 3. Stack (versions as of 2026-10-25)
 
-| Piece                              | Version            | Note                                                                     |
-| ---------------------------------- | ------------------ | ------------------------------------------------------------------------ |
-| pnpm                               | 12.15.0            | `save-exact` in `.npmrc`; `pnpm add -E`                                  |
-| Vite / @vitejs/plugin-react        | 8.3.5 / 6.1.2      |                                                                          |
-| React                              | 19.3.1             |                                                                          |
-| TypeScript                         | 6.0.3              | 7.0 exists, but `typescript-eslint` 8.72 requires `<6.1`                 |
-| Hono                               | 4.13.13            |                                                                          |
-| TanStack Router / Query            | 1.170.46 / 5.104.5 | File-based router through the Vite plugin                                |
-| use-intl                           | 4.14.9             | Same i18n setup as `spa-hoardex`                                         |
-| Wrangler / @cloudflare/vite-plugin | 4.152.0 / 1.65.0   | `vite dev` runs the Worker in `workerd` with a local D1                  |
-| Vitest / @cloudflare/vitest-plugin | 5.0.5 / 1.4.7      | The plugin used to be `@cloudflare/vitest-pool-workers` (now deprecated) |
-| ESLint                             | 9.39.5             | `eslint-plugin-import` doesn't support ESLint 10                         |
-| Prettier / Stylelint               | 3.9.10 / 17.16.0   |                                                                          |
+| Piece                              | Version            | Note                                                                                         |
+| ---------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| pnpm                               | 12.15.0            | `save-exact` in `.npmrc`; `pnpm add -E`                                                      |
+| Vite / @vitejs/plugin-react        | 8.3.5 / 6.1.2      |                                                                                              |
+| React                              | 19.3.1             |                                                                                              |
+| TypeScript                         | 6.0.3              | 7.0 exists, but `typescript-eslint` 8.72 requires `<6.1`                                     |
+| Hono                               | 4.13.13            |                                                                                              |
+| TanStack Router / Query            | 1.170.46 / 5.104.5 | File-based router through the Vite plugin                                                    |
+| use-intl                           | 4.14.9             | Same i18n setup as `spa-hoardex`                                                             |
+| Wrangler / @cloudflare/vite-plugin | 4.152.0 / 1.65.0   | `vite dev` runs the Worker in `workerd` with a local D1                                      |
+| vite-plugin-pwa                    | 2.0.0              | With `workbox-build` and `workbox-window` 7.4.1; icons by `@vite-pwa/assets-generator` 2.0.0 |
+| Vitest / @cloudflare/vitest-plugin | 5.0.5 / 1.4.7      | The plugin used to be `@cloudflare/vitest-pool-workers` (now deprecated)                     |
+| ESLint                             | 9.39.5             | `eslint-plugin-import` doesn't support ESLint 10                                             |
+| Prettier / Stylelint               | 3.9.10 / 17.16.0   |                                                                                              |
 
 Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 12 also offers to approve "agent skills" shipped by some packages; none have been approved.
 
@@ -72,7 +73,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 
 ## 6. Offline strategy
 
-- **Shell**: PWA with `vite-plugin-pwa` (Workbox) precaching the app.
+- **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.
 - **Reads**: TanStack Query with the cache persisted in IndexedDB.
 - **Writes**: each expense is born with its UUID and goes into a local queue marked pending. It syncs when the connection returns and when the app opens. Safari has no Background Sync, so nothing depends on it.
 - **Server**: idempotent `PUT /expenses/:id` (creates or updates by id), so retrying is safe.
@@ -105,7 +106,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 ## 11. Roadmap
 
 0. **Skeleton** (done): Vite + Hono + local D1, `/api/health`, i18n, tests, lint and formatting.
-1. Installable PWA: manifest, icons, service worker, offline shell.
+1. Installable PWA: manifest, icons, service worker, offline shell (done).
 2. D1 schema, expenses and default categories: API and UI.
 3. Offline queue and sync.
 4. Google login and per-user data.

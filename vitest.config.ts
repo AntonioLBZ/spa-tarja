@@ -1,4 +1,5 @@
 import { cloudflareTest } from '@cloudflare/vitest-plugin';
+import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -12,6 +13,7 @@ export default defineConfig({
                 },
             },
             {
+                plugins: [VitePWA({ disable: true })],
                 resolve: { tsconfigPaths: true },
                 test: {
                     name: 'front',

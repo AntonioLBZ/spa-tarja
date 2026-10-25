@@ -1,6 +1,6 @@
 # TODO
 
-- Installable PWA: manifest, icons (192/512 PNG and maskable, from `public/favicon.svg`), service worker with `vite-plugin-pwa`, offline shell.
+- Check the installed PWA on a real device: install prompt, offline shell and the update prompt. The service worker was only verified statically.
 - D1 schema and first migration (`db/migrations`), in hand-written SQL.
 - Expenses: idempotent `PUT /expenses/:id`, list and soft delete. A screen to log an expense.
 - Default categories and the keyword classifier in `core/`.

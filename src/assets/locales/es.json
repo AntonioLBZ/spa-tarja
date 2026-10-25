@@ -8,5 +8,12 @@
             "ok": "API y base de datos operativas",
             "error": "Sin conexión con la API"
         }
+    },
+    "pwa": {
+        "update": {
+            "message": "Hay una versión nueva",
+            "apply": "Actualizar",
+            "dismiss": "Después"
+        }
     }
 }

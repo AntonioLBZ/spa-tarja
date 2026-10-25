@@ -8,5 +8,12 @@
             "ok": "API and database are up",
             "error": "Can't reach the API"
         }
+    },
+    "pwa": {
+        "update": {
+            "message": "A new version is ready",
+            "apply": "Update",
+            "dismiss": "Later"
+        }
     }
 }
