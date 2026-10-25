@@ -9,19 +9,6 @@ Items build on each other in the order of their numbers. Delete an item when it 
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 2. Shared components (M to L, one `refactor:` commit per step, suite green after each)
-
-Live in `src/components/<name>/`, never import from `src/features`, look pixel-identical.
-
-1. `Notice` (`tone` info | danger | quiet, `role` status | alert): replaces the 14 copies of the thick left border. The role element holds only the message text (tests read `textContent`).
-2. `Button` (`variant` default | primary | danger, `glyph`, `pressed`), `buttonClass()` and `ButtonLink` via TanStack `createLink`. `base.css` matches buttons and links with `:where()`, so a variant wins whatever order the chunks load in (importing `main.css` first does not help: the build links the shared component chunk before the entry CSS). `category-select__field` and `category-row__toggle` stay raw buttons.
-3. `Field` (label, hint, error, render-prop control with `useId` wiring). Migrate the income form, category manager and expense form; a field's error moves under it. Charts wait for item 7.
-4. `Card` and `CardList` (`flush` keeps today's gap 0, otherwise `--size-2`): summary rows, built-in categories, expense rows.
-5. `Disclosure` and `DisclosurePanel`, extracted from `CategoryRow`. Add `expand_more` as a UI icon (`UI_ICONS`, kept out of `CATEGORY_ICONS`) in `icon-paths.ts`, with the notice.
-6. Docs: `design.md` components section (`--size-4` between fields, `--size-1` from label to control, button variants), a bullet in `AGENTS.md` to use them, a line in `ARCHITECTURE.md` §9.
-
-Tests tied to markup: `.expense-form__field` becomes `.field`, `.category-row__panel` becomes `.disclosure__panel`; keep `expense-item--leaving` on the `li` and `summary__value--negative`.
-
 ## 3. Expense cards (M, after 2)
 
 - Expense rows become disclosure cards like the category rows: the whole row toggles (badge, name, amount, details, chevron) and the panel under it holds Edit and Delete. One row open at a time is not enforced.

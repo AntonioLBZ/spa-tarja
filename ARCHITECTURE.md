@@ -130,6 +130,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 - **Mobile-first**: base CSS targets phones and widens with `@media (width >= 40rem)` and `(width >= 64rem)`. Touch targets are at least `--size-touch` (44 px), layouts honor `env(safe-area-inset-*)` (`viewport-fit=cover`), full-height blocks use `dvh`, and form controls inherit 16 px so iOS doesn't zoom on focus.
 - Styles: variables in `src/assets/styles/tokens.css`, BEM in the CSS of each route or component, Stylelint with alphabetical properties and no `!important`. Transitions always use the `--duration-*` and `--ease-*` tokens; `prefers-reduced-motion` zeroes them in a single place.
 - Visual rules (colors, themes, shape, motion) live in `design.md`.
+- Shared components live in `src/components/<name>/` with their CSS and tests next to them: `Notice`, `Button`, `Field`, `Card` and `CardList`, `Disclosure`, `ChoiceGroup`, `Icon`. Screens compose them instead of restyling raw elements (`design.md` §3, "Components").
 - `src/lib` never imports from `src/features` (ESLint enforces it), so the composition of the app around its pages lives in `src/providers.tsx`, used by `main.tsx` and by the tests.
 
 ## 10. Testing
