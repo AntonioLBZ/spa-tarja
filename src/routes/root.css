@@ -6,7 +6,7 @@
 
 .root__header {
     align-items: center;
-    background: var(--color-bg-raised);
+    background: var(--color-bg-secondary);
     border-bottom: var(--size-px) solid var(--color-border);
     display: flex;
     min-height: calc(var(--size-touch) + env(safe-area-inset-top));

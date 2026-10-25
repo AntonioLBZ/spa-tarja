@@ -5,6 +5,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 ## Source of truth
 
 - **`ARCHITECTURE.md` is the source of truth** for decisions, stack versions and the roadmap; read it before any work. This file only distills the rules that are easy to break. If a decision changes, update `ARCHITECTURE.md` first, then this file.
+- **`design.md` is the source of truth for the visual rules** (colors, themes, shape, motion, mobile-first); read it before touching styles. Same order: update it first, then this file.
 - Remaining work is `TODO.md`; delete an item when it is done.
 
 ### Owner decisions (don't revisit silently)
@@ -12,9 +13,10 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 - SPA on one Cloudflare Worker (Workers + static assets, not Pages) with a Hono API and D1. Not SSR, not Next.js.
 - Everything about the project is in English: docs, code, comments, identifiers, commit messages. Only the UI copy is localized.
 - Mobile-first.
+- Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests.
 - Google login only, no own passwords.
 - Default categories are read-only for now. Custom ones can be created, edited and deleted.
-- No rounded corners anywhere. Minimalist, uneven borders, animated transitions. The visual identity is still open: ask before settling it.
+- Visual identity (see `design.md`): flat colors with themes (system, light, dark), a white or black base with a single accent and very little color variety, no rounded corners, uneven borders, animated transitions. Its open questions are listed in `design.md`: ask before settling them.
 - Plain CSS. No SCSS, no Tailwind.
 
 ## Commands
@@ -56,7 +58,8 @@ core/     pure logic shared by client and server (not created yet)
 - TanStack Router (file-based) and TanStack Query. The global query client uses `staleTime` 60 s and `retry: false`.
 - Styles: CSS variables from `src/assets/styles/tokens.css`, BEM class names, alphabetical properties, no `!important` (Stylelint enforces it). Combine classes with `clsx`.
 - Transitions always use `--duration-*` and `--ease-*`; `prefers-reduced-motion` zeroes the durations in one place. Animate only `transform` and `opacity` where possible.
-- Browser toolbar color (`theme-color` in `index.html`) mirrors `--color-bg`: keep them in sync.
+- Colors are flat (no gradients, no shadows) and come only from the semantic `--color-*` tokens in `tokens.css`, defined once with `light-dark()`. Never put a raw color in a component. Don't add a color without updating the palette table in `design.md`.
+- Browser toolbar color (`theme-color` in `index.html`) mirrors the header surface, `--color-bg-secondary`: keep them in sync.
 - **Mobile-first:** base CSS targets phones; widen with `@media (width >= 40rem)` / `(width >= 64rem)`, never `max-width`. Touch targets are at least `--size-touch` (44 px). Pad edge-anchored layouts with `env(safe-area-inset-*)` (`viewport-fit=cover` is on), use `dvh` instead of `vh`, and let form controls inherit `font: inherit` (16 px) so iOS doesn't zoom on focus.
 - **i18n:** `use-intl`. UI copy lives in `src/assets/locales/{en,es}.json`, never hard-coded in components; read it with `useTranslations`. English is the source of the key types. A new key goes into every locale (a test checks key parity). The locale is stored preference, then `navigator.languages`, then `en`, and is not in the URL. The brand name "Tarja" isn't translated.
 
@@ -72,5 +75,5 @@ core/     pure logic shared by client and server (not created yet)
 - Prettier: 4 spaces, single quotes, `printWidth` 120, `trailingComma: es5`, LF.
 - Named exports go in one `export { … }` statement at the bottom of the file (`export type { … }` for types). Components destructure `props` inside the function body. Route files use `export const Route`.
 - Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it.
-- Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines.
+- Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
 - Secrets live in `.dev.vars` (local) and `wrangler secret` (production). Never commit them or log them.

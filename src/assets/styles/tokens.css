@@ -20,30 +20,28 @@
     --ease-enter: cubic-bezier(0, 0, 0, 1);
     --ease-exit: cubic-bezier(0.3, 0, 1, 1);
 
-    /* Placeholder palette: the visual identity is still open */
-    --color-bg: #f3efe6;
-    --color-bg-raised: #faf8f3;
-    --color-content: #1c1a17;
-    --color-content-muted: #5f5a50;
-    --color-border: #1c1a17;
-    --color-accent: #b4491f;
-    --color-ok: #2f6b3a;
-    --color-danger: #b3261e;
+    /* Flat colors, one set of semantic tokens resolved per theme (see design.md) */
+    --color-bg-primary: light-dark(#fff, #000);
+    --color-bg-secondary: light-dark(#f4f4f4, #141414);
+    --color-content-primary: light-dark(#000, #fff);
+    --color-content-secondary: light-dark(#595959, #a3a3a3);
+    --color-border: light-dark(#000, #fff);
+    --color-border-subtle: light-dark(#d4d4d4, #2e2e2e);
+    --color-border-focus: var(--color-accent);
+    --color-accent: light-dark(#1d4ed8, #8aa4ff);
+    --color-bg-accent: var(--color-accent);
+    --color-content-on-accent: light-dark(#fff, #000);
+    --color-danger: light-dark(#c81e1e, #f87171);
 
     color-scheme: light dark;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-bg: #16140f;
-        --color-bg-raised: #1e1b15;
-        --color-content: #ece7da;
-        --color-content-muted: #a29b8b;
-        --color-border: #ece7da;
-        --color-accent: #e08a5c;
-        --color-ok: #7fc08a;
-        --color-danger: #f2877f;
-    }
+:root[data-theme='light'] {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {

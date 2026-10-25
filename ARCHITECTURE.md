@@ -1,6 +1,6 @@
 # Tarja — Architecture
 
-Source of truth for the project's decisions. `AGENTS.md` distills the rules that are easy to break; if a decision changes, update this document first. Remaining work lives in `TODO.md`.
+Source of truth for the project's decisions. `AGENTS.md` distills the rules that are easy to break; if a decision changes, update this document first. Visual rules live in `design.md`. Remaining work lives in `TODO.md`.
 
 ## 1. What it is and scope
 
@@ -13,6 +13,7 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 ## 2. Closed decisions
 
 - **Everything about the project is in English**: docs, code, comments, identifiers and commit messages. Only the UI copy is localized (§9).
+- **Solo project, work on `main`.** There is one developer, so no feature branches and no pull requests; commits go straight to `main`.
 - **SPA, not SSR.** Everything sits behind a login (no SEO), categorization runs on the client and the app must work offline. Server-side first render would add nothing.
 - **A single Cloudflare Worker** serves the static assets and the API (`/api/*`) from the same origin. The session lives in an `httpOnly` cookie, with no CORS and no tokens in the browser.
 - **Workers with assets, not Pages.** Cloudflare has put Pages in maintenance and focuses its investment on Workers. The free URL is therefore `tarja.<subdomain>.workers.dev`, not `pages.dev`. A custom domain needs its nameservers on Cloudflare.
@@ -23,7 +24,7 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 - **Default categories** can't be edited or deleted for now. Custom ones can be created, edited and deleted.
 - **Free tiers only.** If something needs payment, it is dropped. Cloudflare limits as of 2026-10-25 (official docs): D1 free gives 5 M rows read and 100 k rows written per day and 500 MB per database; Workers give 100 k requests per day. D1 counts every row a query scans as a read, so queries must be indexed by user and date.
 - **Plain CSS** (variables and native nesting), no SCSS and no Tailwind. Reversible if needed.
-- **Style**: minimalist, no rounded corners at all, uneven borders and animated transitions. The concrete visual identity is still open; the palette in `tokens.css` is a placeholder.
+- **Style**: flat colors with themes (system, light, dark), a white or black base with a single accent, no rounded corners, uneven borders and animated transitions. All visual rules, and what is still open, are in `design.md`.
 
 ## 3. Stack (versions as of 2026-10-25)
 
@@ -89,7 +90,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 - **i18n** with `use-intl`, as in `spa-hoardex`. Messages live in `src/assets/locales/{en,es}.json`, English is the default and the source of the key types. The locale comes from the stored preference, then `navigator.languages`, then English, and it is not part of the URL. A test checks that every locale has exactly the same keys. No UI copy is hard-coded in components.
 - **Mobile-first**: base CSS targets phones and widens with `@media (width >= 40rem)` and `(width >= 64rem)`. Touch targets are at least `--size-touch` (44 px), layouts honor `env(safe-area-inset-*)` (`viewport-fit=cover`), full-height blocks use `dvh`, and form controls inherit 16 px so iOS doesn't zoom on focus.
 - Styles: variables in `src/assets/styles/tokens.css`, BEM in the CSS of each route or component, Stylelint with alphabetical properties and no `!important`. Transitions always use the `--duration-*` and `--ease-*` tokens; `prefers-reduced-motion` zeroes them in a single place.
-- No rounded corners on any component.
+- Visual rules (colors, themes, shape, motion) live in `design.md`.
 
 ## 10. Testing
 
