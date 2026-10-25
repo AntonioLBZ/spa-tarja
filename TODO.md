@@ -9,14 +9,6 @@ Items build on each other in the order of their numbers. Delete an item when it 
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 3. Expense cards (M, after 2)
-
-- Expense rows become disclosure cards like the category rows: the whole row toggles (badge, name, amount, details, chevron) and the panel under it holds Edit and Delete. One row open at a time is not enforced.
-- Chevron `expand_more`, a half turn when open, on expense rows and on the owner's own category rows (built-in rows open nothing). A pencil only promises Edit, which is one of two actions in the panel.
-- `expense-row.tsx`: the notch moves from the `li` to the toggle; `--leaving` stays on the `li`.
-- Tests: open the row before each delete in `expenses.test.tsx`; chevron on own rows only in `category-manager.test.tsx`.
-- Docs: `design.md` §4 (interface icons), §5 (an Expenses section, Categories), §6.
-
 ## 4. Header and collapsible add form (M, after 3)
 
 - Header: `Expenses` link on the left, logo centered, `Summary` and `Settings` on the right (`grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr)`), links at `--font-size-s`. New key `nav.expenses` ("Expenses" / "Gastos").
@@ -29,7 +21,7 @@ Items build on each other in the order of their numbers. Delete an item when it 
 
 ## 5. Edit an expense (L, after 3 and 4)
 
-- Edit in the card panel loads the expense into the add form: `editing: Expense[] | null` in `Home`, `<ExpenseForm key={editing?.[0].id ?? 'new'}>` so a remount returns to "add". It opens the form with `setOpen(true)`, scrolls to it (instant under reduced motion) and focuses its heading. New copy: title, Save, Cancel (en + es). Save or Cancel focuses the edited row.
+- Edit joins Delete in the card panel (`expense-row.tsx`, the `expense-item__actions` box, Delete only today), and loads the expense into the add form: `editing: Expense[] | null` in `Home`, `<ExpenseForm key={editing?.[0].id ?? 'new'}>` so a remount returns to "add". It opens the form with `setOpen(true)`, scrolls to it (instant under reduced motion) and focuses its heading. New copy: title, Save, Cancel (en + es). Save or Cancel focuses the edited row: its toggle (`Disclosure` takes a `toggleRef`), which `ExpenseRow` doesn't hand out yet.
 - `draftOf(parts)` and `reviseExpenses(original, draft)` in `create-expenses.ts`: keep ids by part number and `createdAt`, new parts get new ids under the same plan, removed parts are saved with `deletedAt`, and `updatedAt = max(now, newest + 1)`. No API or migration change: `PUT /expenses/:id` already upserts.
 - The saved category stays (no suggestion overwrite; an unknown id shows Other). Edit is off for a plan with parts missing on this device. Deleting the expense under edit ends the edit; so does pressing Expenses or the logo on `/`.
 - Defaults to confirm: editing a plan edits the whole plan, charged parts included; Edit replaces an unsaved new draft without asking; Delete keeps no confirmation.

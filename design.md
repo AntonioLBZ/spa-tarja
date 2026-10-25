@@ -127,7 +127,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - Icons are decorative (`aria-hidden`): the name always comes with them. They take `currentColor`, or the color of their category.
 - The default categories use `restaurant`, `shopping_cart`, `sports_esports`, `receipt_long`, `home`, `directions_bus`, `medical_services` and `more_horiz`. A custom category with no pick uses `category`.
 - The icons a custom category can choose from (Material Symbols names), grouped here only for reading: `restaurant`, `local_cafe`, `local_bar`, `fastfood`, `bakery_dining`; `shopping_cart`, `shopping_bag`, `storefront`, `checkroom`, `redeem`; `sports_esports`, `movie`, `music_note`, `sports_soccer`, `fitness_center`, `theater_comedy`, `beach_access`; `directions_bus`, `directions_car`, `local_gas_station`, `train`, `flight`, `two_wheeler`; `home`, `bolt`, `water_drop`, `wifi`, `receipt_long`, `build`, `bed`; `medical_services`, `local_pharmacy`, `spa`; `pets`, `school`, `child_care`, `work`; `savings`, `payments`, `credit_card`, `account_balance`, `subscriptions`; `volunteer_activism`, `more_horiz`, `category`. The stored value is the name; the picker shows them in this order.
-- The interface has icons of its own, kept out of that list: `expand_more`, the chevron of a disclosure (`UI_ICONS` in `src/components/icon/icon-paths.ts`). A category can't take it, and neither the picker nor the server accepts it. `Icon` draws both kinds.
+- The interface has icons of its own, kept out of that list: `expand_more`, the chevron of a disclosure (`UI_ICONS` in `src/components/icon/icon-paths.ts`). It is the "can be pressed" icon, and it ends every row that opens a panel, the expenses and the person's own categories. It is not a pencil: a pencil would promise Edit, which is only one of the actions in the panel. A category can't take it, and neither the picker nor the server accepts it. `Icon` draws both kinds.
 
 ## 5. Layout and mobile-first
 
@@ -146,9 +146,15 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - A row without an icon (the "All categories" of the charts) keeps the place of one, so the names line up.
 - It follows the select-only combobox pattern of the ARIA Authoring Practices: a `combobox` button that owns a `listbox`, arrow keys, Home and End to move, Enter or Space to choose, Escape to close, letters to jump to a name. Pressing outside or leaving the field closes the list without choosing.
 
+### Expenses
+
+- The list on the home screen, a day at a time. An expense is a row with the badge of its category, its name, its amount and what else there is to say: the category when the name is the person's own text, how and when it is charged, and "Not synced yet". A plan is one row on the purchase day, with its total.
+- A row is a disclosure, like the rows of the categories: the whole row is the toggle, so the notch is the toggle's box, and a chevron at its end says it can be pressed. Pressing it opens a panel right under it and pressing it again closes the panel. Rows open one by one, not as an accordion: each keeps its own state, and an open row stays open while expenses come in around it.
+- The panel holds what can be done to the expense. For now that is Delete, with Edit to join it. Delete is one press, with no confirmation: the expense, or every part of its plan, is deleted at once, and the row fades out before it goes. The panel comes in with a fade and a short vertical shift over `--duration-base`, like the one of a category.
+
 ### Categories
 
-- `/categories`, reached from a section of the settings that says what categories are for. The person's own categories are rows of the notch with the icon and the name; the built-in ones are rows with nothing to open.
+- `/categories`, reached from a section of the settings that says what categories are for. The person's own categories are rows of the notch with the icon, the name and the chevron at its end; the built-in ones are rows with nothing to open, so they have no chevron.
 - A row is a disclosure: pressing it opens a panel right under it with Edit and Delete, and pressing it again closes the panel. Rows open one by one, not as an accordion. The panel comes in with a fade and a short vertical shift over `--duration-base`, like a new expense.
 - Edit turns the name of the row into a field, in the same box, and the panel under it holds the color and icon picker as it always did (still behind its "Color and icon" summary), then Save and Cancel, all outside the L of the field. Saving closes the panel; cancelling goes back to Edit and Delete.
 - Delete asks in the panel, with the question and Delete and Cancel, and says what happens to the expenses.
@@ -177,6 +183,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - Prefer animating `transform` and `opacity`.
 - **Routes slide horizontally.** Each route has a depth: `/` is 0, `/settings` and `/summary` 1, `/categories` and `/charts` 2. Going deeper, the new screen enters from the right and the old one leaves to the left; going back, the other way round. Fade plus `translateX`, over `--duration-base`. With reduced motion the durations are zero, so the screen just changes.
 - **Lists.** A new expense enters from above with a fade and a short vertical shift; a deleted one fades out before it leaves.
+- **Disclosures.** The panel under a row comes in with a fade and a short vertical shift, over `--duration-base`. The chevron at the end of the row turns half a turn as it opens and turns back as it closes, over `--duration-base` with `--ease-standard`, by `transform`, driven by `aria-expanded` on the toggle.
 
 ## 7. CSS and copy conventions
 
