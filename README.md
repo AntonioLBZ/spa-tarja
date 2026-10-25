@@ -20,4 +20,8 @@ pnpm test
 pnpm build
 ```
 
+## Deployment
+
+Every push to `main` runs the checks in GitHub Actions. If they pass, the new migrations are applied to the production D1 and the app is deployed to Cloudflare.
+
 Design decisions are in [ARCHITECTURE.md](ARCHITECTURE.md).

@@ -13,7 +13,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 - SPA on one Cloudflare Worker (Workers + static assets, not Pages) with a Hono API and D1. Not SSR, not Next.js.
 - Everything about the project is in English: docs, code, comments, identifiers, commit messages. Only the UI copy is localized.
 - Mobile-first.
-- Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests.
+- Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests. Every push to `main` that passes CI is deployed to production, with its migrations (`ARCHITECTURE.md` §4).
 - Google login only, no own passwords.
 - Default categories are read-only for now. Custom ones can be created, edited and deleted.
 - Visual identity (see `design.md`): flat colors with themes (system, light, dark) over a white or black base; an accent the user picks from a fixed list (amber by default); a color and a Material Symbols Sharp icon for every category; IBM Plex Mono everywhere; no rounded corners; the notch (thick left and bottom borders on every box); horizontal route transitions. What is still open is listed in `design.md` §8: ask before settling it.
@@ -56,7 +56,7 @@ core/     pure logic shared by client and server
 - Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB, stored under the signed-in user's id like the persisted cache) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
 - Login (`ARCHITECTURE.md` §8): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses` and `/api/categories` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them. In the app, `AuthGate` (`src/features/auth`) shows the sign-in screen to anybody not signed in, and `UserDataProvider` (`src/lib/offline`) gives the signed-in user their own outbox and cache; a `401` makes the app ask the session again, and only a definite answer signs the user out, never a network error.
 - Money is an integer in cents plus a currency code, never a float.
-- Schema in hand-written SQL, no ORM. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
+- Schema in hand-written SQL, no ORM. Migrations reach production before the new code goes live, so each one must work with the code still running: add, never rename or drop. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
 
 ## Frontend
 
@@ -81,4 +81,4 @@ core/     pure logic shared by client and server
 - Named exports go in one `export { … }` statement at the bottom of the file (`export type { … }` for types). Components destructure `props` inside the function body. Route files use `export const Route`.
 - Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it.
 - Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
-- Secrets live in `.dev.vars` (local) and `wrangler secret` (production). Never commit them or log them.
+- Secrets live in `.dev.vars` (local), `wrangler secret` (production) and, for the deployment from CI, the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Never commit them or log them.
