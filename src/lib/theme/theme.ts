@@ -1,3 +1,5 @@
+import { readDuration } from '@/lib/motion';
+
 const THEMES = ['system', 'light', 'dark'] as const;
 
 type Theme = (typeof THEMES)[number];
@@ -35,12 +37,6 @@ function applyTheme(theme: Theme): void {
 }
 
 let colorTransitionTimer: ReturnType<typeof setTimeout> | undefined;
-
-// Durations in tokens.css are in milliseconds
-function readDuration(name: string): number {
-    const amount = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-    return Number.isNaN(amount) ? 0 : amount;
-}
 
 // Marks the root for `--duration-slow` so the colors fade instead of snapping (see design.md)
 function withColorTransition(update: () => void): void {

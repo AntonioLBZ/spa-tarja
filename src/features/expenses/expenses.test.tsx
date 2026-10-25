@@ -305,6 +305,72 @@ describe('deleting an expense', () => {
     });
 });
 
+describe('a deleted expense leaving the list', () => {
+    const root = document.documentElement;
+    const lunch = expense({ text: 'Lunch' });
+    const deleteLunch = () =>
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Lunch') }));
+
+    afterEach(() => root.style.removeProperty('--duration-base'));
+
+    it('stays on screen, marked, while it fades out, and goes once the fade is over', async () => {
+        root.style.setProperty('--duration-base', '60ms');
+        const api = createFakeApi({ expenses: [lunch, expense({ text: 'Dinner' })] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        deleteLunch();
+
+        const row = screen.getByText('Lunch').closest('li')!;
+        expect(row.className).toContain('expense-item--leaving');
+        expect(screen.getByText('Dinner').closest('li')!.className).not.toContain('expense-item--leaving');
+        await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+        expect(screen.getByText('Dinner')).toBeDefined();
+    });
+
+    it('is saved as deleted at once, not after the fade', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        const api = createFakeApi({ expenses: [lunch] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        deleteLunch();
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]?.deletedAt).not.toBeNull();
+        expect(screen.getByText('Lunch')).toBeDefined();
+    });
+
+    it('cannot be deleted a second time while it fades', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        stubApi(createFakeApi({ expenses: [lunch] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        deleteLunch();
+
+        const button = screen.getByRole('button', {
+            name: en.expenses.list.deleteItem.replace('{name}', 'Lunch'),
+        }) as HTMLButtonElement;
+        expect(button.disabled).toBe(true);
+    });
+
+    it('goes at once when there is no motion', async () => {
+        root.style.setProperty('--duration-base', '0ms');
+        stubApi(createFakeApi({ expenses: [lunch] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        const row = screen.getByText('Lunch').closest('li')!;
+        deleteLunch();
+
+        expect(row.className).not.toContain('expense-item--leaving');
+        await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+    });
+});
+
 describe('working offline', () => {
     it('saves without waiting for the network, marks the expense, and syncs it when the connection is back', async () => {
         const api = createFakeApi();
