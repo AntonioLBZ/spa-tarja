@@ -103,8 +103,9 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 
 ## 10. Testing
 
-- Vitest with two projects. `server`: `@cloudflare/vitest-plugin` runs the tests in `workerd` with a real local D1 (`env` from `cloudflare:workers`). `front`: jsdom and Testing Library, with `stubApi` and `renderApp` in `src/lib/test/render-app.tsx`; `renderApp` mounts the real `LocaleProvider` and `ThemeProvider`, and tests read their expected copy from `en.json`.
+- Vitest with three projects. `core`: node, for the pure logic. `server`: `@cloudflare/vitest-plugin` runs the tests in `workerd` with a real local D1 (`env` from `cloudflare:workers`). `front`: jsdom and Testing Library, with `stubApi` and `renderApp` in `src/lib/test/render-app.tsx`; `renderApp` mounts the real `LocaleProvider` and `ThemeProvider`, and tests read their expected copy from `en.json`.
 - A request without a handler in a test fails; it never reaches the network.
+- **CI and the hook**: a husky `pre-commit` runs `format:check`, `types:check`, `lint` and `test`. GitHub Actions (`.github/workflows/ci.yml`) runs the same plus `build` on every push to `main`. It needs no secrets; the deployment isn't part of it yet.
 
 ## 11. Roadmap
 
@@ -115,7 +116,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 4. Google login and per-user data.
 5. Custom categories (create, edit, delete).
 6. Visual identity and transitions.
-7. CI, husky and Cloudflare deployment.
+7. CI and husky (done), then Cloudflare deployment.
 
 ## 12. Discarded and open decisions
 
