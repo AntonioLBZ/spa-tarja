@@ -1,8 +1,9 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
-import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID, type DefaultCategoryId } from '@core/categories';
+import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { suggestCategory } from '@core/classifier';
 import { toDateString } from '@core/date';
 import { TEXT_MAX_LENGTH } from '@core/expense';
@@ -14,23 +15,24 @@ import './expense-form.css';
 
 function ExpenseForm() {
     const t = useTranslations('expenses.form');
-    const tCategory = useTranslations('categories');
     const { locale } = useLocale();
     const save = useSaveExpense();
+    const { options } = useCategoryOptions();
     const id = useId();
 
     const [amount, setAmount] = useState('');
     const [text, setText] = useState('');
-    const [picked, setPicked] = useState<DefaultCategoryId | null>(null);
+    const [picked, setPicked] = useState<string | null>(null);
     const [date, setDate] = useState(() => toDateString(new Date()));
     const [amountInvalid, setAmountInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
 
-    // The category follows the description until the user picks one
+    // The category follows the description until the user picks one; a pick that has since been deleted no longer counts
     const suggestion = suggestCategory(text);
-    const categoryId = picked ?? suggestion;
-    const showSuggestion = picked === null && suggestion !== FALLBACK_CATEGORY_ID;
+    const pick = options.some((option) => option.id === picked) ? picked : null;
+    const categoryId = pick ?? suggestion;
+    const showSuggestion = pick === null && suggestion !== FALLBACK_CATEGORY_ID;
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -105,14 +107,10 @@ function ExpenseForm() {
 
             <div className="expense-form__field">
                 <label htmlFor={`${id}-category`}>{t('category')}</label>
-                <select
-                    id={`${id}-category`}
-                    value={categoryId}
-                    onChange={(event) => setPicked(event.target.value as DefaultCategoryId)}
-                >
-                    {DEFAULT_CATEGORY_IDS.map((option) => (
-                        <option key={option} value={option}>
-                            {tCategory(option)}
+                <select id={`${id}-category`} value={categoryId} onChange={(event) => setPicked(event.target.value)}>
+                    {options.map((option) => (
+                        <option key={option.id} value={option.id}>
+                            {option.label}
                         </option>
                     ))}
                 </select>

@@ -1,8 +1,11 @@
+import { categoryNameKey, type Category } from '@core/category';
+
 import type { Handler } from './render-app';
 import type { Expense } from '@core/expense';
 
 interface FakeApiOptions {
     expenses?: Expense[];
+    categories?: Category[];
     // Most rows per page, whatever the client asks for
     pageSize?: number;
 }
@@ -21,6 +24,9 @@ function createFakeApi(options: FakeApiOptions = {}) {
 
     for (const expense of options.expenses ?? []) store(expense);
 
+    const categories = [...(options.categories ?? [])];
+    const categoryRequests: string[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
@@ -29,6 +35,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         writeStatus: null as number | null,
         // Makes every request fail like a dropped connection
         offline: false,
+        // An HTTP status to answer every category write with, or null to accept them
+        categoryWriteStatus: null as number | null,
     };
 
     const handler: Handler = (url, init) => {
@@ -49,6 +57,30 @@ function createFakeApi(options: FakeApiOptions = {}) {
                 cursor: page.at(-1)?.seq ?? after,
                 hasMore: changes.length > page.length,
             });
+        }
+
+        if (url.pathname === '/api/categories' && method === 'GET') return Response.json({ categories });
+
+        const categoryId = /^\/api\/categories\/([^/]+)$/.exec(url.pathname)?.[1];
+        if (categoryId && (method === 'PUT' || method === 'DELETE')) {
+            categoryRequests.push(`${method} ${categoryId}`);
+            if (state.categoryWriteStatus !== null) return new Response(null, { status: state.categoryWriteStatus });
+
+            if (method === 'DELETE') {
+                const at = categories.findIndex((category) => category.id === categoryId);
+                if (at >= 0) categories.splice(at, 1);
+                return new Response(null, { status: 204 });
+            }
+
+            const { name } = JSON.parse(String(init?.body)) as { name: string };
+            const clash = categories.some(
+                (category) => category.id !== categoryId && categoryNameKey(category.name) === categoryNameKey(name)
+            );
+            if (clash) return Response.json({ error: 'name-taken' }, { status: 409 });
+            const at = categories.findIndex((category) => category.id === categoryId);
+            if (at >= 0) categories[at] = { id: categoryId, name };
+            else categories.push({ id: categoryId, name });
+            return Response.json({ id: categoryId, name });
         }
 
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
@@ -72,6 +104,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         state,
         // Something another device wrote
         serverWrite: store,
+        categories,
+        categoryRequests,
     };
 }
 

@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 
+import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 
 function healthQuery() {
@@ -13,4 +14,9 @@ function healthQuery() {
     });
 }
 
-export { healthQuery };
+// The custom categories, kept offline by the persisted cache
+function categoriesQuery() {
+    return queryOptions({ queryKey: CATEGORIES_KEY, queryFn: fetchCategories });
+}
+
+export { categoriesQuery, healthQuery };

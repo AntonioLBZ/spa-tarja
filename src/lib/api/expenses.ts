@@ -1,3 +1,4 @@
+import { ApiError } from './api-error';
 import { api } from './client';
 
 import type { Expense } from '@core/expense';
@@ -16,16 +17,6 @@ interface Changes {
 
 const EXPENSES_KEY = ['expenses'] as const;
 
-// The server answered, and the answer wasn't a success; a request that never got an answer throws something else
-class ApiError extends Error {
-    readonly status: number;
-
-    constructor(status: number) {
-        super(`Request failed with status ${status}`);
-        this.status = status;
-    }
-}
-
 async function fetchChanges(after: number): Promise<Changes> {
     const response = await api.api.expenses.$get({ query: { after: String(after) } });
     if (!response.ok) throw new ApiError(response.status);
@@ -40,5 +31,5 @@ async function putExpense(expense: Expense): Promise<Expense> {
     return response.json();
 }
 
-export { ApiError, EXPENSES_KEY, fetchChanges, putExpense };
+export { EXPENSES_KEY, fetchChanges, putExpense };
 export type { Changes, ExpensesState };

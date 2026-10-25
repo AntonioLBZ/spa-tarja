@@ -34,6 +34,10 @@ function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement | HTMLSelectElement;
 }
 
+function categoryLabels() {
+    return [...(field(en.expenses.form.category) as HTMLSelectElement).options].map((option) => option.textContent);
+}
+
 function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
     fireEvent.change(field(en.expenses.form.amount), { target: { value: amount } });
     fireEvent.change(field(en.expenses.form.text), { target: { value: text } });
@@ -176,6 +180,64 @@ describe('expense form', () => {
 
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.amountInvalid);
         expect(api.writes).toHaveLength(0);
+    });
+});
+
+describe('custom categories', () => {
+    const gym = { id: crypto.randomUUID(), name: 'Gym' };
+
+    it('are offered in the form after the built-in ones', async () => {
+        stubApi(createFakeApi({ categories: [gym] }).handler);
+        renderApp();
+
+        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+        expect(categoryLabels()).toEqual([...Object.values(en.categories), 'Gym']);
+    });
+
+    it('can be picked for an expense, which is saved with the category id', async () => {
+        const api = createFakeApi({ categories: [gym] });
+        stubApi(api.handler);
+        renderApp();
+        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+
+        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+        fillAndSubmit({ amount: '30', text: 'Monthly fee' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]?.categoryId).toBe(gym.id);
+    });
+
+    it('go back to the suggestion when the picked one is gone', async () => {
+        const api = createFakeApi({ categories: [gym] });
+        stubApi(api.handler);
+        const { queryClient } = renderApp();
+        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+
+        queryClient.setQueryData(['categories'], []);
+
+        await waitFor(() => expect(field(en.expenses.form.category).value).toBe('other'));
+    });
+
+    it('name the expenses filed under them in the list', async () => {
+        stubApi(
+            createFakeApi({ categories: [gym], expenses: [expense({ text: 'Monthly fee', categoryId: gym.id })] })
+                .handler
+        );
+
+        renderApp();
+
+        const row = (await screen.findByText('Monthly fee')).closest('li')!;
+        await waitFor(() => expect(within(row).queryByText('Gym')).not.toBeNull());
+    });
+
+    it('show as Other once the category is gone', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Monthly fee', categoryId: gym.id })] }).handler);
+
+        renderApp();
+
+        const row = (await screen.findByText('Monthly fee')).closest('li')!;
+        expect(within(row).getByText(en.categories.other)).toBeDefined();
     });
 });
 

@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
-import { isDefaultCategoryId } from '@core/categories';
 import { fromDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -13,9 +13,9 @@ import './expense-list.css';
 
 function ExpenseList() {
     const t = useTranslations('expenses.list');
-    const tCategory = useTranslations('categories');
     const { locale } = useLocale();
     const save = useSaveExpense();
+    const { labelOf } = useCategoryOptions();
     const { groups, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenseGroups();
     const dayFormat = useMemo(
         () => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
@@ -41,9 +41,7 @@ function ExpenseList() {
                     <h3 className="expense-list__date">{dayFormat.format(fromDateString(group.date))}</h3>
                     <ul className="expense-list__items">
                         {group.expenses.map((expense) => {
-                            const category = tCategory(
-                                isDefaultCategoryId(expense.categoryId) ? expense.categoryId : 'other'
-                            );
+                            const category = labelOf(expense.categoryId);
                             const name = expense.text || category;
                             const pending = pendingIds.has(expense.id);
                             return (
