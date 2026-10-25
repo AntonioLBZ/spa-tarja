@@ -76,6 +76,16 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - `categories` holds the custom categories (§7), in migration `0002`; migration `0004` adds their `color` and `icon`.
 - Rows belong to the signed-in user (§8), resolved in a single place in the server.
 
+### When an expense counts
+
+An expense is made on its `date` but can count on another day. The list keeps showing it on the day it was made; the totals and the charts use the day it counts.
+
+- **Deferred expenses** (migration `0005`) add `payment` (`direct`, the default, `credit` for a credit card or `voucher` for a restaurant card) and `charge_date`, the day it counts on when that isn't `date`. A `credit` or `voucher` expense must have a `charge_date`, and no `charge_date` can come before `date`. The form proposes the same day of the next month and the person can pick any date. Older clients that don't send the two columns write `direct` and no `charge_date`, which is what they always meant.
+- **Counted on** is `charge_date` when there is one and `date` otherwise (`countedOn` in `core/`). A month's spending is what counts in that month, whatever category it has.
+- **A restaurant card also counts as income** of the month it is charged. That income is derived when reading, never stored, so an expense stays one row and `PUT /expenses/:id` stays idempotent. What is left over in a month is its income, plus the restaurant-card expenses counted in it, minus all the expenses counted in it.
+- **Installments** (migration `0006`) are plain expenses linked by a `plan_id` (a UUID made on the client), with `plan_part` (1 to `plan_parts`) and `plan_parts` (2 to 36). Each part has its own amount and its own `charge_date`, one per month starting at the purchase date, and counts in its own month. Splitting is done on the client, in cents, the remainder going to the first parts; the form shows what is still unassigned and refuses to save until the parts add up to the total, and refuses a part that goes over it. Each part is one idempotent `PUT`, so a plan syncs, retries and conflicts like any expense. The list shows a plan as one row on the purchase day with its total, and deleting it soft-deletes every part.
+- **Income** (migration `0007`) is a table `income` with one row per user and month (`month` as `YYYY-MM`, `amount_cents`, `currency`, `updated_at`). Like the custom categories, setting it needs a connection: it is done a few times a year, so a second outbox would buy little. `GET /income`, an idempotent `PUT /income/:month` and `DELETE /income/:month`. The list sits in the persisted cache, so the leftover can be read offline.
+
 ## 6. Offline strategy
 
 - **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.
@@ -84,6 +94,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - **Sync** is the `queryFn` of the `expenses` query, so every trigger Query already has (app open, focus, reconnect, invalidation after a save) runs the same path: push the outbox in order, then pull what changed after the cursor. Safari has no Background Sync, so nothing depends on it. While entries are pending the query also retries every 30 s, for connections that report online but aren't.
 - **Outbox rules**: an entry leaves the outbox only when the server answered it, and only if it wasn't edited meanwhile (same `updatedAt`). A network error or a 5xx stops the push and keeps the order for the next run. A 400 or 409 is permanent: the entry is dropped and the user is told.
 - **Server**: idempotent `PUT /expenses/:id` (creates or updates by id), so retrying is safe. A delete is the same `PUT` with `deletedAt` set; there is no `DELETE` route. `GET /expenses?after=<seq>` pages through the changes after a cursor, tombstones included, and returns the new cursor.
+- **Exceptions to the outbox**: the custom categories (§7) and the monthly income (§5) need a connection to be changed, and both are read from the persisted cache.
 - **Conflicts**: last edit wins by `updatedAt`, enough for one user on several devices. The server applies a write only when its `updatedAt` is strictly newer than the stored one (so a retry changes nothing) and otherwise answers with the row it kept. Deletes are soft so the sync can propagate them. The clock is the device's: a device whose clock is behind loses to rows written ahead of it, silently.
 
 ## 7. Categories
@@ -147,5 +158,6 @@ Discarded:
 
 Open:
 
+- Whether the app should warn when a credit card's charges pile up in a month, or when the leftover goes negative.
 - Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`).
 - Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. `workers.dev` is in use; a custom domain would mean updating the Google redirect URIs.
