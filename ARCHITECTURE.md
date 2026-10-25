@@ -43,7 +43,7 @@ Out of scope for now: budgets, export, shared expenses, multiple currencies.
 | ESLint                             | 9.39.5             | `eslint-plugin-import` doesn't support ESLint 10                                             |
 | Prettier / Stylelint               | 3.9.10 / 17.16.0   |                                                                                              |
 
-Planned for the visual identity (`design.md`): `@fontsource/ibm-plex-mono` 5.3.0 (OFL 1.1, self-hosted and precached) and the Sharp SVGs of Material Symbols from `@material-symbols/svg-400` 0.48.1 (Apache 2.0), which are copied into the repo with their notice rather than kept as a runtime dependency.
+For the visual identity (`design.md`): `@fontsource/ibm-plex-mono` 5.3.0 (OFL 1.1, self-hosted and precached). The Sharp SVGs of Material Symbols (Apache 2.0, from `@material-symbols/svg-400` 0.48.1) are copied into `src/components/icon` with their notice, not kept as a dependency, and a subset of Dot Matrix with the letters of the logo sits in `src/assets/fonts`.
 
 Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 12 also offers "agent skills" shipped by some packages; the two that offer them (`@tanstack/react-router` and `@tanstack/router-plugin`) are denied in `pnpm-workspace.yaml`, since they only feed AI assistants and the build doesn't need them.
 
@@ -133,7 +133,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 3. Offline queue and sync (done).
 4. Google login and per-user data (done).
 5. Custom categories (create, edit, delete) (done).
-6. Visual identity and transitions.
+6. Visual identity and transitions (done).
 7. CI and husky (done), then Cloudflare deployment.
 
 ## 12. Discarded and open decisions
