@@ -4,10 +4,10 @@
 
 Designed by Svein Kåre Gunnarson (Dionaea Fonts, <http://www.dionaea.com/information/fonts.html>) and found on <https://www.dafont.com/dot-matrix.font>. Its readme says: "The fonts are freeware". It gives no terms for redistribution, so the file holds only the letters of the logo.
 
-Made from `DOTMBold.TTF` with:
+Made from `DOTMATRI.TTF` (the regular weight) with:
 
 ```
-pyftsubset DOTMBold.TTF --text="TARJAtarja" --flavor=woff2 --layout-features='' --output-file=dot-matrix.woff2
+pyftsubset DOTMATRI.TTF --text="TARJAtarja" --flavor=woff2 --layout-features='' --output-file=dot-matrix.woff2
 ```
 
 ## IBM Plex Mono

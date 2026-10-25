@@ -2,6 +2,6 @@
 @font-face {
     font-display: swap;
     font-family: 'Dot Matrix';
-    font-weight: 700;
+    font-weight: 400;
     src: url('../fonts/dot-matrix.woff2') format('woff2');
 }
