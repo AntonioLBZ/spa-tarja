@@ -18,8 +18,9 @@
         "noEmit": true,
         "paths": {
             "@/*": ["./src/*"],
+            "@core/*": ["./core/*"],
             "@server/*": ["./server/*"]
         }
     },
-    "include": ["src", "worker-configuration.d.ts"]
+    "include": ["src", "core", "worker-configuration.d.ts"]
 }

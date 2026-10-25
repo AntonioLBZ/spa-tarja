@@ -22,6 +22,32 @@ export default defineConfig([
     tseslint.configs.recommended,
     prettierConfig,
     {
+        files: ['**/*.{ts,tsx}'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                { patterns: [{ regex: '^\\.\\./', message: 'Use ./ or an @ alias, never ../.' }] },
+            ],
+        },
+    },
+    {
+        files: ['core/**/*.ts'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        { regex: '^\\.\\./', message: 'Use ./ or an @ alias, never ../.' },
+                        {
+                            regex: '^(react|react-dom|hono|use-intl|@tanstack/|cloudflare:)',
+                            message: 'core imports nothing from React, Hono or Workers.',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+    {
         files: ['src/**/*.{ts,tsx}'],
         extends: [reactHooks.configs.flat.recommended],
         languageOptions: { globals: globals.browser },
@@ -53,6 +79,11 @@ export default defineConfig([
                             target: './server',
                             from: './src',
                             message: 'The Worker cannot import from the SPA.',
+                        },
+                        {
+                            target: './core',
+                            from: ['./src', './server'],
+                            message: 'core is shared logic and cannot import from the SPA or the Worker.',
                         },
                         {
                             target: './src/components',

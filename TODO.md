@@ -1,9 +1,7 @@
 # TODO
 
 - Check the installed PWA on a real phone: install prompt and the update prompt. Desktop Chromium already loads the shell offline.
-- D1 schema and first migration (`db/migrations`), in hand-written SQL.
-- Expenses: idempotent `PUT /expenses/:id`, list and soft delete. A screen to log an expense.
-- Default categories and the keyword classifier in `core/`.
+- Expenses UI: a screen to log an expense (amount, text, suggested category the user can change, date) and the list with delete.
 - Offline queue in IndexedDB and sync.
 - Google login (Better Auth on Hono) and per-user data. Add the `nodejs_compat` flag.
 - Custom categories CRUD.

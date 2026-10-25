@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import en from '../en.json';
-import es from '../es.json';
+import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 
 const locales = { en, es };
 

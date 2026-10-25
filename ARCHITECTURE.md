@@ -66,9 +66,10 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 
 - Amount as an integer in cents plus a currency code, never a `float`. There is a single currency for now (`EUR`, `DEFAULT_CURRENCY` in `core/`); the code is stored on each row so adding more later needs no migration.
 - `id` is a UUID created on the client (§6) and is the primary key. `PUT /expenses/:id` creates the row or updates it, but only when it belongs to the caller: an existing id owned by another user is rejected, never overwritten.
-- Columns: `user_id`, `category_id`, `text`, `amount_cents`, `currency`, `date`, `created_at`, `updated_at`, `deleted_at`.
+- Columns: `user_id`, `category_id`, `text`, `amount_cents`, `currency`, `date`, `created_at`, `updated_at`, `deleted_at` and `seq`.
 - `date` is the day the user picked, as `YYYY-MM-DD` text (no time zone to get wrong). `created_at`, `updated_at` and `deleted_at` are epoch milliseconds.
-- Indexes: `(user_id, date)` for listing and `(user_id, updated_at)` for the sync by delta, because a soft delete only travels if the delta query sees it.
+- `updated_at` is the client clock and only decides conflicts (§6). It can't be the sync cursor: an edit made offline last week arrives with an old `updated_at`, and a device whose cursor is already past it would never pull it. The cursor is `seq`, a per-user counter the server bumps on every write (`MAX(seq) + 1` inside the upsert, which D1 serializes).
+- Indexes: `(user_id, date)` for listing and `(user_id, seq)` for the sync by delta. Soft deletes travel as rows with `deleted_at` set, so the delta query sees them.
 - Until the login exists (§8) every request is served as one fixed user, resolved in a single place in the server.
 
 ## 6. Offline strategy
@@ -76,8 +77,8 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.
 - **Reads**: TanStack Query with the cache persisted in IndexedDB.
 - **Writes**: each expense is born with its UUID and goes into a local queue marked pending. It syncs when the connection returns and when the app opens. Safari has no Background Sync, so nothing depends on it.
-- **Server**: idempotent `PUT /expenses/:id` (creates or updates by id), so retrying is safe.
-- **Conflicts**: last edit wins by `updatedAt`, enough for one user on several devices. Deletes are soft so the sync can propagate them.
+- **Server**: idempotent `PUT /expenses/:id` (creates or updates by id), so retrying is safe. A delete is the same `PUT` with `deletedAt` set; there is no `DELETE` route. `GET /expenses?after=<seq>` pages through the changes after a cursor, tombstones included, and returns the new cursor.
+- **Conflicts**: last edit wins by `updatedAt`, enough for one user on several devices. The server applies a write only when its `updatedAt` is strictly newer than the stored one (so a retry changes nothing) and otherwise answers with the row it kept. Deletes are soft so the sync can propagate them.
 
 ## 7. Categories
 
