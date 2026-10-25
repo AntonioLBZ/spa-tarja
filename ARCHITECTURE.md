@@ -24,7 +24,7 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 - **Default categories** can't be edited or deleted for now. Custom ones can be created, edited and deleted.
 - **Free tiers only.** If something needs payment, it is dropped. Cloudflare limits as of 2026-10-25 (official docs): D1 free gives 5 M rows read and 100 k rows written per day and 500 MB per database; Workers give 100 k requests per day. D1 counts every row a query scans as a read, so queries must be indexed by user and date.
 - **Plain CSS** (variables and native nesting), no SCSS and no Tailwind. Reversible if needed.
-- **Style**: flat colors with themes (system, light, dark), a white or black base with a single accent, no rounded corners, uneven borders and animated transitions. All visual rules, and what is still open, are in `design.md`.
+- **Style**: flat colors with themes (system, light, dark), a white or black base, an accent picked from a fixed list, a color and an icon for every category, IBM Plex Mono, no rounded corners, the notch border (thick on the left and the bottom) and animated transitions. All visual rules, and what is still open, are in `design.md`.
 
 ## 3. Stack (versions as of 2026-10-25)
 
@@ -42,6 +42,8 @@ Out of scope for now: budgets, charts, export, shared expenses, multiple currenc
 | Vitest / @cloudflare/vitest-plugin | 5.0.5 / 1.4.7      | The plugin used to be `@cloudflare/vitest-pool-workers` (now deprecated)                     |
 | ESLint                             | 9.39.5             | `eslint-plugin-import` doesn't support ESLint 10                                             |
 | Prettier / Stylelint               | 3.9.10 / 17.16.0   |                                                                                              |
+
+Planned for the visual identity (`design.md`): `@fontsource/ibm-plex-mono` 5.3.0 (OFL 1.1, self-hosted and precached) and the Sharp SVGs of Material Symbols from `@material-symbols/svg-400` 0.48.1 (Apache 2.0), which are copied into the repo with their notice rather than kept as a runtime dependency.
 
 Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 12 also offers "agent skills" shipped by some packages; the two that offer them (`@tanstack/react-router` and `@tanstack/router-plugin`) are denied in `pnpm-workspace.yaml`, since they only feed AI assistants and the build doesn't need them.
 
@@ -88,6 +90,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 
 - Default categories (initial proposal: food, groceries, leisure, bills, housing/rent, transport, health, other) are read-only. They live in `core/` with stable ids; their names come from the locale files, not from the database. Custom categories live in D1, so `expenses.category_id` has no foreign key to the defaults.
 - **Custom categories** live in the `categories` table (`id` a UUID made on the client, `user_id`, `name`, `name_key`, `created_at`). Unlike expenses, managing them needs a connection: `GET /categories`, an idempotent `PUT /categories/:id` that creates or renames, and `DELETE /categories/:id`, which really deletes the row. Offline-first buys little for something done rarely, and it would need a second outbox with its own ordering. The list sits in the persisted query cache, so an offline device can still file expenses under the categories it has seen.
+- **Color and icon.** Every category has a color key and an icon key from fixed lists (`design.md`). The defaults carry theirs in `core/`. Custom categories get `color` and `icon` columns in `categories`, in a migration of their own that gives the existing rows the default color and the generic icon; the manager chooses them next to the name and the server accepts only keys of those lists. An expense never stores them: it only has `category_id`, and a category that no longer exists shows as "Other", with its color and icon.
 - **An expense is never refused for its category.** The server checks only the shape of `category_id` (a default id or a UUID), never that the row exists: the category may have been deleted on another device, or created while this one was offline. An expense whose category no longer exists shows as "Other" and keeps its id.
 - Names are trimmed, up to 40 characters, and unique per user ignoring case and accents (`name_key`, unique with `user_id`); a clash answers `409 name-taken`. The app also checks them against the default names of the current language.
 - Auto-selection is a dictionary of normalized keywords (lowercase, no accents) in English and Spanish that runs on the client, with the logic in `core/`. The user can change it on each expense.
