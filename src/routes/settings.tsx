@@ -41,9 +41,13 @@ function Settings() {
                 value={accent}
                 onChange={setAccent}
             />
-            <Link className="settings__link" to="/categories">
-                {t('categories')}
-            </Link>
+            <section className="settings__section">
+                <h2 className="settings__heading">{t('categories.title')}</h2>
+                <p className="settings__hint">{t('categories.description')}</p>
+                <Link className="button settings__link" to="/categories">
+                    {t('categories.link')}
+                </Link>
+            </section>
             <Account />
         </section>
     );

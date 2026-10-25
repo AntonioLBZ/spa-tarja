@@ -26,7 +26,9 @@ select {
     width: 100%;
 }
 
-button {
+/* A link that does what a button does takes the class `button` and looks like one */
+button,
+.button {
     background: transparent;
     border-color: var(--color-border);
     border-style: solid;
@@ -41,6 +43,12 @@ button {
         background-color var(--duration-base) var(--ease-standard),
         border-color var(--duration-base) var(--ease-standard),
         color var(--duration-base) var(--ease-standard);
+}
+
+.button {
+    align-items: center;
+    display: inline-flex;
+    text-decoration: none;
 }
 
 button:disabled {

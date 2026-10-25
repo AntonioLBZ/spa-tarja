@@ -102,7 +102,11 @@
             "pink": "Rosa",
             "gray": "Gris"
         },
-        "categories": "Categorías",
+        "categories": {
+            "title": "Categorías",
+            "description": "Crea tus propias categorías para clasificar tus gastos y elige su color e icono.",
+            "link": "Gestionar categorías"
+        },
         "account": {
             "title": "Cuenta",
             "signOut": "Cerrar sesión",

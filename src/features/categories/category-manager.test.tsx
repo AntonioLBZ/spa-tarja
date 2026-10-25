@@ -49,7 +49,7 @@ describe('reaching the screen', () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
 
-        fireEvent.click(await screen.findByRole('link', { name: en.settings.categories }));
+        fireEvent.click(await screen.findByRole('link', { name: en.settings.categories.link }));
 
         expect(await screen.findByRole('heading', { name: text.title })).toBeDefined();
     });

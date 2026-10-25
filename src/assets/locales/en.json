@@ -102,7 +102,11 @@
             "pink": "Pink",
             "gray": "Gray"
         },
-        "categories": "Categories",
+        "categories": {
+            "title": "Categories",
+            "description": "Create your own categories to sort your expenses, and pick their color and icon.",
+            "link": "Manage categories"
+        },
         "account": {
             "title": "Account",
             "signOut": "Sign out",

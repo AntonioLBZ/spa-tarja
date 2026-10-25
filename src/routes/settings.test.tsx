@@ -170,6 +170,30 @@ describe('settings', () => {
         });
     });
 
+    describe('categories', () => {
+        it('is a section that says what categories are for, with the way in to manage them', async () => {
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            expect(await screen.findByRole('heading', { name: en.settings.categories.title })).toBeDefined();
+            expect(screen.getByText(en.settings.categories.description)).toBeDefined();
+
+            fireEvent.click(screen.getByRole('link', { name: en.settings.categories.link }));
+
+            expect(await screen.findByRole('heading', { name: en.categoryManager.title })).toBeDefined();
+        });
+
+        it('is in Spanish too', async () => {
+            localStorage.setItem('tarja:locale', 'es');
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            expect(await screen.findByRole('heading', { name: es.settings.categories.title })).toBeDefined();
+            expect(screen.getByText(es.settings.categories.description)).toBeDefined();
+            expect(screen.getByRole('link', { name: es.settings.categories.link })).toBeDefined();
+        });
+    });
+
     describe('account', () => {
         const pendingExpense: Expense = {
             id: crypto.randomUUID(),
