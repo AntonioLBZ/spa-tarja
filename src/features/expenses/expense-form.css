@@ -17,8 +17,3 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
-
-.expense-form__submit {
-    background: var(--color-bg-accent);
-    color: var(--color-content-on-accent);
-}

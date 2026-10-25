@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { incomeQuery } from '@/lib/api';
@@ -37,23 +38,13 @@ function Summary() {
             <h1 className="summary__title">{t('title')}</h1>
 
             <div className="summary__month">
-                <button
-                    className="summary__step"
-                    aria-label={t('previousMonth')}
-                    type="button"
-                    onClick={() => setMonth(shiftMonth(month, -1))}
-                >
+                <Button glyph aria-label={t('previousMonth')} onClick={() => setMonth(shiftMonth(month, -1))}>
                     ←
-                </button>
+                </Button>
                 <span className="summary__month-name">{monthName}</span>
-                <button
-                    className="summary__step"
-                    aria-label={t('nextMonth')}
-                    type="button"
-                    onClick={() => setMonth(shiftMonth(month, 1))}
-                >
+                <Button glyph aria-label={t('nextMonth')} onClick={() => setMonth(shiftMonth(month, 1))}>
                     →
-                </button>
+                </Button>
             </div>
 
             <dl className="summary__rows">

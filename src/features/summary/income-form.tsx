@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -88,13 +89,13 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
                         setInvalid(false);
                     }}
                 />
-                <button disabled={!online || busy} type="submit">
+                <Button disabled={!online || busy} type="submit">
                     {t('save')}
-                </button>
+                </Button>
                 {stored !== null && (
-                    <button disabled={!online || busy} type="button" onClick={() => void handleRemove()}>
+                    <Button disabled={!online || busy} onClick={() => void handleRemove()}>
                         {t('remove')}
-                    </button>
+                    </Button>
                 )}
             </div>
             {invalid && (

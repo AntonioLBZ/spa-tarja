@@ -1,0 +1,153 @@
+import { RouterProvider, createMemoryHistory, createRootRoute, createRouter } from '@tanstack/react-router';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { createRef, type ComponentProps, type ReactElement } from 'react';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
+
+import { Button, ButtonLink, buttonClass } from './button';
+
+async function renderInRouter(element: ReactElement) {
+    const router = createRouter({
+        routeTree: createRootRoute({ component: () => element }),
+        history: createMemoryHistory({ initialEntries: ['/'] }),
+    });
+    render(<RouterProvider router={router} />);
+    return screen.findByRole('link');
+}
+
+describe('buttonClass', () => {
+    it('is a plain button unless told otherwise', () => {
+        expect(buttonClass()).toBe('button');
+        expect(buttonClass({ variant: 'default' })).toBe('button');
+    });
+
+    it('names the variant, the glyph and the pressed state', () => {
+        expect(buttonClass({ variant: 'primary' })).toBe('button button--primary');
+        expect(buttonClass({ variant: 'danger' })).toBe('button button--danger');
+        expect(buttonClass({ glyph: true })).toBe('button button--glyph');
+        expect(buttonClass({ pressed: true })).toBe('button button--pressed');
+        expect(buttonClass({ pressed: false })).toBe('button');
+    });
+
+    it('adds the classes of the call site last', () => {
+        expect(buttonClass({ variant: 'primary', className: 'toolbar__save' })).toBe(
+            'button button--primary toolbar__save'
+        );
+    });
+});
+
+describe('Button', () => {
+    it('does not submit the form around it unless it says so', () => {
+        render(<Button>Save</Button>);
+
+        expect(screen.getByRole('button', { name: 'Save' }).getAttribute('type')).toBe('button');
+    });
+
+    it('submits when it is told to', () => {
+        render(<Button type="submit">Save</Button>);
+
+        expect(screen.getByRole('button', { name: 'Save' }).getAttribute('type')).toBe('submit');
+    });
+
+    it('is the plain look by default', () => {
+        render(<Button>Save</Button>);
+
+        const button = screen.getByRole('button', { name: 'Save' });
+        expect(button.className).toBe('button');
+    });
+
+    it.each(['primary', 'danger'] as const)('takes the %s variant', (variant) => {
+        render(<Button variant={variant}>Save</Button>);
+
+        expect(screen.getByRole('button', { name: 'Save' }).className).toBe(`button button--${variant}`);
+    });
+
+    it('draws a glyph in a box with even padding and is named by its label', () => {
+        render(
+            <Button glyph aria-label="Previous month">
+                ←
+            </Button>
+        );
+
+        const button = screen.getByRole('button', { name: 'Previous month' });
+        expect(button.className).toBe('button button--glyph');
+        expect(button.textContent).toBe('←');
+    });
+
+    it('asks a glyph for a name, since its text says nothing', () => {
+        type Props = ComponentProps<typeof Button>;
+
+        expectTypeOf<{ glyph: true; 'aria-label': string }>().toExtend<Props>();
+        expectTypeOf<{ glyph: true }>().not.toExtend<Props>();
+        expectTypeOf<{ glyph?: false }>().toExtend<Props>();
+    });
+
+    it('tells assistive technology when it is pressed', () => {
+        render(
+            <>
+                <Button pressed>On</Button>
+                <Button pressed={false}>Off</Button>
+                <Button>Plain</Button>
+            </>
+        );
+
+        const on = screen.getByRole('button', { name: 'On' });
+        expect(on.getAttribute('aria-pressed')).toBe('true');
+        expect(on.classList.contains('button--pressed')).toBe(true);
+        const off = screen.getByRole('button', { name: 'Off' });
+        expect(off.getAttribute('aria-pressed')).toBe('false');
+        expect(off.classList.contains('button--pressed')).toBe(false);
+        expect(screen.getByRole('button', { name: 'Plain' }).hasAttribute('aria-pressed')).toBe(false);
+    });
+
+    it('keeps the class of the call site next to its own', () => {
+        render(
+            <Button variant="danger" className="expense-item__delete">
+                Delete
+            </Button>
+        );
+
+        expect(screen.getByRole('button', { name: 'Delete' }).className).toBe(
+            'button button--danger expense-item__delete'
+        );
+    });
+
+    it('passes on what a button takes', () => {
+        const onClick = vi.fn();
+        const ref = createRef<HTMLButtonElement>();
+        render(
+            <>
+                <Button ref={ref} onClick={onClick}>
+                    Save
+                </Button>
+                <Button disabled>Off</Button>
+            </>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(onClick).toHaveBeenCalledTimes(1);
+        expect(ref.current).toBe(screen.getByRole('button', { name: 'Save' }));
+        expect((screen.getByRole('button', { name: 'Off' }) as HTMLButtonElement).disabled).toBe(true);
+    });
+});
+
+describe('ButtonLink', () => {
+    it('is a link that looks like a button', async () => {
+        const link = await renderInRouter(<ButtonLink to="/categories">Categories</ButtonLink>);
+
+        expect(link.tagName).toBe('A');
+        expect(link.getAttribute('href')).toBe('/categories');
+        expect(link.className).toBe('button');
+        expect(link.textContent).toBe('Categories');
+    });
+
+    it('takes the variant and the class of the call site', async () => {
+        const link = await renderInRouter(
+            <ButtonLink to="/categories" variant="primary" className="toolbar__link">
+                Categories
+            </ButtonLink>
+        );
+
+        expect(link.className).toBe('button button--primary toolbar__link');
+    });
+});

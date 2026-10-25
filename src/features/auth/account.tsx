@@ -1,6 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
 import { useOutbox, useUserData } from '@/lib/offline';
@@ -42,14 +43,9 @@ function Account() {
                     {t('signOutFailed')}
                 </Notice>
             )}
-            <button
-                className="account__sign-out"
-                type="button"
-                disabled={phase === 'signing-out'}
-                onClick={handleSignOut}
-            >
+            <Button disabled={phase === 'signing-out'} onClick={handleSignOut}>
                 {phase === 'signing-out' ? t('signingOut') : t('signOut')}
-            </button>
+            </Button>
         </section>
     );
 }

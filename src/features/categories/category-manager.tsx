@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
@@ -99,9 +100,9 @@ function CategoryManager() {
                             setFailure(null);
                         }}
                     />
-                    <button disabled={!online || saving} type="submit">
+                    <Button disabled={!online || saving} type="submit">
                         {t('add.submit')}
-                    </button>
+                    </Button>
                 </div>
                 <details className="category-manager__look">
                     <summary>{t('look.summary')}</summary>

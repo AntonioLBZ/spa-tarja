@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
@@ -118,12 +119,10 @@ function CategoryRow(props: CategoryRowProps) {
                             <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
                         </details>
                         <div className="category-row__actions">
-                            <button disabled={disabled || busy} type="submit">
+                            <Button disabled={disabled || busy} type="submit">
                                 {t('save')}
-                            </button>
-                            <button type="button" onClick={close}>
-                                {t('cancel')}
-                            </button>
+                            </Button>
+                            <Button onClick={close}>{t('cancel')}</Button>
                         </div>
                         {message}
                     </div>
@@ -152,42 +151,39 @@ function CategoryRow(props: CategoryRowProps) {
                                 {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
                             </p>
                             <div className="category-row__actions">
-                                <button
-                                    className="category-row__danger"
+                                <Button
+                                    variant="danger"
                                     aria-label={t('deleteItem', { name: category.name })}
                                     disabled={disabled || busy}
-                                    type="button"
                                     onClick={() => void handleDelete()}
                                 >
                                     {t('delete')}
-                                </button>
-                                <button ref={setFocusTarget} type="button" onClick={close}>
+                                </Button>
+                                <Button ref={setFocusTarget} onClick={close}>
                                     {t('cancel')}
-                                </button>
+                                </Button>
                             </div>
                             {message}
                         </>
                     ) : (
                         <div className="category-row__actions">
-                            <button
+                            <Button
                                 ref={opener === 'edit' ? setFocusTarget : undefined}
                                 aria-label={t('editItem', { name: category.name })}
                                 disabled={disabled}
-                                type="button"
                                 onClick={() => begin('edit')}
                             >
                                 {t('edit')}
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 ref={opener === 'delete' ? setFocusTarget : undefined}
-                                className="category-row__danger"
+                                variant="danger"
                                 aria-label={t('deleteItem', { name: category.name })}
                                 disabled={disabled}
-                                type="button"
                                 onClick={() => begin('delete')}
                             >
                                 {t('delete')}
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>

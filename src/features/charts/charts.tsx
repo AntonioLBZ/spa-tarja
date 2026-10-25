@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
@@ -137,9 +138,9 @@ function Charts() {
                 {dateField('to', t('to'))}
             </div>
             {picked && (
-                <button className="charts__reset" type="button" onClick={resetRange}>
+                <Button className="charts__reset" onClick={resetRange}>
                     {t('resetRange')}
-                </button>
+                </Button>
             )}
 
             {problem && (

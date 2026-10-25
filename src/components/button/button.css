@@ -1,0 +1,20 @@
+a.button {
+    align-items: center;
+    display: inline-flex;
+    text-decoration: none;
+}
+
+.button--primary,
+.button--pressed {
+    background: var(--color-bg-accent);
+    color: var(--color-content-on-accent);
+}
+
+.button--danger {
+    border-color: var(--color-border-subtle);
+    color: var(--color-danger);
+}
+
+.button--glyph {
+    padding-inline: var(--size-4);
+}

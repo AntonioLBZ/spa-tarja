@@ -1,6 +1,7 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
+import { ButtonLink } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Account } from '@/features/auth/account';
 import { ACCENTS, useAccent } from '@/lib/accent';
@@ -44,9 +45,7 @@ function Settings() {
             <section className="settings__section">
                 <h2 className="settings__heading">{t('categories.title')}</h2>
                 <p className="settings__hint">{t('categories.description')}</p>
-                <Link className="button settings__link" to="/categories">
-                    {t('categories.link')}
-                </Link>
+                <ButtonLink to="/categories">{t('categories.link')}</ButtonLink>
             </section>
             <Account />
         </section>

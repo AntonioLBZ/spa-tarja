@@ -53,8 +53,3 @@
 .category-row__question {
     margin: 0;
 }
-
-.category-row__danger {
-    border-color: var(--color-border-subtle);
-    color: var(--color-danger);
-}

@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -297,9 +298,9 @@ function ExpenseForm() {
                 </Notice>
             )}
 
-            <button className="expense-form__submit" disabled={saving || partsProblem !== null} type="submit">
+            <Button variant="primary" disabled={saving || partsProblem !== null} type="submit">
                 {t('submit')}
-            </button>
+            </Button>
         </form>
     );
 }

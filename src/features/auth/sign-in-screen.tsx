@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useAuth } from '@/lib/auth';
 
@@ -53,9 +54,9 @@ function SignInScreen(props: { unreachable: boolean }) {
                     {t('failed')}
                 </Notice>
             )}
-            <button type="button" disabled={phase === 'opening'} onClick={start}>
+            <Button disabled={phase === 'opening'} onClick={start}>
                 {phase === 'opening' ? t('opening') : t('google')}
-            </button>
+            </Button>
         </main>
     );
 }

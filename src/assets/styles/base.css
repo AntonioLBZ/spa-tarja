@@ -26,9 +26,14 @@ select {
     width: 100%;
 }
 
+/* Zero specificity here and for links: where the stylesheets of the components land relative to this one depends on
+   how the build splits the chunks, so a class (`.button--primary`) must beat these whatever the order */
+:where(a) {
+    color: var(--color-accent);
+}
+
 /* A link that does what a button does takes the class `button` and looks like one */
-button,
-.button {
+:where(button, .button) {
     background: transparent;
     border-color: var(--color-border);
     border-style: solid;
@@ -45,20 +50,10 @@ button,
         color var(--duration-base) var(--ease-standard);
 }
 
-.button {
-    align-items: center;
-    display: inline-flex;
-    text-decoration: none;
-}
-
 button:disabled {
     border-color: var(--color-border-subtle);
     color: var(--color-content-secondary);
     cursor: default;
-}
-
-a {
-    color: var(--color-accent);
 }
 
 /* Hidden on screen, still read by assistive technology */

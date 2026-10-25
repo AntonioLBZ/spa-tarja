@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useOnline, useOutbox } from '@/lib/offline';
 
@@ -23,9 +24,7 @@ function SyncStatus() {
                     <Notice tone="danger" role="alert" className="sync-status__message">
                         {t('rejected', { count: rejected })}
                     </Notice>
-                    <button type="button" onClick={outbox.dismissRejected}>
-                        {t('dismiss')}
-                    </button>
+                    <Button onClick={outbox.dismissRejected}>{t('dismiss')}</Button>
                 </div>
             )}
         </div>

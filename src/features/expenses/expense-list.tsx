@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -120,15 +121,15 @@ function ExpenseList() {
                                             {pending && <span className="expense-item__pending">{t('pending')}</span>}
                                         </span>
                                     )}
-                                    <button
+                                    <Button
+                                        variant="danger"
                                         className="expense-item__delete"
                                         aria-label={t('deleteItem', { name })}
                                         disabled={isLeaving}
-                                        type="button"
                                         onClick={() => remove(expenses, Date.now())}
                                     >
                                         {t('delete')}
-                                    </button>
+                                    </Button>
                                 </li>
                             );
                         })}

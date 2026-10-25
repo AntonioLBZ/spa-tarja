@@ -98,7 +98,5 @@
 }
 
 .expense-item__delete {
-    border-color: var(--color-border-subtle);
-    color: var(--color-danger);
     grid-area: delete;
 }

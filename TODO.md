@@ -14,7 +14,7 @@ Items build on each other in the order of their numbers. Delete an item when it 
 Live in `src/components/<name>/`, never import from `src/features`, look pixel-identical.
 
 1. `Notice` (`tone` info | danger | quiet, `role` status | alert): replaces the 14 copies of the thick left border. The role element holds only the message text (tests read `textContent`).
-2. `Button` (`variant` default | primary | danger, `glyph`, `pressed`), `buttonClass()` and `ButtonLink` via TanStack `createLink`. Import `main.css` first in `main.tsx`, or `base.css` beats the variants. `category-select__field` and `category-row__toggle` stay raw buttons.
+2. `Button` (`variant` default | primary | danger, `glyph`, `pressed`), `buttonClass()` and `ButtonLink` via TanStack `createLink`. `base.css` matches buttons and links with `:where()`, so a variant wins whatever order the chunks load in (importing `main.css` first does not help: the build links the shared component chunk before the entry CSS). `category-select__field` and `category-row__toggle` stay raw buttons.
 3. `Field` (label, hint, error, render-prop control with `useId` wiring). Migrate the income form, category manager and expense form; a field's error moves under it. Charts wait for item 7.
 4. `Card` and `CardList` (`flush` keeps today's gap 0, otherwise `--size-2`): summary rows, built-in categories, expense rows.
 5. `Disclosure` and `DisclosurePanel`, extracted from `CategoryRow`. Add `expand_more` as a UI icon (`UI_ICONS`, kept out of `CATEGORY_ICONS`) in `icon-paths.ts`, with the notice.
