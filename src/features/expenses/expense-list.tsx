@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Card, CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -84,7 +85,7 @@ function ExpenseList() {
             {shown.map((group) => (
                 <section className="expense-list__day" key={group.date}>
                     <h3 className="expense-list__date">{dayFormat.format(fromDateString(group.date))}</h3>
-                    <ul className="expense-list__items">
+                    <CardList flush>
                         {collapsePlans(group.expenses).map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
                             const expense = expenses[0]!;
@@ -103,7 +104,8 @@ function ExpenseList() {
                                         })
                                       : null;
                             return (
-                                <li
+                                <Card
+                                    as="li"
                                     className={clsx('expense-item', isLeaving && 'expense-item--leaving')}
                                     key={expense.id}
                                 >
@@ -130,10 +132,10 @@ function ExpenseList() {
                                     >
                                         {t('delete')}
                                     </Button>
-                                </li>
+                                </Card>
                             );
                         })}
-                    </ul>
+                    </CardList>
                 </section>
             ))}
         </section>

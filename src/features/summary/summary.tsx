@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Card, CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { incomeQuery } from '@/lib/api';
@@ -47,30 +48,30 @@ function Summary() {
                 </Button>
             </div>
 
-            <dl className="summary__rows">
-                <div className="summary__row">
+            <CardList as="dl">
+                <Card className="summary__row">
                     <dt>{t('income')}</dt>
                     <dd className="summary__value">{set ? money(set.amountCents) : t('notSet')}</dd>
-                </div>
+                </Card>
                 {summary.voucherCents > 0 && (
-                    <div className="summary__row">
+                    <Card className="summary__row">
                         <dt>{t('voucher')}</dt>
                         <dd className="summary__value">{money(summary.voucherCents)}</dd>
-                    </div>
+                    </Card>
                 )}
-                <div className="summary__row">
+                <Card className="summary__row">
                     <dt>{t('spent')}</dt>
                     <dd className="summary__value">{money(summary.spentCents)}</dd>
-                </div>
+                </Card>
                 {summary.leftCents !== null && (
-                    <div className="summary__row summary__row--left">
+                    <Card className="summary__row summary__row--left">
                         <dt>{t('left')}</dt>
                         <dd className={clsx('summary__value', summary.leftCents < 0 && 'summary__value--negative')}>
                             {money(summary.leftCents)}
                         </dd>
-                    </div>
+                    </Card>
                 )}
-            </dl>
+            </CardList>
             {summary.leftCents === null && <p className="summary__hint">{t('leftHint')}</p>}
 
             {income.isError && income.data === undefined && (

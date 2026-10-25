@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Card, CardList } from '@/components/card/card';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { ApiError, categoriesQuery } from '@/lib/api';
@@ -122,7 +123,7 @@ function CategoryManager() {
                     </p>
                 )}
                 {custom?.length === 0 && <p className="category-manager__hint">{t('custom.empty')}</p>}
-                <ul className="category-manager__list">
+                <CardList>
                     {custom?.map((category) => (
                         <CategoryRow
                             key={category.id}
@@ -144,20 +145,20 @@ function CategoryManager() {
                             }
                         />
                     ))}
-                </ul>
+                </CardList>
             </section>
 
             <section className="category-manager__section">
                 <h2 className="category-manager__heading">{t('builtIn.title')}</h2>
                 <p className="category-manager__hint">{t('builtIn.note')}</p>
-                <ul className="category-manager__list">
+                <CardList>
                     {DEFAULT_CATEGORY_IDS.map((categoryId) => (
-                        <li className="category-manager__built-in" key={categoryId}>
+                        <Card as="li" className="category-manager__built-in" key={categoryId}>
                             <CategoryBadge style={DEFAULT_CATEGORY_STYLES[categoryId]} />
                             <span>{tCategory(categoryId)}</span>
-                        </li>
+                        </Card>
                     ))}
-                </ul>
+                </CardList>
             </section>
         </section>
     );

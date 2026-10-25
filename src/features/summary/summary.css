@@ -24,21 +24,11 @@
     text-transform: uppercase;
 }
 
-.summary__rows {
-    display: grid;
-    gap: var(--size-2);
-    margin: 0;
-}
-
 .summary__row {
     align-items: center;
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
     display: flex;
     gap: var(--size-3);
     justify-content: space-between;
-    padding: var(--size-2) var(--size-3);
 }
 
 .summary__row dt {

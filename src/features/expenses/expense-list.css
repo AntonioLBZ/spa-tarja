@@ -26,25 +26,14 @@
     text-transform: uppercase;
 }
 
-.expense-list__items {
-    display: grid;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
 .expense-item {
     align-items: center;
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
     display: grid;
     gap: var(--size-1) var(--size-3);
     grid-template-areas:
         'name amount'
         'category delete';
     grid-template-columns: 1fr auto;
-    padding: var(--size-2) var(--size-3);
 
     /* A new expense comes in from above; a deleted one fades out and moves aside before it goes (design.md) */
     transition:
