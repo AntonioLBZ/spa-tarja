@@ -1,6 +1,6 @@
 # Tarja
 
-An installable web app to log everyday expenses: food, groceries, leisure, bills and rent. Each expense is categorized from its text, and the category can be changed. Built to work offline too.
+An installable web app to log everyday expenses: food, groceries, leisure, bills and rent. Each expense gets a category suggested from its text, and you can change it. It also works offline.
 
 A _tarja_ is the notched stick that was used to keep accounts.
 
