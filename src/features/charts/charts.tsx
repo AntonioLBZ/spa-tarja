@@ -3,6 +3,7 @@ import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { categoriesQuery } from '@/lib/api';
@@ -121,18 +122,13 @@ function Charts() {
 
             <div className="charts__field">
                 <label htmlFor={`${id}-category`}>{t('category')}</label>
-                <select
+                <CategorySelect
                     id={`${id}-category`}
+                    label={t('category')}
+                    options={[{ id: '', label: t('allCategories') }, ...options]}
                     value={categoryId}
-                    onChange={(event) => setCategoryId(event.target.value)}
-                >
-                    <option value="">{t('allCategories')}</option>
-                    {options.map((option) => (
-                        <option key={option.id} value={option.id}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
+                    onChange={setCategoryId}
+                />
             </div>
 
             <div className="charts__dates">

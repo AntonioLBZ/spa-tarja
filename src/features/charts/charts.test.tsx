@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
+import { categoryNames, chosenCategory, pickCategory } from '@/lib/test/category-select';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
@@ -56,10 +57,6 @@ async function open(expenses: Expense[] = EXPENSES, options: Parameters<typeof c
     await screen.findByRole('heading', { name: text.title });
     await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
     return app;
-}
-
-function field(label: string) {
-    return screen.getByLabelText(label) as HTMLInputElement | HTMLSelectElement;
 }
 
 function bars() {
@@ -328,10 +325,8 @@ describe('the category filter', () => {
         const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
         await open(EXPENSES, { categories: [gym] });
 
-        const select = field(text.category) as HTMLSelectElement;
-
-        expect(select.value).toBe('');
-        expect([...select.options].map((option) => option.textContent)).toEqual([
+        expect(chosenCategory(text.category)).toBe(text.allCategories);
+        expect(categoryNames(text.category)).toEqual([
             text.allCategories,
             ...DEFAULT_CATEGORY_IDS.map((id) => en.categories[id]),
             'Gym',
@@ -341,7 +336,7 @@ describe('the category filter', () => {
     it('narrows the bars and the total to one category', async () => {
         await open();
 
-        fireEvent.change(screen.getByLabelText(text.category), { target: { value: 'food' } });
+        pickCategory(text.category, en.categories.food);
 
         expect(barOf('Oct 25').textContent).toContain('€3.00');
         expect(barOf('Oct 24').textContent).toContain('€12.50');
@@ -351,7 +346,7 @@ describe('the category filter', () => {
     it('leaves the split by category alone', async () => {
         await open();
 
-        fireEvent.change(screen.getByLabelText(text.category), { target: { value: 'food' } });
+        pickCategory(text.category, en.categories.food);
 
         expect(breakdown()).toHaveLength(3);
     });

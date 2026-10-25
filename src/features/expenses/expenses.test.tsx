@@ -4,7 +4,9 @@ import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { CATEGORIES_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
+import { categoryNames, chosenCategory, pickCategory } from '@/lib/test/category-select';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
@@ -41,8 +43,15 @@ function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement | HTMLSelectElement;
 }
 
+// Polling must not touch the page, which is what reading the options of the select does
+function categoriesLoaded(app: {
+    queryClient: { getQueryState: (key: readonly string[]) => { status: string } | undefined };
+}) {
+    return waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success'));
+}
+
 function categoryLabels() {
-    return [...(field(en.expenses.form.category) as HTMLSelectElement).options].map((option) => option.textContent);
+    return categoryNames(en.expenses.form.category);
 }
 
 function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
@@ -125,7 +134,7 @@ describe('expense form', () => {
 
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
 
-        expect(field(en.expenses.form.category).value).toBe('groceries');
+        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.groceries);
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
@@ -134,10 +143,10 @@ describe('expense form', () => {
         renderApp();
         await screen.findByLabelText(en.expenses.form.text);
 
-        fireEvent.change(field(en.expenses.form.category), { target: { value: 'leisure' } });
+        pickCategory(en.expenses.form.category, en.categories.leisure);
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
 
-        expect(field(en.expenses.form.category).value).toBe('leisure');
+        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.leisure);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
@@ -660,19 +669,19 @@ describe('custom categories', () => {
 
     it('are offered in the form after the built-in ones', async () => {
         stubApi(createFakeApi({ categories: [gym] }).handler);
-        renderApp();
+        const app = renderApp();
 
-        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+        await categoriesLoaded(app);
         expect(categoryLabels()).toEqual([...Object.values(en.categories), 'Gym']);
     });
 
     it('can be picked for an expense, which is saved with the category id', async () => {
         const api = createFakeApi({ categories: [gym] });
         stubApi(api.handler);
-        renderApp();
-        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
+        const app = renderApp();
+        await categoriesLoaded(app);
 
-        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+        pickCategory(en.expenses.form.category, 'Gym');
         fillAndSubmit({ amount: '30', text: 'Monthly fee' });
 
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -682,13 +691,13 @@ describe('custom categories', () => {
     it('go back to the suggestion when the picked one is gone', async () => {
         const api = createFakeApi({ categories: [gym] });
         stubApi(api.handler);
-        const { queryClient } = renderApp();
-        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
-        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+        const app = renderApp();
+        await categoriesLoaded(app);
+        pickCategory(en.expenses.form.category, 'Gym');
 
-        queryClient.setQueryData(['categories'], []);
+        app.queryClient.setQueryData(['categories'], []);
 
-        await waitFor(() => expect(field(en.expenses.form.category).value).toBe('other'));
+        await waitFor(() => expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.other));
     });
 
     it('name the expenses filed under them in the list', async () => {
@@ -745,15 +754,18 @@ describe('category looks', () => {
 
     it('show next to the category picker, following the pick and the suggestion', async () => {
         stubApi(createFakeApi({ categories: [gym] }).handler);
-        renderApp();
-        await waitFor(() => expect(categoryLabels()).toContain('Gym'));
-        const picker = () => field(en.expenses.form.category).closest('.expense-form__field') as HTMLElement;
+        const app = renderApp();
+        await categoriesLoaded(app);
+        const picker = () =>
+            screen
+                .getByRole('combobox', { name: en.expenses.form.category })
+                .closest('.expense-form__field') as HTMLElement;
         expect(lookOf(picker())).toEqual({ icon: 'more_horiz', color: 'gray' });
 
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'coffee' } });
         expect(lookOf(picker())).toEqual({ icon: 'restaurant', color: 'vermillion' });
 
-        fireEvent.change(field(en.expenses.form.category), { target: { value: gym.id } });
+        pickCategory(en.expenses.form.category, 'Gym');
         expect(lookOf(picker())).toEqual({ icon: 'fitness_center', color: 'blue' });
     });
 });

@@ -128,6 +128,13 @@ Three settings: light (the default), dark and system, which follows the OS.
 - Form controls use 16 px or more, so iOS doesn't zoom in on focus.
 - Layout still needs a check on a real iOS Safari and Android Chrome (`TODO.md`).
 
+### Category select
+
+- A native `<select>` can't draw an icon inside its options, and on iOS there is no way around that, so the field that picks a category (the expense form, the filter of the charts) is a list of our own, `CategorySelect`: a field with the notch that shows the icon and the name of the chosen category, and a list under it with one row per category, each with its icon and its name. The color alone says nothing, so the name is always there.
+- The list is a box with the notch on `--color-bg-primary`, as wide as the field, taller than `--size-touch` per row, and scrolls past half the screen (`dvh`). It comes in with a fade and a short vertical shift over `--duration-base`. The row under the pointer or the keyboard is on `--color-bg-secondary`, and the chosen one carries the thick left edge of the notch.
+- A row without an icon (the "All categories" of the charts) keeps the place of one, so the names line up.
+- It follows the select-only combobox pattern of the ARIA Authoring Practices: a `combobox` button that owns a `listbox`, arrow keys, Home and End to move, Enter or Space to choose, Escape to close, letters to jump to a name. Pressing outside or leaving the field closes the list without choosing.
+
 ### Categories
 
 - `/categories`, reached from a section of the settings that says what categories are for. The person's own categories are rows of the notch with the icon and the name; the built-in ones are rows with nothing to open.

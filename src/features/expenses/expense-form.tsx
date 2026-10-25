@@ -1,7 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { CategoryBadge } from '@/features/categories/category-badge';
+import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
@@ -26,7 +26,7 @@ function ExpenseForm() {
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const save = useSaveExpense();
-    const { options, styleOf } = useCategoryOptions();
+    const { options } = useCategoryOptions();
     const id = useId();
 
     const [amount, setAmount] = useState('');
@@ -167,20 +167,13 @@ function ExpenseForm() {
 
             <div className="expense-form__field">
                 <label htmlFor={`${id}-category`}>{t('category')}</label>
-                <div className="expense-form__category">
-                    <CategoryBadge style={styleOf(categoryId)} />
-                    <select
-                        id={`${id}-category`}
-                        value={categoryId}
-                        onChange={(event) => setPicked(event.target.value)}
-                    >
-                        {options.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <CategorySelect
+                    id={`${id}-category`}
+                    label={t('category')}
+                    options={options}
+                    value={categoryId}
+                    onChange={setPicked}
+                />
                 {showSuggestion && <p className="expense-form__hint">{t('suggested')}</p>}
             </div>
 

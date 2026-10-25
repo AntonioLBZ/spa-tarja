@@ -1,0 +1,84 @@
+.category-select {
+    position: relative;
+}
+
+/* The look of the other fields (base.css); only what a button needs to hold an icon and a name differs */
+.category-select__field {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    display: flex;
+    gap: var(--size-2);
+    justify-content: flex-start;
+    padding-inline: var(--size-3);
+    text-align: start;
+    width: 100%;
+}
+
+.category-select__field::after {
+    block-size: 0.5rem;
+    border-bottom: var(--size-px) solid currentcolor;
+    border-right: var(--size-px) solid currentcolor;
+    content: '';
+    inline-size: 0.5rem;
+    margin-inline-start: auto;
+    transform: rotate(45deg);
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.category-select__field[aria-expanded='true']::after {
+    transform: rotate(225deg);
+}
+
+.category-select__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* The width of an icon, for the option that has none */
+.category-select__space {
+    block-size: 1.5rem;
+    flex: none;
+    inline-size: 1.5rem;
+}
+
+.category-select__list {
+    background: var(--color-bg-primary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    inset-inline: 0;
+    list-style: none;
+    margin: 0;
+    max-block-size: min(24rem, 50dvh);
+    overflow-y: auto;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    transition:
+        opacity var(--duration-base) var(--ease-enter),
+        transform var(--duration-base) var(--ease-enter);
+    z-index: 1;
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-2)));
+    }
+}
+
+.category-select__option {
+    align-items: center;
+    border-left: var(--size-1) solid transparent;
+    cursor: pointer;
+    display: flex;
+    gap: var(--size-2);
+    min-height: var(--size-touch);
+    padding-inline: var(--size-3);
+}
+
+.category-select__option--active {
+    background: var(--color-bg-secondary);
+}
+
+.category-select__option--chosen {
+    border-left-color: var(--color-border);
+}
