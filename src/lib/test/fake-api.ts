@@ -3,10 +3,12 @@ import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-st
 
 import type { Handler } from './render-app';
 import type { Expense } from '@core/expense';
+import type { Income, IncomeInput } from '@core/income';
 
 interface FakeApiOptions {
     expenses?: Expense[];
     categories?: Category[];
+    income?: Income[];
     // Most rows per page, whatever the client asks for
     pageSize?: number;
 }
@@ -28,6 +30,9 @@ function createFakeApi(options: FakeApiOptions = {}) {
     const categories = [...(options.categories ?? [])];
     const categoryRequests: string[] = [];
 
+    const income = [...(options.income ?? [])];
+    const incomeRequests: string[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
@@ -38,6 +43,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         offline: false,
         // An HTTP status to answer every category write with, or null to accept them
         categoryWriteStatus: null as number | null,
+        // An HTTP status to answer every income write with, or null to accept them
+        incomeWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
     };
@@ -96,6 +103,25 @@ function createFakeApi(options: FakeApiOptions = {}) {
             return Response.json(saved);
         }
 
+        if (url.pathname === '/api/income' && method === 'GET') return Response.json({ income });
+
+        const month = /^\/api\/income\/([^/]+)$/.exec(url.pathname)?.[1];
+        if (month && (method === 'PUT' || method === 'DELETE')) {
+            incomeRequests.push(`${method} ${month}`);
+            if (state.incomeWriteStatus !== null) return new Response(null, { status: state.incomeWriteStatus });
+
+            const at = income.findIndex((item) => item.month === month);
+            if (method === 'DELETE') {
+                if (at >= 0) income.splice(at, 1);
+                return new Response(null, { status: 204 });
+            }
+
+            const saved: Income = { month, ...(JSON.parse(String(init?.body)) as IncomeInput) };
+            if (at >= 0) income[at] = saved;
+            else income.push(saved);
+            return Response.json(saved);
+        }
+
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
@@ -119,6 +145,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         serverWrite: store,
         categories,
         categoryRequests,
+        income,
+        incomeRequests,
     };
 }
 

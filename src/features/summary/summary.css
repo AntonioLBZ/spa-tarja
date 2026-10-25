@@ -1,0 +1,71 @@
+.summary {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.summary__title {
+    font-size: var(--font-size-l);
+    margin: 0;
+}
+
+.summary__month {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    justify-content: space-between;
+}
+
+.summary__month-name {
+    font-weight: 700;
+}
+
+.summary__month-name::first-letter {
+    text-transform: uppercase;
+}
+
+.summary__rows {
+    display: grid;
+    margin: 0;
+}
+
+.summary__row {
+    align-items: center;
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    display: flex;
+    gap: var(--size-3);
+    justify-content: space-between;
+    padding: var(--size-2) var(--size-3);
+}
+
+.summary__row dt {
+    color: var(--color-content-secondary);
+}
+
+.summary__value {
+    margin: 0;
+}
+
+.summary__row--left dt,
+.summary__row--left .summary__value {
+    color: inherit;
+    font-weight: 700;
+}
+
+.summary__row--left .summary__value--negative {
+    color: var(--color-danger);
+}
+
+.summary__hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.summary__notice {
+    border-left: var(--size-1) solid var(--color-border);
+    margin: 0;
+    padding-left: var(--size-3);
+}

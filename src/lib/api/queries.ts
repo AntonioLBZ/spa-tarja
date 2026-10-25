@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query';
 
 import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
+import { INCOME_KEY, fetchIncome } from './income';
 
 function healthQuery() {
     return queryOptions({
@@ -19,4 +20,9 @@ function categoriesQuery() {
     return queryOptions({ queryKey: CATEGORIES_KEY, queryFn: fetchCategories });
 }
 
-export { categoriesQuery, healthQuery };
+// What the person earns each month, kept offline by the persisted cache
+function incomeQuery() {
+    return queryOptions({ queryKey: INCOME_KEY, queryFn: fetchIncome });
+}
+
+export { categoriesQuery, healthQuery, incomeQuery };

@@ -1,4 +1,4 @@
-import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 
 import type { KeyValueStorage } from './storage';
 import type { PersistedClient, Persister, PersistQueryClientOptions } from '@tanstack/react-query-persist-client';
@@ -16,10 +16,10 @@ function createPersister(storage: KeyValueStorage): Persister {
     };
 }
 
-const PERSISTED_QUERIES: readonly unknown[] = [EXPENSES_KEY[0], CATEGORIES_KEY[0]];
+const PERSISTED_QUERIES: readonly unknown[] = [EXPENSES_KEY[0], CATEGORIES_KEY[0], INCOME_KEY[0]];
 
-// What survives a reload: the expenses, which are the local copy of the user's data, and the categories they are
-// filed under. Everything else is cheap to refetch.
+// What survives a reload: the expenses, which are the local copy of the user's data, the categories they are filed under
+// and the income of each month. Everything else is cheap to refetch.
 // A failed sync leaves the query in error with its data, and that data is still the copy to keep.
 function createPersistOptions(storage: KeyValueStorage): Omit<PersistQueryClientOptions, 'queryClient'> {
     return {

@@ -17,9 +17,14 @@ function RootLayout() {
                 <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
                     <Brand />
                 </Link>
-                <Link className="root__link" to="/settings">
-                    {t('settings')}
-                </Link>
+                <nav className="root__nav">
+                    <Link className="root__link" to="/summary">
+                        {t('summary')}
+                    </Link>
+                    <Link className="root__link" to="/settings">
+                        {t('settings')}
+                    </Link>
+                </nav>
             </header>
             <main className="root__main">
                 <Outlet />

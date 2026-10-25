@@ -70,7 +70,8 @@
         "dismiss": "Cerrar"
     },
     "nav": {
-        "settings": "Ajustes"
+        "settings": "Ajustes",
+        "summary": "Resumen"
     },
     "auth": {
         "title": "Inicia sesión en Tarja",
@@ -199,5 +200,26 @@
         "volunteer_activism": "Donaciones",
         "more_horiz": "Más",
         "category": "Categoría"
+    },
+    "summary": {
+        "title": "Resumen",
+        "previousMonth": "Mes anterior",
+        "nextMonth": "Mes siguiente",
+        "income": "Ingresos",
+        "voucher": "Tarjeta restaurante",
+        "spent": "Gastado",
+        "left": "Queda",
+        "notSet": "Sin definir",
+        "leftHint": "Indica los ingresos de este mes para ver lo que queda.",
+        "offline": "Sin conexión. Conéctate para cambiar tus ingresos.",
+        "loadFailed": "No se pudieron cargar tus ingresos.",
+        "form": {
+            "label": "Ingresos de {month}",
+            "save": "Guardar",
+            "remove": "Quitar",
+            "invalid": "Introduce un importe mayor que cero.",
+            "saveFailed": "No se pudieron guardar los ingresos. Inténtalo de nuevo.",
+            "removeFailed": "No se pudieron quitar los ingresos. Inténtalo de nuevo."
+        }
     }
 }

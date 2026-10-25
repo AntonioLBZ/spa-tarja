@@ -1,7 +1,7 @@
 import type { ParsedLocation } from '@tanstack/react-router';
 
 // How deep a screen sits in the app: moving to a deeper one slides forward, to a shallower one slides back
-const DEPTHS: Record<string, number> = { '/': 0, '/settings': 1, '/categories': 2 };
+const DEPTHS: Record<string, number> = { '/': 0, '/settings': 1, '/summary': 1, '/categories': 2 };
 
 function routeDepth(pathname: string): number {
     return DEPTHS[pathname] ?? 0;

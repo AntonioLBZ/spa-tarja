@@ -1,0 +1,22 @@
+.income-form {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.income-form__row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2);
+}
+
+.income-form__input {
+    flex: 1 1 8rem;
+    min-width: 0;
+}
+
+.income-form__error {
+    border-left: var(--size-1) solid var(--color-danger);
+    margin: 0;
+    padding-left: var(--size-3);
+}

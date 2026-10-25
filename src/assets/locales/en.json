@@ -70,7 +70,8 @@
         "dismiss": "Dismiss"
     },
     "nav": {
-        "settings": "Settings"
+        "settings": "Settings",
+        "summary": "Summary"
     },
     "auth": {
         "title": "Sign in to Tarja",
@@ -199,5 +200,26 @@
         "volunteer_activism": "Donations",
         "more_horiz": "More",
         "category": "Category"
+    },
+    "summary": {
+        "title": "Summary",
+        "previousMonth": "Previous month",
+        "nextMonth": "Next month",
+        "income": "Income",
+        "voucher": "Restaurant card",
+        "spent": "Spent",
+        "left": "Left",
+        "notSet": "Not set",
+        "leftHint": "Set the income of this month to see what is left.",
+        "offline": "You're offline. Connect to change your income.",
+        "loadFailed": "Couldn't load your income.",
+        "form": {
+            "label": "Income of {month}",
+            "save": "Save",
+            "remove": "Remove",
+            "invalid": "Enter an amount above zero.",
+            "saveFailed": "Couldn't save the income. Try again.",
+            "removeFailed": "Couldn't remove the income. Try again."
+        }
     }
 }

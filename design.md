@@ -126,13 +126,19 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - Form controls use 16 px or more, so iOS doesn't zoom in on focus.
 - Layout still needs a check on a real iOS Safari and Android Chrome (`TODO.md`).
 
+### Summary
+
+- `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.
+- The month's numbers are notch-bordered rows: income (what the person set, or "Not set"), restaurant card (only when something was paid that way), spent, and left. Left is the row that matters: bold, and in `--color-danger` below zero. It stays hidden, with a hint, until the income is set.
+- Under the rows, one form sets the income: an amount field and Save, and Remove once there is one. Setting it needs a connection (`ARCHITECTURE.md` §5), so offline the form is disabled and says why; the numbers themselves still show from the local copy.
+
 ## 6. Motion
 
 - Animated transitions are part of the identity: things enter, leave and change with a transition.
 - Always use `--duration-fast`, `--duration-base` and `--duration-slow` (120, 200 and 360 ms) and `--ease-standard`, `--ease-enter` and `--ease-exit`. Never literal values.
 - `prefers-reduced-motion` zeroes the durations in one place (`tokens.css`). Components don't special-case it.
 - Prefer animating `transform` and `opacity`.
-- **Routes slide horizontally.** Each route has a depth: `/` is 0, `/settings` 1, `/categories` 2. Going deeper, the new screen enters from the right and the old one leaves to the left; going back, the other way round. Fade plus `translateX`, over `--duration-base`. With reduced motion the durations are zero, so the screen just changes.
+- **Routes slide horizontally.** Each route has a depth: `/` is 0, `/settings` and `/summary` 1, `/categories` 2. Going deeper, the new screen enters from the right and the old one leaves to the left; going back, the other way round. Fade plus `translateX`, over `--duration-base`. With reduced motion the durations are zero, so the screen just changes.
 - **Lists.** A new expense enters from above with a fade and a short vertical shift; a deleted one fades out before it leaves.
 
 ## 7. CSS and copy conventions
