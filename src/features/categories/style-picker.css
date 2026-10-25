@@ -19,6 +19,7 @@
 .style-picker__options {
     display: flex;
     flex-wrap: wrap;
+    gap: var(--size-2);
 }
 
 .style-picker__option {

@@ -16,6 +16,10 @@
     justify-content: space-between;
 }
 
+.summary__step {
+    padding-inline: var(--size-4);
+}
+
 .summary__month-name {
     font-weight: 700;
 }

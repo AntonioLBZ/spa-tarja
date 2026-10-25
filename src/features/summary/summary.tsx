@@ -36,11 +36,21 @@ function Summary() {
             <h1 className="summary__title">{t('title')}</h1>
 
             <div className="summary__month">
-                <button aria-label={t('previousMonth')} type="button" onClick={() => setMonth(shiftMonth(month, -1))}>
+                <button
+                    className="summary__step"
+                    aria-label={t('previousMonth')}
+                    type="button"
+                    onClick={() => setMonth(shiftMonth(month, -1))}
+                >
                     ←
                 </button>
                 <span className="summary__month-name">{monthName}</span>
-                <button aria-label={t('nextMonth')} type="button" onClick={() => setMonth(shiftMonth(month, 1))}>
+                <button
+                    className="summary__step"
+                    aria-label={t('nextMonth')}
+                    type="button"
+                    onClick={() => setMonth(shiftMonth(month, 1))}
+                >
                     →
                 </button>
             </div>

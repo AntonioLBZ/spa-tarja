@@ -35,7 +35,8 @@ button {
     cursor: pointer;
     min-height: var(--size-touch);
     min-width: var(--size-touch);
-    padding: 0 var(--size-4);
+    padding-block: 0;
+    padding-inline: var(--size-4) var(--size-12);
     transition:
         background-color var(--duration-base) var(--ease-standard),
         border-color var(--duration-base) var(--ease-standard),
