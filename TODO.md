@@ -1,7 +1,7 @@
 # TODO
 
 - Installable PWA: manifest, icons (192/512 PNG and maskable, from `public/favicon.svg`), service worker with `vite-plugin-pwa`, offline shell.
-- D1 schema and first migration (`db/migrations`). Decide Drizzle or hand-written SQL.
+- D1 schema and first migration (`db/migrations`), in hand-written SQL.
 - Expenses: idempotent `PUT /expenses/:id`, list and soft delete. A screen to log an expense.
 - Default categories and the keyword classifier in `core/`.
 - Offline queue in IndexedDB and sync.

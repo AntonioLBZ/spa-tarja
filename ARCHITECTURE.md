@@ -55,15 +55,20 @@ public/   static files
 ```
 
 - `server/` doesn't import from `src/`. `src/` only imports **types** from `@server/*`.
-- `core/` imports nothing from React, Hono or Workers. The category classifier and the money helpers will live there.
+- `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier and the money helpers will live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
 
-## 5. Data (proposal, no schema yet)
+## 5. Data
 
-- Amount as an integer in cents plus a currency code, never a `float`.
-- `id` is a UUID created on the client (§6), plus `userId`, `categoryId`, text, expense date (different from `createdAt`), `updatedAt` and `deletedAt` for soft deletes.
-- Index on `(userId, date)`.
+Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrations`; no ORM. The schema is small and `wrangler` already is the migration tool. Queries are typed next to the code that runs them and tested in `workerd` against a real D1.
+
+- Amount as an integer in cents plus a currency code, never a `float`. There is a single currency for now (`EUR`, `DEFAULT_CURRENCY` in `core/`); the code is stored on each row so adding more later needs no migration.
+- `id` is a UUID created on the client (§6) and is the primary key. `PUT /expenses/:id` creates the row or updates it, but only when it belongs to the caller: an existing id owned by another user is rejected, never overwritten.
+- Columns: `user_id`, `category_id`, `text`, `amount_cents`, `currency`, `date`, `created_at`, `updated_at`, `deleted_at`.
+- `date` is the day the user picked, as `YYYY-MM-DD` text (no time zone to get wrong). `created_at`, `updated_at` and `deleted_at` are epoch milliseconds.
+- Indexes: `(user_id, date)` for listing and `(user_id, updated_at)` for the sync by delta, because a soft delete only travels if the delta query sees it.
+- Until the login exists (§8) every request is served as one fixed user, resolved in a single place in the server.
 
 ## 6. Offline strategy
 
@@ -75,8 +80,8 @@ public/   static files
 
 ## 7. Categories
 
-- Default categories (initial proposal: food, groceries, leisure, bills, housing/rent, transport, health, other) are read-only.
-- Auto-selection is a dictionary of normalized keywords (lowercase, no accents) that runs on the client, with the logic in `core/`. The user can change it on each expense.
+- Default categories (initial proposal: food, groceries, leisure, bills, housing/rent, transport, health, other) are read-only. They live in `core/` with stable ids; their names come from the locale files, not from the database. Custom categories live in D1, so `expenses.category_id` has no foreign key to the defaults.
+- Auto-selection is a dictionary of normalized keywords (lowercase, no accents) in English and Spanish that runs on the client, with the logic in `core/`. The user can change it on each expense.
 - Whether the app learns from each user's corrections is an open decision.
 
 ## 8. Authentication
@@ -120,8 +125,7 @@ Discarded:
 Open:
 
 - Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`) and where the language switcher lives (a settings screen).
-- Drizzle or hand-written SQL for the schema.
 - Better Auth or another option for the login.
-- Domain: `tarja.dev` is free (2026-10-25); `tarja.app` and `tarja.com` are not.
+- Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. The free path is `workers.dev`.
 - D1 `database_id` on the first deploy: create the database with `wrangler d1 create` or let Wrangler provision it.
 - Whether to approve pnpm's "agent skills".
