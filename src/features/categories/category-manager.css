@@ -60,6 +60,8 @@
 }
 
 .category-manager__built-in {
-    border-bottom: var(--size-px) solid var(--color-border-subtle);
-    padding-block: var(--size-2);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    padding: var(--size-2) var(--size-3);
 }

@@ -13,10 +13,13 @@ textarea {
     font: inherit;
 }
 
+/* The notch: a thick edge on the left and at the bottom of every box, none on top or on the right */
 input,
 select {
-    background: var(--color-bg-primary);
-    border: var(--size-px) solid var(--color-border);
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
     color: var(--color-content-primary);
     min-height: var(--size-touch);
     padding: 0 var(--size-3);
@@ -25,7 +28,9 @@ select {
 
 button {
     background: transparent;
-    border: var(--size-px) solid var(--color-border);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
     color: var(--color-content-primary);
     cursor: pointer;
     min-height: var(--size-touch);

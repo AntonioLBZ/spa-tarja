@@ -96,7 +96,7 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 - **No rounded corners.** Never use `border-radius`; there are no radius tokens. This includes buttons, inputs, avatars and focus outlines.
 - **Borders carry the structure** where other designs use shadows. `--color-border` (ink) for structure, `--color-border-subtle` for dividers. Dividers are 1 px (`--size-px`); the notch and emphasis use `--size-1`.
 - **Form controls** share one look, set on the elements in `base.css`: the notch (below) on a `--color-bg-secondary` field, no radius, at least `--size-touch` tall. A button has the notch too; the primary action fills with the accent (`--color-bg-accent`) and a destructive one takes `--color-danger` for its text.
-- **The notch.** The tally-stick cut: every box (form control, button, list row, card) has a thick ink border (`--size-1`) on the left and at the bottom, and none on top or on the right. Without an outline, a box that takes input sits on `--color-bg-secondary` so it still reads as a field. The focus ring is the exception: a full accent outline around the box. Messages (status, notices, errors) keep a thick left border only, in ink, or in `--color-danger` for errors. The widths are starting values, to tune on screen (§8).
+- **The notch.** The tally-stick cut: every box (form control, button, list row, card) has a thick ink border (`--size-1`) on the left and at the bottom, and none on top or on the right. Without an outline, a box that takes input sits on `--color-bg-secondary` so it still reads as a field. The focus ring is the exception: a full accent outline around the box. Messages (status, notices, errors) keep a thick left border only, in ink, or in `--color-danger` for errors. Both edges are `--size-1` (4 px), checked on screen on the form, the lists and the choice groups. A primary button keeps the ink notch on its accent fill. In a row of options (a `ChoiceGroup`) each box brings its own notch, so the left edge of one is the divider from the previous.
 
 ## 4. Typography and icons
 
@@ -143,4 +143,4 @@ Three settings, as in `spa-anicalendar`: system (the default), light and dark.
 
 ## 8. Open questions
 
-- The notch widths: both edges start at `--size-1`. Tune them on screen when the borders are applied, then record the result in §3.
+None at the moment. Add here what comes up, and ask the owner before settling it.

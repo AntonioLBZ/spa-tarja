@@ -26,6 +26,5 @@
 
 .expense-form__submit {
     background: var(--color-bg-accent);
-    border-color: var(--color-bg-accent);
     color: var(--color-content-on-accent);
 }

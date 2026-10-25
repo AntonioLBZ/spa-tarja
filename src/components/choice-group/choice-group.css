@@ -22,10 +22,11 @@
 
 .choice-group__text {
     align-items: center;
-    border: var(--size-px) solid var(--color-border);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
     cursor: pointer;
     display: flex;
-    margin: 0 calc(-1 * var(--size-px)) calc(-1 * var(--size-px)) 0;
     min-height: var(--size-touch);
     padding: 0 var(--size-4);
     transition:
