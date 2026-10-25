@@ -3,30 +3,44 @@ import { useTranslations } from 'use-intl';
 
 import { Bar } from '@/components/bar/bar';
 import { CategoryBadge } from '@/features/categories/category-badge';
-import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
+import type { CategoryStyle } from '@core/category-style';
 import type { CategoryTotal } from '@core/charts';
 
 import './category-breakdown.css';
 
-// What each category took, with its icon and name (the color alone says nothing), its amount and its share of the total
-function CategoryBreakdown(props: { totals: readonly CategoryTotal[] }) {
-    const { totals } = props;
+interface CategoryBreakdownProps {
+    totals: readonly CategoryTotal[];
+    labelOf: (id: string) => string;
+    styleOf: (id: string) => CategoryStyle;
+}
+
+// What each category took, with its icon and name (the color alone says nothing), its amount and its share of the
+// total. The biggest comes first, and the ones that took the same go in the order of the names that are read.
+function CategoryBreakdown(props: CategoryBreakdownProps) {
+    const { totals, labelOf, styleOf } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
-    const { labelOf, styleOf } = useCategoryOptions();
 
     const percent = useMemo(
         () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }),
         [locale]
     );
     const all = totals.reduce((sum, item) => sum + item.totalCents, 0);
+    const ordered = useMemo(
+        () =>
+            [...totals].sort(
+                (a, b) =>
+                    b.totalCents - a.totalCents || labelOf(a.categoryId).localeCompare(labelOf(b.categoryId), locale)
+            ),
+        [totals, labelOf, locale]
+    );
 
     return (
         <ul className="category-breakdown" aria-label={t('byCategory')}>
-            {totals.map((item) => {
+            {ordered.map((item) => {
                 const share = item.totalCents / all;
                 return (
                     <li className="category-breakdown__row" key={item.categoryId}>

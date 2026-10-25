@@ -80,7 +80,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 
 An expense is made on its `date` but can count on another day. The list keeps showing it on the day it was made; the totals and the charts use the day it counts.
 
-The charts need no endpoint: they aggregate the expenses the device already holds (`core/charts.ts`), so they work offline and see unsynced changes. Weeks start on Monday, a range includes both of its ends, and every row of a chart is a day, a week or a month of that range, empty ones too.
+The charts need no endpoint: they aggregate the expenses the device already holds (`core/charts.ts`), so they work offline and see unsynced changes. Weeks start on Monday, a range includes both of its ends, and every row of a chart is a day, a week or a month of that range, empty ones too, up to 400 rows.
 
 - **Deferred expenses** (migration `0005`) add `payment` (`direct`, the default, `credit` for a credit card or `voucher` for a restaurant card) and `charge_date`, the day it counts on when that isn't `date`. A `credit` or `voucher` expense must have a `charge_date`, and no `charge_date` can come before `date`. The form proposes the same day of the next month and the person can pick any date. Older clients that don't send the two columns write `direct` and no `charge_date`, which is what they always meant.
 - **Counted on** is `charge_date` when there is one and `date` otherwise (`countedOn` in `core/`). A month's spending is what counts in that month, whatever category it has.

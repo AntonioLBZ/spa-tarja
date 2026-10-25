@@ -237,6 +237,7 @@
         "to": "To",
         "resetRange": "Reset dates",
         "rangeInvalid": "The start can't be after the end.",
+        "rangeTooLong": "Too many rows to draw. Pick fewer dates, or group by week or month.",
         "spendingTitle": "Spending",
         "weekOf": "Week of {date}",
         "total": "Total",

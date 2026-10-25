@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { addDays, addMonths, fromDateString, isCalendarDate, startOfWeek, toDateString } from './date';
+import {
+    addDays,
+    addMonths,
+    daysBetween,
+    endOfMonth,
+    fromDateString,
+    isCalendarDate,
+    startOfWeek,
+    toDateString,
+} from './date';
 
 describe('isCalendarDate', () => {
     it('accepts real days, leap day included', () => {
@@ -77,6 +86,11 @@ describe('addDays', () => {
         expect(addDays('2027-02-28', 1)).toBe('2027-03-01');
     });
 
+    it('keeps the years below one hundred as they are', () => {
+        expect(addDays('0002-10-25', 1)).toBe('0002-10-26');
+        expect(addDays('0099-12-31', 1)).toBe('0100-01-01');
+    });
+
     it('moves a long way', () => {
         expect(addDays('2026-01-01', 365)).toBe('2027-01-01');
         expect(addDays('2026-10-25', -84)).toBe('2026-08-02');
@@ -91,8 +105,54 @@ describe('startOfWeek', () => {
         expect(startOfWeek('2026-10-20')).toBe('2026-10-19');
     });
 
+    it('works the same for the years below one hundred', () => {
+        expect(startOfWeek('0002-10-25')).toBe('0002-10-21');
+    });
+
     it('can start in the month or the year before', () => {
         expect(startOfWeek('2026-11-01')).toBe('2026-10-26');
         expect(startOfWeek('2027-01-01')).toBe('2026-12-28');
+    });
+});
+
+describe('addMonths in the years below one hundred', () => {
+    it('clamps to the last day like any other year', () => {
+        expect(addMonths('0002-01-31', 1)).toBe('0002-02-28');
+        expect(addMonths('0004-01-31', 1)).toBe('0004-02-29');
+    });
+});
+
+describe('daysBetween', () => {
+    it('counts the days from one to the other', () => {
+        expect(daysBetween('2026-01-01', '2026-10-25')).toBe(297);
+        expect(daysBetween('2026-10-25', '2026-10-26')).toBe(1);
+        expect(daysBetween('2026-10-25', '2026-10-25')).toBe(0);
+    });
+
+    it('is negative when it goes back', () => {
+        expect(daysBetween('2026-10-26', '2026-10-25')).toBe(-1);
+    });
+
+    it('knows leap years', () => {
+        expect(daysBetween('2027-02-28', '2028-03-01')).toBe(367);
+    });
+
+    it('counts the years below one hundred', () => {
+        expect(daysBetween('0002-10-25', '0002-10-26')).toBe(1);
+        expect(daysBetween('0002-10-25', '2026-10-25')).toBe(739_251);
+    });
+});
+
+describe('endOfMonth', () => {
+    it('is the last day of the month the day is in', () => {
+        expect(endOfMonth('2026-10-25')).toBe('2026-10-31');
+        expect(endOfMonth('2026-10-31')).toBe('2026-10-31');
+        expect(endOfMonth('2026-09-01')).toBe('2026-09-30');
+        expect(endOfMonth('2026-12-05')).toBe('2026-12-31');
+    });
+
+    it('knows February', () => {
+        expect(endOfMonth('2026-02-10')).toBe('2026-02-28');
+        expect(endOfMonth('2028-02-10')).toBe('2028-02-29');
     });
 });

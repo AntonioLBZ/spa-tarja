@@ -237,6 +237,7 @@
         "to": "Hasta",
         "resetRange": "Restablecer fechas",
         "rangeInvalid": "El inicio no puede ser posterior al final.",
+        "rangeTooLong": "Demasiadas filas para dibujar. Elige menos fechas o agrupa por semana o por mes.",
         "spendingTitle": "Gasto",
         "weekOf": "Semana del {date}",
         "total": "Total",

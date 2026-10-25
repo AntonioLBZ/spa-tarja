@@ -10,14 +10,10 @@ import type { Bucket, Granularity } from '@core/charts';
 
 import './spending-bars.css';
 
-const DAY_FORMAT: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
-const WEEK_FORMAT: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-const MONTH_FORMAT: Intl.DateTimeFormatOptions = { month: 'long', year: 'numeric' };
-
 const FORMATS: Record<Granularity, Intl.DateTimeFormatOptions> = {
-    day: DAY_FORMAT,
-    week: WEEK_FORMAT,
-    month: MONTH_FORMAT,
+    day: { weekday: 'short', month: 'short', day: 'numeric' },
+    week: { month: 'short', day: 'numeric' },
+    month: { month: 'long', year: 'numeric' },
 };
 
 // One row for each bucket: what it is, how much, and a bar next to the biggest of them
@@ -26,12 +22,21 @@ function SpendingBars(props: { buckets: readonly Bucket[]; granularity: Granular
     const t = useTranslations('charts');
     const { locale } = useLocale();
 
-    const format = useMemo(() => new Intl.DateTimeFormat(locale, FORMATS[granularity]), [locale, granularity]);
+    // Without the year two rows of different years would read the same
+    const overYears = buckets.length > 0 && buckets[0]!.start.slice(0, 4) !== buckets.at(-1)!.start.slice(0, 4);
+    const format = useMemo(
+        () =>
+            new Intl.DateTimeFormat(
+                locale,
+                overYears ? { ...FORMATS[granularity], year: 'numeric' } : FORMATS[granularity]
+            ),
+        [locale, granularity, overYears]
+    );
     const nameOf = (start: string) => {
         const date = format.format(fromDateString(start));
         return granularity === 'week' ? t('weekOf', { date }) : date;
     };
-    const biggest = Math.max(0, ...buckets.map((bucket) => bucket.totalCents));
+    const biggest = buckets.reduce((most, bucket) => Math.max(most, bucket.totalCents), 0);
 
     return (
         <ol className="spending-bars" aria-label={t('spendingTitle')}>

@@ -1,17 +1,23 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { EXPENSES_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
+import { MAX_BUCKETS } from '@core/charts';
+import { addDays } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';
 
 const text = en.charts;
+const t = createTranslator({ locale: 'en', messages: en });
+const tEs = createTranslator({ locale: 'es', messages: es });
+const weekOf = (date: string) => t('charts.weekOf', { date });
 
 function expense(overrides: Partial<Expense> = {}): Expense {
     return {
@@ -92,19 +98,40 @@ afterEach(() => {
 });
 
 describe('spending by day', () => {
-    it('is what the page starts with, for the month so far, a row for every day', async () => {
+    it('is what the page starts with, for the whole month, a row for every day', async () => {
         await open();
 
-        expect(bars()).toHaveLength(25);
+        expect(bars()).toHaveLength(31);
         expect(bars()[0]!.textContent).toContain('Oct 1');
-        expect(bars().at(-1)!.textContent).toContain('Oct 25');
+        expect(bars().at(-1)!.textContent).toContain('Oct 31');
     });
 
-    it('names each day with its weekday', async () => {
+    it('shows what is still to be charged later in the month, the way the summary counts it', async () => {
+        await open([expense({ amountCents: 1800, date: '2026-09-20', payment: 'voucher', chargeDate: '2026-10-28' })]);
+
+        expect(barOf('Oct 28').textContent).toContain('€18.00');
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€18.00');
+    });
+
+    it('names each day with its weekday, and the year only when the range needs it', async () => {
         await open();
 
         expect(bars()[24]!.textContent).toContain('Sun, Oct 25');
         expect(bars()[0]!.textContent).toContain('Thu, Oct 1');
+        expect(bars()[24]!.textContent).not.toContain('2026');
+    });
+
+    it('adds the year to the names when the range goes over a New Year', async () => {
+        await open();
+
+        dates('2025-12-30', '2026-01-02');
+
+        expect(bars().map((item) => item.textContent)).toEqual([
+            expect.stringContaining('Tue, Dec 30, 2025'),
+            expect.stringContaining('Wed, Dec 31, 2025'),
+            expect.stringContaining('Thu, Jan 1, 2026'),
+            expect.stringContaining('Fri, Jan 2, 2026'),
+        ]);
     });
 
     it('adds up each day, leaving the quiet ones at zero', async () => {
@@ -153,8 +180,18 @@ describe('spending by week', () => {
         groupBy(text.group.week);
 
         expect(bars()).toHaveLength(12);
-        expect(bars()[0]!.textContent).toContain(`Week of Aug 3`);
-        expect(bars().at(-1)!.textContent).toContain('Week of Oct 19');
+        expect(bars()[0]!.textContent).toContain(weekOf('Aug 3'));
+        expect(bars().at(-1)!.textContent).toContain(weekOf('Oct 19'));
+    });
+
+    it('adds the year to the weeks when the range goes over a New Year', async () => {
+        await open();
+        dates('2025-12-01', '2026-01-10');
+
+        groupBy(text.group.week);
+
+        expect(barOf(weekOf('Dec 29, 2025')).textContent).toContain('€0.00');
+        expect(bars().at(-1)!.textContent).toContain(weekOf('Jan 5, 2026'));
     });
 
     it('adds up each week', async () => {
@@ -162,9 +199,9 @@ describe('spending by week', () => {
 
         groupBy(text.group.week);
 
-        expect(barOf('Week of Oct 19').textContent).toContain('€61.49');
-        expect(barOf('Week of Oct 5').textContent).toContain('€20.00');
-        expect(barOf('Week of Sep 28').textContent).toContain('€15.00');
+        expect(barOf(weekOf('Oct 19')).textContent).toContain('€61.49');
+        expect(barOf(weekOf('Oct 5')).textContent).toContain('€20.00');
+        expect(barOf(weekOf('Sep 28')).textContent).toContain('€15.00');
     });
 });
 
@@ -226,6 +263,52 @@ describe('by category', () => {
         ]);
     });
 
+    it('puts the categories that took the same in the order of their names, not of their ids', async () => {
+        const zumba = {
+            id: '00000000-0000-4000-8000-000000000000',
+            name: 'Zumba',
+            color: 'blue',
+            icon: 'fitness_center',
+        } as const;
+        const aikido = {
+            id: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
+            name: 'Aikido',
+            color: 'green',
+            icon: 'spa',
+        } as const;
+
+        await open(
+            [expense({ categoryId: zumba.id, amountCents: 100 }), expense({ categoryId: aikido.id, amountCents: 100 })],
+            { categories: [zumba, aikido] }
+        );
+
+        expect(breakdown().map((item) => item.textContent)).toEqual([
+            expect.stringContaining('Aikido'),
+            expect.stringContaining('Zumba'),
+        ]);
+    });
+
+    it('does not fold what it cannot name into Other before the categories are known', async () => {
+        const api = createFakeApi({
+            expenses: [
+                expense({ categoryId: crypto.randomUUID(), amountCents: 300 }),
+                expense({ categoryId: 'other', amountCents: 200 }),
+            ],
+        });
+        stubApi((url, init) =>
+            url.pathname === '/api/categories' ? new Response(null, { status: 500 }) : api.handler(url, init)
+        );
+        const app = renderApp({ path: '/charts' });
+        await screen.findByRole('heading', { name: text.title });
+        await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
+        await waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('error'));
+
+        expect(breakdown().map((item) => item.textContent)).toEqual([
+            expect.stringContaining('€3.00'),
+            expect.stringContaining('€2.00'),
+        ]);
+    });
+
     it('is not asked for when nothing was spent, and says so', async () => {
         await open([]);
 
@@ -275,11 +358,11 @@ describe('the category filter', () => {
 });
 
 describe('the dates', () => {
-    it('start at the first of the month and today for days', async () => {
+    it('start at the first and the last day of the month for days', async () => {
         await open();
 
         expect((screen.getByLabelText(text.from) as HTMLInputElement).value).toBe('2026-10-01');
-        expect((screen.getByLabelText(text.to) as HTMLInputElement).value).toBe('2026-10-25');
+        expect((screen.getByLabelText(text.to) as HTMLInputElement).value).toBe('2026-10-31');
     });
 
     it('follow the grouping until the person picks some', async () => {
@@ -288,7 +371,7 @@ describe('the dates', () => {
         groupBy(text.group.month);
 
         expect((screen.getByLabelText(text.from) as HTMLInputElement).value).toBe('2025-11-01');
-        expect((screen.getByLabelText(text.to) as HTMLInputElement).value).toBe('2026-10-25');
+        expect((screen.getByLabelText(text.to) as HTMLInputElement).value).toBe('2026-10-31');
     });
 
     it('narrow the chart to the days picked, both ends included', async () => {
@@ -328,7 +411,7 @@ describe('the dates', () => {
         fireEvent.click(screen.getByRole('button', { name: text.resetRange }));
 
         expect((screen.getByLabelText(text.from) as HTMLInputElement).value).toBe('2026-10-01');
-        expect(bars()).toHaveLength(25);
+        expect(bars()).toHaveLength(31);
         expect(screen.queryByRole('button', { name: text.resetRange })).toBeNull();
     });
 
@@ -340,6 +423,8 @@ describe('the dates', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(text.rangeInvalid);
         expect(screen.queryByRole('list', { name: text.spendingTitle })).toBeNull();
         expect(screen.queryByRole('list', { name: text.byCategory })).toBeNull();
+        expect(screen.queryByText(text.total)).toBeNull();
+        expect(screen.queryByText(text.empty)).toBeNull();
         expect(screen.getByLabelText(text.from).getAttribute('aria-invalid')).toBe('true');
     });
 
@@ -353,14 +438,115 @@ describe('the dates', () => {
         expect(barOf('Oct 25').textContent).toContain('€48.99');
     });
 
-    it('ignore a date that was cleared, which is what the field gives while it is being typed', async () => {
+    it('keep the chart on the last good range while a date is half typed, and go back to it when the field is left', async () => {
+        await open();
+        const from = screen.getByLabelText(text.from) as HTMLInputElement;
+
+        fireEvent.change(from, { target: { value: '' } });
+
+        expect(from.value).toBe('');
+        expect(bars()).toHaveLength(31);
+        expect(screen.queryByRole('button', { name: text.resetRange })).toBeNull();
+
+        fireEvent.blur(from);
+
+        expect(from.value).toBe('2026-10-01');
+    });
+
+    it('ignore the years a field passes through while one is typed, and take the day once it is whole', async () => {
+        await open();
+        const from = screen.getByLabelText(text.from) as HTMLInputElement;
+
+        for (const partial of ['0002-10-05', '0020-10-05', '0202-10-05']) {
+            fireEvent.change(from, { target: { value: partial } });
+            expect(from.value).toBe(partial);
+            expect(bars()).toHaveLength(31);
+        }
+        fireEvent.change(from, { target: { value: '2026-10-05' } });
+
+        expect(bars()).toHaveLength(27);
+        expect(from.value).toBe('2026-10-05');
+    });
+
+    it('ignore years that cannot be right, before 2000 and after 2099', async () => {
         await open();
 
-        fireEvent.change(screen.getByLabelText(text.from), { target: { value: '' } });
+        for (const day of ['1999-12-31', '2100-01-01']) {
+            fireEvent.change(screen.getByLabelText(text.from), { target: { value: day } });
+            expect(bars()).toHaveLength(31);
+        }
+        expect(screen.queryByRole('button', { name: text.resetRange })).toBeNull();
+    });
+
+    it('accept the first and the last day that can be right', async () => {
+        await open();
+
+        dates('2000-01-01', '2099-12-31');
+
+        expect((screen.getByLabelText(text.from) as HTMLInputElement).value).toBe('2000-01-01');
+        expect((screen.getByLabelText(text.to) as HTMLInputElement).value).toBe('2099-12-31');
+        expect(screen.getByRole('button', { name: text.resetRange })).toBeDefined();
+    });
+
+    it('are explained by the message when the start is after the end', async () => {
+        await open();
+
+        dates('2026-10-25', '2026-10-24');
+
+        const message = await screen.findByRole('alert');
+        expect(screen.getByLabelText(text.from).getAttribute('aria-describedby')).toBe(message.id);
+        expect(screen.getByLabelText(text.to).getAttribute('aria-describedby')).toBe(message.id);
+    });
+
+    it('are explained by nothing when they are fine', async () => {
+        await open();
+
+        expect(screen.getByLabelText(text.from).getAttribute('aria-describedby')).toBeNull();
+    });
+
+    it('are refused when the range would make too many rows, but the total and the split stay', async () => {
+        await open();
+
+        dates('2020-01-01', '2026-10-31');
+
+        const message = await screen.findByRole('alert');
+        expect(message.textContent).toBe(text.rangeTooLong);
+        expect(screen.queryByRole('list', { name: text.spendingTitle })).toBeNull();
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€96.49');
+        expect(breakdown()).toHaveLength(3);
+        expect(screen.getByLabelText(text.from).getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByLabelText(text.from).getAttribute('aria-describedby')).toBe(message.id);
+    });
+
+    it('are drawn up to the most rows the chart allows, and refused with one more', async () => {
+        await open();
+
+        dates('2026-01-01', addDays('2026-01-01', MAX_BUCKETS - 1));
+        expect(bars()).toHaveLength(MAX_BUCKETS);
+        expect(screen.queryByRole('alert')).toBeNull();
+
+        dates('2026-01-01', addDays('2026-01-01', MAX_BUCKETS));
+        expect((await screen.findByRole('alert')).textContent).toBe(text.rangeTooLong);
+    });
+
+    it('drop a half typed date along with the others when they are reset', async () => {
+        await open();
+        dates('2026-10-24', '2026-10-25');
+        fireEvent.change(screen.getByLabelText(text.from), { target: { value: '0002-10-24' } });
+
+        fireEvent.click(screen.getByRole('button', { name: text.resetRange }));
 
         expect((screen.getByLabelText(text.from) as HTMLInputElement).value).toBe('2026-10-01');
-        expect(screen.queryByRole('button', { name: text.resetRange })).toBeNull();
-        expect(bars()).toHaveLength(25);
+    });
+
+    it('can still be drawn by month when it is too long to draw by day', async () => {
+        await open();
+        dates('2020-01-01', '2026-10-31');
+
+        groupBy(text.group.month);
+
+        expect(screen.queryByRole('alert')).toBeNull();
+        expect(bars()).toHaveLength(82);
     });
 
     it('change only the end that was picked', async () => {
@@ -414,7 +600,7 @@ describe('in Spanish', () => {
 
         expect(screen.getByText(/25 oct/)).toBeDefined();
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.week }));
-        expect(screen.getByText(/Semana del 19 oct/)).toBeDefined();
+        expect(screen.getByText(tEs('charts.weekOf', { date: '19 oct' }))).toBeDefined();
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.month }));
         expect(screen.getByText(/octubre de 2026/)).toBeDefined();
         expect(screen.getAllByText(formatAmount(8949, 'EUR', 'es').replace(/\s/g, ' ')).length).toBeGreaterThan(0);
