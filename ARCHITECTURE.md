@@ -8,7 +8,7 @@ An installable web app (PWA) to log everyday expenses: food, groceries, leisure,
 
 Name: a _tarja_ is the notched stick that was used to keep accounts. The repo is `spa-tarja`, like the owner's other SPAs.
 
-Out of scope for now: budgets, charts, export, shared expenses, multiple currencies.
+Out of scope for now: budgets, export, shared expenses, multiple currencies.
 
 ## 2. Closed decisions
 
