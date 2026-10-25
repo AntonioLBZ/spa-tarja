@@ -197,6 +197,21 @@ describe('expense form', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.amountInvalid);
         expect(api.writes).toHaveLength(0);
     });
+
+    it('puts the message about the amount under the amount, which it describes', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+
+        fillAndSubmit({ amount: 'abc', text: 'Lunch' });
+
+        const alert = await screen.findByRole('alert');
+        const amount = field(en.expenses.form.amount);
+        expect(alert.parentElement).toBe(amount.closest('.field'));
+        expect(amount.getAttribute('aria-describedby')).toBe(alert.id);
+        expect(amount.getAttribute('aria-invalid')).toBe('true');
+        expect(field(en.expenses.form.text).hasAttribute('aria-describedby')).toBe(false);
+    });
 });
 
 describe('deferred expenses', () => {
@@ -295,6 +310,18 @@ describe('deferred expenses', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.chargeDateInvalid);
         expect(api.writes).toHaveLength(0);
         expect(field(en.expenses.form.amount).value).toBe('40');
+    });
+
+    it('puts the message about the charge date under the charge date', async () => {
+        await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        fireEvent.change(chargeField(), { target: { value: '2026-10-24' } });
+
+        fillAndSubmit({ amount: '40', text: 'Shoes' });
+
+        const alert = await screen.findByRole('alert');
+        expect(alert.parentElement).toBe(chargeField().closest('.field'));
+        expect(chargeField().getAttribute('aria-describedby')).toBe(alert.id);
     });
 
     it('go back to being paid at once after one is saved', async () => {
@@ -757,9 +784,7 @@ describe('category looks', () => {
         const app = renderApp();
         await categoriesLoaded(app);
         const picker = () =>
-            screen
-                .getByRole('combobox', { name: en.expenses.form.category })
-                .closest('.expense-form__field') as HTMLElement;
+            screen.getByRole('combobox', { name: en.expenses.form.category }).closest('.field') as HTMLElement;
         expect(lookOf(picker())).toEqual({ icon: 'more_horiz', color: 'gray' });
 
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'coffee' } });

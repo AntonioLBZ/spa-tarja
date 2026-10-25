@@ -1,0 +1,9 @@
+.field {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.field__hint {
+    color: var(--color-content-secondary);
+    margin: 0;
+}

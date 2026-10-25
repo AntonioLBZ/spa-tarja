@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -137,133 +138,138 @@ function ExpenseForm() {
                 {t('title')}
             </h2>
 
-            <div className="expense-form__field">
-                <label htmlFor={`${id}-amount`}>{t('amount')}</label>
-                <input
-                    id={`${id}-amount`}
-                    aria-describedby={amountInvalid ? `${id}-error` : undefined}
-                    aria-invalid={amountInvalid}
-                    autoComplete="off"
-                    inputMode="decimal"
-                    required
-                    type="text"
-                    value={amount}
-                    onChange={(event) => {
-                        setAmount(event.target.value);
-                        setAmountInvalid(false);
-                    }}
-                />
-            </div>
-
-            <div className="expense-form__field">
-                <label htmlFor={`${id}-text`}>{t('text')}</label>
-                <input
-                    id={`${id}-text`}
-                    autoComplete="off"
-                    maxLength={TEXT_MAX_LENGTH}
-                    type="text"
-                    value={text}
-                    onChange={(event) => setText(event.target.value)}
-                />
-            </div>
-
-            <div className="expense-form__field">
-                <label htmlFor={`${id}-category`}>{t('category')}</label>
-                <CategorySelect
-                    id={`${id}-category`}
-                    label={t('category')}
-                    options={options}
-                    value={categoryId}
-                    onChange={setPicked}
-                />
-                {showSuggestion && <p className="expense-form__hint">{t('suggested')}</p>}
-            </div>
-
-            <div className="expense-form__field">
-                <label htmlFor={`${id}-date`}>{t('date')}</label>
-                <input
-                    id={`${id}-date`}
-                    required
-                    type="date"
-                    value={date}
-                    onChange={(event) => {
-                        setDate(event.target.value);
-                        setChargeInvalid(false);
-                    }}
-                />
-            </div>
-
-            <div className="expense-form__field">
-                <label htmlFor={`${id}-payment`}>{t('payment')}</label>
-                <select
-                    id={`${id}-payment`}
-                    value={payment}
-                    onChange={(event) => {
-                        setPayment(event.target.value as Payment);
-                        setChargeInvalid(false);
-                    }}
-                >
-                    {PAYMENTS.map((kind) => (
-                        <option key={kind} value={kind}>
-                            {tPayment(kind)}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {chargeDate !== null && (
-                <div className="expense-form__field">
-                    <label htmlFor={`${id}-charge`}>{t('chargeDate')}</label>
+            <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
+                {(control) => (
                     <input
-                        id={`${id}-charge`}
-                        aria-describedby={chargeInvalid ? `${id}-charge-error` : undefined}
-                        aria-invalid={chargeInvalid}
+                        {...control}
+                        autoComplete="off"
+                        inputMode="decimal"
+                        required
+                        type="text"
+                        value={amount}
+                        onChange={(event) => {
+                            setAmount(event.target.value);
+                            setAmountInvalid(false);
+                        }}
+                    />
+                )}
+            </Field>
+
+            <Field label={t('text')}>
+                {(control) => (
+                    <input
+                        {...control}
+                        autoComplete="off"
+                        maxLength={TEXT_MAX_LENGTH}
+                        type="text"
+                        value={text}
+                        onChange={(event) => setText(event.target.value)}
+                    />
+                )}
+            </Field>
+
+            <Field label={t('category')} hint={showSuggestion ? t('suggested') : undefined}>
+                {(control) => (
+                    <CategorySelect
+                        {...control}
+                        label={t('category')}
+                        options={options}
+                        value={categoryId}
+                        onChange={setPicked}
+                    />
+                )}
+            </Field>
+
+            <Field label={t('date')}>
+                {(control) => (
+                    <input
+                        {...control}
                         required
                         type="date"
-                        value={chargeDate}
+                        value={date}
                         onChange={(event) => {
-                            setPickedCharge(event.target.value);
+                            setDate(event.target.value);
                             setChargeInvalid(false);
                         }}
                     />
-                </div>
-            )}
+                )}
+            </Field>
 
-            {payment === 'direct' && (
-                <div className="expense-form__field">
-                    <label htmlFor={`${id}-installments`}>{t('installments')}</label>
+            <Field label={t('payment')}>
+                {(control) => (
                     <select
-                        id={`${id}-installments`}
-                        value={installments}
-                        onChange={(event) => setInstallments(Number(event.target.value))}
+                        {...control}
+                        value={payment}
+                        onChange={(event) => {
+                            setPayment(event.target.value as Payment);
+                            setChargeInvalid(false);
+                        }}
                     >
-                        {INSTALLMENT_CHOICES.map((count) => (
-                            <option key={count} value={count}>
-                                {t('installmentsOption', { count })}
+                        {PAYMENTS.map((kind) => (
+                            <option key={kind} value={kind}>
+                                {tPayment(kind)}
                             </option>
                         ))}
                     </select>
-                </div>
+                )}
+            </Field>
+
+            {chargeDate !== null && (
+                <Field label={t('chargeDate')} error={chargeInvalid ? t('chargeDateInvalid') : null}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            required
+                            type="date"
+                            value={chargeDate}
+                            onChange={(event) => {
+                                setPickedCharge(event.target.value);
+                                setChargeInvalid(false);
+                            }}
+                        />
+                    )}
+                </Field>
+            )}
+
+            {payment === 'direct' && (
+                <Field label={t('installments')}>
+                    {(control) => (
+                        <select
+                            {...control}
+                            value={installments}
+                            onChange={(event) => setInstallments(Number(event.target.value))}
+                        >
+                            {INSTALLMENT_CHOICES.map((count) => (
+                                <option key={count} value={count}>
+                                    {t('installmentsOption', { count })}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                </Field>
             )}
 
             {parts > 1 &&
                 partTexts.map((value, index) => (
-                    <div className="expense-form__field" key={planDates[index]}>
-                        <label htmlFor={`${id}-part-${index}`}>
-                            {t('part', { part: index + 1, parts, date: shortDate(planDates[index]!) })}
-                        </label>
-                        <input
-                            id={`${id}-part-${index}`}
-                            aria-describedby={partsProblem === 'invalid' ? `${id}-parts-error` : undefined}
-                            aria-invalid={partCents[index] === null || partCents[index]! < 1}
-                            autoComplete="off"
-                            inputMode="decimal"
-                            required
-                            type="text"
-                            value={value}
-                            onChange={(event) => editPart(index, event.target.value)}
-                        />
-                    </div>
+                    <Field
+                        key={planDates[index]}
+                        label={t('part', { part: index + 1, parts, date: shortDate(planDates[index]!) })}
+                        describedBy={partsProblem === 'invalid' ? `${id}-parts-error` : undefined}
+                    >
+                        {(control) => (
+                            <input
+                                {...control}
+                                // The one message under the parts speaks for all of them
+                                aria-invalid={partCents[index] === null || partCents[index]! < 1}
+                                autoComplete="off"
+                                inputMode="decimal"
+                                required
+                                type="text"
+                                value={value}
+                                onChange={(event) => editPart(index, event.target.value)}
+                            />
+                        )}
+                    </Field>
                 ))}
 
             {partsProblem === 'invalid' && (
@@ -282,16 +288,6 @@ function ExpenseForm() {
                 </p>
             )}
 
-            {amountInvalid && (
-                <Notice tone="danger" role="alert" id={`${id}-error`}>
-                    {t('amountInvalid')}
-                </Notice>
-            )}
-            {chargeInvalid && (
-                <Notice tone="danger" role="alert" id={`${id}-charge-error`}>
-                    {t('chargeDateInvalid')}
-                </Notice>
-            )}
             {saveFailed && !amountInvalid && (
                 <Notice tone="danger" role="alert">
                     {t('saveFailed')}

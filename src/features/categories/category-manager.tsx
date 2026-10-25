@@ -3,6 +3,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
@@ -82,37 +83,35 @@ function CategoryManager() {
             {!online && <Notice role="status">{t('offline')}</Notice>}
 
             <form className="category-manager__add" onSubmit={(event) => void handleAdd(event)}>
-                <label htmlFor={`${id}-name`}>{t('add.label')}</label>
-                <div className="category-manager__add-row">
-                    <CategoryBadge style={style} />
-                    <input
-                        className="category-manager__input"
-                        id={`${id}-name`}
-                        aria-describedby={failure ? `${id}-error` : undefined}
-                        aria-invalid={failure === 'nameTaken'}
-                        autoComplete="off"
-                        maxLength={CATEGORY_NAME_MAX_LENGTH}
-                        required
-                        type="text"
-                        value={name}
-                        onChange={(event) => {
-                            setName(event.target.value);
-                            setFailure(null);
-                        }}
-                    />
-                    <Button disabled={!online || saving} type="submit">
-                        {t('add.submit')}
-                    </Button>
-                </div>
+                <Field label={t('add.label')} error={failure && t(failure)}>
+                    {(control) => (
+                        <div className="category-manager__add-row">
+                            <CategoryBadge style={style} />
+                            <input
+                                {...control}
+                                className="category-manager__input"
+                                // A save that went wrong is not the fault of the name
+                                aria-invalid={failure === 'nameTaken'}
+                                autoComplete="off"
+                                maxLength={CATEGORY_NAME_MAX_LENGTH}
+                                required
+                                type="text"
+                                value={name}
+                                onChange={(event) => {
+                                    setName(event.target.value);
+                                    setFailure(null);
+                                }}
+                            />
+                            <Button disabled={!online || saving} type="submit">
+                                {t('add.submit')}
+                            </Button>
+                        </div>
+                    )}
+                </Field>
                 <details className="category-manager__look">
                     <summary>{t('look.summary')}</summary>
                     <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
                 </details>
-                {failure && (
-                    <Notice tone="danger" role="alert" id={`${id}-error`}>
-                        {t(failure)}
-                    </Notice>
-                )}
             </form>
 
             <section className="category-manager__section">

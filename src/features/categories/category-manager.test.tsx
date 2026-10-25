@@ -204,6 +204,31 @@ describe('adding', () => {
         expect(newNameField().value).toBe(name);
     });
 
+    it('puts the message about a taken name under the name field, which it describes', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        add('gym');
+
+        const alert = await screen.findByRole('alert');
+        expect(alert.parentElement).toBe(newNameField().closest('.field'));
+        expect(newNameField().getAttribute('aria-describedby')).toBe(alert.id);
+        expect(newNameField().getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('does not blame the name when saving fails', async () => {
+        const api = await open();
+        await screen.findByText(text.custom.empty);
+        api.state.categoryWriteStatus = 500;
+
+        add('Pets');
+
+        const alert = await screen.findByRole('alert');
+        expect(alert.textContent).toBe(text.saveFailed);
+        expect(newNameField().getAttribute('aria-describedby')).toBe(alert.id);
+        expect(newNameField().getAttribute('aria-invalid')).toBe('false');
+    });
+
     it('shows the server’s refusal when another device took the name meanwhile', async () => {
         const api = await open();
         await screen.findByText(text.custom.empty);

@@ -22,6 +22,9 @@ interface CategorySelectProps {
     options: readonly CategorySelectOption[];
     value: string;
     onChange: (id: string) => void;
+    // Of the field, from a `Field` around it
+    'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
 }
 
 // How long the letters typed on the field are remembered
@@ -30,7 +33,7 @@ const TYPING_MEMORY_MS = 500;
 // A list of categories with the icon beside each name, which a native select can't draw. It follows the select-only
 // combobox pattern: the focus stays on the field, and the active option is the one `aria-activedescendant` names.
 function CategorySelect(props: CategorySelectProps) {
-    const { id, label, options, value, onChange } = props;
+    const { id, label, options, value, onChange, 'aria-describedby': describedBy, 'aria-invalid': invalid } = props;
     const listId = useId();
     const root = useRef<HTMLDivElement>(null);
     const typed = useRef('');
@@ -159,8 +162,10 @@ function CategorySelect(props: CategorySelectProps) {
                 id={id}
                 aria-activedescendant={open ? optionId(active) : undefined}
                 aria-controls={open ? listId : undefined}
+                aria-describedby={describedBy}
                 aria-expanded={open}
                 aria-haspopup="listbox"
+                aria-invalid={invalid}
                 role="combobox"
                 type="button"
                 onClick={() => (open ? setOpen(false) : show())}

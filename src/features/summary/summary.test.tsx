@@ -329,6 +329,16 @@ describe('setting the income', () => {
         expect(api.incomeRequests).toEqual([]);
     });
 
+    it('puts the message under the income field, which it describes', async () => {
+        await open();
+
+        save('abc');
+
+        const alert = await screen.findByRole('alert');
+        expect(alert.parentElement).toBe(incomeField().closest('.field'));
+        expect(incomeField().getAttribute('aria-describedby')).toBe(alert.id);
+    });
+
     it('stops complaining once the amount is typed again', async () => {
         await open();
         save('abc');

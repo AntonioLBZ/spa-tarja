@@ -71,6 +71,31 @@ describe('the field', () => {
         expect(screen.queryByRole('listbox')).toBeNull();
     });
 
+    it('passes on what describes it and whether it is invalid, for a Field around it', () => {
+        render(
+            <CategorySelect
+                id="category"
+                label="Category"
+                options={OPTIONS}
+                value="food"
+                onChange={() => {}}
+                aria-describedby="hint"
+                aria-invalid
+            />
+        );
+
+        const combobox = screen.getByRole('combobox');
+        expect(combobox.getAttribute('aria-describedby')).toBe('hint');
+        expect(combobox.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('says nothing about either unless it is told', () => {
+        render(<Harness />);
+
+        expect(field().hasAttribute('aria-describedby')).toBe(false);
+        expect(field().hasAttribute('aria-invalid')).toBe(false);
+    });
+
     it('shows the first option when the value is none of them', () => {
         render(<Harness initial="long-gone" />);
 

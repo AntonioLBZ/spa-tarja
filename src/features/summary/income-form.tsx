@@ -1,7 +1,8 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -21,7 +22,6 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
     const { locale } = useLocale();
     const online = useOnline();
     const { save, remove } = useIncomeActions();
-    const id = useId();
 
     const stored = income?.amountCents ?? null;
     const [value, setValue] = useState(() => (stored === null ? '' : formatAmountInput(stored, locale)));
@@ -73,36 +73,32 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
 
     return (
         <form className="income-form" onSubmit={(event) => void handleSubmit(event)}>
-            <label htmlFor={`${id}-amount`}>{t('label', { month: monthName })}</label>
-            <div className="income-form__row">
-                <input
-                    className="income-form__input"
-                    id={`${id}-amount`}
-                    aria-describedby={invalid ? `${id}-error` : undefined}
-                    aria-invalid={invalid}
-                    autoComplete="off"
-                    inputMode="decimal"
-                    type="text"
-                    value={value}
-                    onChange={(event) => {
-                        setValue(event.target.value);
-                        setInvalid(false);
-                    }}
-                />
-                <Button disabled={!online || busy} type="submit">
-                    {t('save')}
-                </Button>
-                {stored !== null && (
-                    <Button disabled={!online || busy} onClick={() => void handleRemove()}>
-                        {t('remove')}
-                    </Button>
+            <Field label={t('label', { month: monthName })} error={invalid ? t('invalid') : null}>
+                {(control) => (
+                    <div className="income-form__row">
+                        <input
+                            {...control}
+                            className="income-form__input"
+                            autoComplete="off"
+                            inputMode="decimal"
+                            type="text"
+                            value={value}
+                            onChange={(event) => {
+                                setValue(event.target.value);
+                                setInvalid(false);
+                            }}
+                        />
+                        <Button disabled={!online || busy} type="submit">
+                            {t('save')}
+                        </Button>
+                        {stored !== null && (
+                            <Button disabled={!online || busy} onClick={() => void handleRemove()}>
+                                {t('remove')}
+                            </Button>
+                        )}
+                    </div>
                 )}
-            </div>
-            {invalid && (
-                <Notice tone="danger" role="alert" id={`${id}-error`}>
-                    {t('invalid')}
-                </Notice>
-            )}
+            </Field>
             {failure && (
                 <Notice tone="danger" role="alert">
                     {t(failure)}

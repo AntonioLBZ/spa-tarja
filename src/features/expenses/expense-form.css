@@ -8,11 +8,6 @@
     margin: 0;
 }
 
-.expense-form__field {
-    display: grid;
-    gap: var(--size-1);
-}
-
 .expense-form__hint {
     color: var(--color-content-secondary);
     margin: 0;
