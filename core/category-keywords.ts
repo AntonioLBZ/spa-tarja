@@ -57,6 +57,8 @@ const CATEGORY_KEYWORDS: Record<Exclude<DefaultCategoryId, 'other'>, readonly st
         'aldi',
         'eroski',
         'alcampo',
+        'gadis',
+        'primaprix',
         'consum',
         'compra',
         'la compra',
