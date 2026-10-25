@@ -1,6 +1,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
 import { useOutbox, useUserData } from '@/lib/offline';
 
@@ -35,11 +36,11 @@ function Account() {
                 <span className="account__name">{user.name}</span>
                 <span className="account__email">{user.email}</span>
             </p>
-            {pending.length > 0 && <p className="account__notice">{t('unsynced')}</p>}
+            {pending.length > 0 && <Notice>{t('unsynced')}</Notice>}
             {phase === 'failed' && (
-                <p className="account__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t('signOutFailed')}
-                </p>
+                </Notice>
             )}
             <button
                 className="account__sign-out"

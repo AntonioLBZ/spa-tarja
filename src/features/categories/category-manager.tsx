@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
@@ -77,11 +78,7 @@ function CategoryManager() {
         <section className="category-manager">
             <h1 className="category-manager__title">{t('title')}</h1>
 
-            {!online && (
-                <p className="category-manager__notice" role="status">
-                    {t('offline')}
-                </p>
-            )}
+            {!online && <Notice role="status">{t('offline')}</Notice>}
 
             <form className="category-manager__add" onSubmit={(event) => void handleAdd(event)}>
                 <label htmlFor={`${id}-name`}>{t('add.label')}</label>
@@ -111,9 +108,9 @@ function CategoryManager() {
                     <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
                 </details>
                 {failure && (
-                    <p className="category-manager__error" id={`${id}-error`} role="alert">
+                    <Notice tone="danger" role="alert" id={`${id}-error`}>
                         {t(failure)}
-                    </p>
+                    </Notice>
                 )}
             </form>
 

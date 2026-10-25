@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -265,14 +266,14 @@ function ExpenseForm() {
                 ))}
 
             {partsProblem === 'invalid' && (
-                <p className="expense-form__error" id={`${id}-parts-error`} role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-parts-error`}>
                     {t('partInvalid')}
-                </p>
+                </Notice>
             )}
             {partsProblem === 'over' && (
-                <p className="expense-form__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t('over', { amount: formatAmount(-balance, DEFAULT_CURRENCY, locale) })}
-                </p>
+                </Notice>
             )}
             {partsProblem === 'remaining' && (
                 <p className="expense-form__hint" role="status">
@@ -281,19 +282,19 @@ function ExpenseForm() {
             )}
 
             {amountInvalid && (
-                <p className="expense-form__error" id={`${id}-error`} role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-error`}>
                     {t('amountInvalid')}
-                </p>
+                </Notice>
             )}
             {chargeInvalid && (
-                <p className="expense-form__error" id={`${id}-charge-error`} role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-charge-error`}>
                     {t('chargeDateInvalid')}
-                </p>
+                </Notice>
             )}
             {saveFailed && !amountInvalid && (
-                <p className="expense-form__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t('saveFailed')}
-                </p>
+                </Notice>
             )}
 
             <button className="expense-form__submit" disabled={saving || partsProblem !== null} type="submit">

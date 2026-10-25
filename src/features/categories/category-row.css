@@ -58,9 +58,3 @@
     border-color: var(--color-border-subtle);
     color: var(--color-danger);
 }
-
-.category-row__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
-}

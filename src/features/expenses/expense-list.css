@@ -8,13 +8,6 @@
     margin: 0;
 }
 
-.expense-list__message {
-    border-left: var(--size-1) solid var(--color-border-subtle);
-    color: var(--color-content-secondary);
-    margin: 0;
-    padding-left: var(--size-3);
-}
-
 .expense-list__day {
     display: grid;
     gap: var(--size-2);

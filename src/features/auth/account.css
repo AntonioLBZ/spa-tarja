@@ -19,15 +19,3 @@
 .account__email {
     color: var(--color-content-secondary);
 }
-
-.account__notice {
-    border-left: var(--size-1) solid var(--color-border);
-    margin: 0;
-    padding-left: var(--size-3);
-}
-
-.account__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
-}

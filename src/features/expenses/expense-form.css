@@ -18,12 +18,6 @@
     margin: 0;
 }
 
-.expense-form__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
-}
-
 .expense-form__submit {
     background: var(--color-bg-accent);
     color: var(--color-content-on-accent);

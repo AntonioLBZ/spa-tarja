@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
+import { Notice } from '@/components/notice/notice';
 import { useAuth } from '@/lib/auth';
 
 import './sign-in-screen.css';
@@ -43,14 +44,14 @@ function SignInScreen(props: { unreachable: boolean }) {
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
             {unreachable && (
-                <p className="sign-in__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t('unreachable')}
-                </p>
+                </Notice>
             )}
             {phase === 'failed' && (
-                <p className="sign-in__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t('failed')}
-                </p>
+                </Notice>
             )}
             <button type="button" disabled={phase === 'opening'} onClick={start}>
                 {phase === 'opening' ? t('opening') : t('google')}

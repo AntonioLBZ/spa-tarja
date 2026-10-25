@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -73,11 +74,11 @@ function ExpenseList() {
             <h2 className="expense-list__title">{t('title')}</h2>
 
             {isError && !hasData && (
-                <p className="expense-list__message" role="alert">
+                <Notice tone="quiet" role="alert">
                     {t('loadFailed')}
-                </p>
+                </Notice>
             )}
-            {hasData && shown.length === 0 && <p className="expense-list__message">{t('empty')}</p>}
+            {hasData && shown.length === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
 
             {shown.map((group) => (
                 <section className="expense-list__day" key={group.date}>

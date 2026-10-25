@@ -19,9 +19,3 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
-
-.sign-in__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
-}

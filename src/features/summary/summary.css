@@ -74,9 +74,3 @@
     display: inline-flex;
     min-height: var(--size-touch);
 }
-
-.summary__notice {
-    border-left: var(--size-1) solid var(--color-border);
-    margin: 0;
-    padding-left: var(--size-3);
-}

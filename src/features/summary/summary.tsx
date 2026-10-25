@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
@@ -86,11 +87,7 @@ function Summary() {
                     {t('loadFailed')}
                 </p>
             )}
-            {!online && (
-                <p className="summary__notice" role="status">
-                    {t('offline')}
-                </p>
-            )}
+            {!online && <Notice role="status">{t('offline')}</Notice>}
 
             <IncomeForm month={month} monthName={monthName} income={set} />
 

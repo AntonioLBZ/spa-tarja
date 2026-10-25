@@ -9,12 +9,6 @@
     margin: 0;
 }
 
-.category-manager__notice {
-    border-left: var(--size-1) solid var(--color-border);
-    margin: 0;
-    padding-left: var(--size-3);
-}
-
 .category-manager__add {
     display: grid;
     gap: var(--size-1);
@@ -29,12 +23,6 @@
 .category-manager__input {
     flex: 1;
     min-width: 0;
-}
-
-.category-manager__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
 }
 
 .category-manager__section {

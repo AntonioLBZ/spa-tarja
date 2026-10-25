@@ -24,12 +24,6 @@
     justify-self: start;
 }
 
-.charts__error {
-    border-left: var(--size-1) solid var(--color-danger);
-    margin: 0;
-    padding-left: var(--size-3);
-}
-
 .charts__total {
     align-items: center;
     display: flex;

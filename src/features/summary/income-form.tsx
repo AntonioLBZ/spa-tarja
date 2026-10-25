@@ -1,6 +1,7 @@
 import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/money';
@@ -97,14 +98,14 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
                 )}
             </div>
             {invalid && (
-                <p className="income-form__error" id={`${id}-error`} role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-error`}>
                     {t('invalid')}
-                </p>
+                </Notice>
             )}
             {failure && (
-                <p className="income-form__error" role="alert">
+                <Notice tone="danger" role="alert">
                     {t(failure)}
-                </p>
+                </Notice>
             )}
         </form>
     );

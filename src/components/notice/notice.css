@@ -1,0 +1,18 @@
+.notice {
+    border-left: var(--size-1) solid var(--color-border);
+    color: var(--color-content-primary);
+    margin: 0;
+    padding-left: var(--size-3);
+    transition:
+        border-color var(--duration-base) var(--ease-standard),
+        color var(--duration-base) var(--ease-standard);
+}
+
+.notice--danger {
+    border-left-color: var(--color-danger);
+}
+
+.notice--quiet {
+    border-left-color: var(--color-border-subtle);
+    color: var(--color-content-secondary);
+}

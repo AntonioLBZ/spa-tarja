@@ -3,6 +3,7 @@ import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
@@ -142,9 +143,9 @@ function Charts() {
             )}
 
             {problem && (
-                <p className="charts__error" id={`${id}-problem`} role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-problem`}>
                     {t(problem)}
-                </p>
+                </Notice>
             )}
             {problem === null && <SpendingBars buckets={buckets} granularity={granularity} />}
             {problem !== 'rangeInvalid' && (

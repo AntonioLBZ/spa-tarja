@@ -2,23 +2,3 @@
     display: grid;
     gap: var(--size-8);
 }
-
-.home__status {
-    border-left: var(--size-1) solid var(--color-border-subtle);
-    color: var(--color-content-secondary);
-    margin: 0;
-    padding-left: var(--size-3);
-    transition:
-        border-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
-
-    &.home__status--ok {
-        border-left-color: var(--color-border);
-        color: var(--color-content-primary);
-    }
-
-    &.home__status--error {
-        border-left-color: var(--color-danger);
-        color: var(--color-content-primary);
-    }
-}

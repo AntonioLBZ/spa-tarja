@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Notice } from '@/components/notice/notice';
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
 import { CategoryBadge } from './category-badge';
@@ -88,9 +89,9 @@ function CategoryRow(props: CategoryRowProps) {
     }
 
     const message = error && (
-        <p className="category-row__error" role="alert">
+        <Notice tone="danger" role="alert">
             {t(error)}
-        </p>
+        </Notice>
     );
 
     if (mode === 'edit') {
