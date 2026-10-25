@@ -37,7 +37,7 @@ function post(path: string, body: unknown, headers: Record<string, string> = {},
 }
 
 describe('access to the data', () => {
-    it.each(['/api/expenses', '/api/categories'])('answers 401 to a visitor on %s', async (path) => {
+    it.each(['/api/expenses', '/api/categories', '/api/income'])('answers 401 to a visitor on %s', async (path) => {
         const response = await request(path);
 
         expect(response.status).toBe(401);

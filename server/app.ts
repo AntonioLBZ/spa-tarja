@@ -5,6 +5,7 @@ import { withUser } from '@server/user';
 
 import { categoriesRoutes } from './routes/categories';
 import { expensesRoutes } from './routes/expenses';
+import { incomeRoutes } from './routes/income';
 
 import type { AppEnv } from '@server/env';
 
@@ -18,8 +19,10 @@ const app = new Hono<AppEnv>()
     .on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env, c.req.raw).handler(c.req.raw))
     .use('/expenses/*', withUser)
     .use('/categories/*', withUser)
+    .use('/income/*', withUser)
     .route('/categories', categoriesRoutes)
-    .route('/expenses', expensesRoutes);
+    .route('/expenses', expensesRoutes)
+    .route('/income', incomeRoutes);
 
 type AppType = typeof app;
 

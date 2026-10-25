@@ -1,0 +1,118 @@
+import { describe, expect, it } from 'vitest';
+
+import { summarizeMonth } from './summary';
+
+import type { Expense } from './expense';
+
+function expense(overrides: Partial<Expense> = {}): Expense {
+    return {
+        id: crypto.randomUUID(),
+        categoryId: 'food',
+        text: 'Lunch',
+        amountCents: 1000,
+        currency: 'EUR',
+        date: '2026-10-25',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        ...overrides,
+    };
+}
+
+describe('summarizeMonth', () => {
+    it('adds up what counts in the month, whichever category it has', () => {
+        const summary = summarizeMonth(
+            '2026-10',
+            [expense({ amountCents: 1000 }), expense({ amountCents: 250, categoryId: 'leisure' })],
+            null
+        );
+
+        expect(summary.spentCents).toBe(1250);
+    });
+
+    it('leaves out other months and deleted expenses', () => {
+        const summary = summarizeMonth(
+            '2026-10',
+            [
+                expense({ amountCents: 1000 }),
+                expense({ amountCents: 100, date: '2026-09-30' }),
+                expense({ amountCents: 100, date: '2026-11-01' }),
+                expense({ amountCents: 100, deletedAt: 5 }),
+            ],
+            null
+        );
+
+        expect(summary.spentCents).toBe(1000);
+    });
+
+    it('counts a deferred expense in the month it is charged, not the month it was made', () => {
+        const credit = expense({ amountCents: 4000, date: '2026-09-28', payment: 'credit', chargeDate: '2026-10-05' });
+
+        expect(summarizeMonth('2026-10', [credit], null).spentCents).toBe(4000);
+        expect(summarizeMonth('2026-09', [credit], null).spentCents).toBe(0);
+    });
+
+    it('counts each part of a plan in its own month', () => {
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-25', '2026-11-25', '2026-12-25'].map((chargeDate, index) =>
+            expense({
+                amountCents: 500 + index,
+                payment: 'direct',
+                chargeDate,
+                plan: { id: plan, part: index + 1, parts: 3 },
+            })
+        );
+
+        expect(summarizeMonth('2026-10', parts, null).spentCents).toBe(500);
+        expect(summarizeMonth('2026-11', parts, null).spentCents).toBe(501);
+        expect(summarizeMonth('2026-12', parts, null).spentCents).toBe(502);
+    });
+
+    it('counts a restaurant card expense as income of the month it is charged too', () => {
+        const voucher = expense({
+            amountCents: 1800,
+            date: '2026-09-20',
+            payment: 'voucher',
+            chargeDate: '2026-10-05',
+        });
+
+        const summary = summarizeMonth('2026-10', [voucher, expense({ amountCents: 1000 })], null);
+
+        expect(summary.voucherCents).toBe(1800);
+        expect(summary.spentCents).toBe(2800);
+    });
+
+    it('has no restaurant card income when nothing was paid that way', () => {
+        expect(summarizeMonth('2026-10', [expense()], null).voucherCents).toBe(0);
+    });
+
+    it('leaves what is left of the income, with the restaurant card income on top of it', () => {
+        const voucher = expense({ amountCents: 1800, payment: 'voucher', chargeDate: '2026-10-25' });
+
+        const summary = summarizeMonth('2026-10', [voucher, expense({ amountCents: 1000 })], 200_000);
+
+        expect(summary.incomeCents).toBe(200_000);
+        expect(summary.leftCents).toBe(200_000 + 1800 - 2800);
+    });
+
+    it('can leave less than nothing', () => {
+        expect(summarizeMonth('2026-10', [expense({ amountCents: 5000 })], 3000).leftCents).toBe(-2000);
+    });
+
+    it('does not say what is left until the income is known', () => {
+        const summary = summarizeMonth('2026-10', [expense()], null);
+
+        expect(summary.incomeCents).toBeNull();
+        expect(summary.leftCents).toBeNull();
+    });
+
+    it('is an empty month when there is nothing', () => {
+        expect(summarizeMonth('2026-10', [], 100_000)).toEqual({
+            month: '2026-10',
+            incomeCents: 100_000,
+            voucherCents: 0,
+            spentCents: 0,
+            leftCents: 100_000,
+        });
+    });
+});
