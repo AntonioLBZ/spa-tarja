@@ -1,0 +1,21 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Inheriting the 16px body size keeps iOS from zooming in on focus */
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+body {
+    background: var(--color-bg);
+    color: var(--color-content);
+    font-family: system-ui, sans-serif;
+    line-height: 1.5;
+    margin: 0;
+}

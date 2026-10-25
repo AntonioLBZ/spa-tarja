@@ -1,0 +1,28 @@
+.home {
+    display: grid;
+    gap: var(--size-4);
+    justify-items: start;
+}
+
+.home__title {
+    font-size: clamp(2rem, 8vw, 3rem);
+    margin: 0;
+}
+
+.home__status {
+    border-left: var(--size-1) solid var(--color-border);
+    color: var(--color-content-muted);
+    margin: 0;
+    padding-left: var(--size-3);
+    transition: border-color var(--duration-base) var(--ease-standard);
+
+    &.home__status--ok {
+        border-left-color: var(--color-ok);
+        color: var(--color-content);
+    }
+
+    &.home__status--error {
+        border-left-color: var(--color-danger);
+        color: var(--color-content);
+    }
+}

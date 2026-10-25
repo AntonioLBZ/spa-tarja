@@ -1,0 +1,29 @@
+.root {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100dvh;
+}
+
+.root__header {
+    align-items: center;
+    background: var(--color-bg-raised);
+    border-bottom: var(--size-px) solid var(--color-border);
+    display: flex;
+    min-height: calc(var(--size-touch) + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
+        max(var(--size-4), env(safe-area-inset-left));
+}
+
+.root__brand {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.root__main {
+    margin-inline: auto;
+    max-width: 40rem;
+    padding: var(--size-6) max(var(--size-4), env(safe-area-inset-right))
+        max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
+    width: 100%;
+}

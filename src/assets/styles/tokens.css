@@ -1,0 +1,55 @@
+/* Mobile-first: base rules target phones, then widen with (width >= 40rem) and (width >= 64rem) */
+:root {
+    /* Spacing: --size-touch is the minimum touch target */
+    --size-px: 1px;
+    --size-1: 0.25rem;
+    --size-2: 0.5rem;
+    --size-3: 0.75rem;
+    --size-4: 1rem;
+    --size-6: 1.5rem;
+    --size-8: 2rem;
+    --size-12: 3rem;
+    --size-16: 4rem;
+    --size-touch: 2.75rem;
+
+    /* Motion: reduced-motion zeroes the durations in one place */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --duration-slow: 360ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-enter: cubic-bezier(0, 0, 0, 1);
+    --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+    /* Placeholder palette: the visual identity is still open */
+    --color-bg: #f3efe6;
+    --color-bg-raised: #faf8f3;
+    --color-content: #1c1a17;
+    --color-content-muted: #5f5a50;
+    --color-border: #1c1a17;
+    --color-accent: #b4491f;
+    --color-ok: #2f6b3a;
+    --color-danger: #b3261e;
+
+    color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-bg: #16140f;
+        --color-bg-raised: #1e1b15;
+        --color-content: #ece7da;
+        --color-content-muted: #a29b8b;
+        --color-border: #ece7da;
+        --color-accent: #e08a5c;
+        --color-ok: #7fc08a;
+        --color-danger: #f2877f;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --duration-fast: 0ms;
+        --duration-base: 0ms;
+        --duration-slow: 0ms;
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "metadata": {
+        "description": "Log your everyday expenses: food, groceries, leisure, bills and rent."
+    },
+    "home": {
+        "health": {
+            "pending": "Checking…",
+            "ok": "API and database are up",
+            "error": "Can't reach the API"
+        }
+    }
+}

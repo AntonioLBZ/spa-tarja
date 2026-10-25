@@ -1,0 +1,12 @@
+{
+    "metadata": {
+        "description": "Apunta tus gastos del día a día: comida, supermercado, ocio, facturas y alquiler."
+    },
+    "home": {
+        "health": {
+            "pending": "Comprobando…",
+            "ok": "API y base de datos operativas",
+            "error": "Sin conexión con la API"
+        }
+    }
+}
