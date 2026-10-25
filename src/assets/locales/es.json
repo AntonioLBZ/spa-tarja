@@ -24,9 +24,17 @@
             "category": "Categoría",
             "suggested": "Sugerida según la descripción",
             "date": "Fecha",
+            "payment": "Pago",
+            "chargeDate": "Se carga el",
             "submit": "Añadir",
             "amountInvalid": "Introduce un importe mayor que cero.",
+            "chargeDateInvalid": "No se puede cargar antes del día del gasto.",
             "saveFailed": "No se pudo guardar el gasto en este dispositivo. Inténtalo de nuevo."
+        },
+        "payment": {
+            "direct": "Ahora",
+            "credit": "Tarjeta de crédito",
+            "voucher": "Tarjeta restaurante"
         },
         "list": {
             "title": "Gastos",
@@ -34,7 +42,8 @@
             "loadFailed": "No se pudieron cargar tus gastos.",
             "delete": "Eliminar",
             "deleteItem": "Eliminar {name}",
-            "pending": "Sin sincronizar"
+            "pending": "Sin sincronizar",
+            "charged": "{payment}, se carga el {date}"
         }
     },
     "categories": {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { fromDateString, isCalendarDate, toDateString } from './date';
+import { addMonths, fromDateString, isCalendarDate, toDateString } from './date';
 
 describe('isCalendarDate', () => {
     it('accepts real days, leap day included', () => {
@@ -39,5 +39,21 @@ describe('fromDateString', () => {
 
     it('round-trips with toDateString', () => {
         expect(toDateString(fromDateString('2028-02-29'))).toBe('2028-02-29');
+    });
+});
+
+describe('addMonths', () => {
+    it.each([
+        ['2026-10-25', 1, '2026-11-25'],
+        ['2026-12-15', 1, '2027-01-15'],
+        ['2026-10-25', 0, '2026-10-25'],
+        ['2026-10-25', 3, '2027-01-25'],
+        ['2026-01-31', 1, '2026-02-28'],
+        ['2028-01-31', 1, '2028-02-29'],
+        ['2026-03-31', 1, '2026-04-30'],
+        ['2026-01-31', 2, '2026-03-31'],
+        ['2026-01-31', 13, '2027-02-28'],
+    ])('moves %s by %i months to %s, keeping to the last day of a shorter month', (from, months, to) => {
+        expect(addMonths(from, months)).toBe(to);
     });
 });

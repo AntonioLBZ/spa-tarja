@@ -6,8 +6,8 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { suggestCategory } from '@core/classifier';
-import { toDateString } from '@core/date';
-import { TEXT_MAX_LENGTH } from '@core/expense';
+import { addMonths, toDateString } from '@core/date';
+import { PAYMENTS, TEXT_MAX_LENGTH, type Payment } from '@core/expense';
 import { DEFAULT_CURRENCY, parseAmount } from '@core/money';
 
 import { useSaveExpense } from './use-save-expense';
@@ -16,6 +16,7 @@ import './expense-form.css';
 
 function ExpenseForm() {
     const t = useTranslations('expenses.form');
+    const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
     const save = useSaveExpense();
     const { options, styleOf } = useCategoryOptions();
@@ -25,6 +26,9 @@ function ExpenseForm() {
     const [text, setText] = useState('');
     const [picked, setPicked] = useState<string | null>(null);
     const [date, setDate] = useState(() => toDateString(new Date()));
+    const [payment, setPayment] = useState<Payment>('direct');
+    const [pickedCharge, setPickedCharge] = useState<string | null>(null);
+    const [chargeInvalid, setChargeInvalid] = useState(false);
     const [amountInvalid, setAmountInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
@@ -34,6 +38,8 @@ function ExpenseForm() {
     const pick = options.some((option) => option.id === picked) ? picked : null;
     const categoryId = pick ?? suggestion;
     const showSuggestion = pick === null && suggestion !== FALLBACK_CATEGORY_ID;
+    // A deferred expense is charged a month after it was made unless the person picks the day
+    const chargeDate = payment === 'direct' ? null : (pickedCharge ?? addMonths(date, 1));
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -44,7 +50,13 @@ function ExpenseForm() {
             return;
         }
 
+        if (chargeDate !== null && chargeDate < date) {
+            setChargeInvalid(true);
+            return;
+        }
+
         setAmountInvalid(false);
+        setChargeInvalid(false);
         setSaveFailed(false);
         setSaving(true);
         const now = Date.now();
@@ -56,6 +68,8 @@ function ExpenseForm() {
                 amountCents,
                 currency: DEFAULT_CURRENCY,
                 date,
+                payment,
+                chargeDate,
                 createdAt: now,
                 updatedAt: now,
                 deletedAt: null,
@@ -63,6 +77,8 @@ function ExpenseForm() {
             setAmount('');
             setText('');
             setPicked(null);
+            setPayment('direct');
+            setPickedCharge(null);
         } catch {
             setSaveFailed(true);
         } finally {
@@ -132,13 +148,57 @@ function ExpenseForm() {
                     required
                     type="date"
                     value={date}
-                    onChange={(event) => setDate(event.target.value)}
+                    onChange={(event) => {
+                        setDate(event.target.value);
+                        setChargeInvalid(false);
+                    }}
                 />
             </div>
+
+            <div className="expense-form__field">
+                <label htmlFor={`${id}-payment`}>{t('payment')}</label>
+                <select
+                    id={`${id}-payment`}
+                    value={payment}
+                    onChange={(event) => {
+                        setPayment(event.target.value as Payment);
+                        setChargeInvalid(false);
+                    }}
+                >
+                    {PAYMENTS.map((kind) => (
+                        <option key={kind} value={kind}>
+                            {tPayment(kind)}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {chargeDate !== null && (
+                <div className="expense-form__field">
+                    <label htmlFor={`${id}-charge`}>{t('chargeDate')}</label>
+                    <input
+                        id={`${id}-charge`}
+                        aria-describedby={chargeInvalid ? `${id}-charge-error` : undefined}
+                        aria-invalid={chargeInvalid}
+                        required
+                        type="date"
+                        value={chargeDate}
+                        onChange={(event) => {
+                            setPickedCharge(event.target.value);
+                            setChargeInvalid(false);
+                        }}
+                    />
+                </div>
+            )}
 
             {amountInvalid && (
                 <p className="expense-form__error" id={`${id}-error`} role="alert">
                     {t('amountInvalid')}
+                </p>
+            )}
+            {chargeInvalid && (
+                <p className="expense-form__error" id={`${id}-charge-error`} role="alert">
+                    {t('chargeDateInvalid')}
                 </p>
             )}
             {saveFailed && !amountInvalid && (

@@ -1,4 +1,4 @@
-import type { Expense, ExpenseInput } from '@core/expense';
+import type { Expense, ExpenseInput, Payment } from '@core/expense';
 
 interface ExpenseRow {
     id: string;
@@ -7,13 +7,16 @@ interface ExpenseRow {
     amount_cents: number;
     currency: string;
     date: string;
+    payment: Payment;
+    charge_date: string | null;
     created_at: number;
     updated_at: number;
     deleted_at: number | null;
     seq: number;
 }
 
-const COLUMNS = 'id, category_id, text, amount_cents, currency, date, created_at, updated_at, deleted_at, seq';
+const COLUMNS =
+    'id, category_id, text, amount_cents, currency, date, payment, charge_date, created_at, updated_at, deleted_at, seq';
 
 function toExpense(row: ExpenseRow): Expense {
     return {
@@ -23,6 +26,8 @@ function toExpense(row: ExpenseRow): Expense {
         amountCents: row.amount_cents,
         currency: row.currency,
         date: row.date,
+        payment: row.payment,
+        chargeDate: row.charge_date,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         deletedAt: row.deleted_at,
@@ -32,14 +37,16 @@ function toExpense(row: ExpenseRow): Expense {
 // `seq` is the per-user sync cursor: every applied write takes the next one. The update only runs for the
 // owner and when the write is strictly newer, so a retry and a stale write both leave the row alone.
 const UPSERT = `
-    INSERT INTO expenses (id, user_id, category_id, text, amount_cents, currency, date, created_at, updated_at, deleted_at, seq)
-    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, (SELECT COALESCE(MAX(seq), 0) + 1 FROM expenses WHERE user_id = ?2))
+    INSERT INTO expenses (id, user_id, category_id, text, amount_cents, currency, date, payment, charge_date, created_at, updated_at, deleted_at, seq)
+    VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?11, ?12, ?8, ?9, ?10, (SELECT COALESCE(MAX(seq), 0) + 1 FROM expenses WHERE user_id = ?2))
     ON CONFLICT (id) DO UPDATE SET
         category_id = excluded.category_id,
         text = excluded.text,
         amount_cents = excluded.amount_cents,
         currency = excluded.currency,
         date = excluded.date,
+        payment = excluded.payment,
+        charge_date = excluded.charge_date,
         updated_at = excluded.updated_at,
         deleted_at = excluded.deleted_at,
         seq = excluded.seq
@@ -60,7 +67,9 @@ async function upsertExpense(db: D1Database, userId: string, id: string, input: 
             input.date,
             input.createdAt,
             input.updatedAt,
-            input.deletedAt
+            input.deletedAt,
+            input.payment ?? 'direct',
+            input.chargeDate ?? null
         )
         .first<ExpenseRow>();
     if (written) return toExpense(written);

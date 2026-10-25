@@ -6,6 +6,7 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { readDuration } from '@/lib/motion';
+import { paymentOf } from '@core/counting';
 import { fromDateString } from '@core/date';
 import { groupByDay } from '@core/expense-groups';
 import { formatAmount } from '@core/money';
@@ -19,6 +20,7 @@ import './expense-list.css';
 
 function ExpenseList() {
     const t = useTranslations('expenses.list');
+    const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
     const save = useSaveExpense();
     const { labelOf, styleOf } = useCategoryOptions();
@@ -54,6 +56,10 @@ function ExpenseList() {
         timers.current.add(timer);
     }
 
+    const chargeFormat = useMemo(
+        () => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }),
+        [locale]
+    );
     const dayFormat = useMemo(
         () => new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
         [locale]
@@ -82,6 +88,13 @@ function ExpenseList() {
                             const name = expense.text || category;
                             const pending = pendingIds.has(expense.id);
                             const isLeaving = leaving.has(expense.id);
+                            const charged =
+                                expense.chargeDate && paymentOf(expense) !== 'direct'
+                                    ? t('charged', {
+                                          payment: tPayment(paymentOf(expense)),
+                                          date: chargeFormat.format(fromDateString(expense.chargeDate)),
+                                      })
+                                    : null;
                             return (
                                 <li
                                     className={clsx('expense-item', isLeaving && 'expense-item--leaving')}
@@ -94,9 +107,10 @@ function ExpenseList() {
                                     <span className="expense-item__amount">
                                         {formatAmount(expense.amountCents, expense.currency, locale)}
                                     </span>
-                                    {(expense.text || pending) && (
+                                    {(expense.text || pending || charged) && (
                                         <span className="expense-item__meta">
                                             {expense.text && <span>{category}</span>}
+                                            {charged && <span>{charged}</span>}
                                             {pending && <span className="expense-item__pending">{t('pending')}</span>}
                                         </span>
                                     )}

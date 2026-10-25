@@ -184,6 +184,146 @@ describe('expense form', () => {
     });
 });
 
+describe('deferred expenses', () => {
+    const paymentField = () => field(en.expenses.form.payment);
+    const chargeField = () => field(en.expenses.form.chargeDate);
+    const inputDate = (value: string) => fireEvent.change(field(en.expenses.form.date), { target: { value } });
+    const shown = (isoDay: string) =>
+        new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' }).format(
+            new Date(`${isoDay}T12:00:00`)
+        );
+
+    async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
+        const api = createFakeApi(options);
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        return api;
+    }
+
+    it('are paid at once unless the person says so, with no charge date to fill in', async () => {
+        await open();
+
+        expect(paymentField().value).toBe('direct');
+        expect(screen.queryByLabelText(en.expenses.form.chargeDate)).toBeNull();
+        expect([...(paymentField() as HTMLSelectElement).options].map((option) => option.textContent)).toEqual([
+            en.expenses.payment.direct,
+            en.expenses.payment.credit,
+            en.expenses.payment.voucher,
+        ]);
+    });
+
+    it.each(['credit', 'voucher'])('ask when a %s expense is charged, proposing the next month', async (payment) => {
+        await open();
+
+        fireEvent.change(paymentField(), { target: { value: payment } });
+
+        expect(chargeField().value).toBe('2026-11-25');
+    });
+
+    it('follow the day of the expense until the person picks another charge date', async () => {
+        await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+
+        inputDate('2026-01-31');
+        expect(chargeField().value).toBe('2026-02-28');
+
+        fireEvent.change(chargeField(), { target: { value: '2026-03-05' } });
+        inputDate('2026-01-30');
+        expect(chargeField().value).toBe('2026-03-05');
+    });
+
+    it('are saved with how they were paid and when they are charged', async () => {
+        const api = await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+
+        fillAndSubmit({ amount: '40', text: 'Shoes' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ date: TODAY, payment: 'credit', chargeDate: '2026-11-25' });
+    });
+
+    it('are saved on the charge date the person picked', async () => {
+        const api = await open();
+        fireEvent.change(paymentField(), { target: { value: 'voucher' } });
+        fireEvent.change(chargeField(), { target: { value: '2026-12-01' } });
+
+        fillAndSubmit({ amount: '9', text: 'Menu' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ payment: 'voucher', chargeDate: '2026-12-01' });
+    });
+
+    it('send no charge date once the person goes back to paying at once', async () => {
+        const api = await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        fireEvent.change(paymentField(), { target: { value: 'direct' } });
+
+        fillAndSubmit({ amount: '5', text: 'Coffee' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ payment: 'direct', chargeDate: null });
+        expect(screen.queryByLabelText(en.expenses.form.chargeDate)).toBeNull();
+    });
+
+    it('send a plain expense as paid at once', async () => {
+        const api = await open();
+
+        fillAndSubmit({ amount: '5', text: 'Coffee' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ payment: 'direct', chargeDate: null });
+    });
+
+    it('cannot be charged before the day they were made', async () => {
+        const api = await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        fireEvent.change(chargeField(), { target: { value: '2026-10-24' } });
+
+        fillAndSubmit({ amount: '40', text: 'Shoes' });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.chargeDateInvalid);
+        expect(api.writes).toHaveLength(0);
+        expect(field(en.expenses.form.amount).value).toBe('40');
+    });
+
+    it('go back to being paid at once after one is saved', async () => {
+        await open();
+        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        fillAndSubmit({ amount: '40', text: 'Shoes' });
+        await screen.findByRole('listitem');
+
+        expect(paymentField().value).toBe('direct');
+        expect(screen.queryByLabelText(en.expenses.form.chargeDate)).toBeNull();
+    });
+
+    it('show in the list how they were paid and when they are charged', async () => {
+        stubApi(
+            createFakeApi({
+                expenses: [
+                    expense({ text: 'Shoes', payment: 'credit', chargeDate: '2026-11-05' }),
+                    expense({ text: 'Menu', payment: 'voucher', chargeDate: '2026-12-01' }),
+                    expense({ text: 'Coffee' }),
+                    expense({ text: 'Spread', payment: 'direct', chargeDate: '2026-11-05' }),
+                ],
+            }).handler
+        );
+
+        renderApp();
+
+        const row = async (text: string) => (await screen.findByText(text)).closest('li')!;
+        expect((await row('Shoes')).textContent).toContain(
+            t('expenses.list.charged', { payment: en.expenses.payment.credit, date: shown('2026-11-05') })
+        );
+        expect((await row('Menu')).textContent).toContain(
+            t('expenses.list.charged', { payment: en.expenses.payment.voucher, date: shown('2026-12-01') })
+        );
+        expect((await row('Coffee')).textContent).not.toContain(en.expenses.payment.credit);
+        expect((await row('Coffee')).textContent).not.toContain('charged');
+        expect((await row('Spread')).textContent).not.toContain('charged');
+    });
+});
+
 describe('custom categories', () => {
     const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
 

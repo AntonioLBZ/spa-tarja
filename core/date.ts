@@ -19,4 +19,15 @@ function fromDateString(value: string): Date {
     return new Date(year, month - 1, day);
 }
 
-export { fromDateString, isCalendarDate, toDateString };
+// The same day some months later, or the last day of that month when it has no such day (31 Jan + 1 month is 28 Feb)
+function addMonths(value: string, months: number): string {
+    const [year = 0, month = 1, day = 1] = value.split('-').map(Number);
+    const target = year * 12 + (month - 1) + months;
+    const targetYear = Math.floor(target / 12);
+    const targetMonth = target % 12;
+    const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+    const pad = (amount: number, size: number) => String(amount).padStart(size, '0');
+    return `${pad(targetYear, 4)}-${pad(targetMonth + 1, 2)}-${pad(Math.min(day, lastDay), 2)}`;
+}
+
+export { addMonths, fromDateString, isCalendarDate, toDateString };

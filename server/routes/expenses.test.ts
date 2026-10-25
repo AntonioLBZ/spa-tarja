@@ -10,6 +10,8 @@ interface Payload {
     amountCents: number;
     currency: string;
     date: string;
+    payment?: string;
+    chargeDate?: string | null;
     createdAt: number;
     updatedAt: number;
     deletedAt: number | null;
@@ -71,7 +73,46 @@ describe('PUT /api/expenses/:id', () => {
         const response = await put(id, payload());
 
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ id, ...payload() });
+        expect(await response.json()).toEqual({ id, ...payload(), payment: 'direct', chargeDate: null });
+    });
+
+    it('stores when a deferred expense is charged and how it was paid', async () => {
+        const id = crypto.randomUUID();
+
+        const response = await put(id, payload({ payment: 'credit', chargeDate: '2026-11-05' }));
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toMatchObject({ id, payment: 'credit', chargeDate: '2026-11-05' });
+        expect((await changes()).expenses[0]).toMatchObject({ payment: 'credit', chargeDate: '2026-11-05' });
+    });
+
+    it('stores a restaurant card expense', async () => {
+        const response = await put(crypto.randomUUID(), payload({ payment: 'voucher', chargeDate: '2026-11-01' }));
+
+        expect(await response.json()).toMatchObject({ payment: 'voucher', chargeDate: '2026-11-01' });
+    });
+
+    it('moves an expense to another charge date, or back to being charged at once', async () => {
+        const id = crypto.randomUUID();
+        await put(id, payload({ payment: 'credit', chargeDate: '2026-11-05' }));
+
+        await put(id, payload({ payment: 'credit', chargeDate: '2026-12-05', updatedAt: 2_000 }));
+        expect((await changes()).expenses[0]).toMatchObject({ payment: 'credit', chargeDate: '2026-12-05' });
+
+        await put(id, payload({ payment: 'direct', chargeDate: null, updatedAt: 3_000 }));
+        expect((await changes()).expenses[0]).toMatchObject({ payment: 'direct', chargeDate: null });
+    });
+
+    it('reads an expense saved before payments existed as paid at once', async () => {
+        const id = crypto.randomUUID();
+        await env.DB.prepare(
+            `INSERT INTO expenses (id, user_id, category_id, text, amount_cents, currency, date, created_at, updated_at, deleted_at, seq)
+             VALUES (?1, ?2, 'food', 'Old', 500, 'EUR', '2026-10-25', 1, 1, NULL, 1)`
+        )
+            .bind(id, session.userId)
+            .run();
+
+        expect((await changes()).expenses[0]).toMatchObject({ id, payment: 'direct', chargeDate: null });
     });
 
     it('is idempotent: repeating the same write changes nothing', async () => {
@@ -144,6 +185,11 @@ describe('PUT /api/expenses/:id', () => {
         ['an unknown category', { categoryId: 'nope' }],
         ['text over the limit', { text: 'x'.repeat(201) }],
         ['a negative timestamp', { updatedAt: -1 }],
+        ['an unknown payment', { payment: 'cash' }],
+        ['a credit card expense with no charge date', { payment: 'credit' }],
+        ['a restaurant card expense with no charge date', { payment: 'voucher', chargeDate: null }],
+        ['a charge date before the expense', { payment: 'credit', chargeDate: '2026-10-24' }],
+        ['a charge date that does not exist', { payment: 'credit', chargeDate: '2026-11-31' }],
     ])('answers 400 for %s', async (_name, overrides) => {
         const response = await put(crypto.randomUUID(), payload(overrides));
 

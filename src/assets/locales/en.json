@@ -24,9 +24,17 @@
             "category": "Category",
             "suggested": "Suggested from the description",
             "date": "Date",
+            "payment": "Payment",
+            "chargeDate": "Charged on",
             "submit": "Add",
             "amountInvalid": "Enter an amount above zero.",
+            "chargeDateInvalid": "It can't be charged before the day of the expense.",
             "saveFailed": "Couldn't save the expense on this device. Try again."
+        },
+        "payment": {
+            "direct": "Now",
+            "credit": "Credit card",
+            "voucher": "Restaurant card"
         },
         "list": {
             "title": "Expenses",
@@ -34,7 +42,8 @@
             "loadFailed": "Couldn't load your expenses.",
             "delete": "Delete",
             "deleteItem": "Delete {name}",
-            "pending": "Not synced yet"
+            "pending": "Not synced yet",
+            "charged": "{payment}, charged {date}"
         }
     },
     "categories": {
