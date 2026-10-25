@@ -1,2 +1,4 @@
+@import url('@fontsource/ibm-plex-mono/latin-400.css');
+@import url('@fontsource/ibm-plex-mono/latin-700.css');
 @import url('./tokens.css');
 @import url('./base.css');

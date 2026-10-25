@@ -31,6 +31,8 @@ export default defineConfig({
                 ],
             },
             workbox: {
+                // The fonts are part of the shell, so the app looks the same offline
+                globPatterns: ['**/*.{js,css,html,woff2}'],
                 navigateFallback: '/index.html',
                 navigateFallbackDenylist: [/^\/api\//],
                 cleanupOutdatedCaches: true,

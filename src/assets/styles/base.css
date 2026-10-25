@@ -67,7 +67,7 @@ button:disabled {
 body {
     background: var(--color-bg-primary);
     color: var(--color-content-primary);
-    font-family: system-ui, sans-serif;
+    font-family: var(--font-family);
     line-height: 1.5;
     margin: 0;
 }

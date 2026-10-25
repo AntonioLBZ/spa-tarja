@@ -12,6 +12,9 @@
     --size-16: 4rem;
     --size-touch: 2.75rem;
 
+    /* Everything is set in monospace; the fallbacks cover the moment before the font loads and a failed load */
+    --font-family: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
+
     /* Motion: reduced-motion zeroes the durations in one place */
     --duration-fast: 120ms;
     --duration-base: 200ms;
