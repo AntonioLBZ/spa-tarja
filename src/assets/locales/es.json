@@ -76,6 +76,15 @@
             "light": "Claro",
             "dark": "Oscuro"
         },
+        "accent": {
+            "title": "Color de acento",
+            "amber": "Ámbar",
+            "blue": "Azul",
+            "green": "Verde",
+            "violet": "Violeta",
+            "pink": "Rosa",
+            "gray": "Gris"
+        },
         "categories": "Categorías",
         "account": {
             "title": "Cuenta",

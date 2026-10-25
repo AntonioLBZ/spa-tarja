@@ -1,4 +1,5 @@
 import { AuthGate } from './features/auth/auth-gate';
+import { AccentProvider } from './lib/accent';
 import { AuthProvider, type Auth } from './lib/auth';
 import { LocaleProvider } from './lib/i18n';
 import { UserDataProvider, type KeyValueStorage } from './lib/offline';
@@ -14,11 +15,13 @@ function AppProviders(props: { auth: Auth; storage: KeyValueStorage; children: R
     return (
         <LocaleProvider>
             <ThemeProvider>
-                <AuthProvider auth={auth}>
-                    <AuthGate>
-                        <UserDataProvider storage={storage}>{children}</UserDataProvider>
-                    </AuthGate>
-                </AuthProvider>
+                <AccentProvider>
+                    <AuthProvider auth={auth}>
+                        <AuthGate>
+                            <UserDataProvider storage={storage}>{children}</UserDataProvider>
+                        </AuthGate>
+                    </AuthProvider>
+                </AccentProvider>
             </ThemeProvider>
         </LocaleProvider>
     );

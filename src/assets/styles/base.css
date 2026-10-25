@@ -48,6 +48,10 @@ button:disabled {
     cursor: default;
 }
 
+a {
+    color: var(--color-accent);
+}
+
 /* Hidden on screen, still read by assistive technology */
 .visually-hidden {
     block-size: 1px;

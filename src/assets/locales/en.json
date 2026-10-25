@@ -76,6 +76,15 @@
             "light": "Light",
             "dark": "Dark"
         },
+        "accent": {
+            "title": "Accent color",
+            "amber": "Amber",
+            "blue": "Blue",
+            "green": "Green",
+            "violet": "Violet",
+            "pink": "Pink",
+            "gray": "Gray"
+        },
         "categories": "Categories",
         "account": {
             "title": "Account",

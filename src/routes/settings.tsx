@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Account } from '@/features/auth/account';
+import { ACCENTS, useAccent } from '@/lib/accent';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { THEMES, useTheme } from '@/lib/theme';
 
@@ -14,6 +15,7 @@ function Settings() {
     const t = useTranslations('settings');
     const { locale, setLocale } = useLocale();
     const { theme, setTheme } = useTheme();
+    const { accent, setAccent } = useAccent();
 
     return (
         <section className="settings">
@@ -31,6 +33,13 @@ function Settings() {
                 options={THEMES.map((value) => ({ value, label: t(`theme.${value}`) }))}
                 value={theme}
                 onChange={setTheme}
+            />
+            <ChoiceGroup
+                legend={t('accent.title')}
+                name="accent"
+                options={ACCENTS.map((value) => ({ value, label: t(`accent.${value}`) }))}
+                value={accent}
+                onChange={setAccent}
             />
             <Link className="settings__link" to="/categories">
                 {t('categories')}
