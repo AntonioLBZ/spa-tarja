@@ -1,0 +1,31 @@
+.expense-form {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.expense-form__title {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.expense-form__field {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.expense-form__hint {
+    color: var(--color-content-secondary);
+    margin: 0;
+}
+
+.expense-form__error {
+    border-left: var(--size-1) solid var(--color-danger);
+    margin: 0;
+    padding-left: var(--size-3);
+}
+
+.expense-form__submit {
+    background: var(--color-bg-accent);
+    border-color: var(--color-bg-accent);
+    color: var(--color-content-on-accent);
+}

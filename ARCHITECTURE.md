@@ -108,7 +108,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 
 0. **Skeleton** (done): Vite + Hono + local D1, `/api/health`, i18n, tests, lint and formatting.
 1. Installable PWA: manifest, icons, service worker, offline shell (done).
-2. D1 schema, expenses and default categories: API and UI.
+2. D1 schema, expenses and default categories: API and UI (done).
 3. Offline queue and sync.
 4. Google login and per-user data.
 5. Custom categories (create, edit, delete).

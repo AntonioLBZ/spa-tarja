@@ -15,5 +15,35 @@
             "apply": "Actualizar",
             "dismiss": "Después"
         }
+    },
+    "expenses": {
+        "form": {
+            "title": "Añadir un gasto",
+            "amount": "Importe",
+            "text": "Descripción",
+            "category": "Categoría",
+            "suggested": "Sugerida según la descripción",
+            "date": "Fecha",
+            "submit": "Añadir",
+            "amountInvalid": "Introduce un importe mayor que cero.",
+            "saveFailed": "No se pudo guardar el gasto. Inténtalo de nuevo."
+        },
+        "list": {
+            "title": "Gastos",
+            "empty": "Aún no hay gastos",
+            "loadFailed": "No se pudieron cargar tus gastos.",
+            "delete": "Eliminar",
+            "deleteItem": "Eliminar {name}"
+        }
+    },
+    "categories": {
+        "food": "Comida",
+        "groceries": "Supermercado",
+        "leisure": "Ocio",
+        "bills": "Facturas",
+        "housing": "Vivienda",
+        "transport": "Transporte",
+        "health": "Salud",
+        "other": "Otros"
     }
 }

@@ -3,6 +3,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
+import { ExpenseForm } from '@/features/expenses/expense-form';
+import { ExpenseList } from '@/features/expenses/expense-list';
 import { healthQuery } from '@/lib/api';
 
 import './index.css';
@@ -16,7 +18,9 @@ function Home() {
 
     return (
         <section className="home">
-            <h1 className="home__title">Tarja</h1>
+            <h1 className="visually-hidden">Tarja</h1>
+            <ExpenseForm />
+            <ExpenseList />
             <p className={clsx('home__status', `home__status--${state}`)} role="status">
                 {t(`health.${state}`)}
             </p>

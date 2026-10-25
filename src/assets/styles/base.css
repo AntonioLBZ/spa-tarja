@@ -4,12 +4,53 @@
     box-sizing: border-box;
 }
 
-/* Inheriting the 16px body size keeps iOS from zooming in on focus */
+/* Inheriting the 16px body size keeps iOS from zooming in on focus. No rounded corners: the browser's own are reset */
 button,
 input,
 select,
 textarea {
+    border-radius: 0;
     font: inherit;
+}
+
+input,
+select {
+    background: var(--color-bg-primary);
+    border: var(--size-px) solid var(--color-border);
+    color: var(--color-content-primary);
+    min-height: var(--size-touch);
+    padding: 0 var(--size-3);
+    width: 100%;
+}
+
+button {
+    background: transparent;
+    border: var(--size-px) solid var(--color-border);
+    color: var(--color-content-primary);
+    cursor: pointer;
+    min-height: var(--size-touch);
+    min-width: var(--size-touch);
+    padding: 0 var(--size-4);
+    transition:
+        background-color var(--duration-base) var(--ease-standard),
+        border-color var(--duration-base) var(--ease-standard),
+        color var(--duration-base) var(--ease-standard);
+}
+
+button:disabled {
+    border-color: var(--color-border-subtle);
+    color: var(--color-content-secondary);
+    cursor: default;
+}
+
+/* Hidden on screen, still read by assistive technology */
+.visually-hidden {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
 }
 
 body {

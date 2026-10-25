@@ -1,7 +1,6 @@
 # TODO
 
 - Check the installed PWA on a real phone: install prompt and the update prompt. Desktop Chromium already loads the shell offline.
-- Expenses UI: a screen to log an expense (amount, text, suggested category the user can change, date) and the list with delete.
 - Offline queue in IndexedDB and sync.
 - Google login (Better Auth on Hono) and per-user data. Add the `nodejs_compat` flag.
 - Custom categories CRUD.

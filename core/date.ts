@@ -13,4 +13,10 @@ function toDateString(date: Date): string {
     return `${year}-${month}-${day}`;
 }
 
-export { isCalendarDate, toDateString };
+// The inverse of toDateString, for showing a stored day without a time zone shifting it
+function fromDateString(value: string): Date {
+    const [year = 0, month = 1, day = 1] = value.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
+export { fromDateString, isCalendarDate, toDateString };

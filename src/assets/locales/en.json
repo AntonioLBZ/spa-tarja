@@ -15,5 +15,35 @@
             "apply": "Update",
             "dismiss": "Later"
         }
+    },
+    "expenses": {
+        "form": {
+            "title": "Add an expense",
+            "amount": "Amount",
+            "text": "Description",
+            "category": "Category",
+            "suggested": "Suggested from the description",
+            "date": "Date",
+            "submit": "Add",
+            "amountInvalid": "Enter an amount above zero.",
+            "saveFailed": "Couldn't save the expense. Try again."
+        },
+        "list": {
+            "title": "Expenses",
+            "empty": "No expenses yet",
+            "loadFailed": "Couldn't load your expenses.",
+            "delete": "Delete",
+            "deleteItem": "Delete {name}"
+        }
+    },
+    "categories": {
+        "food": "Food",
+        "groceries": "Groceries",
+        "leisure": "Leisure",
+        "bills": "Bills",
+        "housing": "Housing",
+        "transport": "Transport",
+        "health": "Health",
+        "other": "Other"
     }
 }

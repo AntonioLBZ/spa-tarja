@@ -57,6 +57,7 @@ The theme setting itself isn't built yet (see `TODO.md`).
 
 - **No rounded corners.** Never use `border-radius`; there are no radius tokens. This includes buttons, inputs, avatars and focus outlines.
 - **Borders carry the structure** where other designs use shadows. `--color-border` (ink) for structure, `--color-border-subtle` for dividers. The standard width is 1 px (`--size-px`); a thicker border (`--size-1`) marks emphasis.
+- **Form controls** share one look, set on the elements in `base.css`: a 1 px ink border, no radius, at least `--size-touch` tall. A button is outlined; the primary action fills with the accent (`--color-bg-accent`) and a destructive one takes `--color-danger` for its text.
 - **Uneven borders.** The edges of one box don't have to match: different widths, or an edge missing, give the cut-by-hand feeling of a tally stick. The direction is decided; the concrete rules are open (§8). The status line on the home screen is the current example: a thick left border only.
 
 ## 4. Typography

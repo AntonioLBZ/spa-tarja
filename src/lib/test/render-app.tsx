@@ -32,3 +32,4 @@ function renderApp({ path = '/' }: { path?: string } = {}) {
 }
 
 export { renderApp, stubApi };
+export type { Handler };

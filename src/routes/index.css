@@ -1,12 +1,6 @@
 .home {
     display: grid;
-    gap: var(--size-4);
-    justify-items: start;
-}
-
-.home__title {
-    font-size: clamp(2rem, 8vw, 3rem);
-    margin: 0;
+    gap: var(--size-8);
 }
 
 .home__status {

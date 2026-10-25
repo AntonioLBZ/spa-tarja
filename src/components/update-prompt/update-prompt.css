@@ -26,18 +26,8 @@
     margin: 0;
 }
 
-.update-prompt__action {
-    background: transparent;
-    border: var(--size-px) solid var(--color-border);
-    color: var(--color-content-primary);
-    cursor: pointer;
-    min-height: var(--size-touch);
-    min-width: var(--size-touch);
-    padding: 0 var(--size-4);
-
-    &:first-of-type {
-        background: var(--color-bg-accent);
-        border-color: var(--color-bg-accent);
-        color: var(--color-content-on-accent);
-    }
+.update-prompt__action:first-of-type {
+    background: var(--color-bg-accent);
+    border-color: var(--color-bg-accent);
+    color: var(--color-content-on-accent);
 }
