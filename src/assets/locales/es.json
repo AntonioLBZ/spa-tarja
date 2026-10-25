@@ -26,14 +26,15 @@
             "date": "Fecha",
             "submit": "Añadir",
             "amountInvalid": "Introduce un importe mayor que cero.",
-            "saveFailed": "No se pudo guardar el gasto. Inténtalo de nuevo."
+            "saveFailed": "No se pudo guardar el gasto en este dispositivo. Inténtalo de nuevo."
         },
         "list": {
             "title": "Gastos",
             "empty": "Aún no hay gastos",
             "loadFailed": "No se pudieron cargar tus gastos.",
             "delete": "Eliminar",
-            "deleteItem": "Eliminar {name}"
+            "deleteItem": "Eliminar {name}",
+            "pending": "Sin sincronizar"
         }
     },
     "categories": {
@@ -45,5 +46,11 @@
         "transport": "Transporte",
         "health": "Salud",
         "other": "Otros"
+    },
+    "sync": {
+        "offline": "Sin conexión. Tus cambios se guardan en este dispositivo.",
+        "pending": "{count, plural, one {# cambio pendiente de sincronizar} other {# cambios pendientes de sincronizar}}",
+        "rejected": "{count, plural, one {No se pudo guardar # gasto y se descartó.} other {No se pudieron guardar # gastos y se descartaron.}}",
+        "dismiss": "Cerrar"
     }
 }

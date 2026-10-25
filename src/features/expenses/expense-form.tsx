@@ -24,13 +24,15 @@ function ExpenseForm() {
     const [picked, setPicked] = useState<DefaultCategoryId | null>(null);
     const [date, setDate] = useState(() => toDateString(new Date()));
     const [amountInvalid, setAmountInvalid] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saveFailed, setSaveFailed] = useState(false);
 
     // The category follows the description until the user picks one
     const suggestion = suggestCategory(text);
     const categoryId = picked ?? suggestion;
     const showSuggestion = picked === null && suggestion !== FALLBACK_CATEGORY_ID;
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const amountCents = parseAmount(amount, locale);
@@ -40,9 +42,11 @@ function ExpenseForm() {
         }
 
         setAmountInvalid(false);
+        setSaveFailed(false);
+        setSaving(true);
         const now = Date.now();
-        save.mutate(
-            {
+        try {
+            await save({
                 id: crypto.randomUUID(),
                 categoryId,
                 text: text.trim(),
@@ -52,19 +56,19 @@ function ExpenseForm() {
                 createdAt: now,
                 updatedAt: now,
                 deletedAt: null,
-            },
-            {
-                onSuccess: () => {
-                    setAmount('');
-                    setText('');
-                    setPicked(null);
-                },
-            }
-        );
+            });
+            setAmount('');
+            setText('');
+            setPicked(null);
+        } catch {
+            setSaveFailed(true);
+        } finally {
+            setSaving(false);
+        }
     }
 
     return (
-        <form className="expense-form" aria-labelledby={`${id}-title`} onSubmit={handleSubmit}>
+        <form className="expense-form" aria-labelledby={`${id}-title`} onSubmit={(event) => void handleSubmit(event)}>
             <h2 className="expense-form__title" id={`${id}-title`}>
                 {t('title')}
             </h2>
@@ -131,13 +135,13 @@ function ExpenseForm() {
                     {t('amountInvalid')}
                 </p>
             )}
-            {save.isError && !amountInvalid && (
+            {saveFailed && !amountInvalid && (
                 <p className="expense-form__error" role="alert">
                     {t('saveFailed')}
                 </p>
             )}
 
-            <button className="expense-form__submit" disabled={save.isPending} type="submit">
+            <button className="expense-form__submit" disabled={saving} type="submit">
                 {t('submit')}
             </button>
         </form>

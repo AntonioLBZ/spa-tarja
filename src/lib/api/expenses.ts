@@ -1,50 +1,44 @@
-import { queryOptions } from '@tanstack/react-query';
-
 import { api } from './client';
 
 import type { Expense } from '@core/expense';
 
-// Every expense of the user, deleted ones included, and the cursor to ask for what changes next
+// Every expense this device knows about, deleted ones included, and the cursor of the last change seen
 interface ExpensesState {
     expenses: Expense[];
     cursor: number;
 }
 
+interface Changes {
+    expenses: Expense[];
+    cursor: number;
+    hasMore: boolean;
+}
+
 const EXPENSES_KEY = ['expenses'] as const;
 
-async function loadExpenses(): Promise<ExpensesState> {
-    const expenses: Expense[] = [];
-    let cursor = 0;
+// The server answered, and the answer wasn't a success; a request that never got an answer throws something else
+class ApiError extends Error {
+    readonly status: number;
 
-    for (;;) {
-        const response = await api.api.expenses.$get({ query: { after: String(cursor) } });
-        if (!response.ok) throw new Error(`Loading expenses failed: ${response.status}`);
-        const page = await response.json();
-        expenses.push(...page.expenses);
-        cursor = page.cursor;
-        if (!page.hasMore) return { expenses, cursor };
+    constructor(status: number) {
+        super(`Request failed with status ${status}`);
+        this.status = status;
     }
 }
 
-function expensesQuery() {
-    return queryOptions({ queryKey: EXPENSES_KEY, queryFn: loadExpenses });
+async function fetchChanges(after: number): Promise<Changes> {
+    const response = await api.api.expenses.$get({ query: { after: String(after) } });
+    if (!response.ok) throw new ApiError(response.status);
+    return response.json();
 }
 
 // Creates or updates by id, so sending it twice is harmless
 async function putExpense(expense: Expense): Promise<Expense> {
     const { id, ...body } = expense;
     const response = await api.api.expenses[':id'].$put({ param: { id }, json: body });
-    if (!response.ok) throw new Error(`Saving the expense failed: ${response.status}`);
+    if (!response.ok) throw new ApiError(response.status);
     return response.json();
 }
 
-function upsertExpense(state: ExpensesState, expense: Expense): ExpensesState {
-    const exists = state.expenses.some((item) => item.id === expense.id);
-    const expenses = exists
-        ? state.expenses.map((item) => (item.id === expense.id ? expense : item))
-        : [...state.expenses, expense];
-    return { ...state, expenses };
-}
-
-export { EXPENSES_KEY, expensesQuery, putExpense, upsertExpense };
-export type { ExpensesState };
+export { ApiError, EXPENSES_KEY, fetchChanges, putExpense };
+export type { Changes, ExpensesState };

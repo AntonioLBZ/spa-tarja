@@ -1,31 +1,24 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
-import { EXPENSES_KEY, putExpense, upsertExpense, type ExpensesState } from '@/lib/api';
+import { EXPENSES_KEY } from '@/lib/api';
+import { useOutbox } from '@/lib/offline';
 
 import type { Expense } from '@core/expense';
 
-// The expense shows up at once; if the server refuses it, the list goes back to how it was
+// Saving never waits for the network: the expense is safe on the device once this resolves.
+// It rejects only when the device can't store it.
 function useSaveExpense() {
+    const outbox = useOutbox();
     const queryClient = useQueryClient();
 
-    return useMutation({
-        mutationFn: putExpense,
-        onMutate: async (expense: Expense) => {
-            await queryClient.cancelQueries({ queryKey: EXPENSES_KEY });
-            const previous = queryClient.getQueryData<ExpensesState>(EXPENSES_KEY);
-            if (previous) queryClient.setQueryData(EXPENSES_KEY, upsertExpense(previous, expense));
-            return { previous };
+    return useCallback(
+        async (expense: Expense) => {
+            await outbox.put(expense);
+            void queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
         },
-        onError: (_error, _expense, context) => {
-            if (context?.previous) queryClient.setQueryData(EXPENSES_KEY, context.previous);
-            else void queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
-        },
-        onSuccess: (saved) => {
-            const current = queryClient.getQueryData<ExpensesState>(EXPENSES_KEY);
-            if (current) queryClient.setQueryData(EXPENSES_KEY, upsertExpense(current, saved));
-            else void queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
-        },
-    });
+        [outbox, queryClient]
+    );
 }
 
 export { useSaveExpense };

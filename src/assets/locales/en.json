@@ -26,14 +26,15 @@
             "date": "Date",
             "submit": "Add",
             "amountInvalid": "Enter an amount above zero.",
-            "saveFailed": "Couldn't save the expense. Try again."
+            "saveFailed": "Couldn't save the expense on this device. Try again."
         },
         "list": {
             "title": "Expenses",
             "empty": "No expenses yet",
             "loadFailed": "Couldn't load your expenses.",
             "delete": "Delete",
-            "deleteItem": "Delete {name}"
+            "deleteItem": "Delete {name}",
+            "pending": "Not synced yet"
         }
     },
     "categories": {
@@ -45,5 +46,11 @@
         "transport": "Transport",
         "health": "Health",
         "other": "Other"
+    },
+    "sync": {
+        "offline": "You're offline. Your changes are saved on this device.",
+        "pending": "{count, plural, one {# change waiting to sync} other {# changes waiting to sync}}",
+        "rejected": "{count, plural, one {# expense couldn't be saved and was discarded.} other {# expenses couldn't be saved and were discarded.}}",
+        "dismiss": "Dismiss"
     }
 }

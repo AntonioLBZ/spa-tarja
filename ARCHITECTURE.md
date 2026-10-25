@@ -75,10 +75,12 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 ## 6. Offline strategy
 
 - **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.
-- **Reads**: TanStack Query with the cache persisted in IndexedDB.
-- **Writes**: each expense is born with its UUID and goes into a local queue marked pending. It syncs when the connection returns and when the app opens. Safari has no Background Sync, so nothing depends on it.
+- **Reads**: TanStack Query with the cache persisted in IndexedDB (`@tanstack/react-query-persist-client`, no expiry, only the `expenses` query). The cache holds everything the server has told this device, tombstones included, plus the cursor of the last change seen.
+- **Writes**: a save never waits for the network. The expense, with its client UUID, goes into the **outbox**: an IndexedDB record of the latest version of each unsynced expense, so editing or deleting a pending expense replaces its entry. The screen shows the cached server data with the outbox on top, and marks the pending rows.
+- **Sync** is the `queryFn` of the `expenses` query, so every trigger Query already has (app open, focus, reconnect, invalidation after a save) runs the same path: push the outbox in order, then pull what changed after the cursor. Safari has no Background Sync, so nothing depends on it. While entries are pending the query also retries every 30 s, for connections that report online but aren't.
+- **Outbox rules**: an entry leaves the outbox only when the server answered it, and only if it wasn't edited meanwhile (same `updatedAt`). A network error or a 5xx stops the push and keeps the order for the next run. A 400 or 409 is permanent: the entry is dropped and the user is told.
 - **Server**: idempotent `PUT /expenses/:id` (creates or updates by id), so retrying is safe. A delete is the same `PUT` with `deletedAt` set; there is no `DELETE` route. `GET /expenses?after=<seq>` pages through the changes after a cursor, tombstones included, and returns the new cursor.
-- **Conflicts**: last edit wins by `updatedAt`, enough for one user on several devices. The server applies a write only when its `updatedAt` is strictly newer than the stored one (so a retry changes nothing) and otherwise answers with the row it kept. Deletes are soft so the sync can propagate them.
+- **Conflicts**: last edit wins by `updatedAt`, enough for one user on several devices. The server applies a write only when its `updatedAt` is strictly newer than the stored one (so a retry changes nothing) and otherwise answers with the row it kept. Deletes are soft so the sync can propagate them. The clock is the device's: a device whose clock is behind loses to rows written ahead of it, silently.
 
 ## 7. Categories
 
@@ -109,7 +111,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 0. **Skeleton** (done): Vite + Hono + local D1, `/api/health`, i18n, tests, lint and formatting.
 1. Installable PWA: manifest, icons, service worker, offline shell (done).
 2. D1 schema, expenses and default categories: API and UI (done).
-3. Offline queue and sync.
+3. Offline queue and sync (done).
 4. Google login and per-user data.
 5. Custom categories (create, edit, delete).
 6. Visual identity and transitions.

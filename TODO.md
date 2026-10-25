@@ -1,7 +1,6 @@
 # TODO
 
 - Check the installed PWA on a real phone: install prompt and the update prompt. Desktop Chromium already loads the shell offline.
-- Offline queue in IndexedDB and sync.
 - Google login (Better Auth on Hono) and per-user data. Add the `nodejs_compat` flag.
 - Custom categories CRUD.
 - Settings screen with a language switcher (the locale is already stored, see `useLocale`).

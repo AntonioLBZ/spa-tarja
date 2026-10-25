@@ -1,0 +1,24 @@
+.sync-status {
+    display: grid;
+    gap: var(--size-2);
+}
+
+.sync-status__line {
+    border-left: var(--size-1) solid var(--color-border-subtle);
+    color: var(--color-content-secondary);
+    margin: 0;
+    padding-left: var(--size-3);
+}
+
+.sync-status__rejected {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2) var(--size-4);
+
+    & .sync-status__line {
+        border-left-color: var(--color-danger);
+        color: var(--color-content-primary);
+        flex: 1 1 auto;
+    }
+}

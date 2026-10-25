@@ -1,13 +1,19 @@
+import { onlineManager } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { createOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import type { Expense } from '@core/expense';
 
 const TODAY = '2026-10-25';
+
+const t = createTranslator({ locale: 'en', messages: en });
 
 function expense(overrides: Partial<Expense> = {}): Expense {
     return {
@@ -40,6 +46,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    onlineManager.setOnline(true);
     vi.useRealTimers();
     vi.unstubAllGlobals();
 });
@@ -133,6 +140,7 @@ describe('expense form', () => {
 
         expect(await screen.findByRole('listitem')).toBeDefined();
         await waitFor(() => expect(api.writes).toHaveLength(1));
+        await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
         expect(api.writes[0]).toMatchObject({
             categoryId: 'food',
             text: 'Lunch',
@@ -169,19 +177,6 @@ describe('expense form', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.amountInvalid);
         expect(api.writes).toHaveLength(0);
     });
-
-    it('takes back the expense and tells the user when saving fails', async () => {
-        stubApi(createFakeApi({ failWrites: true }).handler);
-        renderApp();
-        await screen.findByText(en.expenses.list.empty);
-
-        fillAndSubmit({ amount: '12.50', text: 'Lunch' });
-
-        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.saveFailed);
-        await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull());
-        expect(field(en.expenses.form.amount).value).toBe('12.50');
-        expect(field(en.expenses.form.text).value).toBe('Lunch');
-    });
 });
 
 describe('deleting an expense', () => {
@@ -199,5 +194,116 @@ describe('deleting an expense', () => {
         expect(api.writes[0]).toMatchObject({ id: lunch.id, text: 'Lunch' });
         expect(api.writes[0]?.deletedAt).toBe(new Date(2026, 9, 25, 12).getTime());
         expect(api.writes[0]?.updatedAt).toBe(new Date(2026, 9, 25, 12).getTime());
+    });
+});
+
+describe('working offline', () => {
+    it('saves without waiting for the network, marks the expense, and syncs it when the connection is back', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        onlineManager.setOnline(false);
+
+        fillAndSubmit({ amount: '12.50', text: 'Lunch' });
+
+        const row = await screen.findByRole('listitem');
+        expect(within(row).getByText(en.expenses.list.pending)).toBeDefined();
+        expect(screen.getByText(en.sync.offline)).toBeDefined();
+        expect(screen.getByText(t('sync.pending', { count: 1 }))).toBeDefined();
+        expect(field(en.expenses.form.amount).value).toBe('');
+        expect(api.attempts).toHaveLength(0);
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
+        expect(screen.queryByText(en.sync.offline)).toBeNull();
+        expect(screen.queryByText(t('sync.pending', { count: 1 }))).toBeNull();
+        expect(screen.getByRole('listitem').textContent).toContain('Lunch');
+    });
+
+    it('sends one write for an expense that was added and deleted before the connection came back', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        onlineManager.setOnline(false);
+        fillAndSubmit({ amount: '3', text: 'Coffee' });
+        await screen.findByRole('listitem');
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.list.deleteItem.replace('{name}', 'Coffee') }));
+        await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull());
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(api.attempts).toHaveLength(1));
+        expect(api.attempts[0]?.deletedAt).not.toBeNull();
+    });
+
+    it('keeps the expense on screen while the server is failing, and delivers it on the next sync', async () => {
+        const api = createFakeApi();
+        api.state.writeStatus = 503;
+        stubApi(api.handler);
+        const { queryClient } = renderApp();
+        await screen.findByText(en.expenses.list.empty);
+
+        fillAndSubmit({ amount: '12.50', text: 'Lunch' });
+
+        const row = await screen.findByRole('listitem');
+        await waitFor(() => expect(api.attempts).toHaveLength(1));
+        expect(within(row).getByText(en.expenses.list.pending)).toBeDefined();
+
+        api.state.writeStatus = null;
+        await queryClient.invalidateQueries();
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
+    });
+
+    it('shows what was saved in an earlier session before the server can be reached', async () => {
+        const storage = createMemoryStorage();
+        await storage.set('tarja:outbox', [expense({ text: 'From last session' })]);
+        const outbox = createOutbox(storage);
+        await outbox.ready;
+        stubApi(createFakeApi().handler);
+        onlineManager.setOnline(false);
+
+        renderApp({ outbox });
+
+        const row = await screen.findByRole('listitem');
+        expect(row.textContent).toContain('From last session');
+        expect(within(row).getByText(en.expenses.list.pending)).toBeDefined();
+        expect(screen.queryByText(en.expenses.list.empty)).toBeNull();
+    });
+
+    it('tells the user when the server refuses an expense for good, until they dismiss it', async () => {
+        const api = createFakeApi();
+        api.state.writeStatus = 400;
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+
+        fillAndSubmit({ amount: '12.50', text: 'Lunch' });
+
+        expect((await screen.findByText(t('sync.rejected', { count: 1 }))).getAttribute('role')).toBe('alert');
+        await waitFor(() => expect(screen.queryByRole('listitem')).toBeNull());
+
+        fireEvent.click(screen.getByRole('button', { name: en.sync.dismiss }));
+
+        expect(screen.queryByText(t('sync.rejected', { count: 1 }))).toBeNull();
+    });
+
+    it('says so when the expense cannot be stored on this device', async () => {
+        const storage = { ...createMemoryStorage(), set: () => Promise.reject(new Error('quota exceeded')) };
+        const outbox = createOutbox(storage);
+        stubApi(createFakeApi().handler);
+        renderApp({ outbox });
+        await screen.findByText(en.expenses.list.empty);
+
+        fillAndSubmit({ amount: '12.50', text: 'Lunch' });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.saveFailed);
+        expect(field(en.expenses.form.amount).value).toBe('12.50');
+        expect(screen.queryByRole('listitem')).toBeNull();
     });
 });

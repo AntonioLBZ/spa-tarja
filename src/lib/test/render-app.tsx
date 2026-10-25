@@ -4,7 +4,9 @@ import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { LocaleProvider } from '@/lib/i18n';
+import { OutboxProvider, createOutbox, type Outbox } from '@/lib/offline';
 import { createQueryClient } from '@/lib/query-client';
+import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { createAppRouter } from '@/router';
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
@@ -19,16 +21,22 @@ function stubApi(handler: Handler) {
     return fetchMock;
 }
 
-function renderApp({ path = '/' }: { path?: string } = {}) {
+function renderApp({
+    path = '/',
+    outbox = createOutbox(createMemoryStorage()),
+}: { path?: string; outbox?: Outbox } = {}) {
     const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
     const queryClient = createQueryClient();
-    return render(
+    const rendered = render(
         <LocaleProvider>
-            <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
-            </QueryClientProvider>
+            <OutboxProvider outbox={outbox}>
+                <QueryClientProvider client={queryClient}>
+                    <RouterProvider router={router} />
+                </QueryClientProvider>
+            </OutboxProvider>
         </LocaleProvider>
     );
+    return { ...rendered, outbox, queryClient };
 }
 
 export { renderApp, stubApi };

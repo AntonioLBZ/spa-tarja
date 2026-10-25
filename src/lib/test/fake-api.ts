@@ -1,26 +1,62 @@
 import type { Handler } from './render-app';
 import type { Expense } from '@core/expense';
 
+interface FakeApiOptions {
+    expenses?: Expense[];
+    // Most rows per page, whatever the client asks for
+    pageSize?: number;
+}
+
 // An in-memory stand-in for the Worker's routes; anything it doesn't know answers 404
-function createFakeApi(options: { expenses?: Expense[]; failWrites?: boolean } = {}) {
-    const stored = new Map((options.expenses ?? []).map((expense) => [expense.id, expense]));
+function createFakeApi(options: FakeApiOptions = {}) {
+    const rows: Array<{ expense: Expense; seq: number }> = [];
+    let lastSeq = 0;
+
+    function store(expense: Expense) {
+        const seq = ++lastSeq;
+        const existing = rows.findIndex((row) => row.expense.id === expense.id);
+        if (existing >= 0) rows[existing] = { expense, seq };
+        else rows.push({ expense, seq });
+    }
+
+    for (const expense of options.expenses ?? []) store(expense);
+
     const writes: Expense[] = [];
-    const state = { failWrites: options.failWrites ?? false };
+    const attempts: Expense[] = [];
+    const requests: string[] = [];
+    const state = {
+        // An HTTP status to answer every write with, or null to accept them
+        writeStatus: null as number | null,
+        // Makes every request fail like a dropped connection
+        offline: false,
+    };
 
     const handler: Handler = (url, init) => {
         const method = init?.method ?? 'GET';
+        requests.push(`${method} ${url.pathname}${url.search}`);
+
+        if (state.offline) throw new TypeError('Failed to fetch');
 
         if (url.pathname === '/api/health') return Response.json({ ok: true });
 
         if (url.pathname === '/api/expenses' && method === 'GET') {
-            return Response.json({ expenses: [...stored.values()], cursor: stored.size, hasMore: false });
+            const after = Number(url.searchParams.get('after') ?? 0);
+            const limit = Math.min(Number(url.searchParams.get('limit') ?? 200), options.pageSize ?? 200);
+            const changes = rows.filter((row) => row.seq > after).sort((a, b) => a.seq - b.seq);
+            const page = changes.slice(0, limit);
+            return Response.json({
+                expenses: page.map((row) => row.expense),
+                cursor: page.at(-1)?.seq ?? after,
+                hasMore: changes.length > page.length,
+            });
         }
 
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
-            if (state.failWrites) return new Response(null, { status: 500 });
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
-            stored.set(id, expense);
+            attempts.push(expense);
+            if (state.writeStatus !== null) return new Response(null, { status: state.writeStatus });
+            store(expense);
             writes.push(expense);
             return Response.json(expense);
         }
@@ -28,7 +64,15 @@ function createFakeApi(options: { expenses?: Expense[]; failWrites?: boolean } =
         return new Response(null, { status: 404 });
     };
 
-    return { handler, writes, state };
+    return {
+        handler,
+        writes,
+        attempts,
+        requests,
+        state,
+        // Something another device wrote
+        serverWrite: store,
+    };
 }
 
 export { createFakeApi };
