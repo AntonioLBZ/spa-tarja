@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
@@ -31,6 +31,9 @@ function Settings() {
                 value={theme}
                 onChange={setTheme}
             />
+            <Link className="settings__link" to="/categories">
+                {t('categories')}
+            </Link>
         </section>
     );
 }

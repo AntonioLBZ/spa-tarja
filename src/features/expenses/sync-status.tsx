@@ -1,24 +1,15 @@
-import { onlineManager } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { useOutbox } from '@/lib/offline';
+import { useOnline, useOutbox } from '@/lib/offline';
 
 import './sync-status.css';
-
-function subscribeOnline(listener: () => void) {
-    return onlineManager.subscribe(listener);
-}
-
-function isOnline() {
-    return onlineManager.isOnline();
-}
 
 function SyncStatus() {
     const t = useTranslations('sync');
     const outbox = useOutbox();
     const { pending, rejected } = useSyncExternalStore(outbox.subscribe, outbox.getState);
-    const online = useSyncExternalStore(subscribeOnline, isOnline);
+    const online = useOnline();
 
     if (online && pending.length === 0 && rejected === 0) return null;
 

@@ -1,0 +1,153 @@
+import { useQuery } from '@tanstack/react-query';
+import { useId, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
+
+import { ApiError, categoriesQuery } from '@/lib/api';
+import { useOnline } from '@/lib/offline';
+import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID } from '@core/categories';
+import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey } from '@core/category';
+
+import { CategoryRow } from './category-row';
+import { useCategoryActions } from './use-category-actions';
+
+import './category-manager.css';
+
+type Failure = 'nameTaken' | 'saveFailed';
+
+function toFailure(error: unknown): Failure {
+    return error instanceof ApiError && error.code === 'name-taken' ? 'nameTaken' : 'saveFailed';
+}
+
+function CategoryManager() {
+    const t = useTranslations('categoryManager');
+    const tCategory = useTranslations('categories');
+    const online = useOnline();
+    const query = useQuery(categoriesQuery());
+    const { save, remove } = useCategoryActions();
+    const id = useId();
+
+    const [name, setName] = useState('');
+    const [failure, setFailure] = useState<Failure | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    const custom = query.data;
+    const builtIn = DEFAULT_CATEGORY_IDS.map((categoryId) => tCategory(categoryId));
+
+    // The same name twice, whatever its case, would be two options nobody can tell apart
+    function isTaken(candidate: string, exceptId = '') {
+        const key = categoryNameKey(candidate);
+        return (
+            builtIn.some((label) => categoryNameKey(label) === key) ||
+            (custom ?? []).some((category) => category.id !== exceptId && categoryNameKey(category.name) === key)
+        );
+    }
+
+    async function handleAdd(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const trimmed = name.trim();
+        if (!trimmed) return;
+        if (isTaken(trimmed)) {
+            setFailure('nameTaken');
+            return;
+        }
+
+        setFailure(null);
+        setSaving(true);
+        try {
+            await save({ id: crypto.randomUUID(), name: trimmed });
+            setName('');
+        } catch (error) {
+            setFailure(toFailure(error));
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    return (
+        <section className="category-manager">
+            <h1 className="category-manager__title">{t('title')}</h1>
+
+            {!online && (
+                <p className="category-manager__notice" role="status">
+                    {t('offline')}
+                </p>
+            )}
+
+            <form className="category-manager__add" onSubmit={(event) => void handleAdd(event)}>
+                <label htmlFor={`${id}-name`}>{t('add.label')}</label>
+                <div className="category-manager__add-row">
+                    <input
+                        className="category-manager__input"
+                        id={`${id}-name`}
+                        aria-describedby={failure ? `${id}-error` : undefined}
+                        aria-invalid={failure === 'nameTaken'}
+                        autoComplete="off"
+                        maxLength={CATEGORY_NAME_MAX_LENGTH}
+                        required
+                        type="text"
+                        value={name}
+                        onChange={(event) => {
+                            setName(event.target.value);
+                            setFailure(null);
+                        }}
+                    />
+                    <button disabled={!online || saving} type="submit">
+                        {t('add.submit')}
+                    </button>
+                </div>
+                {failure && (
+                    <p className="category-manager__error" id={`${id}-error`} role="alert">
+                        {t(failure)}
+                    </p>
+                )}
+            </form>
+
+            <section className="category-manager__section">
+                <h2 className="category-manager__heading">{t('custom.title')}</h2>
+                {query.isError && custom === undefined && (
+                    <p className="category-manager__hint" role="alert">
+                        {t('loadFailed')}
+                    </p>
+                )}
+                {custom?.length === 0 && <p className="category-manager__hint">{t('custom.empty')}</p>}
+                <ul className="category-manager__list">
+                    {custom?.map((category) => (
+                        <CategoryRow
+                            key={category.id}
+                            category={category}
+                            disabled={!online}
+                            fallbackLabel={tCategory(FALLBACK_CATEGORY_ID)}
+                            isTaken={isTaken}
+                            onDelete={() =>
+                                remove(category.id).then(
+                                    () => true,
+                                    () => false
+                                )
+                            }
+                            onRename={(renamed) =>
+                                save({ id: category.id, name: renamed }).then(
+                                    () => null,
+                                    (error: unknown) => toFailure(error)
+                                )
+                            }
+                        />
+                    ))}
+                </ul>
+            </section>
+
+            <section className="category-manager__section">
+                <h2 className="category-manager__heading">{t('builtIn.title')}</h2>
+                <p className="category-manager__hint">{t('builtIn.note')}</p>
+                <ul className="category-manager__list">
+                    {DEFAULT_CATEGORY_IDS.map((categoryId) => (
+                        <li className="category-manager__built-in" key={categoryId}>
+                            {tCategory(categoryId)}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        </section>
+    );
+}
+
+export { CategoryManager };

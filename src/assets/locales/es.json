@@ -66,6 +66,35 @@
             "system": "Sistema",
             "light": "Claro",
             "dark": "Oscuro"
-        }
+        },
+        "categories": "Categorías"
+    },
+    "categoryManager": {
+        "title": "Categorías",
+        "offline": "Estás sin conexión. Conéctate para cambiar tus categorías.",
+        "loadFailed": "No se pudieron cargar tus categorías.",
+        "add": {
+            "label": "Nueva categoría",
+            "submit": "Añadir"
+        },
+        "custom": {
+            "title": "Las tuyas",
+            "empty": "Aún no has añadido ninguna."
+        },
+        "builtIn": {
+            "title": "Incluidas",
+            "note": "No se pueden cambiar."
+        },
+        "rename": "Renombrar",
+        "renameItem": "Renombrar {name}",
+        "renameInput": "Nombre de la categoría",
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "deleteItem": "Eliminar {name}",
+        "deleteConfirm": "¿Eliminar {name}? Sus gastos aparecerán como {fallback}.",
+        "nameTaken": "Ya tienes una categoría con ese nombre.",
+        "saveFailed": "No se pudo guardar la categoría. Inténtalo de nuevo.",
+        "deleteFailed": "No se pudo eliminar la categoría. Inténtalo de nuevo."
     }
 }

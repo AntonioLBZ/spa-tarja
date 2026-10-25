@@ -66,6 +66,35 @@
             "system": "System",
             "light": "Light",
             "dark": "Dark"
-        }
+        },
+        "categories": "Categories"
+    },
+    "categoryManager": {
+        "title": "Categories",
+        "offline": "You're offline. Connect to change your categories.",
+        "loadFailed": "Couldn't load your categories.",
+        "add": {
+            "label": "New category",
+            "submit": "Add"
+        },
+        "custom": {
+            "title": "Yours",
+            "empty": "You haven't added any yet."
+        },
+        "builtIn": {
+            "title": "Built-in",
+            "note": "These can't be changed."
+        },
+        "rename": "Rename",
+        "renameItem": "Rename {name}",
+        "renameInput": "Category name",
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "deleteItem": "Delete {name}",
+        "deleteConfirm": "Delete {name}? Its expenses will show as {fallback}.",
+        "nameTaken": "You already have a category with that name.",
+        "saveFailed": "Couldn't save the category. Try again.",
+        "deleteFailed": "Couldn't delete the category. Try again."
     }
 }

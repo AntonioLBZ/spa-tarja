@@ -7,3 +7,9 @@
     font-size: 1rem;
     margin: 0;
 }
+
+.settings__link {
+    align-items: center;
+    display: inline-flex;
+    min-height: var(--size-touch);
+}

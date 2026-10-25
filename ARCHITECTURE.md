@@ -118,7 +118,7 @@ Google OAuth, no own passwords. Candidate: Better Auth mounted on Hono, with D1 
 2. D1 schema, expenses and default categories: API and UI (done).
 3. Offline queue and sync (done).
 4. Google login and per-user data.
-5. Custom categories (create, edit, delete).
+5. Custom categories (create, edit, delete) (done, on the provisional user).
 6. Visual identity and transitions.
 7. CI and husky (done), then Cloudflare deployment.
 
