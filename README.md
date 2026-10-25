@@ -14,6 +14,7 @@ Requires Node and pnpm.
 
 ```bash
 pnpm install
+pnpm db:migrate   # the local D1: once, and again after pulling new migrations
 pnpm dev          # http://localhost:5173, with a local D1
 pnpm test
 pnpm build
