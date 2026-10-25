@@ -7,7 +7,7 @@ const TEXT_MAX_LENGTH = 200;
 
 const timestamp = v.pipe(v.number(), v.integer(), v.minValue(0));
 
-// Shape only: whether the category exists is checked where the categories are known
+// Shape only: whether the category is valid is checked where the categories are known (`isCategoryId`)
 const expenseInputSchema = v.object({
     categoryId: v.pipe(v.string(), v.minLength(1), v.maxLength(64)),
     text: v.pipe(v.string(), v.maxLength(TEXT_MAX_LENGTH)),

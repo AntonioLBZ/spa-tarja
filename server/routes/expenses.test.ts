@@ -146,6 +146,15 @@ describe('PUT /api/expenses/:id', () => {
         expect(response.status).toBe(400);
     });
 
+    it('accepts a UUID as the category even when no such category exists', async () => {
+        const categoryId = crypto.randomUUID();
+
+        const response = await put(crypto.randomUUID(), payload({ categoryId }));
+
+        expect(response.status).toBe(200);
+        expect(((await response.json()) as Payload).categoryId).toBe(categoryId);
+    });
+
     it('answers 400 when the id is not a UUID', async () => {
         const response = await put('not-a-uuid', payload());
 

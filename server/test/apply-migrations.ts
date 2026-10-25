@@ -10,4 +10,5 @@ await applyD1Migrations(env.DB, TEST_MIGRATIONS);
 // Rows written by one test stay in the database, so each test starts from empty tables
 beforeEach(async () => {
     await env.DB.prepare('DELETE FROM expenses').run();
+    await env.DB.prepare('DELETE FROM categories').run();
 });

@@ -50,7 +50,7 @@ core/     pure logic shared by client and server (not created yet)
 - `wrangler.jsonc` sends only `/api/*` to the Worker first; every other missing path falls back to `index.html`. A new SPA route needs no config. An unknown `/api/...` answers 404 from the Worker.
 - `src/routeTree.gen.ts` and `worker-configuration.d.ts` are generated but committed (Prettier and ESLint ignore them).
 - Relative imports are `./` inside the same folder; otherwise `@/` (`src/`), `@core/` or `@server/`. Never `../`.
-- Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids.
+- Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
 - Money is an integer in cents plus a currency code, never a float.
 - Schema in hand-written SQL, no ORM. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
 

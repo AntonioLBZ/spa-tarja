@@ -2,7 +2,7 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { isDefaultCategoryId } from '@core/categories';
+import { isCategoryId } from '@core/category';
 import { expenseIdSchema, expenseInputSchema } from '@core/expense';
 import { listChanges, upsertExpense } from '@server/db/expenses';
 
@@ -31,7 +31,7 @@ const expensesRoutes = new Hono<AppEnv>()
             const { id } = c.req.valid('param');
             const input = c.req.valid('json');
 
-            if (!isDefaultCategoryId(input.categoryId)) return c.json({ error: 'unknown-category' }, 400);
+            if (!isCategoryId(input.categoryId)) return c.json({ error: 'unknown-category' }, 400);
 
             const expense = await upsertExpense(c.env.DB, c.var.userId, id, input);
             if (!expense) return c.json({ error: 'id-taken' }, 409);

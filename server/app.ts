@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 
 import { withUser } from '@server/user';
 
+import { categoriesRoutes } from './routes/categories';
 import { expensesRoutes } from './routes/expenses';
 
 import type { AppEnv } from '@server/env';
@@ -14,6 +15,7 @@ const app = new Hono<AppEnv>()
         const row = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>();
         return c.json({ ok: row?.ok === 1 });
     })
+    .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes);
 
 type AppType = typeof app;
