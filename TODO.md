@@ -1,6 +1,6 @@
 # TODO
 
-Items 1 to 9 build on each other in this order. Delete an item when it is done and its docs are updated.
+Items build on each other in the order of their numbers. Delete an item when it is done and its docs are updated; the numbers stay.
 
 ## Needs the owner
 
@@ -8,12 +8,6 @@ Items 1 to 9 build on each other in this order. Delete an item when it is done a
 - Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
-
-## 1. Summary spacing (S)
-
-- `summary.css`: `.summary__rows` becomes a grid with `gap: var(--size-2)`; `.summary__month` and `.income-form__row` take `gap: var(--size-4)`.
-- `design.md` §3 "Room around the notch": boxes in a row are `--size-4` apart, wrapped or not; stacked rows `--size-2`. Repeat it in §5 Summary.
-- Check the wrapped income row at 320 px.
 
 ## 2. Shared components (M to L, one `refactor:` commit per step, suite green after each)
 
