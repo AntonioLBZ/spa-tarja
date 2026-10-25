@@ -1,0 +1,98 @@
+import clsx from 'clsx';
+import { useId, useState, type ReactNode, type Ref } from 'react';
+
+import { Icon } from '@/components/icon/icon';
+
+import './disclosure.css';
+
+interface DisclosureProps {
+    as?: 'li' | 'div' | 'section';
+    // What the toggle shows
+    summary: ReactNode;
+    // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
+    open?: boolean;
+    defaultOpen?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    disabled?: boolean;
+    // Keeps the panel in the page, hidden, while it is closed, so what was typed in it survives
+    keepMounted?: boolean;
+    // A chevron at the end of the toggle, a half turn when open
+    chevron?: boolean;
+    toggleRef?: Ref<HTMLButtonElement>;
+    className?: string;
+    children: ReactNode;
+}
+
+interface DisclosurePanelProps {
+    id?: string;
+    hidden?: boolean;
+    className?: string;
+    children: ReactNode;
+}
+
+// The box under a row that comes in with a fade and a short shift. Alone, for what looks like an open disclosure
+// without being one.
+function DisclosurePanel(props: DisclosurePanelProps) {
+    const { id, hidden, className, children } = props;
+
+    return (
+        <div className={clsx('disclosure__panel', className)} hidden={hidden} id={id}>
+            {children}
+        </div>
+    );
+}
+
+// A toggle button and, under it, the panel it opens
+function Disclosure(props: DisclosureProps) {
+    const {
+        as: Tag = 'div',
+        summary,
+        open,
+        defaultOpen = false,
+        onOpenChange,
+        disabled,
+        keepMounted,
+        chevron,
+        toggleRef,
+        className,
+        children,
+    } = props;
+    const panelId = useId();
+    const [ownOpen, setOwnOpen] = useState(defaultOpen);
+    const isOpen = open ?? ownOpen;
+
+    function handleToggle() {
+        const next = !isOpen;
+        if (open === undefined) setOwnOpen(next);
+        onOpenChange?.(next);
+    }
+
+    return (
+        <Tag className={clsx('disclosure', className)}>
+            <button
+                ref={toggleRef}
+                className="disclosure__toggle"
+                aria-controls={isOpen ? panelId : undefined}
+                aria-expanded={isOpen}
+                disabled={disabled}
+                type="button"
+                onClick={handleToggle}
+            >
+                {summary}
+                {chevron && (
+                    <span className="disclosure__chevron">
+                        <Icon name="expand_more" />
+                    </span>
+                )}
+            </button>
+            {(isOpen || keepMounted) && (
+                <DisclosurePanel id={panelId} hidden={!isOpen}>
+                    {children}
+                </DisclosurePanel>
+            )}
+        </Tag>
+    );
+}
+
+export { Disclosure, DisclosurePanel };
+export type { DisclosurePanelProps, DisclosureProps };

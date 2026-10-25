@@ -1,7 +1,13 @@
 import type { CategoryIcon } from '@core/category-style';
 
+// Icons of the interface. A category can't take them: the picker and the server only know `CATEGORY_ICONS`.
+const UI_ICONS = ['expand_more'] as const;
+
+type UiIcon = (typeof UI_ICONS)[number];
+type IconName = CategoryIcon | UiIcon;
+
 // The Sharp, weight 400 shapes of Material Symbols (Apache 2.0, see NOTICE.md), on a 960 unit grid
-const ICON_PATHS: Record<CategoryIcon, string> = {
+const ICON_PATHS: Record<IconName, string> = {
     restaurant:
         'M285-80v-368q-52-11-88.5-52.5T160-600v-280h60v280h65v-280h60v280h65v-280h60v280q0 58-36.5 99.5T345-448v368h-60Zm415 0v-320H585v-305q0-79 48-127t127-48v800h-60Z',
     local_cafe:
@@ -78,6 +84,8 @@ const ICON_PATHS: Record<CategoryIcon, string> = {
         'M207.86-432Q188-432 174-446.14t-14-34Q160-500 174.14-514t34-14Q228-528 242-513.86t14 34Q256-460 241.86-446t-34 14Zm272 0Q460-432 446-446.14t-14-34Q432-500 446.14-514t34-14Q500-528 514-513.86t14 34Q528-460 513.86-446t-34 14Zm272 0Q732-432 718-446.14t-14-34Q704-500 718.14-514t34-14Q772-528 786-513.86t14 34Q800-460 785.86-446t-34 14Z',
     category:
         'm261-526 220-354 220 354H261ZM706-80q-74 0-124-50t-50-124q0-74 50-124t124-50q74 0 124 50t50 124q0 74-50 124T706-80Zm-586-25v-304h304v304H120Zm586.08-35Q754-140 787-173.08q33-33.09 33-81Q820-302 786.92-335q-33.09-33-81-33Q658-368 625-334.92q-33 33.09-33 81Q592-206 625.08-173q33.09 33 81 33ZM180-165h184v-184H180v184Zm189-421h224L481-767 369-586Zm112 0ZM364-349Zm342 95Z',
+    expand_more: 'M480-344 240-584l43-43 197 197 197-197 43 43-240 240Z',
 };
 
-export { ICON_PATHS };
+export { ICON_PATHS, UI_ICONS };
+export type { IconName, UiIcon };

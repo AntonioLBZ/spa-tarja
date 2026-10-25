@@ -52,6 +52,10 @@ describe('category icons', () => {
     it.each(['rocket', '', 'Restaurant', 7, null])('do not include %j', (value) => {
         expect(isCategoryIcon(value)).toBe(false);
     });
+
+    it('do not include the icons of the interface', () => {
+        expect(isCategoryIcon('expand_more')).toBe(false);
+    });
 });
 
 describe('nextCategoryColor', () => {

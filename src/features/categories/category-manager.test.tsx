@@ -299,7 +299,7 @@ describe('opening a category', () => {
         const item = toggle('Gym').closest('li')!;
         const panel = within(item)
             .getByRole('button', { name: named(text.editItem, 'Gym') })
-            .closest('.category-row__panel')!;
+            .closest('.disclosure__panel')!;
         expect(toggle('Gym').compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         expect(toggle('Gym').getAttribute('aria-controls')).toBe(panel.id);
         expect(panel.id).not.toBe('');
@@ -376,8 +376,8 @@ describe('editing', () => {
         expect(after(nameField(), picker)).toBe(true);
         expect(after(picker, save)).toBe(true);
         expect(after(save, cancel)).toBe(true);
-        expect(picker.closest('.category-row__panel')).not.toBeNull();
-        expect(nameField().closest('.category-row__panel')).toBeNull();
+        expect(picker.closest('.disclosure__panel')).not.toBeNull();
+        expect(nameField().closest('.disclosure__panel')).toBeNull();
         expect(within(item).queryByRole('button', { name: 'Gym' })).toBeNull();
     });
 

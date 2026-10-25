@@ -4,23 +4,38 @@ import { describe, expect, it } from 'vitest';
 import { CATEGORY_ICONS } from '@core/category-style';
 
 import { Icon } from './icon';
+import { UI_ICONS, type IconName } from './icon-paths';
 
-function draw(name: (typeof CATEGORY_ICONS)[number]) {
+const ICON_NAMES: readonly IconName[] = [...CATEGORY_ICONS, ...UI_ICONS];
+
+function draw(name: IconName) {
     const { container } = render(<Icon name={name} />);
     return container.querySelector('svg')!;
 }
 
 describe('Icon', () => {
-    it.each(CATEGORY_ICONS)('draws %s', (name) => {
+    it.each(ICON_NAMES)('draws %s', (name) => {
         const path = draw(name).querySelector('path')!;
 
         expect(path.getAttribute('d')).toMatch(/^[Mm][\d\s.,\-a-zA-Z]+$/);
     });
 
     it('draws every icon differently', () => {
-        const shapes = CATEGORY_ICONS.map((name) => draw(name).querySelector('path')!.getAttribute('d'));
+        const shapes = ICON_NAMES.map((name) => draw(name).querySelector('path')!.getAttribute('d'));
 
-        expect(new Set(shapes).size).toBe(CATEGORY_ICONS.length);
+        expect(new Set(shapes).size).toBe(ICON_NAMES.length);
+    });
+
+    it('keeps the icons of the interface apart from the ones a category can take', () => {
+        const names: readonly string[] = CATEGORY_ICONS;
+
+        expect(UI_ICONS.length).toBeGreaterThan(0);
+        expect(UI_ICONS.filter((name) => names.includes(name))).toEqual([]);
+        expect(new Set(ICON_NAMES).size).toBe(ICON_NAMES.length);
+    });
+
+    it('draws the chevron of a disclosure', () => {
+        expect(draw('expand_more').getAttribute('data-icon')).toBe('expand_more');
     });
 
     it('is decoration: the name always comes with it', () => {

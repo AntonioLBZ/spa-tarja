@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Disclosure, DisclosurePanel } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
@@ -28,7 +29,6 @@ interface CategoryRowProps {
 function CategoryRow(props: CategoryRowProps) {
     const { category, disabled, isTaken, onSave, onDelete, fallbackLabel } = props;
     const t = useTranslations('categoryManager');
-    const panelId = useId();
     const [expanded, setExpanded] = useState(false);
     const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
     const [draft, setDraft] = useState(category.name);
@@ -113,7 +113,7 @@ function CategoryRow(props: CategoryRowProps) {
                             setError(null);
                         }}
                     />
-                    <div className="category-row__panel">
+                    <DisclosurePanel>
                         <details className="category-row__look">
                             <summary>{t('look.summary')}</summary>
                             <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
@@ -125,70 +125,67 @@ function CategoryRow(props: CategoryRowProps) {
                             <Button onClick={close}>{t('cancel')}</Button>
                         </div>
                         {message}
-                    </div>
+                    </DisclosurePanel>
                 </form>
             </li>
         );
     }
 
     return (
-        <li className="category-row">
-            <button
-                className="category-row__toggle"
-                aria-controls={expanded ? panelId : undefined}
-                aria-expanded={expanded}
-                type="button"
-                onClick={() => setExpanded(!expanded)}
-            >
-                <CategoryBadge style={category} />
-                <span className="category-row__name">{category.name}</span>
-            </button>
-            {expanded && (
-                <div className="category-row__panel" id={panelId}>
-                    {mode === 'delete' ? (
-                        <>
-                            <p className="category-row__question">
-                                {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
-                            </p>
-                            <div className="category-row__actions">
-                                <Button
-                                    variant="danger"
-                                    aria-label={t('deleteItem', { name: category.name })}
-                                    disabled={disabled || busy}
-                                    onClick={() => void handleDelete()}
-                                >
-                                    {t('delete')}
-                                </Button>
-                                <Button ref={setFocusTarget} onClick={close}>
-                                    {t('cancel')}
-                                </Button>
-                            </div>
-                            {message}
-                        </>
-                    ) : (
-                        <div className="category-row__actions">
-                            <Button
-                                ref={opener === 'edit' ? setFocusTarget : undefined}
-                                aria-label={t('editItem', { name: category.name })}
-                                disabled={disabled}
-                                onClick={() => begin('edit')}
-                            >
-                                {t('edit')}
-                            </Button>
-                            <Button
-                                ref={opener === 'delete' ? setFocusTarget : undefined}
-                                variant="danger"
-                                aria-label={t('deleteItem', { name: category.name })}
-                                disabled={disabled}
-                                onClick={() => begin('delete')}
-                            >
-                                {t('delete')}
-                            </Button>
-                        </div>
-                    )}
+        <Disclosure
+            as="li"
+            className="category-row"
+            summary={
+                <>
+                    <CategoryBadge style={category} />
+                    <span className="category-row__name">{category.name}</span>
+                </>
+            }
+            open={expanded}
+            onOpenChange={setExpanded}
+        >
+            {mode === 'delete' ? (
+                <>
+                    <p className="category-row__question">
+                        {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
+                    </p>
+                    <div className="category-row__actions">
+                        <Button
+                            variant="danger"
+                            aria-label={t('deleteItem', { name: category.name })}
+                            disabled={disabled || busy}
+                            onClick={() => void handleDelete()}
+                        >
+                            {t('delete')}
+                        </Button>
+                        <Button ref={setFocusTarget} onClick={close}>
+                            {t('cancel')}
+                        </Button>
+                    </div>
+                    {message}
+                </>
+            ) : (
+                <div className="category-row__actions">
+                    <Button
+                        ref={opener === 'edit' ? setFocusTarget : undefined}
+                        aria-label={t('editItem', { name: category.name })}
+                        disabled={disabled}
+                        onClick={() => begin('edit')}
+                    >
+                        {t('edit')}
+                    </Button>
+                    <Button
+                        ref={opener === 'delete' ? setFocusTarget : undefined}
+                        variant="danger"
+                        aria-label={t('deleteItem', { name: category.name })}
+                        disabled={disabled}
+                        onClick={() => begin('delete')}
+                    >
+                        {t('delete')}
+                    </Button>
                 </div>
             )}
-        </li>
+        </Disclosure>
     );
 }
 

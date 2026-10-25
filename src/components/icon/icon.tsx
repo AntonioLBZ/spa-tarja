@@ -1,11 +1,9 @@
 import './icon.css';
 
-import { ICON_PATHS } from './icon-paths';
-
-import type { CategoryIcon } from '@core/category-style';
+import { ICON_PATHS, type IconName } from './icon-paths';
 
 // Decoration, never the only way to tell what something is: the name always comes with it
-function Icon(props: { name: CategoryIcon }) {
+function Icon(props: { name: IconName }) {
     const { name } = props;
 
     return (

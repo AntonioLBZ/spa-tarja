@@ -1,0 +1,46 @@
+.disclosure {
+    display: grid;
+    gap: var(--size-2);
+}
+
+/* The notch comes from the button; the toggle only lays out what is inside it */
+.disclosure__toggle {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    justify-content: flex-start;
+    padding-inline: var(--size-3);
+    text-align: start;
+    width: 100%;
+}
+
+.disclosure__chevron {
+    display: flex;
+    margin-inline-start: auto;
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.disclosure__toggle[aria-expanded='true'] .disclosure__chevron {
+    transform: rotate(180deg);
+}
+
+/* Under the row, outside its L, and in with a fade and a short shift like a new expense */
+.disclosure__panel {
+    display: grid;
+    gap: var(--size-4);
+    padding-block: var(--size-2);
+    padding-inline-start: var(--size-3);
+    transition:
+        opacity var(--duration-base) var(--ease-enter),
+        transform var(--duration-base) var(--ease-enter);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-2)));
+    }
+}
+
+/* `display` above would otherwise win over the `hidden` attribute */
+.disclosure__panel[hidden] {
+    display: none;
+}
