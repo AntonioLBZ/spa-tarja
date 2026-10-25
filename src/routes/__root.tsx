@@ -1,6 +1,7 @@
 import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
+import { Brand } from '@/components/brand/brand';
 import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
 
 import './root.css';
@@ -14,7 +15,7 @@ function RootLayout() {
         <div className="root">
             <header className="root__header">
                 <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
-                    Tarja
+                    <Brand />
                 </Link>
                 <Link className="root__link" to="/settings">
                     {t('settings')}

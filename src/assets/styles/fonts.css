@@ -1,0 +1,7 @@
+/* The logo only: this file holds the letters of the name (see src/assets/fonts/NOTICE.md) */
+@font-face {
+    font-display: swap;
+    font-family: 'Dot Matrix';
+    font-weight: 700;
+    src: url('../fonts/dot-matrix.woff2') format('woff2');
+}

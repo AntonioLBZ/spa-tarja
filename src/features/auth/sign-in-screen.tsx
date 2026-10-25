@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Brand } from '@/components/brand/brand';
 import { useAuth } from '@/lib/auth';
 
 import './sign-in-screen.css';
@@ -38,6 +39,7 @@ function SignInScreen(props: { unreachable: boolean }) {
 
     return (
         <main className="sign-in">
+            <Brand size="hero" />
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
             {unreachable && (

@@ -1,0 +1,14 @@
+.brand {
+    font-family: var(--font-family-brand);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.brand--header {
+    font-size: var(--font-size-l);
+}
+
+.brand--hero {
+    font-size: var(--font-size-logo);
+}

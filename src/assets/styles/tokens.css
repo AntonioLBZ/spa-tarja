@@ -15,11 +15,17 @@
     /* Everything is set in monospace; the fallbacks cover the moment before the font loads and a failed load */
     --font-family: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
 
+    /* The logo's face: only the name is set in it, falling back to the page font */
+    --font-family-brand: 'Dot Matrix', var(--font-family);
+
     /* Type scale: minor third (x1.2) from a 1rem base. Form controls stay at --font-size-m or more so iOS doesn't zoom */
     --font-size-s: 0.833rem;
     --font-size-m: 1rem;
     --font-size-l: 1.2rem;
     --font-size-xl: 1.44rem;
+
+    /* The logo is sized apart from the text scale */
+    --font-size-logo: 3rem;
 
     /* Motion: reduced-motion zeroes the durations in one place */
     --duration-fast: 120ms;

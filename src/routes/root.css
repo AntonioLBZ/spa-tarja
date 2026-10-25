@@ -24,12 +24,6 @@
     text-decoration: none;
 }
 
-.root__brand {
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .root__link[aria-current='page'] {
     text-decoration: underline;
     text-underline-offset: var(--size-1);
