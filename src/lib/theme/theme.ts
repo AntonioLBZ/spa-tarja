@@ -4,7 +4,7 @@ const THEMES = ['system', 'light', 'dark'] as const;
 
 type Theme = (typeof THEMES)[number];
 
-const DEFAULT_THEME: Theme = 'system';
+const DEFAULT_THEME: Theme = 'light';
 
 const STORAGE_KEY = 'tarja:theme';
 
@@ -29,11 +29,9 @@ function storeTheme(theme: Theme): void {
     }
 }
 
-// An explicit theme forces the color scheme; "system" leaves it to the OS
+// Light and dark force the color scheme; "system" leaves it to the OS. The tokens read it from the root.
 function applyTheme(theme: Theme): void {
-    const root = document.documentElement;
-    if (theme === 'system') root.removeAttribute('data-theme');
-    else root.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
 }
 
 let colorTransitionTimer: ReturnType<typeof setTimeout> | undefined;

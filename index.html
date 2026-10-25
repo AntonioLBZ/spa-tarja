@@ -4,6 +4,23 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>Tarja</title>
+        <script>
+            // Puts the saved theme and accent on the page before it paints, so a choice other than the defaults (light
+            // and gray) doesn't flash. The keys and the values are those of src/lib/theme and src/lib/accent.
+            try {
+                var saved = {
+                    theme: localStorage.getItem('tarja:theme'),
+                    accent: localStorage.getItem('tarja:accent'),
+                };
+                if (saved.theme === 'dark' || saved.theme === 'system')
+                    document.documentElement.dataset.theme = saved.theme;
+                if (['amber', 'blue', 'green', 'violet', 'pink'].indexOf(saved.accent) !== -1) {
+                    document.documentElement.dataset.accent = saved.accent;
+                }
+            } catch (error) {
+                // Storage can be blocked: the defaults then apply until the app starts
+            }
+        </script>
         <meta name="description" content="Log your everyday expenses: food, groceries, leisure, bills and rent." />
         <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />

@@ -16,7 +16,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 - Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests. Every push to `main` that passes CI is deployed to production, with its migrations (`ARCHITECTURE.md` §4).
 - Google login only, no own passwords.
 - Default categories are read-only for now. Custom ones can be created, edited and deleted.
-- Visual identity (see `design.md`): flat colors with themes (system, light, dark) over a white or black base; an accent the user picks from a fixed list (amber by default); a color and a Material Symbols Sharp icon for every category; IBM Plex Mono everywhere; no rounded corners; the notch (thick left and bottom borders on every box); horizontal route transitions. What is still open is listed in `design.md` §8: ask before settling it.
+- Visual identity (see `design.md`): flat colors with themes (light by default, dark, system) over a white or black base; an accent the user picks from a fixed list (gray by default); a color and a Material Symbols Sharp icon for every category; IBM Plex Mono everywhere; no rounded corners; the notch (thick left and bottom borders on every box); horizontal route transitions. What is still open is listed in `design.md` §8: ask before settling it.
 - Plain CSS. No SCSS, no Tailwind.
 
 ## Commands

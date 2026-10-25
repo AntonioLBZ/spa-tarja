@@ -63,11 +63,12 @@ describe('settings', () => {
     });
 
     describe('theme', () => {
-        it('starts on the system theme, with no attribute on the root', async () => {
+        it('starts on the light theme', async () => {
             renderApp({ path: '/settings' });
 
-            expect((await radio(en.settings.theme.system)).checked).toBe(true);
-            expect(root.hasAttribute('data-theme')).toBe(false);
+            expect((await radio(en.settings.theme.light)).checked).toBe(true);
+            expect((await radio(en.settings.theme.system)).checked).toBe(false);
+            await waitFor(() => expect(root.dataset.theme).toBe('light'));
         });
 
         it('applies an explicit choice and remembers it', async () => {
@@ -81,7 +82,7 @@ describe('settings', () => {
             expect(root.dataset.theme).toBe('light');
 
             fireEvent.click(await radio(en.settings.theme.system));
-            expect(root.hasAttribute('data-theme')).toBe(false);
+            expect(root.dataset.theme).toBe('system');
             expect(localStorage.getItem('tarja:theme')).toBe('system');
         });
 
@@ -118,23 +119,31 @@ describe('settings', () => {
     });
 
     describe('accent', () => {
-        it('starts on amber, with no attribute on the root', async () => {
+        it('starts on gray, with no attribute on the root', async () => {
             renderApp({ path: '/settings' });
 
-            expect((await radio(en.settings.accent.amber)).checked).toBe(true);
+            expect((await radio(en.settings.accent.gray)).checked).toBe(true);
             expect(root.hasAttribute('data-accent')).toBe(false);
+        });
+
+        it('is called the app color, which says more than accent', async () => {
+            renderApp({ path: '/settings' });
+
+            expect(await screen.findByRole('group', { name: en.settings.accent.title })).toBeDefined();
+            expect(en.settings.accent.title).not.toMatch(/accent/i);
+            expect(es.settings.accent.title).not.toMatch(/acento/i);
         });
 
         it('offers the fixed list, by name', async () => {
             renderApp({ path: '/settings' });
 
-            await radio(en.settings.accent.amber);
+            await radio(en.settings.accent.gray);
 
             const names = screen
                 .getAllByRole('radio')
                 .filter((input) => (input as HTMLInputElement).name === 'accent')
                 .map((input) => (input as HTMLInputElement).value);
-            expect(names).toEqual(['amber', 'blue', 'green', 'violet', 'pink', 'gray']);
+            expect(names).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
         });
 
         it('applies a choice and remembers it', async () => {
@@ -147,6 +156,9 @@ describe('settings', () => {
             expect((await radio(en.settings.accent.violet)).checked).toBe(true);
 
             fireEvent.click(await radio(en.settings.accent.amber));
+            expect(root.dataset.accent).toBe('amber');
+
+            fireEvent.click(await radio(en.settings.accent.gray));
             expect(root.hasAttribute('data-accent')).toBe(false);
         });
 

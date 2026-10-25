@@ -30,9 +30,9 @@ describe('isTheme', () => {
 });
 
 describe('stored theme', () => {
-    it('defaults to the system theme', () => {
-        expect(DEFAULT_THEME).toBe('system');
-        expect(readStoredTheme()).toBe('system');
+    it('defaults to the light theme', () => {
+        expect(DEFAULT_THEME).toBe('light');
+        expect(readStoredTheme()).toBe('light');
     });
 
     it('reads back what was stored', () => {
@@ -44,7 +44,7 @@ describe('stored theme', () => {
     it('ignores a stored value that is not a theme', () => {
         localStorage.setItem('tarja:theme', 'sepia');
 
-        expect(readStoredTheme()).toBe('system');
+        expect(readStoredTheme()).toBe('light');
     });
 
     it('survives storage being blocked', () => {
@@ -55,7 +55,7 @@ describe('stored theme', () => {
             throw new Error('blocked');
         });
 
-        expect(readStoredTheme()).toBe('system');
+        expect(readStoredTheme()).toBe('light');
         expect(() => storeTheme('dark')).not.toThrow();
 
         vi.restoreAllMocks();
@@ -63,20 +63,15 @@ describe('stored theme', () => {
 });
 
 describe('applyTheme', () => {
-    it('forces light or dark through data-theme on the root', () => {
+    it('writes the theme on the root, whichever it is', () => {
         applyTheme('dark');
         expect(root.dataset.theme).toBe('dark');
 
         applyTheme('light');
         expect(root.dataset.theme).toBe('light');
-    });
-
-    it('removes the attribute for the system theme, so the OS preference applies', () => {
-        applyTheme('dark');
 
         applyTheme('system');
-
-        expect(root.hasAttribute('data-theme')).toBe(false);
+        expect(root.dataset.theme).toBe('system');
     });
 });
 

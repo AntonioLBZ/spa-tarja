@@ -11,9 +11,9 @@ afterEach(() => {
 });
 
 describe('accents', () => {
-    it('are the fixed list of design.md, amber first', () => {
-        expect(ACCENTS).toEqual(['amber', 'blue', 'green', 'violet', 'pink', 'gray']);
-        expect(DEFAULT_ACCENT).toBe('amber');
+    it('are the fixed list of design.md, the default first', () => {
+        expect(ACCENTS).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
+        expect(DEFAULT_ACCENT).toBe('gray');
     });
 
     it('are the only values isAccent accepts', () => {
@@ -24,8 +24,8 @@ describe('accents', () => {
 });
 
 describe('stored accent', () => {
-    it('defaults to amber', () => {
-        expect(readStoredAccent()).toBe('amber');
+    it('defaults to gray', () => {
+        expect(readStoredAccent()).toBe('gray');
     });
 
     it('reads back what was stored', () => {
@@ -38,7 +38,7 @@ describe('stored accent', () => {
     it('ignores a stored value that is not an accent', () => {
         localStorage.setItem('tarja:accent', 'red');
 
-        expect(readStoredAccent()).toBe('amber');
+        expect(readStoredAccent()).toBe('gray');
     });
 
     it('survives storage being blocked', () => {
@@ -49,7 +49,7 @@ describe('stored accent', () => {
             throw new Error('blocked');
         });
 
-        expect(readStoredAccent()).toBe('amber');
+        expect(readStoredAccent()).toBe('gray');
         expect(() => storeAccent('blue')).not.toThrow();
     });
 });
@@ -61,10 +61,10 @@ describe('applyAccent', () => {
         expect(root.dataset.accent).toBe('green');
     });
 
-    it('leaves the root bare for amber, which is what the tokens start with', () => {
+    it('leaves the root bare for gray, which is what the tokens start with', () => {
         applyAccent('green');
 
-        applyAccent('amber');
+        applyAccent('gray');
 
         expect(root.hasAttribute('data-accent')).toBe(false);
     });

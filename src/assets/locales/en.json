@@ -94,13 +94,13 @@
             "dark": "Dark"
         },
         "accent": {
-            "title": "Accent color",
+            "title": "App color",
+            "gray": "Gray",
             "amber": "Amber",
             "blue": "Blue",
             "green": "Green",
             "violet": "Violet",
-            "pink": "Pink",
-            "gray": "Gray"
+            "pink": "Pink"
         },
         "categories": {
             "title": "Categories",

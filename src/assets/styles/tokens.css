@@ -43,7 +43,7 @@
     --color-border: light-dark(#000, #fff);
     --color-border-subtle: light-dark(#d4d4d4, #2e2e2e);
     --color-border-focus: var(--color-accent);
-    --color-accent: light-dark(#9a5b00, #f0a830);
+    --color-accent: light-dark(#404040, #d4d4d4);
     --color-bg-accent: var(--color-accent);
     --color-content-on-accent: light-dark(#fff, #000);
     --color-danger: light-dark(#c81e1e, #f87171);
@@ -58,18 +58,22 @@
     --color-category-yellow: light-dark(#978e0c, #f0e442);
     --color-category-gray: light-dark(#767676, #767676);
 
-    color-scheme: light dark;
+    color-scheme: light;
 }
 
-:root[data-theme='light'] {
-    color-scheme: light;
+:root[data-theme='system'] {
+    color-scheme: light dark;
 }
 
 :root[data-theme='dark'] {
     color-scheme: dark;
 }
 
-/* Accent presets (see design.md): amber is the default, defined above. The tones are checked on both surfaces */
+/* Accent presets (see design.md): gray is the default, defined above. The tones are checked on both surfaces */
+[data-accent='amber'] {
+    --color-accent: light-dark(#9a5b00, #f0a830);
+}
+
 [data-accent='blue'] {
     --color-accent: light-dark(#1d4ed8, #8aa4ff);
 }
@@ -84,10 +88,6 @@
 
 [data-accent='pink'] {
     --color-accent: light-dark(#be185d, #f9a8d4);
-}
-
-[data-accent='gray'] {
-    --color-accent: light-dark(#404040, #d4d4d4);
 }
 
 @media (prefers-reduced-motion: reduce) {

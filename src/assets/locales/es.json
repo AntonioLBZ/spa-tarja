@@ -94,13 +94,13 @@
             "dark": "Oscuro"
         },
         "accent": {
-            "title": "Color de acento",
+            "title": "Color de la app",
+            "gray": "Gris",
             "amber": "Ámbar",
             "blue": "Azul",
             "green": "Verde",
             "violet": "Violeta",
-            "pink": "Rosa",
-            "gray": "Gris"
+            "pink": "Rosa"
         },
         "categories": {
             "title": "Categorías",

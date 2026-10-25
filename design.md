@@ -21,19 +21,19 @@ Solid colors only: no gradients, no shadows, no blur. Separation comes from bord
 
 The base is white (light theme) or black (dark theme), with text in the opposite one. The dark theme is true black. Everything else is a neutral gray, one accent (picked from a fixed list), one danger color and the category palette.
 
-| Token                       | Light     | Dark      | Use                                                                                |
-| --------------------------- | --------- | --------- | ---------------------------------------------------------------------------------- |
-| `--color-bg-primary`        | `#fff`    | `#000`    | Page background                                                                    |
-| `--color-bg-secondary`      | `#f4f4f4` | `#141414` | Header and raised surfaces. The browser toolbar matches it                         |
-| `--color-content-primary`   | `#000`    | `#fff`    | Text and icons                                                                     |
-| `--color-content-secondary` | `#595959` | `#a3a3a3` | Secondary text                                                                     |
-| `--color-border`            | `#000`    | `#fff`    | Structural borders (ink)                                                           |
-| `--color-border-subtle`     | `#d4d4d4` | `#2e2e2e` | Hairline dividers                                                                  |
-| `--color-accent`            | `#9a5b00` | `#f0a830` | The interface hue: links, selection, primary action (amber by default, see Accent) |
-| `--color-bg-accent`         | accent    | accent    | Fill behind a primary action                                                       |
-| `--color-content-on-accent` | `#fff`    | `#000`    | Text on that fill                                                                  |
-| `--color-border-focus`      | accent    | accent    | Focus ring                                                                         |
-| `--color-danger`            | `#c81e1e` | `#f87171` | Errors and destructive actions only                                                |
+| Token                       | Light     | Dark      | Use                                                                               |
+| --------------------------- | --------- | --------- | --------------------------------------------------------------------------------- |
+| `--color-bg-primary`        | `#fff`    | `#000`    | Page background                                                                   |
+| `--color-bg-secondary`      | `#f4f4f4` | `#141414` | Header and raised surfaces. The browser toolbar matches it                        |
+| `--color-content-primary`   | `#000`    | `#fff`    | Text and icons                                                                    |
+| `--color-content-secondary` | `#595959` | `#a3a3a3` | Secondary text                                                                    |
+| `--color-border`            | `#000`    | `#fff`    | Structural borders (ink)                                                          |
+| `--color-border-subtle`     | `#d4d4d4` | `#2e2e2e` | Hairline dividers                                                                 |
+| `--color-accent`            | `#404040` | `#d4d4d4` | The interface hue: links, selection, primary action (gray by default, see Accent) |
+| `--color-bg-accent`         | accent    | accent    | Fill behind a primary action                                                      |
+| `--color-content-on-accent` | `#fff`    | `#000`    | Text on that fill                                                                 |
+| `--color-border-focus`      | accent    | accent    | Focus ring                                                                        |
+| `--color-danger`            | `#c81e1e` | `#f87171` | Errors and destructive actions only                                               |
 
 Rules:
 
@@ -45,21 +45,21 @@ Rules:
 
 ### Accent
 
-The user picks the accent from a fixed list, as in `spa-anicalendar`: `data-accent` on `<html>` selects a block that redefines `--color-accent` and the tokens built on it. Amber is the default. Each preset has its own light and dark tone, tuned by hand and checked against both surfaces (`--color-bg-primary` and `--color-bg-secondary`).
+The user picks the accent from a fixed list, as in `spa-anicalendar`: `data-accent` on `<html>` selects a block that redefines `--color-accent` and the tokens built on it. Gray is the default, so it is the value the tokens start with and needs no block. The settings call the section "App color" ("Color de la app"): "accent" means nothing to most people. Each preset has its own light and dark tone, tuned by hand and checked against both surfaces (`--color-bg-primary` and `--color-bg-secondary`).
 
-| Preset            | Light     | Dark      |
-| ----------------- | --------- | --------- |
-| `amber` (default) | `#9a5b00` | `#f0a830` |
-| `blue`            | `#1d4ed8` | `#8aa4ff` |
-| `green`           | `#15803d` | `#4ade80` |
-| `violet`          | `#6d28d9` | `#c4b5fd` |
-| `pink`            | `#be185d` | `#f9a8d4` |
-| `gray`            | `#404040` | `#d4d4d4` |
+| Preset           | Light     | Dark      |
+| ---------------- | --------- | --------- |
+| `gray` (default) | `#404040` | `#d4d4d4` |
+| `amber`          | `#9a5b00` | `#f0a830` |
+| `blue`           | `#1d4ed8` | `#8aa4ff` |
+| `green`          | `#15803d` | `#4ade80` |
+| `violet`         | `#6d28d9` | `#c4b5fd` |
+| `pink`           | `#be185d` | `#f9a8d4` |
 
 - Every accent reaches 4.5:1 as text on both surfaces, and its on-accent text (white in light, black in dark) reaches 5:1 on its own fill. Checked on 2026-10-25.
 - There is no red preset: it would read as the danger color.
 - The accent never changes the browser toolbar color, which follows the header surface.
-- The choice lives in `localStorage` (`tarja:accent`) and is applied with the theme before the first render. The settings screen holds it as a `ChoiceGroup` next to the theme. Each option is labeled with its name, not just a swatch.
+- The choice lives in `localStorage` (`tarja:accent`) and is applied with the theme before the first paint (see Themes). The settings screen holds it as a `ChoiceGroup` next to the theme. Each option is labeled with its name, not just a swatch.
 
 ### Category colors
 
@@ -80,16 +80,17 @@ Every category has a color and an icon (see Icons). The color only helps to find
 - Tokens are `--color-category-<key>`, defined with `light-dark()`. The database stores the key, never the value, so retuning a tone is a CSS change.
 - A category color paints its icon (and nothing else). It is never used for text, borders or fills behind text.
 - Default categories have a fixed color and icon, defined in `core/` next to their ids. Custom categories choose one of the eight colors and one icon when created or edited, in a picker behind "Color and icon": each color is drawn on the current icon and each icon in the current color, and the chosen one carries the notch and a surface fill, so it doesn't rely on color; the default is the least used by the user's own categories among the seven that stand out (the first one on ties, never gray) and the generic icon.
-- Amber, orange and yellow sit close in hue. It is acceptable because the accent never paints an icon and every icon comes with its name; check it on screen and rebalance a tone if they get confused.
+- Amber (an accent the user can pick), orange and yellow sit close in hue. It is acceptable because the accent never paints an icon and every icon comes with its name; check it on screen and rebalance a tone if they get confused.
 
 ### Themes
 
-Three settings, as in `spa-anicalendar`: system (the default), light and dark.
+Three settings: light (the default), dark and system, which follows the OS.
 
-- Tokens are defined once with `light-dark()`, with `color-scheme: light dark` on `:root`. An explicit choice sets `data-theme="light"` or `data-theme="dark"` on `<html>`, which forces `color-scheme`. "System" removes the attribute, so the OS preference applies from the first paint, with no flash and no inline script.
+- Tokens are defined once with `light-dark()`. `:root` has `color-scheme: light`, which is the default look; `data-theme="dark"` on `<html>` forces dark and `data-theme="system"` sets `color-scheme: light dark`, so the OS preference applies. Once the app runs the theme is always written on `<html>`, light included.
+- The default is no longer what the OS says, so a small inline script at the top of `index.html` copies the saved `tarja:theme` and `tarja:accent` to `<html>` before the first paint: whoever chose dark, system or another accent doesn't see the defaults flash. It is the only inline script, and its keys are those of `src/lib/theme` and `src/lib/accent`.
 - A theme change fades the colors instead of snapping. Wrap the state update in `withColorTransition`, as `lib/color-transition.ts` does in `spa-anicalendar`: it sets `data-color-transition` on `<html>` for `--duration-slow`. Don't use a View Transition for this: it makes the page inert, and a click in the middle of the fade lands on `<html>`.
-- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference; JS points them all at the header surface for an explicit choice and puts them back for "system".
-- The choice lives in `localStorage` (`tarja:theme`) and is applied before the first render. The settings screen (`/settings`, linked from the header) holds it, next to the language. Both are a `ChoiceGroup`: a radio group drawn as a row of boxes, the checked one filled with the accent.
+- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference; JS points them all at the header surface for an explicit choice (light and dark) and puts them back for "system".
+- The choice lives in `localStorage` (`tarja:theme`). The settings screen (`/settings`, linked from the header) holds it, next to the language. Both are a `ChoiceGroup`: a radio group drawn as a row of boxes, the checked one filled with the accent.
 
 ## 3. Shape
 
