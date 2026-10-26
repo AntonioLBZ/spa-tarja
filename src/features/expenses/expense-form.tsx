@@ -413,7 +413,7 @@ function ExpenseForm(props: ExpenseFormProps) {
                 </Notice>
             )}
             {partsProblem === 'remaining' && (
-                <p className="expense-form__hint" role="status">
+                <p className="field__hint" role="status">
                     {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
                 </p>
             )}

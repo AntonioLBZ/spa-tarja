@@ -97,7 +97,7 @@ function CategoryRow(props: CategoryRowProps) {
 
     if (mode === 'edit') {
         return (
-            <li className="category-row">
+            <li>
                 <form className="category-row__form" onSubmit={(event) => void handleSave(event)}>
                     <input
                         ref={setFocusTarget}
@@ -134,7 +134,6 @@ function CategoryRow(props: CategoryRowProps) {
     return (
         <Disclosure
             as="li"
-            className="category-row"
             chevron
             summary={
                 <>

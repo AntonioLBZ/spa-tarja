@@ -25,4 +25,3 @@ function Notice(props: NoticeProps) {
 }
 
 export { Notice };
-export type { NoticeProps };

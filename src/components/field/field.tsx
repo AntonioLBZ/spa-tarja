@@ -57,4 +57,4 @@ function Field(props: FieldProps) {
 }
 
 export { Field };
-export type { FieldControl, FieldProps };
+export type { FieldControl };

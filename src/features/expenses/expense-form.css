@@ -3,11 +3,6 @@
     gap: var(--size-4);
 }
 
-.expense-form__hint {
-    color: var(--color-content-secondary);
-    margin: 0;
-}
-
 /* The main action keeps the width of the form; Cancel, while editing, sits beside it */
 .expense-form__actions {
     display: flex;

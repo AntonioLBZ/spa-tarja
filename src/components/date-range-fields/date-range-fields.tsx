@@ -71,4 +71,3 @@ function DateRangeFields(props: DateRangeFieldsProps) {
 }
 
 export { DateRangeFields };
-export type { DateEdge, DateRangeFieldsProps };

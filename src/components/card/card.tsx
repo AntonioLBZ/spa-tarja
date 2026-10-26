@@ -39,4 +39,3 @@ function CardList(props: CardListProps) {
 }
 
 export { Card, CardList };
-export type { CardListProps, CardProps };

@@ -42,4 +42,3 @@ function ChoiceGroup<Value extends string>(props: ChoiceGroupProps<Value>) {
 }
 
 export { ChoiceGroup };
-export type { ChoiceOption };

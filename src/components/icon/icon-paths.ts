@@ -88,4 +88,4 @@ const ICON_PATHS: Record<IconName, string> = {
 };
 
 export { ICON_PATHS, UI_ICONS };
-export type { IconName, UiIcon };
+export type { IconName };
