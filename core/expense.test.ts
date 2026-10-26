@@ -60,6 +60,42 @@ describe('expenseInputSchema', () => {
         expect(parse(overrides).success).toBe(false);
     });
 
+    describe('your part of a restaurant card expense', () => {
+        const voucher = { amountCents: 4000, payment: 'voucher', chargeDate: '2026-11-25' };
+
+        it.each([0, 1, 2000, 4000])('accepts a part of %i cents of a 4000 cent total', (personalCents) => {
+            const result = parse({ ...voucher, personalCents });
+
+            expect(result.success).toBe(true);
+            expect(result.output).toMatchObject({ personalCents });
+        });
+
+        it('accepts no part, meaning the whole amount, on any payment', () => {
+            expect(parse({ ...voucher, personalCents: null }).success).toBe(true);
+            expect(parse({ personalCents: null }).success).toBe(true);
+            expect(parse({ payment: 'credit', chargeDate: '2026-11-25', personalCents: null }).success).toBe(true);
+        });
+
+        it('leaves the part out when an older client does not send it', () => {
+            const result = parse(voucher);
+
+            expect(result.success).toBe(true);
+            expect(result.output).not.toHaveProperty('personalCents');
+        });
+
+        it.each([
+            ['a part over the total', { ...voucher, personalCents: 4001 }],
+            ['a negative part', { ...voucher, personalCents: -1 }],
+            ['a fractional part', { ...voucher, personalCents: 12.5 }],
+            ['a part that is not a number', { ...voucher, personalCents: '20' }],
+            ['a part of an expense paid at once', { payment: 'direct', personalCents: 500 }],
+            ['a part of an expense that says nothing about its payment', { personalCents: 500 }],
+            ['a part of a credit card expense', { payment: 'credit', chargeDate: '2026-11-25', personalCents: 500 }],
+        ])('rejects %s', (_name, overrides) => {
+            expect(parse(overrides).success).toBe(false);
+        });
+    });
+
     describe('plans', () => {
         const plan = { id: crypto.randomUUID(), part: 2, parts: 3 };
 

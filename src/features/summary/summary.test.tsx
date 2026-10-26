@@ -167,7 +167,7 @@ describe('the numbers of a month', () => {
         expect(await within(row(text.spent)).findByText('€15.50')).toBeDefined();
     });
 
-    it('show what a restaurant card paid, counted as spent and as income', async () => {
+    it('show what a restaurant card paid as income of the month it is charged, and as spent in the month it was made', async () => {
         await open({
             expenses: [
                 expense({ amountCents: 1800, date: '2026-09-20', payment: 'voucher', chargeDate: '2026-10-05' }),
@@ -177,8 +177,11 @@ describe('the numbers of a month', () => {
         });
 
         expect(within(row(text.voucher)).getByText('€18.00')).toBeDefined();
-        expect(within(row(text.spent)).getByText('€28.00')).toBeDefined();
-        expect(within(row(text.left)).getByText('€1,990.00')).toBeDefined();
+        expect(within(row(text.spent)).getByText('€10.00')).toBeDefined();
+        expect(within(row(text.left)).getByText('€2,008.00')).toBeDefined();
+        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        expect(within(row(text.spent)).getByText('€18.00')).toBeDefined();
+        expect(screen.queryByText(text.voucher)).toBeNull();
     });
 
     it('do not list the restaurant card when nothing was paid with it', async () => {

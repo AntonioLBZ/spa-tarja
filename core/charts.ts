@@ -1,4 +1,4 @@
-import { countedOn } from './counting';
+import { countedCents, countedOn } from './counting';
 import { addDays, addMonths, daysBetween, endOfMonth, startOfWeek } from './date';
 import { monthOf, shiftMonth } from './month';
 
@@ -50,7 +50,7 @@ function bucketCount(granularity: Granularity, range: Range): number {
     return (toYear - fromYear) * 12 + (toMonth - fromMonth) + 1;
 }
 
-// What counts inside the range on the day each expense is charged (`countedOn`), deleted ones left out
+// What counts inside the range on the day each expense counts on (`countedOn`), deleted ones left out
 function inRange(expenses: readonly Expense[], range: Range): Expense[] {
     return expenses.filter((expense) => {
         const day = countedOn(expense);
@@ -73,7 +73,7 @@ function spendingBuckets(
     for (const expense of inRange(expenses, range)) {
         if (categoryId !== null && expense.categoryId !== categoryId) continue;
         const start = bucketStart(countedOn(expense), granularity);
-        totals.set(start, (totals.get(start) ?? 0) + expense.amountCents);
+        totals.set(start, (totals.get(start) ?? 0) + countedCents(expense));
     }
 
     const buckets: Bucket[] = [];
@@ -88,14 +88,14 @@ function spendingTotal(expenses: readonly Expense[], options: { range: Range; ca
     const { range, categoryId } = options;
     return inRange(expenses, range)
         .filter((expense) => categoryId === null || expense.categoryId === categoryId)
-        .reduce((sum, expense) => sum + expense.amountCents, 0);
+        .reduce((sum, expense) => sum + countedCents(expense), 0);
 }
 
 // What each category took in the range, the biggest first and by name when they tie
 function categoryTotals(expenses: readonly Expense[], range: Range): CategoryTotal[] {
     const totals = new Map<string, number>();
     for (const expense of inRange(expenses, range)) {
-        totals.set(expense.categoryId, (totals.get(expense.categoryId) ?? 0) + expense.amountCents);
+        totals.set(expense.categoryId, (totals.get(expense.categoryId) ?? 0) + countedCents(expense));
     }
     return [...totals]
         .map(([categoryId, totalCents]) => ({ categoryId, totalCents }))

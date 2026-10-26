@@ -104,7 +104,7 @@ describe('spending by day', () => {
     });
 
     it('shows what is still to be charged later in the month, the way the summary counts it', async () => {
-        await open([expense({ amountCents: 1800, date: '2026-09-20', payment: 'voucher', chargeDate: '2026-10-28' })]);
+        await open([expense({ amountCents: 1800, date: '2026-09-20', payment: 'credit', chargeDate: '2026-10-28' })]);
 
         expect(barOf('Oct 28').textContent).toContain('€18.00');
         expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€18.00');

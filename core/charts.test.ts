@@ -180,6 +180,40 @@ describe('spendingBuckets', () => {
         expect(buckets.find((bucket) => bucket.start === '2026-10-05')?.totalCents).toBe(4000);
     });
 
+    it('counts a restaurant card expense on the day it was made, for your part, not on the day it is charged', () => {
+        const dinner = expense({
+            date: '2026-10-12',
+            amountCents: 4000,
+            personalCents: 2000,
+            payment: 'voucher',
+            chargeDate: '2026-11-12',
+        });
+
+        const buckets = spendingBuckets([dinner], {
+            granularity: 'month',
+            range: { from: '2026-10-01', to: '2026-11-30' },
+            categoryId: null,
+        });
+
+        expect(buckets).toEqual([
+            { start: '2026-10-01', totalCents: 2000 },
+            { start: '2026-11-01', totalCents: 0 },
+        ]);
+    });
+
+    it('counts in full, on the day it was made, a restaurant card expense that says nothing about your part', () => {
+        const menu = expense({ date: '2026-09-20', amountCents: 1800, payment: 'voucher', chargeDate: '2026-10-05' });
+
+        const buckets = spendingBuckets([menu], {
+            granularity: 'day',
+            range: { from: '2026-09-20', to: '2026-10-05' },
+            categoryId: null,
+        });
+
+        expect(buckets.find((bucket) => bucket.start === '2026-09-20')?.totalCents).toBe(1800);
+        expect(buckets.find((bucket) => bucket.start === '2026-10-05')?.totalCents).toBe(0);
+    });
+
     it('can be narrowed to one category', () => {
         const buckets = spendingBuckets(
             [
@@ -255,6 +289,24 @@ describe('spendingTotal', () => {
         expect(spendingTotal(expenses, { range, categoryId: null })).toBe(1600);
     });
 
+    it('adds your part of a restaurant card expense, on the day it was made', () => {
+        const expenses = [
+            expense({
+                amountCents: 4000,
+                personalCents: 2000,
+                date: '2026-10-12',
+                payment: 'voucher',
+                chargeDate: '2026-11-12',
+            }),
+            expense({ amountCents: 900, date: '2026-09-28', payment: 'voucher', chargeDate: '2026-10-28' }),
+        ];
+
+        expect(spendingTotal(expenses, { range, categoryId: null })).toBe(2000);
+        expect(spendingTotal(expenses, { range: { from: '2026-09-01', to: '2026-09-30' }, categoryId: null })).toBe(
+            900
+        );
+    });
+
     it('can be narrowed to one category', () => {
         const expenses = [
             expense({ categoryId: 'food', amountCents: 500 }),
@@ -324,6 +376,35 @@ describe('categoryTotals', () => {
         );
 
         expect(totals).toEqual([{ categoryId: 'food', totalCents: 900 }]);
+    });
+
+    it('counts your part of a restaurant card expense, on the day it was made', () => {
+        const totals = categoryTotals(
+            [
+                expense({
+                    categoryId: 'food',
+                    amountCents: 4000,
+                    personalCents: 2000,
+                    date: '2026-10-12',
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+                expense({ categoryId: 'leisure', amountCents: 2500 }),
+                expense({
+                    categoryId: 'leisure',
+                    amountCents: 700,
+                    date: '2026-09-30',
+                    payment: 'voucher',
+                    chargeDate: '2026-10-30',
+                }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([
+            { categoryId: 'leisure', totalCents: 2500 },
+            { categoryId: 'food', totalCents: 2000 },
+        ]);
     });
 
     it('is empty when nothing counts in the range', () => {
