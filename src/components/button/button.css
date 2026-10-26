@@ -10,6 +10,13 @@ a.button {
     color: var(--color-content-on-accent);
 }
 
+/* Disabled, a filled button drops its fill and looks like any other disabled button (base.css), whose secondary text
+   would all but vanish on the accent */
+.button--primary:disabled,
+.button--pressed:disabled {
+    background: transparent;
+}
+
 .button--danger {
     border-color: var(--color-border-subtle);
     color: var(--color-danger);
