@@ -14,16 +14,85 @@ import { PAYMENTS, TEXT_MAX_LENGTH, type Payment } from '@core/expense';
 import { installmentDates, planBalance, splitEvenly } from '@core/installments';
 import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from '@core/money';
 
-import { createExpenses } from './create-expenses';
+import { createExpenses, draftOf, reviseExpenses, type Draft } from './create-expenses';
 import { useSaveExpense } from './use-save-expense';
 import { useShortDate } from './use-short-date';
+
+import type { Expense } from '@core/expense';
 
 import './expense-form.css';
 
 // A year of monthly payments; the data allows longer plans (core/installments)
 const INSTALLMENT_CHOICES = Array.from({ length: 12 }, (_, index) => index + 1);
 
-function ExpenseForm() {
+interface ExpenseFormProps {
+    // Its name, which the heading over it (AddExpense) shows too
+    title: string;
+    // The expense, or every part of its plan, to change; without it the form adds a new one
+    editing?: readonly Expense[] | null;
+    // After an edit is saved or cancelled
+    onDone?: () => void;
+}
+
+// What the person typed in the parts, valid only for the total and the count it was typed for
+interface TypedParts {
+    key: string;
+    values: string[];
+}
+
+interface StartingFields {
+    amount: string;
+    text: string;
+    // The category an edited expense was saved with
+    categoryId: string | null;
+    date: string;
+    payment: Payment;
+    chargeDate: string | null;
+    personal: string;
+    installments: number;
+    parts: TypedParts | null;
+}
+
+// What the fields start with: empty for a new expense, what was saved for one being edited
+function startingFields(draft: Draft | null, locale: string): StartingFields {
+    if (!draft) {
+        return {
+            amount: '',
+            text: '',
+            categoryId: null,
+            date: toDateString(new Date()),
+            payment: 'direct',
+            chargeDate: null,
+            personal: '',
+            installments: 1,
+            parts: null,
+        };
+    }
+
+    const totalCents = draft.amounts.reduce((sum, cents) => sum + cents, 0);
+    const count = draft.amounts.length;
+    return {
+        amount: formatAmountInput(totalCents, locale),
+        text: draft.text,
+        categoryId: draft.categoryId,
+        date: draft.date,
+        payment: draft.payment,
+        chargeDate: draft.chargeDate,
+        personal: draft.personalCents === null ? '' : formatAmountInput(draft.personalCents, locale),
+        installments: count,
+        // The saved parts, which an even split would lose when they aren't even
+        parts:
+            count > 1
+                ? {
+                      key: `${totalCents}:${count}`,
+                      values: draft.amounts.map((cents) => formatAmountInput(cents, locale)),
+                  }
+                : null,
+    };
+}
+
+function ExpenseForm(props: ExpenseFormProps) {
+    const { title, editing = null, onDone } = props;
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -32,27 +101,35 @@ function ExpenseForm() {
     const { options } = useCategoryOptions();
     const id = useId();
 
-    const [amount, setAmount] = useState('');
-    const [text, setText] = useState('');
+    // A form edits one expense for its whole life: a new one is mounted for another (AddExpense)
+    const [start] = useState(() => startingFields(editing && draftOf(editing), locale));
+    const [amount, setAmount] = useState(start.amount);
+    const [text, setText] = useState(start.text);
     const [picked, setPicked] = useState<string | null>(null);
-    const [date, setDate] = useState(() => toDateString(new Date()));
-    const [payment, setPayment] = useState<Payment>('direct');
-    const [pickedCharge, setPickedCharge] = useState<string | null>(null);
-    const [personal, setPersonal] = useState('');
-    const [installments, setInstallments] = useState(1);
-    // What the person typed in the parts, valid only for the total and the count it was typed for
-    const [editedParts, setEditedParts] = useState<{ key: string; values: string[] } | null>(null);
+    const [date, setDate] = useState(start.date);
+    const [payment, setPayment] = useState(start.payment);
+    const [pickedCharge, setPickedCharge] = useState(start.chargeDate);
+    const [personal, setPersonal] = useState(start.personal);
+    const [installments, setInstallments] = useState(start.installments);
+    const [editedParts, setEditedParts] = useState<TypedParts | null>(start.parts);
     const [chargeInvalid, setChargeInvalid] = useState(false);
     const [amountInvalid, setAmountInvalid] = useState(false);
     const [personalInvalid, setPersonalInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
 
-    // The category follows the description until the user picks one; a pick that has since been deleted no longer counts
+    // A new expense's category follows the description until the user picks one; an edited one keeps what was saved,
+    // even an id with no category behind it any more, which shows as the fallback. A pick that has since been deleted
+    // no longer counts.
     const suggestion = suggestCategory(text);
     const pick = options.some((option) => option.id === picked) ? picked : null;
-    const categoryId = pick ?? suggestion;
-    const showSuggestion = pick === null && suggestion !== FALLBACK_CATEGORY_ID;
+    const categoryId = pick ?? start.categoryId ?? suggestion;
+    const shownCategory = options.some((option) => option.id === categoryId) ? categoryId : FALLBACK_CATEGORY_ID;
+    const showSuggestion = start.categoryId === null && pick === null && suggestion !== FALLBACK_CATEGORY_ID;
+    // The number of payments of a plan edited here, when it is longer than the form offers
+    const installmentChoices = INSTALLMENT_CHOICES.includes(start.installments)
+        ? INSTALLMENT_CHOICES
+        : [...INSTALLMENT_CHOICES, start.installments];
     // A deferred expense is charged a month after it was made unless the person picks the day
     const chargeDate = payment === 'direct' ? null : (pickedCharge ?? addMonths(date, 1));
 
@@ -123,7 +200,7 @@ function ExpenseForm() {
         setChargeInvalid(false);
         setSaveFailed(false);
         setSaving(true);
-        const expenses = createExpenses({
+        const draft: Draft = {
             categoryId,
             text: text.trim(),
             date,
@@ -131,9 +208,14 @@ function ExpenseForm() {
             chargeDate,
             personalCents,
             amounts: parts === 1 ? [amountCents] : partCents.filter((cents) => cents !== null),
-        });
+        };
+        const expenses = editing ? reviseExpenses(editing, draft) : createExpenses(draft);
         try {
             await save(expenses);
+            if (editing) {
+                onDone?.();
+                return;
+            }
             setAmount('');
             setText('');
             setPicked(null);
@@ -151,7 +233,7 @@ function ExpenseForm() {
 
     // Its visible title is the heading that collapses it (AddExpense)
     return (
-        <form className="expense-form" aria-label={t('title')} onSubmit={(event) => void handleSubmit(event)}>
+        <form className="expense-form" aria-label={title} onSubmit={(event) => void handleSubmit(event)}>
             <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
                 {(control) => (
                     <input
@@ -188,7 +270,7 @@ function ExpenseForm() {
                         {...control}
                         label={t('category')}
                         options={options}
-                        value={categoryId}
+                        value={shownCategory}
                         onChange={setPicked}
                     />
                 )}
@@ -284,7 +366,7 @@ function ExpenseForm() {
                             value={installments}
                             onChange={(event) => setInstallments(Number(event.target.value))}
                         >
-                            {INSTALLMENT_CHOICES.map((count) => (
+                            {installmentChoices.map((count) => (
                                 <option key={count} value={count}>
                                     {t('installmentsOption', { count })}
                                 </option>
@@ -339,9 +421,17 @@ function ExpenseForm() {
                 </Notice>
             )}
 
-            <Button variant="primary" disabled={saving || partsProblem !== null} type="submit">
-                {t('submit')}
-            </Button>
+            <div className="expense-form__actions">
+                <Button
+                    className="expense-form__submit"
+                    variant="primary"
+                    disabled={saving || partsProblem !== null}
+                    type="submit"
+                >
+                    {editing ? t('save') : t('submit')}
+                </Button>
+                {editing && <Button onClick={onDone}>{t('cancel')}</Button>}
+            </div>
         </form>
     );
 }

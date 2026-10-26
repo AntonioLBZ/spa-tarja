@@ -9,13 +9,15 @@
     margin: 0;
 }
 
-/* The notch comes from the button; the toggle only lays out what is inside it */
+/* The notch comes from the button; the toggle only lays out what is inside it. Brought into view (the add form's
+   heading on Edit, a row taking the focus back), it keeps room for its focus ring */
 .disclosure__toggle {
     align-items: center;
     display: flex;
     gap: var(--size-2);
     justify-content: flex-start;
     padding-inline: var(--size-3);
+    scroll-margin-block: var(--size-2);
     text-align: start;
     width: 100%;
 }

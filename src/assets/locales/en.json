@@ -19,6 +19,7 @@
     "expenses": {
         "form": {
             "title": "Add an expense",
+            "editTitle": "Edit the expense",
             "amount": "Amount",
             "text": "Description",
             "category": "Category",
@@ -34,6 +35,8 @@
             "remaining": "Remaining {amount}",
             "over": "{amount} over the total",
             "submit": "Add",
+            "save": "Save",
+            "cancel": "Cancel",
             "amountInvalid": "Enter an amount above zero.",
             "chargeDateInvalid": "It can't be charged before the day of the expense.",
             "personalInvalid": "Enter an amount, or leave it empty if it was all yours.",
@@ -50,6 +53,9 @@
             "title": "Expenses",
             "empty": "No expenses yet",
             "loadFailed": "Couldn't load your expenses.",
+            "edit": "Edit",
+            "editItem": "Edit {name}",
+            "editIncomplete": "Not every payment of this plan is on this device yet, so it can't be edited.",
             "delete": "Delete",
             "deleteItem": "Delete {name}",
             "pending": "Not synced yet",

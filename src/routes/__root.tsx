@@ -31,11 +31,11 @@ function RootLayout() {
     );
 }
 
-// Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home:
-// Expenses with the add form collapsed, the logo with it open. The logo is never underlined.
+// Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home,
+// to the form adding: Expenses with it collapsed, the logo with it open. The logo is never underlined.
 function RootHeader() {
     const t = useTranslations('nav');
-    const { setOpen } = useAddForm();
+    const { collapse, reveal } = useAddForm();
     // The screen already shown, not the one being opened: the underline has to be in its old place when the view
     // transition takes its first picture, or it doesn't slide
     const section = useRouterState({
@@ -60,7 +60,7 @@ function RootHeader() {
                     activeOptions={{ exact: true }}
                     aria-current={current('/')}
                     onClick={(event) => {
-                        if (!opensElsewhere(event)) setOpen(false);
+                        if (!opensElsewhere(event)) collapse();
                     }}
                 >
                     {t('expenses')}
@@ -71,7 +71,7 @@ function RootHeader() {
                     to="/"
                     activeOptions={{ exact: true }}
                     onClick={(event) => {
-                        if (!opensElsewhere(event)) setOpen(true);
+                        if (!opensElsewhere(event)) reveal();
                     }}
                 >
                     <Brand />

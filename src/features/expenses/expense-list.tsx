@@ -9,6 +9,7 @@ import { fromDateString } from '@core/date';
 import { groupByDay } from '@core/expense-groups';
 import { collapsePlans } from '@core/installments';
 
+import { useAddForm } from './add-form-state';
 import { ExpenseRow } from './expense-row';
 import { useExpenseGroups } from './use-expense-groups';
 import { useSaveExpense } from './use-save-expense';
@@ -21,7 +22,16 @@ function ExpenseList() {
     const t = useTranslations('expenses.list');
     const { locale } = useLocale();
     const save = useSaveExpense();
+    const { editing, startEdit, endEdit, refocus, clearRefocus } = useAddForm();
     const { groups, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenseGroups();
+    // The toggle of each row by the id of its expense, and the title, where the focus goes back after an edit
+    const toggles = useRef(new Map<string, HTMLButtonElement>());
+    const title = useRef<HTMLHeadingElement>(null);
+    useEffect(() => {
+        if (refocus === null) return;
+        (toggles.current.get(refocus) ?? title.current)?.focus();
+        clearRefocus();
+    }, [refocus, clearRefocus]);
     // Expenses deleted a moment ago, kept on screen until their fade-out is over
     const [leaving, setLeaving] = useState<ReadonlyMap<string, Expense>>(new Map());
     const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -39,6 +49,7 @@ function ExpenseList() {
     // All the parts of a plan go together
     function remove(expenses: readonly Expense[], now: number) {
         void save(expenses.map((expense) => ({ ...expense, updatedAt: now, deletedAt: now })));
+        if (editing && expenses.some((expense) => expense.id === editing[0]!.id)) endEdit();
 
         const duration = readDuration('--duration-base');
         if (duration === 0) return;
@@ -64,7 +75,9 @@ function ExpenseList() {
 
     return (
         <section className="expense-list">
-            <h2 className="expense-list__title">{t('title')}</h2>
+            <h2 className="expense-list__title" ref={title} tabIndex={-1}>
+                {t('title')}
+            </h2>
 
             {isError && !hasData && (
                 <Notice tone="quiet" role="alert">
@@ -87,7 +100,14 @@ function ExpenseList() {
                                     isPlan={item.kind === 'plan'}
                                     pending={expenses.some((part) => pendingIds.has(part.id))}
                                     leaving={leaving.has(first.id)}
+                                    onEdit={startEdit}
                                     onDelete={(parts) => remove(parts, Date.now())}
+                                    toggleRef={(node) => {
+                                        if (node) toggles.current.set(first.id, node);
+                                        return () => {
+                                            toggles.current.delete(first.id);
+                                        };
+                                    }}
                                 />
                             );
                         })}

@@ -1,8 +1,10 @@
 import clsx from 'clsx';
+import { useId, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -10,6 +12,7 @@ import { countedCents, paymentOf } from '@core/counting';
 import { planTotal } from '@core/installments';
 import { formatAmount } from '@core/money';
 
+import { canEdit } from './create-expenses';
 import { useShortDate } from './use-short-date';
 
 import type { Expense } from '@core/expense';
@@ -24,19 +27,25 @@ interface ExpenseRowProps {
     pending: boolean;
     // Deleted a moment ago, fading out
     leaving: boolean;
+    onEdit: (expenses: readonly Expense[]) => void;
     onDelete: (expenses: readonly Expense[]) => void;
+    // Of the toggle, which takes the focus back once an edit of the expense is over
+    toggleRef?: Ref<HTMLButtonElement>;
 }
 
 // An expense of the list. Pressing it opens a panel under it with what can be done to it.
 function ExpenseRow(props: ExpenseRowProps) {
-    const { expenses, isPlan, pending, leaving, onDelete } = props;
+    const { expenses, isPlan, pending, leaving, onEdit, onDelete, toggleRef } = props;
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const { labelOf, styleOf } = useCategoryOptions();
+    const reasonId = useId();
 
     const expense = expenses[0]!;
+    // A plan is edited whole, so every part of it has to be here
+    const editable = canEdit(expenses);
     const category = labelOf(expense.categoryId);
     const name = expense.text || category;
     const lastCharge = expenses.at(-1)!.chargeDate;
@@ -57,6 +66,7 @@ function ExpenseRow(props: ExpenseRowProps) {
             as="li"
             className={clsx('expense-item', leaving && 'expense-item--leaving')}
             chevron
+            toggleRef={toggleRef}
             summary={
                 <span className="expense-item__body">
                     <span className="expense-item__name">
@@ -77,6 +87,14 @@ function ExpenseRow(props: ExpenseRowProps) {
         >
             <div className="expense-item__actions">
                 <Button
+                    aria-describedby={editable ? undefined : reasonId}
+                    aria-label={t('editItem', { name })}
+                    disabled={leaving || !editable}
+                    onClick={() => onEdit(expenses)}
+                >
+                    {t('edit')}
+                </Button>
+                <Button
                     variant="danger"
                     aria-label={t('deleteItem', { name })}
                     disabled={leaving}
@@ -85,6 +103,11 @@ function ExpenseRow(props: ExpenseRowProps) {
                     {t('delete')}
                 </Button>
             </div>
+            {!editable && (
+                <Notice tone="quiet" id={reasonId}>
+                    {t('editIncomplete')}
+                </Notice>
+            )}
         </Disclosure>
     );
 }
