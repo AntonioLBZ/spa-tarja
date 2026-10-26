@@ -86,7 +86,8 @@
             "paid": "Pagado {total}",
             "weekOf": "Semana del {date}",
             "noMatch": "Ningún gasto coincide",
-            "showMore": "Mostrar más"
+            "showMore": "Mostrar más",
+            "groupTotal": "Total"
         }
     },
     "categories": {

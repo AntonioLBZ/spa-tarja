@@ -32,6 +32,8 @@ interface ExpenseFormProps {
     editing?: readonly Expense[] | null;
     // After an edit is saved or cancelled
     onDone?: () => void;
+    // Called once a new expense is saved, not an edit
+    onAdded?: () => void;
 }
 
 // What the person typed in the parts, valid only for the total and the count it was typed for
@@ -92,7 +94,7 @@ function startingFields(draft: Draft | null, locale: string): StartingFields {
 }
 
 function ExpenseForm(props: ExpenseFormProps) {
-    const { title, editing = null, onDone } = props;
+    const { title, editing = null, onDone, onAdded } = props;
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -216,6 +218,7 @@ function ExpenseForm(props: ExpenseFormProps) {
                 onDone?.();
                 return;
             }
+            onAdded?.();
             setAmount('');
             setText('');
             setPicked(null);

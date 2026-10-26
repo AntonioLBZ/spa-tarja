@@ -1,3 +1,5 @@
+import clsx from 'clsx';
+import { useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -35,6 +37,13 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
     const tList = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { options } = useCategoryOptions();
+    const search = useRef<HTMLInputElement>(null);
+
+    // The button goes with the filters, so the focus goes to the field
+    function clear() {
+        onClear();
+        search.current?.focus();
+    }
 
     return (
         <div className="expense-list-controls">
@@ -42,6 +51,7 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
                 {(control) => (
                     <input
                         {...control}
+                        ref={search}
                         className="expense-list-controls__search"
                         type="search"
                         value={filters.query}
@@ -88,14 +98,14 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
                 />
             </Disclosure>
 
-            {filtering && (
-                <div className="expense-list-controls__status">
-                    <Notice tone="quiet" role="status">
-                        {shown === 0 ? tList('noMatch') : t('showing', { shown, total })}
-                    </Notice>
-                    <Button onClick={onClear}>{t('clear')}</Button>
+            <div className={clsx('expense-list-controls__status', !filtering && 'expense-list-controls__status--idle')}>
+                <div role="status">
+                    {filtering && (
+                        <Notice tone="quiet">{shown === 0 ? tList('noMatch') : t('showing', { shown, total })}</Notice>
+                    )}
                 </div>
-            )}
+                {filtering && <Button onClick={clear}>{t('clear')}</Button>}
+            </div>
         </div>
     );
 }

@@ -11,7 +11,7 @@ import { ExpenseForm } from './expense-form';
 // Editing an expense loads it into the same form, which a new key puts back to adding once the edit is over.
 function AddExpense() {
     const t = useTranslations('expenses.form');
-    const { open, setOpen, editing, endEdit } = useAddForm();
+    const { open, setOpen, editing, endEdit, noteAdded } = useAddForm();
     const heading = useRef<HTMLButtonElement>(null);
     const title = editing ? t('editTitle') : t('title');
 
@@ -39,6 +39,7 @@ function AddExpense() {
                 title={title}
                 editing={editing}
                 onDone={() => endEdit({ refocus: true })}
+                onAdded={noteAdded}
             />
         </Disclosure>
     );

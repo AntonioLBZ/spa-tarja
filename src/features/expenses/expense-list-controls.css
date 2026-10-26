@@ -14,3 +14,8 @@
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
 }
+
+/* Its live region is always in the page, so the first count is announced, and out of the layout while it is empty */
+.expense-list-controls__status--idle {
+    position: absolute;
+}

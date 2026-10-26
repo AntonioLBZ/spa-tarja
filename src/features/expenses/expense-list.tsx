@@ -38,6 +38,13 @@ function ExpenseList() {
         (toggles.current.get(refocus) ?? title.current)?.focus();
         clearRefocus();
     }, [refocus, clearRefocus]);
+    // The expense of the row that "Show more" brought in first, which takes the focus once the row is there
+    const moreFocus = useRef<string | null>(null);
+    useEffect(() => {
+        if (moreFocus.current === null) return;
+        (toggles.current.get(moreFocus.current) ?? title.current)?.focus();
+        moreFocus.current = null;
+    });
 
     // All the parts of a plan go together
     function remove(expenses: readonly Expense[], now: number) {
@@ -103,12 +110,13 @@ function ExpenseList() {
                         <h3
                             className={clsx(
                                 'expense-list__label',
-                                grouping !== 'category' && 'expense-list__label--date'
+                                grouping === 'category' ? 'expense-list__label--category' : 'expense-list__label--date'
                             )}
                         >
                             {labelOfGroup(group)}
                         </h3>
                         <span className="expense-list__subtotal">
+                            <span className="visually-hidden">{t('groupTotal')}</span>{' '}
                             {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
                         </span>
                     </div>
@@ -140,7 +148,7 @@ function ExpenseList() {
             ))}
 
             {list.hiddenRows > 0 && (
-                <Button className="expense-list__more" onClick={list.showMore}>
+                <Button className="expense-list__more" onClick={() => (moreFocus.current = list.showMore())}>
                     {t('showMore')}
                 </Button>
             )}

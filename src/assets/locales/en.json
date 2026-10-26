@@ -86,7 +86,8 @@
             "paid": "Paid {total}",
             "weekOf": "Week of {date}",
             "noMatch": "No expenses match",
-            "showMore": "Show more"
+            "showMore": "Show more",
+            "groupTotal": "Total"
         }
     },
     "categories": {

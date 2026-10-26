@@ -1953,7 +1953,11 @@ describe('searching, filtering and grouping the list', () => {
             .filter(Boolean);
     const groupHeadings = () => screen.queryAllByRole('heading', { level: 3 }).map((heading) => heading.textContent);
     const subtotalOf = (label: string) =>
-        screen.getByRole('heading', { level: 3, name: label }).nextElementSibling?.textContent;
+        screen
+            .getByRole('heading', { level: 3, name: label })
+            .nextElementSibling?.textContent?.replace(en.expenses.list.groupTotal, '')
+            .trim();
+    const statusRegion = () => document.querySelector('.expense-list-controls [role="status"]');
     const clear = () => fireEvent.click(screen.getByRole('button', { name: f.clear }));
     const showing = (shownCount: number, total: number) =>
         screen.queryByText(t('expenses.filters.showing', { shown: shownCount, total }));
@@ -2085,7 +2089,7 @@ describe('searching, filtering and grouping the list', () => {
             search('shop');
 
             expect(showing(1, 4)).not.toBeNull();
-            expect(showing(1, 4)!.getAttribute('role')).toBe('status');
+            expect(showing(1, 4)!.closest('[role="status"]')).toBe(statusRegion());
 
             clear();
 
@@ -2603,17 +2607,257 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }));
         });
+    });
 
-        it('shows a new expense that the filter lets through, in the middle of the others', async () => {
+    describe('a filter that would hide a new expense', () => {
+        it('is dropped by adding an expense, so the new row shows, and the grouping stays', async () => {
             const { api } = await open([cafe, shop]);
+            pickGrouping(f.group.week);
+            pickCategory(f.category, en.categories.food);
             search('cafe');
             expect(rowNames()).toEqual(['Café con leche']);
 
-            fillAndSubmit({ amount: '2', text: 'Cafe solo' });
+            fillAndSubmit({ amount: '2', text: 'Beers' });
 
             await waitFor(() => expect(api.writes).toHaveLength(1));
-            await waitFor(() => expect(rowNames()).toContain('Cafe solo'));
-            expect(showing(2, 3)).not.toBeNull();
+            await waitFor(() => expect(rowNames()).toContain('Beers'));
+            expect(rowNames()).toHaveLength(3);
+            expect(searchBox().value).toBe('');
+            expect(filtersToggle(0)).toBeDefined();
+            expect(chosenCategory(f.category)).toBe(f.allCategories);
+            expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
+            expect(radio(f.group.week).checked).toBe(true);
+            expect(localStorage.getItem('tarja:list-grouping')).toBe('week');
+        });
+
+        it('is not dropped when the form refuses the expense', async () => {
+            const { api } = await open([cafe, shop]);
+            search('cafe');
+
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            expect(api.writes).toHaveLength(0);
+            expect(searchBox().value).toBe('cafe');
+        });
+
+        it('is not dropped by the edit of an expense', async () => {
+            await open([cafe, shop]);
+            search('cafe');
+            fireEvent.click(rowToggle('Café con leche'));
+            fireEvent.click(
+                screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Café con leche' }) })
+            );
+
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
+
+            await waitFor(() => expect(document.activeElement).toBe(rowToggle('Café con leche')));
+            expect(searchBox().value).toBe('cafe');
+        });
+
+        it('is dropped once no expense is left, so the next one that arrives is not hidden', async () => {
+            root.style.setProperty('--duration-base', '0ms');
+            const { app } = await open([cafe]);
+            search('cafe');
+            openFilters();
+            pickCategory(f.category, en.categories.food);
+
+            deleteExpense('Café con leche');
+            await screen.findByText(en.expenses.list.empty);
+            await app.outbox.put(expense({ text: 'Tea', categoryId: 'leisure' }));
+
+            await waitFor(() => expect(rowNames()).toEqual(['Tea']));
+            expect(searchBox().value).toBe('');
+            expect(filtersToggle(0)).toBeDefined();
+        });
+
+        it('is dropped for an expense added after the last one was deleted', async () => {
+            root.style.setProperty('--duration-base', '0ms');
+            await open([cafe]);
+            search('cafe');
+
+            deleteExpense('Café con leche');
+            await screen.findByText(en.expenses.list.empty);
+            fillAndSubmit({ amount: '3', text: 'Tea' });
+
+            await waitFor(() => expect(rowNames()).toEqual(['Tea']));
+            expect(searchBox().value).toBe('');
+        });
+
+        it('is kept when rows arrive from the server while the person is typing', async () => {
+            const { api, app } = await open([cafe, shop]);
+            search('cafe');
+
+            api.serverWrite(expense({ text: 'Dinner', createdAt: 5_000 }));
+            await app.queryClient.invalidateQueries();
+
+            await waitFor(() => expect(showing(1, 3)).not.toBeNull());
+            expect(searchBox().value).toBe('cafe');
+            expect(rowNames()).toEqual(['Café con leche']);
+        });
+
+        it('is kept while the rows it leaves are deleted and others are still there', async () => {
+            root.style.setProperty('--duration-base', '0ms');
+            await open([cafe, shop]);
+            search('shop');
+
+            deleteExpense('Weekly shop');
+
+            await waitFor(() => expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined());
+            expect(searchBox().value).toBe('shop');
+        });
+    });
+
+    describe('the focus', () => {
+        it('goes to the search field when Clear is pressed, since the button is gone', async () => {
+            await open(list);
+            search('shop');
+
+            clear();
+
+            expect(document.activeElement).toBe(searchBox());
+        });
+
+        it('goes to the search field when Clear is pressed in the empty result too', async () => {
+            await open(list);
+            search('nothing like this');
+
+            clear();
+
+            expect(document.activeElement).toBe(searchBox());
+            expect(rowNames()).toHaveLength(4);
+        });
+
+        it('has a status region that is already there before the count, and fills it', async () => {
+            await open(list);
+            const region = statusRegion()!;
+            expect(region).not.toBeNull();
+            expect(region.textContent).toBe('');
+
+            search('shop');
+
+            expect(statusRegion()).toBe(region);
+            expect(region.textContent).toContain(t('expenses.filters.showing', { shown: 1, total: 4 }));
+
+            clear();
+
+            expect(statusRegion()).toBe(region);
+            expect(region.textContent).toBe('');
+        });
+
+        it('keeps the empty status region out of the layout of the controls', async () => {
+            await open(list);
+
+            expect(statusRegion()!.parentElement!.className).toContain('expense-list-controls__status--idle');
+
+            search('shop');
+
+            expect(statusRegion()!.parentElement!.className).not.toContain('expense-list-controls__status--idle');
+        });
+    });
+
+    describe('the group labels', () => {
+        it('are plain text for a date, which keeps its capital letter, and a row of icon and name for a category', async () => {
+            await open(list);
+            const heading = () => screen.getAllByRole('heading', { level: 3 })[0]!;
+
+            expect(heading().className).toContain('expense-list__label--date');
+            expect(heading().className).not.toContain('expense-list__label--category');
+
+            pickGrouping(f.group.category);
+
+            expect(heading().className).toContain('expense-list__label--category');
+            expect(heading().className).not.toContain('expense-list__label--date');
+        });
+
+        it('are followed by a subtotal that a screen reader hears as a total', async () => {
+            await open(list);
+
+            const subtotal = screen.getByRole('heading', { level: 3, name: longDay('2026-10-24') }).nextElementSibling!;
+
+            expect(subtotal.querySelector('.visually-hidden')?.textContent).toBe(en.expenses.list.groupTotal);
+            expect(subtotal.textContent).toBe(`${en.expenses.list.groupTotal} €48.00`);
+        });
+    });
+
+    describe('editing under a search', () => {
+        function editRow(name: string) {
+            fireEvent.click(rowToggle(name));
+            fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name }) }));
+        }
+
+        it('lists an expense whose edited text now matches', async () => {
+            await open([cafe, shop]);
+            search('cafe');
+            expect(rowNames()).toEqual(['Café con leche']);
+
+            editRow('Café con leche');
+            fireEvent.change(field(en.expenses.form.text), { target: { value: 'Tea' } });
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
+
+            await waitFor(() => expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined());
+            expect(rowNames()).toEqual([]);
+            expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }));
+
+            search('tea');
+
+            expect(rowNames()).toEqual(['Tea']);
+        });
+
+        it('stops listing an expense whose text it changed to something that does not match, and lists another that does', async () => {
+            await open([cafe, shop]);
+            search('cafe');
+
+            editRow('Café con leche');
+            fireEvent.change(field(en.expenses.form.text), { target: { value: 'Cafe run' } });
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
+
+            await waitFor(() => expect(rowNames()).toEqual(['Cafe run']));
+            expect(showing(1, 2)).not.toBeNull();
+            await waitFor(() => expect(document.activeElement).toBe(rowToggle('Cafe run')));
+        });
+    });
+
+    describe('the cap and the focus', () => {
+        function many(count: number) {
+            return Array.from({ length: count }, (_, index) =>
+                expense({ text: `Item ${String(index).padStart(3, '0')}`, createdAt: 10_000 + index })
+            );
+        }
+
+        it('goes to the list title when an edit moves the row beyond the rows that are drawn', async () => {
+            await open(many(150), 'Item 149');
+            fireEvent.click(rowToggle('Item 149'));
+            fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Item 149' }) }));
+            fireEvent.change(field(en.expenses.form.date), { target: { value: '2026-01-01' } });
+
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
+
+            await waitFor(() => expect(screen.queryByText('Item 149')).toBeNull());
+            expect(rowNames()).toHaveLength(100);
+            await waitFor(() =>
+                expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }))
+            );
+        });
+
+        it('goes to the first row that Show more brings in', async () => {
+            await open(many(230), 'Item 229');
+
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.list.showMore }));
+
+            expect(rowNames()).toHaveLength(200);
+            expect(document.activeElement).toBe(rowToggle('Item 129'));
+        });
+
+        it('goes to the first row of the last ones too, when the button is gone', async () => {
+            await open(many(230), 'Item 229');
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.list.showMore }));
+
+            fireEvent.click(screen.getByRole('button', { name: en.expenses.list.showMore }));
+
+            expect(screen.queryByRole('button', { name: en.expenses.list.showMore })).toBeNull();
+            expect(rowNames()).toHaveLength(230);
+            expect(document.activeElement).toBe(rowToggle('Item 029'));
         });
     });
 });

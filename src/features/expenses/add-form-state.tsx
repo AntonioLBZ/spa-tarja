@@ -14,6 +14,9 @@ interface AddFormState {
     // The expense whose row should take the focus, until the list has given it
     refocus: string | null;
     clearRefocus: () => void;
+    // How many expenses the form has added; the list watches it to drop the filters that would hide the new one
+    added: number;
+    noteAdded: () => void;
     // The header's Expenses: the form collapsed, adding
     collapse: () => void;
     // The logo: the form open, adding
@@ -30,6 +33,7 @@ function AddFormProvider(props: { children: ReactNode }) {
     const [open, setOpen] = useState(true);
     const [editing, setEditing] = useState<readonly Expense[] | null>(null);
     const [refocus, setRefocus] = useState<string | null>(null);
+    const [added, setAdded] = useState(0);
 
     const value = useMemo(() => {
         function endEdit(options: { refocus?: boolean } = {}) {
@@ -48,6 +52,8 @@ function AddFormProvider(props: { children: ReactNode }) {
             endEdit,
             refocus,
             clearRefocus: () => setRefocus(null),
+            added,
+            noteAdded: () => setAdded((count) => count + 1),
             collapse: () => {
                 endEdit();
                 setOpen(false);
@@ -57,7 +63,7 @@ function AddFormProvider(props: { children: ReactNode }) {
                 setOpen(true);
             },
         };
-    }, [open, editing, refocus]);
+    }, [open, editing, refocus, added]);
 
     return <AddFormContext value={value}>{children}</AddFormContext>;
 }

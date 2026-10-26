@@ -26,19 +26,22 @@
 }
 
 .expense-list__label {
-    align-items: center;
-    display: flex;
     font-size: inherit;
     font-weight: 400;
-    gap: var(--size-2);
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
-/* Spanish writes the weekday and the month in lowercase */
+/* Spanish writes the weekday and the month in lowercase. `::first-letter` needs a block, so a date is never a flex box */
 .expense-list__label--date::first-letter {
     text-transform: uppercase;
+}
+
+.expense-list__label--category {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
 }
 
 .expense-list__subtotal {

@@ -3,8 +3,9 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { readDuration } from '@/lib/motion';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { NO_FILTERS, groupItems, hasFilters, limitRows, listItems } from '@core/expense-list';
+import { NO_FILTERS, groupItems, hasFilters, limitRows, listItems, shownExpense } from '@core/expense-list';
 
+import { useAddForm } from './add-form-state';
 import { readStoredGrouping, storeGrouping } from './list-grouping';
 import { useExpenses } from './use-expenses';
 
@@ -14,11 +15,12 @@ import type { ListContext, ListFilters, ListGrouping } from '@core/expense-list'
 // How many rows the list draws, and how many more each "Show more" adds
 const PAGE_SIZE = 100;
 
-// What the home screen lists: the expenses of the device, narrowed by the filters and grouped. The filters live here, so
-// they go when the person leaves the screen; the grouping is a preference and is kept.
+// The expenses of the home screen, narrowed by the filters and grouped. The filters are state of the screen; the
+// grouping is a stored preference.
 function useExpenseList() {
     const { expenses, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenses();
     const { options, labelOf } = useCategoryOptions();
+    const { added } = useAddForm();
 
     const [filters, setFilters] = useState<ListFilters>(NO_FILTERS);
     const [grouping, setGrouping] = useState<ListGrouping>(readStoredGrouping);
@@ -32,7 +34,6 @@ function useExpenseList() {
         return () => pending.forEach(clearTimeout);
     }, []);
 
-    // Sorted and collapsed once per change of data; typing only filters and groups
     const items = useMemo(() => {
         if (leaving.size === 0) return listItems(expenses);
         const liveIds = new Set(expenses.filter((expense) => expense.deletedAt === null).map((expense) => expense.id));
@@ -40,7 +41,6 @@ function useExpenseList() {
     }, [expenses, leaving]);
 
     const known = useMemo(() => new Set(options.map((option) => option.id)), [options]);
-    // The search text of each expense is remembered, and forgotten when the names of the categories change
     const context = useMemo<ListContext>(
         () => ({
             categoryOf: (categoryId) => (known.has(categoryId) ? categoryId : FALLBACK_CATEGORY_ID),
@@ -50,16 +50,24 @@ function useExpenseList() {
         [known, labelOf]
     );
 
-    // Typing never waits for the list to be worked out again
     const query = useDeferredValue(filters.query);
     const applied = useMemo(() => ({ ...filters, query }), [filters, query]);
     const groups = useMemo(() => groupItems(items, applied, grouping, context), [items, applied, grouping, context]);
     const shown = useMemo(() => groups.reduce((sum, group) => sum + group.items.length, 0), [groups]);
     const drawn = useMemo(() => limitRows(groups, limit), [groups, limit]);
+    const hiddenRows = shown - drawn.reduce((sum, group) => sum + group.items.length, 0);
 
-    // Whether the days or months of the groups go over a New Year, which their labels then say
+    // Whether the groups' days, weeks or months go over a New Year
     const spansYears =
         grouping !== 'category' && groups.length > 0 && groups[0]!.key.slice(0, 4) !== groups.at(-1)!.key.slice(0, 4);
+
+    // A filter must never hide a new expense: adding one, or running out of expenses, drops them all
+    const [seenAdded, setSeenAdded] = useState(added);
+    if (added !== seenAdded || (hasData && items.length === 0 && filters !== NO_FILTERS)) {
+        setSeenAdded(added);
+        setFilters(NO_FILTERS);
+        setLimit(PAGE_SIZE);
+    }
 
     function changeFilters(patch: Partial<ListFilters>) {
         setFilters((current) => ({ ...current, ...patch }));
@@ -75,6 +83,13 @@ function useExpenseList() {
         setGrouping(next);
         storeGrouping(next);
         setLimit(PAGE_SIZE);
+    }
+
+    // Adds a page of rows and says which expense its first new row shows, for the focus to go there
+    function showMore(): string | null {
+        const next = groups.flatMap((group) => group.items)[shown - hiddenRows];
+        setLimit((current) => current + PAGE_SIZE);
+        return next ? shownExpense(next).id : null;
     }
 
     // Keeps the expenses on screen for the length of the fade-out that deleting them starts
@@ -96,7 +111,7 @@ function useExpenseList() {
     return {
         // The groups to draw, cut at the limit, and how many rows that leaves out
         groups: drawn,
-        hiddenRows: shown - drawn.reduce((sum, group) => sum + group.items.length, 0),
+        hiddenRows,
         // The rows that pass the filters, and all of them
         shown,
         total: items.length,
@@ -112,7 +127,7 @@ function useExpenseList() {
         changeFilters,
         clearFilters,
         changeGrouping,
-        showMore: () => setLimit((current) => current + PAGE_SIZE),
+        showMore,
         fadeOut,
     };
 }
