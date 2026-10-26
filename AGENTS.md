@@ -30,7 +30,7 @@ pnpm types:check         # tsc -b over app, server and node configs
 pnpm types:gen           # wrangler types -> worker-configuration.d.ts (rerun after editing wrangler.jsonc)
 pnpm lint                # eslint + stylelint (src/**/*.css)
 pnpm format / format:check
-pnpm test                # vitest: `server` project (workerd) + `front` project (jsdom)
+pnpm test                # vitest: `core` project (node), `server` project (workerd) and `front` project (jsdom)
 pnpm test -t "name"      # by test name
 pnpm db:migrate          # apply db/migrations to the local D1
 pnpm db:migrate:remote   # the same on the production D1: always before deploying a release that needs it

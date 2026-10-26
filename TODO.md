@@ -12,6 +12,8 @@ Items build on each other in the order they appear below. Delete an item when it
 - Dark mode, the ink notch on an accent fill (primary button, checked option of a choice group, pressed toggle) is 1.5 to 2.4:1 in dark and 2.0 to 4.2:1 in light. Option A: retune the twelve accent tones so it reaches 3:1 (dark accents turn from pastel to mid-tones). Option B (recommended): correct the document, the fill (4.5:1 or more against the page) is what marks the control. The selected chart column is weak in dark gray either way; say if it should get an ink frame instead.
 - Chrome draws the search field's clear button as a blue × in light. Hide it (the Clear button and the keyboard still work) or draw our own × in the text color?
 - Offline, the income and new-category fields still look enabled while their buttons are disabled; disable the fields too?
+- Editing and deleting, defaults I picked (`ARCHITECTURE.md` §5): editing a plan edits the whole plan, charged parts included; Edit replaces a new expense half typed in the form without asking; Delete has no confirmation. Adding an expense clears the list's search and filters (not the grouping), so the new row is never hidden. Change any of them?
+- The change against the previous period compares spans of the same length, and says "so far" while the range is still running. Is that what you expect?
 
 ## 8. Guest mode (L, blocked until the owner decides)
 

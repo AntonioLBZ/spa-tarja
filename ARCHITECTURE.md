@@ -52,13 +52,13 @@ Install scripts allowed in `pnpm-workspace.yaml`: `workerd` and `esbuild`. pnpm 
 ```
 server/   Worker (Hono): app.ts (routes and AppType), index.ts (entry)
 src/      SPA: routes/ (file-based), features/, components/, lib/, assets/ (styles, locales)
-db/       D1 SQL migrations (db/migrations, still empty)
-core/     pure logic shared by client and server (doesn't exist yet)
+db/       D1 SQL migrations (db/migrations)
+core/     pure logic shared by client and server
 public/   static files
 ```
 
 - `server/` doesn't import from `src/`. `src/` only imports **types** from `@server/*`.
-- `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier and the money helpers will live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
+- `core/` imports nothing from React, Hono or Workers (ESLint enforces it). The category classifier, the money helpers, what counts in a month and the list and chart logic live there. Both sides import it as `@core/*`; the server also reaches its own subfolders as `@server/*`, so `../` is never needed.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
 - **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release goes out on its own: every push to `main` that passes the checks is deployed by GitHub Actions (§10), after applying the migrations if `db/migrations` changed. By hand it is `pnpm db:migrate:remote`, then `pnpm deploy:prod`. The migrations go first so the new code never meets an old schema, which means each one must work with the code still running: add, never rename or drop. Secrets go up with `wrangler secret put`.
@@ -101,7 +101,7 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 
 ### Editing an expense
 
-- An edit is the same idempotent `PUT /expenses/:id` as a new expense, one per row, through the outbox, so it needs no endpoint or migration and works offline. The add form loads the expense (`draftOf`) and `reviseExpenses` (`src/features/expenses/create-expenses.ts`) turns what it holds into the writes. Each row keeps its `id`, `created_at` and `currency`, and its `updated_at` is the later of now and one more than the newest `updated_at` it replaces, so a device whose clock runs behind still wins over the version it edited instead of losing the edit silently (§6).
+- An edit is the same idempotent `PUT /expenses/:id` as a new expense, one per row, through the outbox, so it needs no endpoint or migration and works offline. The add form loads the expense (`draftOf`) and `reviseExpenses` (`src/features/expenses/create-expenses.ts`) turns what it holds into the writes. Each row keeps its `id`, `created_at` and `currency`, and its `updated_at` is the later of now and one more than the newest `updated_at` it replaces, so a device whose clock runs behind still wins over the version it edited instead of losing the edit silently (§6). Delete takes the same rule.
 - A plan is edited whole, charged parts included. Its parts keep their ids by part number; a part it gains is a new row under the same `plan_id`, made when the plan was so the plan keeps its place in the list, and a part it loses is saved as deleted. A plan turned into one payment or into a card payment is its first part with no plan; an expense turned into a plan becomes the first part of a new plan. A plan can be edited only when every part of it is on the device.
 - Your part goes only with a restaurant card: an edit that pays it another way sends `personalCents: null`, since the API answers 400 otherwise and the outbox drops a 400 for good.
 - The category stays the saved id, even one whose category was deleted (it shows as "Other" and is kept unless the person picks another); the suggestion from the text never replaces it.
@@ -111,7 +111,7 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 ## 6. Offline strategy
 
 - **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.
-- **Reads**: TanStack Query with the cache persisted in IndexedDB (`@tanstack/react-query-persist-client`, no expiry, only the `expenses` and `categories` queries), under the signed-in user's id (§8). The cache holds everything the server has told this device, tombstones included, plus the cursor of the last change seen.
+- **Reads**: TanStack Query with the cache persisted in IndexedDB (`@tanstack/react-query-persist-client`, no expiry, only the `expenses`, `categories` and `income` queries), under the signed-in user's id (§8). The cache holds everything the server has told this device, tombstones included, plus the cursor of the last change seen.
 - **Writes**: a save never waits for the network. The expense, with its client UUID, goes into the **outbox**: an IndexedDB record of the latest version of each unsynced expense, so editing or deleting a pending expense replaces its entry. The screen shows the cached server data with the outbox on top, and marks the pending rows.
 - **Sync** is the `queryFn` of the `expenses` query, so every trigger Query already has (app open, focus, reconnect, invalidation after a save) runs the same path: push the outbox in order, then pull what changed after the cursor. Safari has no Background Sync, so nothing depends on it. While entries are pending the query also retries every 30 s, for connections that report online but aren't.
 - **Outbox rules**: an entry leaves the outbox only when the server answered it, and only if it wasn't edited meanwhile (same `updatedAt`). A network error or a 5xx stops the push and keeps the order for the next run. A 400 or 409 is permanent: the entry is dropped and the user is told.
