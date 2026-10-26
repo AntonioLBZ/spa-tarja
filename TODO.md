@@ -7,17 +7,7 @@ Items build on each other in the order they appear below. Delete an item when it
 - Check the installed PWA on a real phone: install prompt and the update prompt. Desktop Chromium already loads the shell offline, Android OK.
 - Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
-- Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
-
-## 7. Charts rework (L, after 2 and 6)
-
-- No dependency: hand-rolled SVG is about 4 KB, against 20 to 150 KB gzipped for libraries that can't read the CSS tokens.
-- `core/charts.ts`: `niceScale(maxCents)` and `previousRange(granularity, range)`.
-- `spending-chart.tsx`: square columns in `--color-bg-accent` on a `viewBox`, hairline grid, HTML tick labels, the biggest column and today's bucket marked. Tap, or arrows with Home and End on one tab stop, fill a readout line (`aria-live`). `role="img"` with a generated summary, and a collapsed "Show the numbers" `<details>` table as the text alternative.
-- A stat row with the total and the change against the previous period (signed %, ↑/↓, never color alone).
-- `category-split.tsx`: one stacked strip above the ranked rows, in the accent with gaps until the owner allows category colors on marks. Columns animate `scaleY`, segments `scaleX`, over `--duration-base`. Delete `components/bar`.
-- New keys (en + es): `readout`, `chartSummary`, `vsPrevious`, `noPrevious`, `showNumbers`. `charts.test.tsx` reads the table instead of the bars; new tests for the keyboard readout, the summary and the previous period.
-- Docs: rewrite `design.md` §5 Charts; `ARCHITECTURE.md` §5. Risks: 400 columns on 320 px read as a silhouette; amber next to the orange and yellow fills.
+- Charts: may a category color fill that category's mark in a chart (the split strip)? It needs a `design.md` §2 change. Built without it, in the accent, until you answer.
 
 ## 8. Guest mode (L, blocked until the owner decides)
 
