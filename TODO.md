@@ -9,15 +9,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 5. Edit an expense (L, after 3 and 4)
-
-- Edit joins Delete in the card panel (`expense-row.tsx`, the `expense-item__actions` box, Delete only today), and loads the expense into the add form: `editing: Expense[] | null` in `Home`, `<ExpenseForm key={editing?.[0].id ?? 'new'}>` so a remount returns to "add". It opens the form with `setOpen(true)`, scrolls to it (instant under reduced motion) and focuses its heading. New copy: title, Save, Cancel (en + es). Save or Cancel focuses the edited row: its toggle (`Disclosure` takes a `toggleRef`), which `ExpenseRow` doesn't hand out yet.
-- `draftOf(parts)` and `reviseExpenses(original, draft)` in `create-expenses.ts`: keep ids by part number and `createdAt`, new parts get new ids under the same plan, removed parts are saved with `deletedAt`, and `updatedAt = max(now, newest + 1)`. No API or migration change: `PUT /expenses/:id` already upserts.
-- The saved category stays (no suggestion overwrite; an unknown id shows Other). Edit is off for a plan with parts missing on this device. Deleting the expense under edit ends the edit; so does pressing Expenses or the logo on `/`.
-- Defaults to confirm: editing a plan edits the whole plan, charged parts included; Edit replaces an unsaved new draft without asking; Delete keeps no confirmation.
-- `ARCHITECTURE.md` §5: a plan edited on two devices can end up mixed, and an edit after a delete elsewhere brings the expense back.
-- Tests: new `create-expenses.test.ts`; an "editing an expense" block (same id and `createdAt`, plan with fewer or more parts, card payment, offline gives one write, cancel, focus).
-
 ## 6. Search, filters and grouping of the list (M, after 2 and 3)
 
 - `core/text.ts` (move `normalizeText` out of the classifier) and `core/expense-list.ts`: `buildList(expenses, filters, grouping, ctx)` collapses plans first, filters on the row shown, groups by day, week, month or category and returns `{ key, items, totalCents }`. Replaces `groupByDay`.
