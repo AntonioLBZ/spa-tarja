@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
 import { categoryNames, chosenCategory, pickCategory } from '@/lib/test/category-select';
@@ -1666,6 +1667,50 @@ describe('editing an expense', () => {
         expect(document.activeElement).toBe(rowToggle('Brunch'));
     });
 
+    it('moves the row to the day it now has, with the focus still on it', async () => {
+        const coffee = expense({ text: 'Coffee', date: '2026-10-20' });
+        await open([lunch, coffee]);
+        expect(document.querySelectorAll('.expense-list__group')).toHaveLength(2);
+        edit('Lunch');
+
+        typeIn(en.expenses.form.date, '2026-10-20');
+        save();
+
+        await waitFor(() => expect(document.querySelectorAll('.expense-list__group')).toHaveLength(1));
+        const group = rowToggle('Lunch').closest('.expense-list__group')!;
+        const day = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' });
+        expect(group.querySelector('.expense-list__label')!.textContent).toBe(
+            day.format(new Date('2026-10-20T12:00:00'))
+        );
+        expect(within(group as HTMLElement).getByText('Coffee')).toBeDefined();
+        expect(document.activeElement).toBe(rowToggle('Lunch'));
+        expect(field(en.expenses.form.text).value).toBe('');
+    });
+
+    it('says so and stays on the edit when the change cannot be stored on this device', async () => {
+        const memory = createMemoryStorage();
+        const storage = {
+            ...memory,
+            set: (key: string, value: unknown) =>
+                key.startsWith('tarja:outbox') ? Promise.reject(new Error('quota exceeded')) : memory.set(key, value),
+        };
+        stubApi(createFakeApi({ expenses: [lunch] }).handler);
+        renderApp({ storage });
+        await screen.findByText('Lunch');
+        edit('Lunch');
+
+        typeIn(en.expenses.form.text, 'Brunch');
+        save();
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.saveFailed);
+        expect(editToggle()).toBeDefined();
+        expect(field(en.expenses.form.text).value).toBe('Brunch');
+        expect(screen.getByRole('button', { name: en.expenses.form.save })).toBeDefined();
+        expect(screen.getByRole('button', { name: en.expenses.form.cancel })).toBeDefined();
+        expect(rowToggle('Lunch')).toBeDefined();
+        expect(screen.queryByText(en.expenses.list.pending)).toBeNull();
+    });
+
     it('goes back to adding on Cancel, saving nothing, with the focus on the row', async () => {
         const { api } = await open([lunch]);
         edit('Lunch');
@@ -1893,6 +1938,33 @@ describe('editing an expense', () => {
         ]);
     });
 
+    it('turns a plan into a restaurant card payment with a part of your own, keeping the first part', async () => {
+        const parts = sofa([500, 500, 500]);
+        const { api } = await open(parts);
+        edit('Sofa');
+
+        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'voucher' } });
+        expect(field(en.expenses.form.personal).value).toBe('');
+        typeIn(en.expenses.form.personal, '5');
+        save();
+
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        expect(api.writes[0]).toMatchObject({
+            id: parts[0]!.id,
+            payment: 'voucher',
+            chargeDate: '2026-11-25',
+            amountCents: 1500,
+            personalCents: 500,
+            plan: null,
+            deletedAt: null,
+        });
+        expect(api.writes.slice(1).map((write) => [write.id, write.deletedAt])).toEqual([
+            [parts[1]!.id, now()],
+            [parts[2]!.id, now()],
+        ]);
+        for (const write of api.writes) expect(v.safeParse(expenseInputSchema, write).issues).toBeUndefined();
+    });
+
     it('turns an expense into the first payment of a new plan', async () => {
         const { api } = await open([lunch]);
         edit('Lunch');
@@ -1987,6 +2059,58 @@ describe('editing an expense', () => {
 
         cancel();
         expect(field(en.expenses.form.amount).value).toBe('');
+    });
+});
+
+describe('editing in Spanish', () => {
+    const tEs = createTranslator({ locale: 'es', messages: es });
+    const dinner = expense({
+        text: 'Cena',
+        amountCents: 4005,
+        personalCents: 2050,
+        payment: 'voucher',
+        chargeDate: '2026-11-12',
+    });
+    const fieldEs = (label: string) => screen.getByLabelText(label) as HTMLInputElement;
+
+    beforeEach(() => localStorage.setItem('tarja:locale', 'es'));
+    afterEach(() => localStorage.clear());
+
+    async function editDinner() {
+        const api = createFakeApi({ expenses: [dinner] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Cena');
+        fireEvent.click(rowToggle('Cena'));
+        fireEvent.click(screen.getByRole('button', { name: tEs('expenses.list.editItem', { name: 'Cena' }) }));
+        return api;
+    }
+
+    it('loads the amounts the Spanish way and sends back the cents it was given', async () => {
+        const api = await editDinner();
+
+        expect(fieldEs(es.expenses.form.amount).value).toBe('40,05');
+        expect(fieldEs(es.expenses.form.personal).value).toBe('20,50');
+        fireEvent.change(fieldEs(es.expenses.form.text), { target: { value: 'Cena de dos' } });
+        fireEvent.click(screen.getByRole('button', { name: es.expenses.form.save }));
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({
+            id: dinner.id,
+            text: 'Cena de dos',
+            amountCents: 4005,
+            personalCents: 2050,
+        });
+    });
+
+    it('reads an amount typed with a comma', async () => {
+        const api = await editDinner();
+
+        fireEvent.change(fieldEs(es.expenses.form.amount), { target: { value: '41,5' } });
+        fireEvent.click(screen.getByRole('button', { name: es.expenses.form.save }));
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ amountCents: 4150, personalCents: 2050 });
     });
 });
 
