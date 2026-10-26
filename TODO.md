@@ -4,10 +4,14 @@ Items build on each other in the order they appear below. Delete an item when it
 
 ## Needs the owner
 
-- Check the installed PWA on a real phone: install prompt and the update prompt. Desktop Chromium already loads the shell offline, Android OK.
+- Check the installed PWA on a real phone: install prompt and the update prompt, the real toolbar color and, on Android, the splash (the manifest stays light because light is the default; an app set to dark opens on a light splash). Desktop Chromium already loads the shell offline, Android OK.
 - Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts: may a category color fill that category's mark in a chart (the split strip)? It needs a `design.md` §2 change. Built without it, in the accent, until you answer.
+- Dark mode, the hairline `--color-border-subtle` (`#d4d4d4` light, `#2e2e2e` dark) is 1.4 to 1.6:1 in both themes, while `design.md` §2 claims 3:1 and §3 Shape says quiet messages use ink (the code uses the hairline). It draws disabled notches, quiet notices, the Delete notch, the chart grid and the numbers table rules. Option A: raise it (`#767676` gives 4:1 or more, but the grid and table compete with the data; or a second token for the three box edges only). Option B (recommended): correct the document, the hairline is decorative and text already identifies each box.
+- Dark mode, the ink notch on an accent fill (primary button, checked option of a choice group, pressed toggle) is 1.5 to 2.4:1 in dark and 2.0 to 4.2:1 in light. Option A: retune the twelve accent tones so it reaches 3:1 (dark accents turn from pastel to mid-tones). Option B (recommended): correct the document, the fill (4.5:1 or more against the page) is what marks the control. The selected chart column is weak in dark gray either way; say if it should get an ink frame instead.
+- Chrome draws the search field's clear button as a blue × in light. Hide it (the Clear button and the keyboard still work) or draw our own × in the text color?
+- Offline, the income and new-category fields still look enabled while their buttons are disabled; disable the fields too?
 
 ## 8. Guest mode (L, blocked until the owner decides)
 
@@ -19,10 +23,3 @@ No account, fully offline, local data only. Later the person signs in and the ap
 4. Docs to change: `ARCHITECTURE.md` §2 (login, "no SEO"), §6, §8, §11; `AGENTS.md` (Google login only, the per-user storage line, `AuthGate`, Testing); `design.md` §5 (Summary and Categories offline lines, a Sign-in and guest section). Locale keys `auth.guest*`, `settings.guest.*`, `guestTransfer.*`, `categoryManager.guest`, `summary.guest`.
 5. Risks: guest data can be lost to eviction (warn, can't fix); moving to the wrong account can't be undone (the email in the prompt is the safeguard).
 6. Recommendation: build both phases only if strangers should be able to try Tarja. Skip guest custom categories and income.
-
-## 9. Dark mode pass (M, last)
-
-- Done on paper: no raw colors outside `tokens.css`; every text and accent pair passes in dark.
-- `--color-border-subtle` dark (`#2e2e2e`) is 1.55:1 on black and 1.36:1 on `#141414`, below the 3:1 `design.md` §2 claims. It draws the disabled notch, the quiet message notch (`expense-list.css`) and the delete notch. Either raise it to about `#767676` or correct the claim and keep it a hairline; and §3 says messages use ink while the code uses subtle in four places.
-- The primary button's ink notch on the accent fill is 1.5 to 2.4:1 in dark. `vite.config.ts` manifest colors are light only.
-- Eye pass in Chrome at phone width, light and dark, the six accents: every screen and state, including what items 2 to 8 added (cards, header underline, filters, chart, guest notices, autofill, the date input icon).
