@@ -8,6 +8,7 @@ import {
     groupItems,
     hasFilters,
     isListGrouping,
+    limitRows,
     listItems,
     type ListContext,
     type ListFilters,
@@ -579,5 +580,54 @@ describe('isListGrouping', () => {
 
     it.each(['year', '', null, undefined, 3])('refuses %s', (value) => {
         expect(isListGrouping(value)).toBe(false);
+    });
+});
+
+describe('limitRows', () => {
+    const groups = buildList(
+        [
+            expense('a', { date: '2026-10-03', amountCents: 100 }),
+            expense('b', { date: '2026-10-03', amountCents: 200, createdAt: 2 }),
+            expense('c', { date: '2026-10-02', amountCents: 400 }),
+            expense('d', { date: '2026-10-01', amountCents: 800 }),
+        ],
+        NO_FILTERS,
+        'day',
+        ctx
+    );
+    const rowIds = (limited: ReturnType<typeof limitRows>) =>
+        limited.map((group) => group.items.map((item) => (item.kind === 'single' ? item.expense.id : item.planId)));
+
+    it('keeps every group that fits', () => {
+        expect(limitRows(groups, 10)).toEqual(groups);
+    });
+
+    it('cuts the rows past the limit, in the middle of a group if need be', () => {
+        expect(rowIds(limitRows(groups, 1))).toEqual([['b']]);
+        expect(rowIds(limitRows(groups, 3))).toEqual([['b', 'a'], ['c']]);
+    });
+
+    it('leaves out the groups that come after the limit', () => {
+        expect(rowIds(limitRows(groups, 2))).toEqual([['b', 'a']]);
+    });
+
+    it('keeps the subtotal of a group that was cut whole', () => {
+        expect(limitRows(groups, 1)[0]?.totalCents).toBe(300);
+    });
+
+    it('does not modify the groups it is given', () => {
+        limitRows(groups, 1);
+
+        expect(groups[0]?.items).toHaveLength(2);
+    });
+
+    it('counts a plan as one row', () => {
+        const withPlan = buildList([...plan('sofa', 3), expense('lunch', { createdAt: 0 })], NO_FILTERS, 'day', ctx);
+
+        expect(rowIds(limitRows(withPlan, 2))).toEqual([['sofa', 'lunch']]);
+    });
+
+    it('is empty for a limit of none', () => {
+        expect(limitRows(groups, 0)).toEqual([]);
     });
 });

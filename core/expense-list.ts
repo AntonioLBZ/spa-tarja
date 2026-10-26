@@ -149,6 +149,18 @@ function buildList(
     return groupItems(listItems(expenses), filters, grouping, ctx);
 }
 
+// The first `max` rows of the groups, in order. A group cut short keeps the subtotal of all its rows.
+function limitRows(groups: readonly ListGroup[], max: number): ListGroup[] {
+    const limited: ListGroup[] = [];
+    let left = max;
+    for (const group of groups) {
+        if (left <= 0) break;
+        limited.push(group.items.length <= left ? group : { ...group, items: group.items.slice(0, left) });
+        left -= group.items.length;
+    }
+    return limited;
+}
+
 // How many of the filters of the panel are in use: the category, the dates and how it was paid, one each
 function activeFilterCount(filters: ListFilters): number {
     return [filters.categoryId !== '', filters.from !== '' || filters.to !== '', filters.paidWith !== 'any'].filter(
@@ -172,6 +184,7 @@ export {
     hasFilters,
     isListGrouping,
     itemCents,
+    limitRows,
     listItems,
     shownExpense,
 };
