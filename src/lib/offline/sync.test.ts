@@ -105,6 +105,30 @@ describe('pushing the outbox', () => {
         expect(api.writes.map((item) => item.id)).toEqual(['saved-before']);
     });
 
+    it('sends your part of a restaurant card expense, and keeps what the server answers', async () => {
+        const { api, outbox, sync } = setup();
+        await outbox.put(
+            expense('dinner', { amountCents: 4000, personalCents: 2000, payment: 'voucher', chargeDate: '2026-11-12' })
+        );
+
+        const state = await sync();
+
+        expect(api.writes[0]).toMatchObject({ amountCents: 4000, personalCents: 2000 });
+        expect(state.expenses[0]).toMatchObject({ amountCents: 4000, personalCents: 2000 });
+    });
+
+    it('sends an expense saved on the device before your part existed as it was saved', async () => {
+        const { api, client } = setup();
+        const storage = createMemoryStorage();
+        await storage.set('tarja:outbox', [expense('older', { payment: 'voucher', chargeDate: '2026-11-12' })]);
+        const outbox = createOutbox(storage);
+
+        await client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
+
+        expect(api.writes.map((item) => item.id)).toEqual(['older']);
+        expect(api.writes[0]).not.toHaveProperty('personalCents');
+    });
+
     it('sends in the order they were saved', async () => {
         const { api, outbox, sync } = setup();
         await outbox.put(expense('first'));

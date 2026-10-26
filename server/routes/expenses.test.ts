@@ -12,6 +12,7 @@ interface Payload {
     date: string;
     payment?: string;
     chargeDate?: string | null;
+    personalCents?: number | null;
     plan?: { id: string; part: number; parts: number } | null;
     createdAt: number;
     updatedAt: number;
@@ -74,7 +75,14 @@ describe('PUT /api/expenses/:id', () => {
         const response = await put(id, payload());
 
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ id, ...payload(), payment: 'direct', chargeDate: null, plan: null });
+        expect(await response.json()).toEqual({
+            id,
+            ...payload(),
+            payment: 'direct',
+            chargeDate: null,
+            personalCents: null,
+            plan: null,
+        });
     });
 
     it('stores when a deferred expense is charged and how it was paid', async () => {
@@ -91,6 +99,61 @@ describe('PUT /api/expenses/:id', () => {
         const response = await put(crypto.randomUUID(), payload({ payment: 'voucher', chargeDate: '2026-11-01' }));
 
         expect(await response.json()).toMatchObject({ payment: 'voucher', chargeDate: '2026-11-01' });
+    });
+
+    it('stores your part of a restaurant card expense', async () => {
+        const id = crypto.randomUUID();
+        const dinner = payload({
+            amountCents: 4000,
+            personalCents: 2000,
+            payment: 'voucher',
+            chargeDate: '2026-11-12',
+        });
+
+        const response = await put(id, dinner);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toMatchObject({ id, amountCents: 4000, personalCents: 2000 });
+        expect((await changes()).expenses[0]).toMatchObject({ amountCents: 4000, personalCents: 2000 });
+    });
+
+    it.each([0, 4000])('stores a part of %i cents, from nothing to all of it', async (personalCents) => {
+        const response = await put(
+            crypto.randomUUID(),
+            payload({ amountCents: 4000, personalCents, payment: 'voucher', chargeDate: '2026-11-12' })
+        );
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toMatchObject({ personalCents });
+    });
+
+    it('stores no part for a restaurant card expense from a client that does not send one', async () => {
+        const response = await put(crypto.randomUUID(), payload({ payment: 'voucher', chargeDate: '2026-11-12' }));
+
+        expect(await response.json()).toMatchObject({ payment: 'voucher', personalCents: null });
+        expect((await changes()).expenses[0]).toMatchObject({ personalCents: null });
+    });
+
+    it('changes your part with a later write, and drops it when a later write has none', async () => {
+        const id = crypto.randomUUID();
+        const voucher = { amountCents: 4000, payment: 'voucher', chargeDate: '2026-11-12' };
+        await put(id, payload({ ...voucher, personalCents: 2000 }));
+
+        await put(id, payload({ ...voucher, personalCents: 1500, updatedAt: 2_000 }));
+        expect((await changes()).expenses[0]).toMatchObject({ personalCents: 1500 });
+
+        await put(id, payload({ ...voucher, updatedAt: 3_000 }));
+        expect((await changes()).expenses[0]).toMatchObject({ personalCents: null });
+    });
+
+    it('keeps your part when the write is older', async () => {
+        const id = crypto.randomUUID();
+        const voucher = { amountCents: 4000, payment: 'voucher', chargeDate: '2026-11-12' };
+        await put(id, payload({ ...voucher, personalCents: 2000, updatedAt: 5_000 }));
+
+        const response = await put(id, payload({ ...voucher, personalCents: 1000, updatedAt: 3_000 }));
+
+        expect(await response.json()).toMatchObject({ personalCents: 2000 });
     });
 
     it('moves an expense to another charge date, or back to being charged at once', async () => {
@@ -152,7 +215,13 @@ describe('PUT /api/expenses/:id', () => {
             .bind(id, session.userId)
             .run();
 
-        expect((await changes()).expenses[0]).toMatchObject({ id, payment: 'direct', chargeDate: null, plan: null });
+        expect((await changes()).expenses[0]).toMatchObject({
+            id,
+            payment: 'direct',
+            chargeDate: null,
+            personalCents: null,
+            plan: null,
+        });
     });
 
     it('is idempotent: repeating the same write changes nothing', async () => {
@@ -233,6 +302,15 @@ describe('PUT /api/expenses/:id', () => {
         ['a part past the last one', { plan: { id: crypto.randomUUID(), part: 4, parts: 3 } }],
         ['a plan of one part', { plan: { id: crypto.randomUUID(), part: 1, parts: 1 } }],
         ['a plan with an id that is not a UUID', { plan: { id: 'plan', part: 1, parts: 2 } }],
+        [
+            'a part over the total',
+            { amountCents: 4000, personalCents: 4001, payment: 'voucher', chargeDate: '2026-11-25' },
+        ],
+        ['a negative part', { personalCents: -1, payment: 'voucher', chargeDate: '2026-11-25' }],
+        ['a fractional part', { personalCents: 10.5, payment: 'voucher', chargeDate: '2026-11-25' }],
+        ['a part of a credit card expense', { personalCents: 500, payment: 'credit', chargeDate: '2026-11-25' }],
+        ['a part of an expense paid at once', { personalCents: 500, payment: 'direct' }],
+        ['a part of an expense that says nothing about its payment', { personalCents: 500 }],
         [
             'a restaurant card in installments',
             { payment: 'voucher', chargeDate: '2026-11-25', plan: { id: crypto.randomUUID(), part: 1, parts: 2 } },

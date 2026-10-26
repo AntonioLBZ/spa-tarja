@@ -61,6 +61,14 @@ describe('applyPending', () => {
         expect(result[0]?.deletedAt).toBe(5);
     });
 
+    it('shows the pending version whole, your part of a restaurant card included', () => {
+        const voucher = { amountCents: 4000, payment: 'voucher', chargeDate: '2026-11-12' } as const;
+        const server = [expense('a', { ...voucher, personalCents: 2000 })];
+
+        expect(applyPending(server, [expense('a', { ...voucher, personalCents: 1500 })])[0]?.personalCents).toBe(1500);
+        expect(applyPending(server, [expense('a', voucher)])[0]).not.toHaveProperty('personalCents');
+    });
+
     it('returns the server expenses untouched when nothing is pending', () => {
         const server = [expense('a'), expense('b')];
 
