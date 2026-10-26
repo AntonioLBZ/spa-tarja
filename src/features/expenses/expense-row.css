@@ -17,15 +17,13 @@
     transition-timing-function: var(--ease-exit);
 }
 
-/* What the toggle shows, in the place of the card: the name and the amount, and the details under them */
+/* What the toggle shows: the name and the amount, and the details under them. The row of the details exists only when
+   there are some, so a row without them has no gap under it */
 .expense-item__body {
     align-items: center;
     display: grid;
     flex: 1;
     gap: var(--size-1) var(--size-3);
-    grid-template-areas:
-        'name amount'
-        'meta meta';
     grid-template-columns: minmax(0, 1fr) auto;
     min-width: 0;
     padding-block: var(--size-2);
@@ -35,7 +33,7 @@
     align-items: center;
     display: flex;
     gap: var(--size-2);
-    grid-area: name;
+    grid-area: 1 / 1;
     min-width: 0;
 }
 
@@ -46,7 +44,7 @@
 
 .expense-item__amount {
     font-variant-numeric: tabular-nums;
-    grid-area: amount;
+    grid-area: 1 / 2;
     white-space: nowrap;
 }
 
@@ -56,7 +54,7 @@
     flex-wrap: wrap;
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
-    grid-area: meta;
+    grid-area: 2 / 1 / auto / -1;
     min-width: 0;
 }
 
