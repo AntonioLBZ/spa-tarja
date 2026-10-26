@@ -6,8 +6,13 @@ function at(pathname: string) {
     return { pathname } as never;
 }
 
-function between(from: string | undefined, to: string, pathChanged = true) {
-    return slideTypes({ fromLocation: from === undefined ? undefined : at(from), toLocation: at(to), pathChanged });
+// The change the router describes: the path has changed exactly when the two pathnames differ
+function between(from: string | undefined, to: string) {
+    return slideTypes({
+        fromLocation: from === undefined ? undefined : at(from),
+        toLocation: at(to),
+        pathChanged: from !== to,
+    });
 }
 
 describe('routeDepth', () => {
@@ -62,10 +67,9 @@ describe('slideTypes', () => {
         expect(between('/categories', '/charts')).toEqual(['level']);
     });
 
-    it('does not slide for the first screen, for the same screen or for a change that is not of path', () => {
+    it('does not slide for the first screen, nor for a change inside the same screen', () => {
         expect(between(undefined, '/settings')).toBe(false);
         expect(between('/settings', '/settings')).toBe(false);
-        expect(between('/settings', '/settings', false)).toBe(false);
-        expect(between('/', '/settings', false)).toBe(false);
+        expect(between('/', '/')).toBe(false);
     });
 });

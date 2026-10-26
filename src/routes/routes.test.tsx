@@ -150,15 +150,20 @@ describe('header', () => {
         expect(link(en.nav.expenses).hasAttribute('aria-current')).toBe(false);
     });
 
-    it('never underlines the logo', async () => {
-        await home();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
+    it.each(['/', '/summary', '/settings', '/charts', '/categories'])(
+        'never underlines the logo, on %s or on the way home from it',
+        async (path) => {
+            await home(path);
+            expect(underlined()).toHaveLength(1);
+            expect(link('Tarja').querySelector('.root__underline')).toBeNull();
 
-        fireEvent.click(link('Tarja'));
+            fireEvent.click(link('Tarja'));
 
-        expect(link('Tarja').querySelector('.root__underline')).toBeNull();
-        expect(underlined()).toEqual([en.nav.expenses]);
-    });
+            await screen.findByRole('heading', { name: en.expenses.form.title });
+            expect(underlined()).toEqual([en.nav.expenses]);
+            expect(link('Tarja').querySelector('.root__underline')).toBeNull();
+        }
+    );
 
     it('leaves the form as it is on a click that opens the link elsewhere', async () => {
         await home();
@@ -166,18 +171,20 @@ describe('header', () => {
         const keepOnPage = (event: MouseEvent) => event.preventDefault();
         window.addEventListener('click', keepOnPage);
 
-        fireEvent.click(link(en.nav.expenses), { ctrlKey: true });
-        fireEvent.click(link(en.nav.expenses), { metaKey: true });
-        fireEvent.click(link(en.nav.expenses), { shiftKey: true });
-        fireEvent.click(link(en.nav.expenses), { altKey: true });
-        fireEvent.click(link(en.nav.expenses), { button: 1 });
-        expect(formOpen()).toBe(true);
+        try {
+            fireEvent.click(link(en.nav.expenses), { ctrlKey: true });
+            fireEvent.click(link(en.nav.expenses), { metaKey: true });
+            fireEvent.click(link(en.nav.expenses), { shiftKey: true });
+            fireEvent.click(link(en.nav.expenses), { altKey: true });
+            fireEvent.click(link(en.nav.expenses), { button: 1 });
+            expect(formOpen()).toBe(true);
 
-        fireEvent.click(link(en.nav.expenses));
-        fireEvent.click(link('Tarja'), { ctrlKey: true });
-        fireEvent.click(link('Tarja'), { button: 1 });
-        expect(formOpen()).toBe(false);
-
-        window.removeEventListener('click', keepOnPage);
+            fireEvent.click(link(en.nav.expenses));
+            fireEvent.click(link('Tarja'), { ctrlKey: true });
+            fireEvent.click(link('Tarja'), { button: 1 });
+            expect(formOpen()).toBe(false);
+        } finally {
+            window.removeEventListener('click', keepOnPage);
+        }
     });
 });

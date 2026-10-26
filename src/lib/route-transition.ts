@@ -32,7 +32,7 @@ interface LocationChange {
 // same depth (design.md); false for no transition
 function slideTypes(change: LocationChange): string[] | false {
     const { fromLocation, toLocation, pathChanged } = change;
-    if (!fromLocation || !pathChanged || fromLocation.pathname === toLocation.pathname) return false;
+    if (!fromLocation || !pathChanged) return false;
     const from = routeDepth(fromLocation.pathname);
     const to = routeDepth(toLocation.pathname);
     if (from === to) return ['level'];

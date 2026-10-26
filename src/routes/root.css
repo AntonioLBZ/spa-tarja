@@ -29,6 +29,13 @@
     justify-self: end;
 }
 
+/* Summary and Settings stop reading as one phrase once there is room */
+@media (width >= 40rem) {
+    .root__group {
+        gap: var(--size-4);
+    }
+}
+
 .root__brand,
 .root__link {
     align-items: center;
