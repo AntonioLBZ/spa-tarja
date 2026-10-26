@@ -9,17 +9,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 10. Restaurant card: total paid and your part (M to L, before 5)
-
-Dinner on 12 Oct, 40 € paid with the restaurant card, your part 20 €, the friend sends 20 € by Bizum, charge date 12 Nov. Confirmed with the owner:
-
-- October (the day made): spent 20 (your part) and 20 of income, the difference ("paid back by others"). November (the month of the charge date): 20 of restaurant-card income, counted on the 1st. Until now the full 40 counted as spent and as card income, both in November. `credit` and `direct` keep their rules.
-- Migration `0008`: `personal_cents INTEGER`, NULL meaning the same as `amount_cents`, so old rows and older clients behave as before. Only for `voucher`, `0 <= personal_cents <= amount_cents`, validated by the API (400).
-- `core/counting.ts`: `countedOn` (voucher: `date`), `countedCents` (voucher: your part), `voucherIncomeOn` (1st of the charge month, your part), `paidBackCents`; the summary (`leftCents = income + card + paid back - spent`), charts and the list read them.
-- Form: with "Restaurant card", a "Your part" field (empty = same as the total) with the hint "Others pay back {amount}" and an error when it exceeds the total. The list row shows your part and "Paid {total}" when they differ. The summary gets a "Paid back by others" row, shown only when non-zero. Locale keys en + es.
-- Past months move: old restaurant-card rows now count as spent on the day made, not on the charge day. Say so in `ARCHITECTURE.md` §5 (also amend "A restaurant card also counts as income of the month it is charged") and `design.md` §5 Summary.
-- Tests: core (counting, summary, charts, 1st-of-month, NULL = total), server (valid share, share over the total, share on a non-voucher, older body writes NULL), front (field only for the restaurant card, hint, error, list, summary).
-
 ## 5. Edit an expense (L, after 3 and 4)
 
 - Edit joins Delete in the card panel (`expense-row.tsx`, the `expense-item__actions` box, Delete only today), and loads the expense into the add form: `editing: Expense[] | null` in `Home`, `<ExpenseForm key={editing?.[0].id ?? 'new'}>` so a remount returns to "add". It opens the form with `setOpen(true)`, scrolls to it (instant under reduced motion) and focuses its heading. New copy: title, Save, Cancel (en + es). Save or Cancel focuses the edited row: its toggle (`Disclosure` takes a `toggleRef`), which `ExpenseRow` doesn't hand out yet.
