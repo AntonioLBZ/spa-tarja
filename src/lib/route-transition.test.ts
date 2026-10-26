@@ -6,7 +6,6 @@ function at(pathname: string) {
     return { pathname } as never;
 }
 
-// The change the router describes: the path has changed exactly when the two pathnames differ
 function between(from: string | undefined, to: string) {
     return slideTypes({
         fromLocation: from === undefined ? undefined : at(from),
