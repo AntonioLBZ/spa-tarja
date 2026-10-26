@@ -115,6 +115,51 @@ describe('header', () => {
         expect(formOpen()).toBe(true);
     });
 
+    function underlined() {
+        return [...document.querySelectorAll('.root__underline')].map((mark) => mark.closest('a')!.textContent);
+    }
+
+    it('underlines Expenses at home, with a mark that is only decoration', async () => {
+        await home();
+
+        expect(underlined()).toEqual([en.nav.expenses]);
+        expect(document.querySelector('.root__underline')!.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('moves the underline to the screen that was opened', async () => {
+        await home();
+
+        fireEvent.click(link(en.nav.summary));
+        await screen.findByRole('heading', { name: en.summary.title });
+        expect(underlined()).toEqual([en.nav.summary]);
+
+        fireEvent.click(link(en.nav.settings));
+        await screen.findByRole('heading', { name: en.settings.title });
+        expect(underlined()).toEqual([en.nav.settings]);
+    });
+
+    it.each([
+        ['/charts', en.nav.summary, en.charts.title],
+        ['/categories', en.nav.settings, en.categoryManager.title],
+    ])('underlines the section %s is reached from, which it marks as current', async (path, section, title) => {
+        await home(path);
+        await screen.findByRole('heading', { name: title });
+
+        expect(underlined()).toEqual([section]);
+        expect(link(section).getAttribute('aria-current')).toBe('true');
+        expect(link(en.nav.expenses).hasAttribute('aria-current')).toBe(false);
+    });
+
+    it('never underlines the logo', async () => {
+        await home();
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+
+        fireEvent.click(link('Tarja'));
+
+        expect(link('Tarja').querySelector('.root__underline')).toBeNull();
+        expect(underlined()).toEqual([en.nav.expenses]);
+    });
+
     it('leaves the form as it is on a click that opens the link elsewhere', async () => {
         await home();
         await screen.findByRole('heading', { name: en.expenses.form.title });

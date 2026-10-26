@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { routeDepth, slideTypes } from './route-transition';
+import { navSection, routeDepth, slideTypes } from './route-transition';
 
 function at(pathname: string) {
     return { pathname } as never;
@@ -24,6 +24,20 @@ describe('routeDepth', () => {
     });
 });
 
+describe('navSection', () => {
+    it('gives each screen of the header its own section and a deeper screen the one it is reached from', () => {
+        expect(navSection('/')).toBe('/');
+        expect(navSection('/summary')).toBe('/summary');
+        expect(navSection('/charts')).toBe('/summary');
+        expect(navSection('/settings')).toBe('/settings');
+        expect(navSection('/categories')).toBe('/settings');
+    });
+
+    it('takes a page it does not know for the home screen', () => {
+        expect(navSection('/nowhere')).toBe('/');
+    });
+});
+
 describe('slideTypes', () => {
     it('goes forward when the new screen is deeper', () => {
         expect(between('/', '/settings')).toEqual(['forward']);
@@ -39,6 +53,13 @@ describe('slideTypes', () => {
         expect(between('/categories', '/')).toEqual(['back']);
         expect(between('/summary', '/')).toEqual(['back']);
         expect(between('/charts', '/summary')).toEqual(['back']);
+    });
+
+    it('stays level between two screens at the same depth', () => {
+        expect(between('/summary', '/settings')).toEqual(['level']);
+        expect(between('/settings', '/summary')).toEqual(['level']);
+        expect(between('/charts', '/categories')).toEqual(['level']);
+        expect(between('/categories', '/charts')).toEqual(['level']);
     });
 
     it('does not slide for the first screen, for the same screen or for a change that is not of path', () => {

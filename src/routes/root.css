@@ -41,11 +41,17 @@
 .root__link {
     font-size: var(--font-size-s);
     justify-self: start;
+    position: relative;
 }
 
-.root__link[aria-current='page'] {
-    text-decoration: underline;
-    text-underline-offset: var(--size-1);
+/* The mark under the word of the current section, flush with the bottom of the header. There is only one, and under
+   its own name it slides from word to word when the screen changes */
+.root__underline {
+    border-bottom: var(--size-1) solid var(--color-border);
+    inset-block-end: 0;
+    inset-inline: 0;
+    position: absolute;
+    view-transition-name: nav-underline;
 }
 
 .root__main {
@@ -66,6 +72,21 @@
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;
+}
+
+/* The underline moves as one piece: its group slides and stretches from the old word to the new one, showing the new
+   mark only */
+::view-transition-group(nav-underline) {
+    animation-timing-function: var(--ease-standard);
+}
+
+::view-transition-old(nav-underline) {
+    display: none;
+}
+
+::view-transition-new(nav-underline) {
+    animation: none;
+    block-size: 100%;
 }
 
 @keyframes page-leave-left {
@@ -96,6 +117,18 @@
     }
 }
 
+@keyframes page-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes page-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
 :root:active-view-transition-type(forward) {
     &::view-transition-old(page) {
         animation: page-leave-left var(--duration-base) var(--ease-exit) both;
@@ -113,5 +146,16 @@
 
     &::view-transition-new(page) {
         animation: page-enter-from-left var(--duration-base) var(--ease-enter) both;
+    }
+}
+
+/* Between two screens at the same depth the page only fades, while the underline slides */
+:root:active-view-transition-type(level) {
+    &::view-transition-old(page) {
+        animation: page-fade-out var(--duration-base) var(--ease-exit) both;
+    }
+
+    &::view-transition-new(page) {
+        animation: page-fade-in var(--duration-base) var(--ease-enter) both;
     }
 }

@@ -1,9 +1,10 @@
-import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
+import { Link, Outlet, createRootRoute, useRouterState } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
 import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
 import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
+import { navSection, type NavSection } from '@/lib/route-transition';
 
 import type { MouseEvent } from 'react';
 
@@ -31,10 +32,24 @@ function RootLayout() {
 }
 
 // Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home:
-// Expenses with the add form collapsed, the logo with it open.
+// Expenses with the add form collapsed, the logo with it open. The logo is never underlined.
 function RootHeader() {
     const t = useTranslations('nav');
     const { setOpen } = useAddForm();
+    // The screen already shown, not the one being opened: the underline has to be in its old place when the view
+    // transition takes its first picture, or it doesn't slide
+    const section = useRouterState({
+        select: (state) => navSection((state.resolvedLocation ?? state.location).pathname),
+    });
+
+    // The router marks only the link of its own path; a deeper screen marks the section it is reached from
+    function current(target: NavSection) {
+        return section === target ? 'true' : undefined;
+    }
+
+    function underline(target: NavSection) {
+        return section === target && <span aria-hidden className="root__underline" />;
+    }
 
     return (
         <header className="root__header">
@@ -43,11 +58,13 @@ function RootHeader() {
                     className="root__link"
                     to="/"
                     activeOptions={{ exact: true }}
+                    aria-current={current('/')}
                     onClick={(event) => {
                         if (!opensElsewhere(event)) setOpen(false);
                     }}
                 >
                     {t('expenses')}
+                    {underline('/')}
                 </Link>
                 <Link
                     className="root__brand"
@@ -60,11 +77,13 @@ function RootHeader() {
                     <Brand />
                 </Link>
                 <div className="root__group">
-                    <Link className="root__link" to="/summary">
+                    <Link className="root__link" to="/summary" aria-current={current('/summary')}>
                         {t('summary')}
+                        {underline('/summary')}
                     </Link>
-                    <Link className="root__link" to="/settings">
+                    <Link className="root__link" to="/settings" aria-current={current('/settings')}>
                         {t('settings')}
+                        {underline('/settings')}
                     </Link>
                 </div>
             </nav>
