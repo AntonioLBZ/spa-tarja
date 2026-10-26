@@ -28,7 +28,13 @@ function byPart(a: Expense, b: Expense): number {
 }
 
 // The parts to write for what the form holds, each with the identity it is given
-function partsOf(draft: Draft, identities: readonly Identity[], planId: string, updatedAt: number): Expense[] {
+function partsOf(
+    draft: Draft,
+    identities: readonly Identity[],
+    planId: string,
+    updatedAt: number,
+    currency: string
+): Expense[] {
     const parts = draft.amounts.length;
     const dates = installmentDates(draft.date, parts);
 
@@ -37,7 +43,7 @@ function partsOf(draft: Draft, identities: readonly Identity[], planId: string, 
         categoryId: draft.categoryId,
         text: draft.text,
         amountCents,
-        currency: DEFAULT_CURRENCY,
+        currency,
         date: draft.date,
         payment: draft.payment,
         chargeDate: parts === 1 ? draft.chargeDate : dates[index]!,
@@ -54,7 +60,7 @@ function partsOf(draft: Draft, identities: readonly Identity[], planId: string, 
 function createExpenses(draft: Draft): Expense[] {
     const now = Date.now();
     const identities = draft.amounts.map(() => ({ id: crypto.randomUUID(), createdAt: now }));
-    return partsOf(draft, identities, crypto.randomUUID(), now);
+    return partsOf(draft, identities, crypto.randomUUID(), now, DEFAULT_CURRENCY);
 }
 
 // Whether the form can load them: an expense, or a plan with every one of its parts on this device
@@ -89,11 +95,7 @@ function draftOf(parts: readonly Expense[]): Draft {
     };
 }
 
-// The writes that turn an expense, or every part of a plan, into what the form holds. Parts keep their id and creation
-// time by part number; a part the plan gains is a new row of the same plan, made when its first part was so the plan
-// keeps its place in the list, and a part it loses is saved as deleted. An expense that becomes a plan is its first
-// part, under a new plan. The writes are newer than every part they replace even when the clock of this device is
-// behind, or the server would keep the old version (last write wins).
+// The writes that turn an expense, or every part of a plan, into what the form holds (ARCHITECTURE.md §5)
 function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.now()): Expense[] {
     const sorted = original.toSorted(byPart);
     const first = sorted[0]!;
@@ -104,7 +106,7 @@ function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.n
     );
     const removed = sorted.slice(draft.amounts.length).map((part) => ({ ...part, updatedAt, deletedAt: updatedAt }));
 
-    return [...partsOf(draft, identities, planId, updatedAt), ...removed];
+    return [...partsOf(draft, identities, planId, updatedAt, first.currency), ...removed];
 }
 
 export { canEdit, createExpenses, draftOf, reviseExpenses };

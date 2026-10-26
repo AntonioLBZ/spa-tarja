@@ -183,6 +183,24 @@ describe('reviseExpenses', () => {
         expectAccepted(writes);
     });
 
+    it('keeps the currency of the expense it edits', () => {
+        const trip = expense({ currency: 'USD' });
+
+        const writes = reviseExpenses([trip], draft({ text: 'Taxi' }), NOW);
+
+        expect(writes[0]).toMatchObject({ id: trip.id, currency: 'USD', text: 'Taxi' });
+        expectAccepted(writes);
+    });
+
+    it('gives the payments a plan gains the currency of the plan', () => {
+        const sofa = plan([750, 750], { currency: 'USD' });
+
+        const writes = reviseExpenses(sofa, draft({ amounts: [500, 500, 500] }), NOW);
+
+        expect(writes.map((write) => write.currency)).toEqual(['USD', 'USD', 'USD']);
+        expectAccepted(writes);
+    });
+
     it('is newer than what it replaces even when the clock of the device is behind', () => {
         const lunch = expense({ updatedAt: NOW + 5_000 });
 
