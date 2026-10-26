@@ -5,20 +5,28 @@
 }
 
 .root__header {
-    align-items: center;
     background: var(--color-bg-secondary);
     border-bottom: var(--size-px) solid var(--color-border);
-    display: flex;
-    justify-content: space-between;
     min-height: calc(var(--size-touch) + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
         max(var(--size-4), env(safe-area-inset-left));
     view-transition-name: header;
 }
 
+/* Expenses, the logo and the other screens (design.md). The side columns grow alike while there is room, which keeps
+   the logo in the middle; on a narrow phone the wider side keeps its width and the logo moves off the middle instead
+   of anything overflowing */
 .root__nav {
+    align-items: center;
+    column-gap: var(--size-2);
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+}
+
+.root__group {
     display: flex;
-    gap: var(--size-4);
+    gap: var(--size-2);
+    justify-self: end;
 }
 
 .root__brand,
@@ -28,6 +36,11 @@
     display: inline-flex;
     min-height: var(--size-touch);
     text-decoration: none;
+}
+
+.root__link {
+    font-size: var(--font-size-s);
+    justify-self: start;
 }
 
 .root__link[aria-current='page'] {

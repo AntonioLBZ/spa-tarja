@@ -70,6 +70,7 @@
         "dismiss": "Dismiss"
     },
     "nav": {
+        "expenses": "Expenses",
         "settings": "Settings",
         "summary": "Summary"
     },
