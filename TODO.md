@@ -1,6 +1,6 @@
 # TODO
 
-Items build on each other in the order of their numbers. Delete an item when it is done and its docs are updated; the numbers stay.
+Items build on each other in the order they appear below. Delete an item when it is done and its docs are updated; the numbers stay.
 
 ## Needs the owner
 
@@ -9,15 +9,16 @@ Items build on each other in the order of their numbers. Delete an item when it 
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 4. Header and collapsible add form (M, after 3)
+## 10. Restaurant card: total paid and your part (M to L, before 5)
 
-- Header: `Expenses` link on the left, logo centered, `Summary` and `Settings` on the right (`grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr)`), links at `--font-size-s`. New key `nav.expenses` ("Expenses" / "Gastos").
-- Underline: one element with `view-transition-name: nav-underline` inside the active link, so it slides between words. `navSection()` in `route-transition.ts` maps `/charts` to Summary and `/categories` to Settings; a move inside a section fades (`level` type). Read the route with `useRouterState({ select })` on `resolvedLocation`, or the slide is lost. The logo is never underlined.
-- Add form: `AddFormProvider` and `useAddForm()` (`{ open, setOpen }`, in memory, open by default) in `RootLayout`. `Expenses` calls `setOpen(false)`, the logo `setOpen(true)`, both skipped on modified or non-primary clicks. Context, not a search param: pressing a link whose URL doesn't change doesn't navigate.
-- `AddExpense`: `<h2><button aria-expanded aria-controls>` over an always-mounted form in a `hidden` div, so the draft survives; fade and shift with `@starting-style`, chevron rotates.
-- Mobile: the logo is 57.6 px wide and exact centring needs about 362 px; below that it drifts up to 21 px. Verify in Chrome at 320, 360 and 390 px, en and es (`scrollWidth <= clientWidth`, logo centre against `innerWidth / 2`).
-- Tests: `routes.test.tsx` (open by default, Expenses collapses, logo opens, draft survives, `/charts` underlines Summary), `route-transition.test.ts`.
-- Docs: `design.md` §5 (header zones, widths), §6 (underline, `level`, disclosure).
+Dinner on 12 Oct, 40 € paid with the restaurant card, your part 20 €, the friend sends 20 € by Bizum, charge date 12 Nov. Confirmed with the owner:
+
+- October (the day made): spent 20 (your part) and 20 of income, the difference ("paid back by others"). November (the month of the charge date): 20 of restaurant-card income, counted on the 1st. Until now the full 40 counted as spent and as card income, both in November. `credit` and `direct` keep their rules.
+- Migration `0008`: `personal_cents INTEGER`, NULL meaning the same as `amount_cents`, so old rows and older clients behave as before. Only for `voucher`, `0 <= personal_cents <= amount_cents`, validated by the API (400).
+- `core/counting.ts`: `countedOn` (voucher: `date`), `countedCents` (voucher: your part), `voucherIncomeOn` (1st of the charge month, your part), `paidBackCents`; the summary (`leftCents = income + card + paid back - spent`), charts and the list read them.
+- Form: with "Restaurant card", a "Your part" field (empty = same as the total) with the hint "Others pay back {amount}" and an error when it exceeds the total. The list row shows your part and "Paid {total}" when they differ. The summary gets a "Paid back by others" row, shown only when non-zero. Locale keys en + es.
+- Past months move: old restaurant-card rows now count as spent on the day made, not on the charge day. Say so in `ARCHITECTURE.md` §5 (also amend "A restaurant card also counts as income of the month it is charged") and `design.md` §5 Summary.
+- Tests: core (counting, summary, charts, 1st-of-month, NULL = total), server (valid share, share over the total, share on a non-voucher, older body writes NULL), front (field only for the restaurant card, hint, error, list, summary).
 
 ## 5. Edit an expense (L, after 3 and 4)
 
