@@ -295,6 +295,8 @@
         "chartSummary": "Gasto en {span}: {total} en total. Máximo: {biggest} ({label}).",
         "chartSummaryEmpty": "Gasto en {span}: sin gastos.",
         "vsPrevious": "{change} frente a {period}",
-        "noPrevious": "No hubo gastos en el periodo anterior ({period}) con los que comparar."
+        "vsPreviousSoFar": "{change}, {current} frente a {period}",
+        "noPrevious": "No hubo gastos en el periodo anterior ({period}) con los que comparar.",
+        "noPreviousSoFar": "{current} frente a {period}: sin gastos en los días anteriores."
     }
 }

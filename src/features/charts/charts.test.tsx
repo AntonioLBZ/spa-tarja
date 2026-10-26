@@ -10,7 +10,7 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
 import { MAX_BUCKETS } from '@core/charts';
-import { addDays } from '@core/date';
+import { addDays, daysBetween, fromDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';
@@ -212,6 +212,17 @@ describe('spending by day', () => {
             expect(shareOf(column)).toBe(0);
         }
     });
+
+    it('keeps a column with anything spent above the baseline, however small', async () => {
+        await open([
+            expense({ amountCents: 1, date: '2026-10-02' }),
+            expense({ amountCents: 100_000, date: '2026-10-03' }),
+        ]);
+
+        expect(columns()[1]!.classList.contains('spending-chart__column--spent')).toBe(true);
+        expect(columns()[2]!.classList.contains('spending-chart__column--spent')).toBe(true);
+        expect(columns()[0]!.classList.contains('spending-chart__column--spent')).toBe(false);
+    });
 });
 
 describe('the chart', () => {
@@ -386,6 +397,16 @@ describe('reading a column', () => {
         expect(readout().textContent).toBe(readoutOf('Thu, Oct 1', '€0.00'));
     });
 
+    it('leaves the arrows to the browser while Alt, Ctrl or Meta is held', async () => {
+        await open();
+
+        for (const modifier of ['altKey', 'ctrlKey', 'metaKey']) {
+            expect(fireEvent.keyDown(plot(), { key: 'ArrowLeft', [modifier]: true })).toBe(true);
+            expect(fireEvent.keyDown(plot(), { key: 'Home', [modifier]: true })).toBe(true);
+        }
+        expect(readout().textContent).toBe(text.readoutHint);
+    });
+
     it('picks the column whose slot is tapped, and marks it', async () => {
         await open();
 
@@ -422,6 +443,21 @@ describe('reading a column', () => {
         expect(document.querySelectorAll('.spending-chart__slot--selected')).toHaveLength(0);
 
         dates('2026-10-01', '2026-10-31');
+
+        expect(readout().textContent).toBe(text.readoutHint);
+    });
+
+    it('lets go of a column when the grouping changes, even where a row starts on the same day', async () => {
+        await open();
+        fireEvent.click(slots()[4]!);
+        expect(readout().textContent).toBe(readoutOf('Mon, Oct 5', '€0.00'));
+
+        groupBy(text.group.week);
+
+        expect(readout().textContent).toBe(text.readoutHint);
+        expect(document.querySelectorAll('.spending-chart__slot--selected')).toHaveLength(0);
+
+        groupBy(text.group.day);
 
         expect(readout().textContent).toBe(text.readoutHint);
     });
@@ -518,13 +554,97 @@ describe('the text alternative', () => {
 });
 
 describe('the stat row', () => {
-    it('compares the total with as many days right before', async () => {
+    const SO_FAR = period(new Date(2026, 9, 1), new Date(2026, 9, 25));
+    const DAYS_BEFORE = period(new Date(2026, 8, 6), new Date(2026, 8, 30));
+    const monthsOf = (from: Date, to: Date) => period(from, to, { month: 'short', year: 'numeric' });
+
+    it('compares a running range up to today with as many days before it, naming both sides', async () => {
         await open();
 
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€89.49');
         expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPrevious', { change: percent(8249 / 700), period: period(new Date(2026, 7, 31), new Date(2026, 8, 30)) })}`
+            `↑${t('charts.vsPreviousSoFar', { change: percent(8249 / 700), current: SO_FAR, period: DAYS_BEFORE })}`
         );
         expect(changeLine().querySelector('[aria-hidden="true"]')!.textContent).toBe('↑');
+    });
+
+    it('compares only the days so far, while the total holds the whole range', async () => {
+        vi.setSystemTime(new Date(2026, 9, 3, 12));
+        await open([
+            expense({ amountCents: 500, date: '2026-10-02' }),
+            expense({ amountCents: 4000, date: '2026-10-20' }),
+            expense({ amountCents: 1000, date: '2026-09-29' }),
+            expense({ amountCents: 7000, date: '2026-09-10' }),
+        ]);
+
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€45.00');
+        expect(changeLine().textContent).toBe(
+            `↓${t('charts.vsPreviousSoFar', {
+                change: percent(-0.5),
+                current: period(new Date(2026, 9, 1), new Date(2026, 9, 3)),
+                period: period(new Date(2026, 8, 28), new Date(2026, 8, 30)),
+            })}`
+        );
+    });
+
+    it('compares a picked part of a month with as many days before it, not with the month before', async () => {
+        await open([
+            expense({ amountCents: 500, date: '2026-09-20' }),
+            expense({ amountCents: 1000, date: '2026-09-05' }),
+            expense({ amountCents: 9000, date: '2026-08-10' }),
+        ]);
+        groupBy(text.group.month);
+
+        dates('2026-09-15', '2026-09-30');
+
+        expect(changeLine().textContent).toBe(
+            `↓${t('charts.vsPrevious', {
+                change: percent(-0.5),
+                period: period(new Date(2026, 7, 30), new Date(2026, 8, 14)),
+            })}`
+        );
+    });
+
+    it('compares a whole month that is over with the month before, named as months', async () => {
+        await open([
+            expense({ amountCents: 700, date: '2026-09-30' }),
+            expense({ amountCents: 1400, date: '2026-08-10' }),
+        ]);
+        groupBy(text.group.month);
+
+        dates('2026-09-01', '2026-09-30');
+        expect(changeLine().textContent).toBe(
+            `↓${t('charts.vsPrevious', { change: percent(-0.5), period: monthsOf(new Date(2026, 7, 1), new Date(2026, 7, 31)) })}`
+        );
+
+        dates('2025-11-01', '2026-09-30');
+        expect(changeLine().textContent).toBe(
+            t('charts.noPrevious', { period: monthsOf(new Date(2024, 11, 1), new Date(2025, 9, 31)) })
+        );
+    });
+
+    it('compares whole weeks that are over with as many weeks before', async () => {
+        await open();
+
+        groupBy(text.group.week);
+
+        expect(changeLine().textContent).toBe(
+            t('charts.noPrevious', { period: period(new Date(2026, 4, 11), new Date(2026, 7, 2)) })
+        );
+    });
+
+    it('compares the days of a running range by month, not whole months', async () => {
+        await open();
+
+        groupBy(text.group.month);
+
+        const withYear = { month: 'short', day: 'numeric', year: 'numeric' } as const;
+        expect(changeLine().textContent).toBe(
+            t('charts.noPreviousSoFar', {
+                current: period(new Date(2025, 10, 1), new Date(2026, 9, 25), withYear),
+                period: period(new Date(2024, 10, 7), new Date(2025, 9, 31), withYear),
+            })
+        );
     });
 
     it('compares the same category on both sides', async () => {
@@ -536,6 +656,41 @@ describe('the stat row', () => {
         expect(changeLine().textContent).toContain(percent(850 / 700));
     });
 
+    it('counts a credit card expense in the span it is charged in, not the one it was made in', async () => {
+        await open([
+            expense({ amountCents: 1000, date: '2026-09-28', payment: 'credit', chargeDate: '2026-10-03' }),
+            expense({ amountCents: 500, date: '2026-09-10' }),
+        ]);
+
+        expect(changeLine().textContent).toBe(
+            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: DAYS_BEFORE })}`
+        );
+    });
+
+    it('counts your part of a restaurant card expense on the day it was made', async () => {
+        await open([
+            expense({
+                amountCents: 4000,
+                personalCents: 1000,
+                date: '2026-10-12',
+                payment: 'voucher',
+                chargeDate: '2026-11-12',
+            }),
+            expense({
+                amountCents: 3000,
+                personalCents: 500,
+                date: '2026-09-20',
+                payment: 'voucher',
+                chargeDate: '2026-10-20',
+            }),
+        ]);
+
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€10.00');
+        expect(changeLine().textContent).toBe(
+            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: DAYS_BEFORE })}`
+        );
+    });
+
     it('shows a fall with the arrow down and the sign', async () => {
         await open([
             expense({ amountCents: 500, date: '2026-10-05' }),
@@ -543,7 +698,7 @@ describe('the stat row', () => {
         ]);
 
         expect(changeLine().textContent).toBe(
-            `↓${t('charts.vsPrevious', { change: percent(-0.5), period: period(new Date(2026, 7, 31), new Date(2026, 8, 30)) })}`
+            `↓${t('charts.vsPreviousSoFar', { change: percent(-0.5), current: SO_FAR, period: DAYS_BEFORE })}`
         );
     });
 
@@ -554,7 +709,7 @@ describe('the stat row', () => {
         ]);
 
         expect(changeLine().textContent).toBe(
-            t('charts.vsPrevious', { change: percent(0), period: period(new Date(2026, 7, 31), new Date(2026, 8, 30)) })
+            t('charts.vsPreviousSoFar', { change: percent(0), current: SO_FAR, period: DAYS_BEFORE })
         );
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
     });
@@ -564,36 +719,24 @@ describe('the stat row', () => {
 
         pickCategory(text.category, en.categories.leisure);
 
-        expect(changeLine().textContent).toBe(
-            t('charts.noPrevious', { period: period(new Date(2026, 7, 31), new Date(2026, 8, 30)) })
-        );
+        expect(changeLine().textContent).toBe(t('charts.noPreviousSoFar', { current: SO_FAR, period: DAYS_BEFORE }));
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
     });
 
-    it('compares whole weeks and whole months', async () => {
-        await open();
-
-        groupBy(text.group.week);
-        expect(changeLine().textContent).toBe(
-            t('charts.noPrevious', { period: period(new Date(2026, 4, 11), new Date(2026, 7, 2)) })
-        );
-
-        groupBy(text.group.month);
-        expect(changeLine().textContent).toBe(
-            t('charts.noPrevious', {
-                period: period(new Date(2024, 10, 1), new Date(2025, 9, 31), { month: 'short', year: 'numeric' }),
-            })
-        );
-    });
-
-    it('gives the year of a previous period that is not this one', async () => {
+    it('gives the year of a span that is not this one, and names a whole month as a month', async () => {
         await open();
 
         dates('2026-01-01', '2026-01-31');
 
         expect(changeLine().textContent).toBe(
+            t('charts.noPrevious', { period: monthsOf(new Date(2025, 11, 1), new Date(2025, 11, 31)) })
+        );
+
+        dates('2025-12-10', '2025-12-20');
+
+        expect(changeLine().textContent).toBe(
             t('charts.noPrevious', {
-                period: period(new Date(2025, 11, 1), new Date(2025, 11, 31), {
+                period: period(new Date(2025, 10, 29), new Date(2025, 11, 9), {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -602,12 +745,36 @@ describe('the stat row', () => {
         );
     });
 
+    it('has no change line for a range that starts after today', async () => {
+        await open();
+
+        dates('2026-11-01', '2026-11-30');
+
+        expect(screen.getByText(text.total).closest('p')!.nextElementSibling).toBeNull();
+    });
+
+    it('is not there when the dates are refused', async () => {
+        await open();
+
+        dates('2026-10-25', '2026-10-24');
+
+        expect(screen.queryByText(text.total)).toBeNull();
+        expect(document.querySelector('.spending-stats')).toBeNull();
+    });
+
     it('stays for a range too long to draw', async () => {
         await open();
 
         dates('2020-01-01', '2026-10-31');
 
-        expect(changeLine().textContent).toContain(text.noPrevious.split(' (')[0]!);
+        const withYear = { month: 'short', day: 'numeric', year: 'numeric' } as const;
+        const days = daysBetween('2020-01-01', '2026-10-25') + 1;
+        expect(changeLine().textContent).toBe(
+            t('charts.noPreviousSoFar', {
+                current: period(new Date(2020, 0, 1), new Date(2026, 9, 25), withYear),
+                period: period(fromDateString(addDays('2020-01-01', -days)), new Date(2019, 11, 31), withYear),
+            })
+        );
     });
 });
 
@@ -743,6 +910,30 @@ describe('by category', () => {
         const segments = [...document.querySelectorAll('.category-split__segment')];
         expect(segments.map(shareOf)).toEqual([1]);
         expect(document.querySelectorAll('.category-split__gap')).toHaveLength(0);
+    });
+
+    it('draws a segment for a category that took about one percent', async () => {
+        await open([expense({ amountCents: 9900 }), expense({ categoryId: 'leisure', amountCents: 100 })]);
+
+        const segments = [...document.querySelectorAll('.category-split__segment')];
+        expect(segments.map(shareOf)).toEqual([expect.closeTo(0.99, 5), expect.closeTo(0.01, 5)]);
+        expect(breakdown()[1]!.textContent).toContain('1%');
+    });
+
+    it('gives no share to a category that took nothing, rather than a broken one', async () => {
+        await open([
+            expense({
+                amountCents: 1000,
+                personalCents: 0,
+                date: '2026-10-12',
+                payment: 'voucher',
+                chargeDate: '2026-11-12',
+            }),
+        ]);
+
+        expect(breakdown()[0]!.textContent).toContain('0%');
+        expect(breakdown()[0]!.textContent).not.toContain('NaN');
+        expect([...document.querySelectorAll('.category-split__segment')].map(shareOf)).toEqual([0]);
     });
 
     it('names a custom category, and shows a deleted one as the fallback', async () => {
@@ -1099,7 +1290,7 @@ describe('in Spanish', () => {
         await screen.findByRole('heading', { name: es.charts.title });
         fireEvent.click(screen.getByRole('button', { name: es.charts.showNumbers }));
 
-        expect(screen.getByText(/25 oct/)).toBeDefined();
+        expect(screen.getByText(/dom, 25 oct/)).toBeDefined();
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.week }));
         expect(screen.getByText(tEs('charts.weekOf', { date: '19 oct' }))).toBeDefined();
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.month }));
@@ -1118,17 +1309,16 @@ describe('in Spanish', () => {
         expect(readout().textContent).toBe(
             tEs('charts.readout', { label: 'dom, 25 oct', amount: formatAmount(4899, 'EUR', 'es') })
         );
+        const days = new Intl.DateTimeFormat('es', { month: 'short', day: 'numeric' });
         expect(changeLine().textContent).toBe(
-            `↑${tEs('charts.vsPrevious', {
+            `↑${tEs('charts.vsPreviousSoFar', {
                 change: new Intl.NumberFormat('es', {
                     style: 'percent',
                     maximumFractionDigits: 0,
                     signDisplay: 'exceptZero',
                 }).format(8249 / 700),
-                period: new Intl.DateTimeFormat('es', { month: 'short', day: 'numeric' }).formatRange(
-                    new Date(2026, 7, 31),
-                    new Date(2026, 8, 30)
-                ),
+                current: days.formatRange(new Date(2026, 9, 1), new Date(2026, 9, 25)),
+                period: days.formatRange(new Date(2026, 8, 6), new Date(2026, 8, 30)),
             })}`
         );
     });

@@ -17,8 +17,8 @@ import {
     MAX_BUCKETS,
     bucketCount,
     categoryTotals,
+    comparison,
     defaultRange,
-    previousRange,
     spendingBuckets,
     spendingTotal,
     type Granularity,
@@ -71,12 +71,16 @@ function Charts() {
         [filed, granularity, range, filter]
     );
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
-    // The same number of rows right before, in the same category
-    const previous = useMemo(() => previousRange(granularity, range), [granularity, range]);
-    const previousTotal = useMemo(
-        () => spendingTotal(filed, { range: previous, categoryId: filter }),
-        [filed, previous, filter]
-    );
+    // Two spans as long as each other, in the same category: the range, or its days up to today, and the span before
+    const compared = useMemo(() => {
+        const spans = comparison(granularity, range, today);
+        if (spans === null) return null;
+        return {
+            ...spans,
+            currentCents: spendingTotal(filed, { range: spans.current, categoryId: filter }),
+            previousCents: spendingTotal(filed, { range: spans.previous, categoryId: filter }),
+        };
+    }, [filed, granularity, range, today, filter]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
     return (
@@ -125,9 +129,8 @@ function Charts() {
             {problem !== 'rangeInvalid' && (
                 <SpendingStats
                     totalCents={total}
-                    previousCents={previousTotal}
-                    previous={previous}
-                    granularity={granularity}
+                    compared={compared}
+                    partial={compared !== null && compared.current.to !== range.to}
                     today={today}
                 />
             )}

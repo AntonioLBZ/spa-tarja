@@ -295,6 +295,8 @@
         "chartSummary": "Spending over {span}: {total} in total. Highest: {biggest} ({label}).",
         "chartSummaryEmpty": "Spending over {span}: nothing spent.",
         "vsPrevious": "{change} vs. {period}",
-        "noPrevious": "Nothing spent in the previous period ({period}) to compare with."
+        "vsPreviousSoFar": "{change}, {current} vs. {period}",
+        "noPrevious": "Nothing spent in the previous period ({period}) to compare with.",
+        "noPreviousSoFar": "{current} vs. {period}: nothing spent in the days before."
     }
 }

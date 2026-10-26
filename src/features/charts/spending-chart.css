@@ -87,10 +87,14 @@
     }
 }
 
-/* In ink, and never flatter than 2 of the 160 units of the plot, so a picked empty row shows on the baseline */
+/* Never flatter than 2 of the 160 units of the plot (2px), so a small amount, or a picked empty row, still shows */
+.spending-chart__column--spent,
+.spending-chart__column--selected {
+    transform: scaleY(max(var(--share), 0.0125));
+}
+
 .spending-chart__column--selected {
     fill: var(--color-border);
-    transform: scaleY(max(var(--share), 0.0125));
 }
 
 /* Today's row, framed from the top of the plot to the baseline so it shows with nothing spent */

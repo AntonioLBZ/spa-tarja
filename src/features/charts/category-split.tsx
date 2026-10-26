@@ -37,7 +37,9 @@ function CategorySplit(props: CategorySplitProps) {
         // Each segment starts where the ones before it end
         return ordered.reduce<(CategoryTotal & { start: number; share: number })[]>((done, item) => {
             const last = done.at(-1);
-            done.push({ ...item, start: last ? last.start + last.share : 0, share: item.totalCents / all });
+            // Nothing at all to share out, as with restaurant card expenses whose part is 0, gives every one none
+            const share = all > 0 ? item.totalCents / all : 0;
+            done.push({ ...item, start: last ? last.start + last.share : 0, share });
             return done;
         }, []);
     }, [totals, labelOf, locale]);

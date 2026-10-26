@@ -50,12 +50,17 @@ function SpendingChart(props: SpendingChartProps) {
     const readoutId = useId();
     const { nameOf, shortNameOf } = useBucketNames(buckets, granularity);
     const scroller = useRef<HTMLDivElement>(null);
-    const [selected, setSelected] = useState<string | null>(null);
+    // The row picked, by the grouping it was picked in: a week and a day can start on the same date
+    const [selected, setSelected] = useState<{ granularity: Granularity; start: string } | null>(null);
 
     const count = buckets.length;
-    const index = selected === null ? -1 : buckets.findIndex((bucket) => bucket.start === selected);
-    // A row that left the range lets go of the selection, so it doesn't come back with the row
+    const index =
+        selected === null || selected.granularity !== granularity
+            ? -1
+            : buckets.findIndex((bucket) => bucket.start === selected.start);
+    // A row that left the range or the grouping lets go of the selection, so it doesn't come back with the row
     if (selected !== null && index < 0) setSelected(null);
+    const select = (at: number) => setSelected({ granularity, start: buckets[at]!.start });
 
     const total = buckets.reduce((sum, bucket) => sum + bucket.totalCents, 0);
     const peak = buckets.reduce(
@@ -111,6 +116,8 @@ function SpendingChart(props: SpendingChartProps) {
     }, [index, count]);
 
     function handleKeyDown(event: KeyboardEvent<SVGSVGElement>) {
+        // Alt with an arrow is the browser's back and forward
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
         const last = count - 1;
         const moves: Partial<Record<string, number>> = {
             ArrowRight: index < 0 ? 0 : Math.min(index + 1, last),
@@ -121,12 +128,12 @@ function SpendingChart(props: SpendingChartProps) {
         const next = moves[event.key];
         if (next === undefined) return;
         event.preventDefault();
-        setSelected(buckets[next]!.start);
+        select(next);
     }
 
     function handleClick(event: MouseEvent<SVGSVGElement>) {
         const slot = (event.target as Element).closest('[data-index]');
-        if (slot) setSelected(buckets[Number(slot.getAttribute('data-index'))]!.start);
+        if (slot) select(Number(slot.getAttribute('data-index')));
     }
 
     const top = (share: number) => HEADROOM + PLOT * (1 - share);
@@ -187,6 +194,7 @@ function SpendingChart(props: SpendingChartProps) {
                             <rect
                                 className={clsx(
                                     'spending-chart__column',
+                                    bucket.totalCents > 0 && 'spending-chart__column--spent',
                                     at === index && 'spending-chart__column--selected'
                                 )}
                                 key={bucket.start}
