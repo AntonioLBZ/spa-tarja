@@ -61,7 +61,12 @@ function ExpenseList() {
     // title when there is none.
     function remove(expenses: readonly Expense[], now: number) {
         const neighbour = neighbourOf(expenses[0]!.id);
-        void save(expenses.map((expense) => ({ ...expense, updatedAt: now, deletedAt: now })));
+        void save(
+            expenses.map((expense) => {
+                const at = Math.max(now, expense.updatedAt + 1);
+                return { ...expense, updatedAt: at, deletedAt: at };
+            })
+        );
         if (editing && expenses.some((expense) => expense.id === editing[0]!.id)) endEdit();
         list.fadeOut(expenses);
         ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();

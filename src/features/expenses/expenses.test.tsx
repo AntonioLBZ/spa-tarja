@@ -1226,6 +1226,20 @@ describe('deleting an expense', () => {
         expect(api.writes[0]?.deletedAt).toBe(new Date(2026, 9, 25, 12).getTime());
         expect(api.writes[0]?.updatedAt).toBe(new Date(2026, 9, 25, 12).getTime());
     });
+
+    it('wins over a version written by a device whose clock runs ahead', async () => {
+        const ahead = new Date(2026, 9, 25, 12).getTime() + 600_000;
+        const api = createFakeApi({ expenses: [expense({ text: 'Lunch', updatedAt: ahead })] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        deleteExpense('Lunch');
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]?.updatedAt).toBe(ahead + 1);
+        expect(api.writes[0]?.deletedAt).toBe(ahead + 1);
+    });
 });
 
 describe('a deleted expense leaving the list', () => {
