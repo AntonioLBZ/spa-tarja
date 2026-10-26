@@ -258,12 +258,13 @@ describe('the add form', () => {
         renderApp();
         await screen.findByRole('heading', { name: en.expenses.form.title });
         const toggle = formToggle();
+        const panel = field(en.expenses.form.amount).closest('.disclosure__panel')!;
         toggle.focus();
 
         fireEvent.click(toggle);
 
         expect(toggle.getAttribute('aria-expanded')).toBe('false');
-        expect(toggle.hasAttribute('aria-controls')).toBe(false);
+        expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
         expect(submitShown()).toBe(false);
         expect(document.activeElement).toBe(toggle);
 

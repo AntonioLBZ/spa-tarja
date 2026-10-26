@@ -138,7 +138,8 @@ describe('Disclosure', () => {
             const panel = screen.getByLabelText('Name').closest('.disclosure__panel')!;
             expect(panel.hasAttribute('hidden')).toBe(true);
             expect(toggle().getAttribute('aria-expanded')).toBe('false');
-            expect(toggle().hasAttribute('aria-controls')).toBe(false);
+            expect(toggle().getAttribute('aria-controls')).toBe(panel.id);
+            expect(panel.id).not.toBe('');
         });
 
         it('shows the panel when it opens, with what was typed still in it', () => {
@@ -240,12 +241,12 @@ describe('Disclosure', () => {
 
     it('keeps the class the call site needs for its layout', () => {
         const { container } = render(
-            <Disclosure className="category-row" summary="Details">
+            <Disclosure className="expense-item" summary="Details">
                 Shown
             </Disclosure>
         );
 
-        expect(container.firstElementChild!.className).toBe('disclosure category-row');
+        expect(container.firstElementChild!.className).toBe('disclosure expense-item');
     });
 });
 

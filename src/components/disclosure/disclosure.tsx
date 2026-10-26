@@ -70,11 +70,12 @@ function Disclosure(props: DisclosureProps) {
         onOpenChange?.(next);
     }
 
+    const panelInPage = isOpen || keepMounted;
     const toggle = (
         <button
             ref={toggleRef}
             className="disclosure__toggle"
-            aria-controls={isOpen ? panelId : undefined}
+            aria-controls={panelInPage ? panelId : undefined}
             aria-expanded={isOpen}
             disabled={disabled}
             type="button"
@@ -92,7 +93,7 @@ function Disclosure(props: DisclosureProps) {
     return (
         <Tag className={clsx('disclosure', className)}>
             {Heading ? <Heading className="disclosure__heading">{toggle}</Heading> : toggle}
-            {(isOpen || keepMounted) && (
+            {panelInPage && (
                 <DisclosurePanel id={panelId} hidden={!isOpen}>
                     {children}
                 </DisclosurePanel>
@@ -102,4 +103,3 @@ function Disclosure(props: DisclosureProps) {
 }
 
 export { Disclosure, DisclosurePanel };
-export type { DisclosurePanelProps, DisclosureProps };

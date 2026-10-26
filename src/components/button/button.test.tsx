@@ -1,4 +1,10 @@
-import { RouterProvider, createMemoryHistory, createRootRoute, createRouter } from '@tanstack/react-router';
+import {
+    RouterProvider,
+    createMemoryHistory,
+    createRootRoute,
+    createRoute,
+    createRouter,
+} from '@tanstack/react-router';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { createRef, type ComponentProps, type ReactElement } from 'react';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
@@ -6,8 +12,10 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { Button, ButtonLink, buttonClass } from './button';
 
 async function renderInRouter(element: ReactElement) {
+    const root = createRootRoute({ component: () => element });
+    const categories = createRoute({ getParentRoute: () => root, path: '/categories' });
     const router = createRouter({
-        routeTree: createRootRoute({ component: () => element }),
+        routeTree: root.addChildren([categories]),
         history: createMemoryHistory({ initialEntries: ['/'] }),
     });
     render(<RouterProvider router={router} />);
@@ -99,6 +107,22 @@ describe('Button', () => {
         expect(screen.getByRole('button', { name: 'Plain' }).hasAttribute('aria-pressed')).toBe(false);
     });
 
+    it('lets an aria-pressed of the call site win over the pressed state', () => {
+        render(
+            <>
+                <Button aria-pressed="mixed">Some</Button>
+                <Button pressed aria-pressed="mixed">
+                    Some pressed
+                </Button>
+            </>
+        );
+
+        expect(screen.getByRole('button', { name: 'Some' }).getAttribute('aria-pressed')).toBe('mixed');
+        const pressed = screen.getByRole('button', { name: 'Some pressed' });
+        expect(pressed.getAttribute('aria-pressed')).toBe('mixed');
+        expect(pressed.classList.contains('button--pressed')).toBe(true);
+    });
+
     it('keeps the class of the call site next to its own', () => {
         render(
             <Button variant="danger" className="expense-item__delete">
@@ -149,5 +173,24 @@ describe('ButtonLink', () => {
         );
 
         expect(link.className).toBe('button button--primary toolbar__link');
+    });
+
+    it('draws a glyph in a box with even padding and is named by its label', async () => {
+        const link = await renderInRouter(
+            <ButtonLink to="/categories" glyph aria-label="Categories">
+                →
+            </ButtonLink>
+        );
+
+        expect(link.className).toBe('button button--glyph');
+        expect(screen.getByRole('link', { name: 'Categories' })).toBe(link);
+    });
+
+    it('asks a glyph for a name, since its text says nothing', () => {
+        type Props = ComponentProps<typeof ButtonLink>;
+
+        expectTypeOf<{ to: '/categories'; glyph: true; 'aria-label': string }>().toExtend<Props>();
+        expectTypeOf<{ to: '/categories'; glyph: true }>().not.toExtend<Props>();
+        expectTypeOf<{ to: '/categories'; glyph?: false }>().toExtend<Props>();
     });
 });
