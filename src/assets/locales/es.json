@@ -83,7 +83,7 @@
             "pending": "Sin sincronizar",
             "charged": "{payment}, se carga el {date}",
             "plan": "{parts} pagos, hasta el {date}",
-            "paid": "Pagado {total}",
+            "paid": "Pagaste {total}",
             "weekOf": "Semana del {date}",
             "noMatch": "Ningún gasto coincide",
             "showMore": "Mostrar más",
