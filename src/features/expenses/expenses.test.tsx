@@ -1095,7 +1095,7 @@ describe('an expense row', () => {
         expect(rowToggle('Lunch').getAttribute('type')).toBe('button');
     });
 
-    it('is the toggle that gets the notch, with the panel next to it and not inside', async () => {
+    it('is a row that is not a card, with its panel next to the toggle and not inside it', async () => {
         await openList(lunch);
 
         fireEvent.click(rowToggle('Lunch'));
@@ -1327,6 +1327,107 @@ describe('a deleted plan leaving the list', () => {
         deleteExpense('Sofa');
 
         await waitFor(() => expect(screen.queryByText('Sofa')).toBeNull());
+    });
+});
+
+describe('the focus after a delete', () => {
+    const root = document.documentElement;
+    const first = expense({ text: 'First', date: '2026-10-25' });
+    const second = expense({ text: 'Second', date: '2026-10-24' });
+    const third = expense({ text: 'Third', date: '2026-10-23' });
+
+    afterEach(() => root.style.removeProperty('--duration-base'));
+
+    async function openList(...expenses: Expense[]) {
+        stubApi(createFakeApi({ expenses }).handler);
+        renderApp();
+        await screen.findByText(expenses[0]!.text);
+    }
+
+    function listTitle() {
+        return screen.getByRole('heading', { name: en.expenses.list.title });
+    }
+
+    it('goes to the next row, which is the one that takes the place of the deleted one', async () => {
+        await openList(first, second, third);
+
+        deleteExpense('Second');
+
+        expect(document.activeElement).toBe(rowToggle('Third'));
+    });
+
+    it('goes to the row before when the deleted one was the last', async () => {
+        await openList(first, second, third);
+
+        deleteExpense('Third');
+
+        expect(document.activeElement).toBe(rowToggle('Second'));
+    });
+
+    it('goes to the next row of the same day, and past the end of a day to the next one', async () => {
+        const later = expense({ text: 'Later', date: '2026-10-25', createdAt: 5_000 });
+        await openList(first, later, second);
+
+        deleteExpense('Later');
+        expect(document.activeElement).toBe(rowToggle('First'));
+
+        deleteExpense('First');
+        expect(document.activeElement).toBe(rowToggle('Second'));
+    });
+
+    it('goes to the list title when no row is left', async () => {
+        await openList(first);
+
+        deleteExpense('First');
+
+        expect(document.activeElement).toBe(listTitle());
+    });
+
+    it('moves at once, while the deleted row is still fading out', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        await openList(first, second);
+
+        deleteExpense('First');
+
+        expect(screen.getByText('First')).toBeDefined();
+        expect(document.activeElement).toBe(rowToggle('Second'));
+    });
+
+    it('skips a row that is already fading out', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        await openList(first, second, third);
+        deleteExpense('Second');
+
+        deleteExpense('Third');
+
+        expect(document.activeElement).toBe(rowToggle('First'));
+    });
+
+    it('goes to the title when the only rows left are fading out', async () => {
+        root.style.setProperty('--duration-base', '60000ms');
+        await openList(first, second);
+        deleteExpense('First');
+
+        deleteExpense('Second');
+
+        expect(document.activeElement).toBe(listTitle());
+    });
+
+    it('goes to the next row when a whole plan is deleted', async () => {
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-24', '2026-11-24'].map((day, index) =>
+            expense({
+                text: 'Sofa',
+                date: '2026-10-24',
+                chargeDate: day,
+                plan: { id: plan, part: index + 1, parts: 2 },
+            })
+        );
+        await openList(first, ...parts, third);
+
+        deleteExpense('Sofa');
+
+        expect(document.activeElement).toBe(rowToggle('Third'));
     });
 });
 

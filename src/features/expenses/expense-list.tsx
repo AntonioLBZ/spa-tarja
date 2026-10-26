@@ -9,6 +9,7 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { fromDateString } from '@core/date';
+import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { useAddForm } from './add-form-state';
@@ -46,11 +47,24 @@ function ExpenseList() {
         moreFocus.current = null;
     });
 
-    // All the parts of a plan go together
+    // The row the focus goes to when a row is deleted: the next one that stays, else the one before it. A row fading
+    // out doesn't stay.
+    function neighbourOf(rowId: string): string | undefined {
+        const staying = groups
+            .flatMap((group) => group.items.map((item) => shownExpense(item).id))
+            .filter((id) => id === rowId || !leaving.has(id));
+        const at = staying.indexOf(rowId);
+        return staying[at + 1] ?? (at > 0 ? staying[at - 1] : undefined);
+    }
+
+    // All the parts of a plan go together. The focus leaves the button that is going away for a neighbour row, or the
+    // title when there is none.
     function remove(expenses: readonly Expense[], now: number) {
+        const neighbour = neighbourOf(expenses[0]!.id);
         void save(expenses.map((expense) => ({ ...expense, updatedAt: now, deletedAt: now })));
         if (editing && expenses.some((expense) => expense.id === editing[0]!.id)) endEdit();
         list.fadeOut(expenses);
+        ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
     }
 
     // Days, weeks and months say the year only when the list goes over a New Year
