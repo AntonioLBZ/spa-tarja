@@ -4,26 +4,41 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>Tarja</title>
+        <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
         <script>
             // Puts the saved theme and accent on the page before it paints, so a choice other than the defaults (light
             // and gray) doesn't flash. The keys and the values are those of src/lib/theme and src/lib/accent.
+            var theme = 'light';
             try {
                 var saved = {
                     theme: localStorage.getItem('tarja:theme'),
                     accent: localStorage.getItem('tarja:accent'),
                 };
-                if (saved.theme === 'dark' || saved.theme === 'system')
-                    document.documentElement.dataset.theme = saved.theme;
+                if (saved.theme === 'dark' || saved.theme === 'system') {
+                    theme = saved.theme;
+                    document.documentElement.dataset.theme = theme;
+                }
                 if (['amber', 'blue', 'green', 'violet', 'pink'].indexOf(saved.accent) !== -1) {
                     document.documentElement.dataset.accent = saved.accent;
                 }
             } catch (error) {
                 // Storage can be blocked: the defaults then apply until the app starts
             }
+            // An explicit theme points every toolbar color at its own header surface, as syncThemeColor does later,
+            // keeping the per-preference colors for "system"
+            if (theme !== 'system') {
+                var surface = document.querySelector(
+                    'meta[name="theme-color"][media="(prefers-color-scheme: ' + theme + ')"]'
+                );
+                var metas = document.querySelectorAll('meta[name="theme-color"]');
+                for (var i = 0; surface && i < metas.length; i++) {
+                    metas[i].dataset.default = metas[i].content;
+                    metas[i].content = surface.content;
+                }
+            }
         </script>
         <meta name="description" content="Log your everyday expenses: food, groceries, leisure, bills and rent." />
-        <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
         <link rel="icon" href="/favicon.ico" sizes="48x48" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
