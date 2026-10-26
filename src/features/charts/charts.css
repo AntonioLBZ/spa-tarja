@@ -12,9 +12,3 @@
 .charts__reset {
     justify-self: start;
 }
-
-.charts__empty {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
-}

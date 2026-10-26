@@ -1,0 +1,65 @@
+.category-split {
+    display: grid;
+    gap: var(--size-4);
+}
+
+/* Every segment spans the strip and is moved to its start and cut to its share by transform, so a change animates */
+.category-split__strip {
+    block-size: var(--size-4);
+    overflow: hidden;
+    position: relative;
+}
+
+.category-split__segment {
+    background: var(--color-bg-accent);
+    inset: 0;
+    position: absolute;
+    transform: translateX(calc(var(--start) * 100%)) scaleX(var(--share));
+    transform-origin: left;
+    transition: transform var(--duration-base) var(--ease-standard);
+
+    @starting-style {
+        transform: translateX(calc(var(--start) * 100%)) scaleX(0);
+    }
+}
+
+/* Where one segment ends and the next begins, a line of the page color, moved like the segments so it stays 2px */
+.category-split__gap {
+    inset: 0;
+    position: absolute;
+    transform: translateX(calc(var(--start) * 100%));
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.category-split__gap::before {
+    background: var(--color-bg-primary);
+    block-size: 100%;
+    content: '';
+    display: block;
+    inline-size: calc(2 * var(--size-px));
+    transform: translateX(-50%);
+}
+
+.category-split__row {
+    align-items: center;
+    display: grid;
+    gap: var(--size-3);
+    grid-template-columns: 1fr auto auto;
+}
+
+.category-split__name {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    min-width: 0;
+}
+
+.category-split__amount {
+    text-align: end;
+}
+
+.category-split__share {
+    color: var(--color-content-secondary);
+    min-width: 4ch;
+    text-align: end;
+}

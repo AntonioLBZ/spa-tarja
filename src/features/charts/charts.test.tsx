@@ -684,6 +684,67 @@ describe('by category', () => {
         expect(breakdown()[0]!.querySelector('[data-icon]')).not.toBeNull();
     });
 
+    it('sets each category in a notched card with no bar of its own', async () => {
+        await open();
+
+        for (const row of breakdown()) {
+            expect(row.classList.contains('card')).toBe(true);
+            expect(row.querySelector('[style]')).toBeNull();
+        }
+    });
+
+    it('draws one strip over the rows, a segment per category as wide as its share, the biggest first', async () => {
+        await open();
+
+        const strip = document.querySelector('.category-split__strip')!;
+        const segments = [...strip.querySelectorAll<HTMLElement>('.category-split__segment')];
+        const startOf = (element: HTMLElement) => Number(element.style.getPropertyValue('--start'));
+        expect(strip.compareDocumentPosition(screen.getByRole('list', { name: text.byCategory }))).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING
+        );
+        expect(segments).toHaveLength(3);
+        expect(segments.map(shareOf)).toEqual([
+            expect.closeTo(4599 / 8949, 5),
+            expect.closeTo(2800 / 8949, 5),
+            expect.closeTo(1550 / 8949, 5),
+        ]);
+        expect(segments.map(startOf)).toEqual([0, expect.closeTo(4599 / 8949, 5), expect.closeTo(7399 / 8949, 5)]);
+    });
+
+    it('parts the segments with gaps where one ends and the next begins', async () => {
+        await open();
+
+        const gaps = [...document.querySelectorAll<HTMLElement>('.category-split__gap')];
+        expect(gaps.map((gap) => Number(gap.style.getPropertyValue('--start')))).toEqual([
+            expect.closeTo(4599 / 8949, 5),
+            expect.closeTo(7399 / 8949, 5),
+        ]);
+    });
+
+    it('hides the strip from assistive technology, since the rows carry the numbers', async () => {
+        await open();
+
+        expect(document.querySelector('.category-split__strip')!.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('paints the strip in the accent, never in a category color, while the icons keep theirs', async () => {
+        await open();
+
+        for (const mark of document.querySelectorAll('.category-split__strip *')) {
+            expect(mark.getAttribute('class')).not.toMatch(/category-badge|--(vermillion|green|purple|blue|orange)/);
+        }
+        expect(breakdown()[0]!.querySelector('.category-badge--green')).not.toBeNull();
+        expect(breakdown()[1]!.querySelector('.category-badge--purple')).not.toBeNull();
+    });
+
+    it('is one whole segment for a single category', async () => {
+        await open([expense({ amountCents: 900 })]);
+
+        const segments = [...document.querySelectorAll('.category-split__segment')];
+        expect(segments.map(shareOf)).toEqual([1]);
+        expect(document.querySelectorAll('.category-split__gap')).toHaveLength(0);
+    });
+
     it('names a custom category, and shows a deleted one as the fallback', async () => {
         const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
         await open(
@@ -751,7 +812,8 @@ describe('by category', () => {
         await open([]);
 
         expect(screen.queryByRole('list', { name: text.byCategory })).toBeNull();
-        expect(screen.getByText(text.empty)).toBeDefined();
+        expect(document.querySelector('.category-split__strip')).toBeNull();
+        expect(screen.getByText(text.empty).classList.contains('notice--quiet')).toBe(true);
     });
 
     it('does not say it is empty when something was spent', async () => {

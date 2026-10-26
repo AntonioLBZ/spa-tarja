@@ -26,7 +26,7 @@ import {
 } from '@core/charts';
 import { toDateString } from '@core/date';
 
-import { CategoryBreakdown } from './category-breakdown';
+import { CategorySplit } from './category-split';
 import { SpendingChart } from './spending-chart';
 import { SpendingStats } from './spending-stats';
 
@@ -141,9 +141,9 @@ function Charts() {
             )}
             {problem !== 'rangeInvalid' &&
                 (totals.length > 0 ? (
-                    <CategoryBreakdown totals={totals} labelOf={labelOf} styleOf={styleOf} />
+                    <CategorySplit totals={totals} labelOf={labelOf} styleOf={styleOf} />
                 ) : (
-                    <p className="charts__empty">{t('empty')}</p>
+                    <Notice tone="quiet">{t('empty')}</Notice>
                 ))}
         </section>
     );

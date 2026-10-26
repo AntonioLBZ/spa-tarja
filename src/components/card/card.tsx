@@ -14,6 +14,8 @@ interface CardListProps {
     as?: 'ul' | 'ol' | 'dl';
     // Cards that touch, for a list whose rows are far enough apart by themselves
     flush?: boolean;
+    // The name of a list with no heading of its own, for assistive technology
+    label?: string;
     className?: string;
     children: ReactNode;
 }
@@ -27,9 +29,13 @@ function Card(props: CardProps) {
 
 // Cards stacked one under another, `--size-2` apart
 function CardList(props: CardListProps) {
-    const { as: Tag = 'ul', flush, className, children } = props;
+    const { as: Tag = 'ul', flush, label, className, children } = props;
 
-    return <Tag className={clsx('card-list', flush && 'card-list--flush', className)}>{children}</Tag>;
+    return (
+        <Tag aria-label={label} className={clsx('card-list', flush && 'card-list--flush', className)}>
+            {children}
+        </Tag>
+    );
 }
 
 export { Card, CardList };

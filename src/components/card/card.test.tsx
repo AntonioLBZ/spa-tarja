@@ -99,4 +99,24 @@ describe('CardList', () => {
 
         expect(container.firstElementChild!.className).toBe('card-list day');
     });
+
+    it('can be named for assistive technology', () => {
+        render(
+            <CardList label="By category">
+                <Card as="li">Rent</Card>
+            </CardList>
+        );
+
+        expect(screen.getByRole('list', { name: 'By category' })).toBeDefined();
+    });
+
+    it('has no name unless given one', () => {
+        render(
+            <CardList>
+                <Card as="li">Rent</Card>
+            </CardList>
+        );
+
+        expect(screen.getByRole('list').getAttribute('aria-label')).toBeNull();
+    });
 });
