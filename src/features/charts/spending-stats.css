@@ -1,0 +1,24 @@
+.spending-stats {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.spending-stats__total {
+    align-items: baseline;
+    display: flex;
+    gap: var(--size-3);
+    justify-content: space-between;
+    margin: 0;
+}
+
+.spending-stats__change {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.spending-stats__arrow {
+    color: var(--color-content-primary);
+    font-weight: 700;
+    margin-inline-end: var(--size-1);
+}

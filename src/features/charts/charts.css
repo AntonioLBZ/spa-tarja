@@ -9,21 +9,8 @@
     margin: 0;
 }
 
-.charts__field {
-    display: grid;
-    gap: var(--size-1);
-}
-
 .charts__reset {
     justify-self: start;
-}
-
-.charts__total {
-    align-items: center;
-    display: flex;
-    justify-content: space-between;
-    margin: 0;
-    padding-inline: var(--size-3);
 }
 
 .charts__empty {

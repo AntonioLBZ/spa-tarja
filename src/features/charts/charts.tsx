@@ -5,12 +5,12 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
+import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { categoriesQuery } from '@/lib/api';
-import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import {
     GRANULARITIES,
@@ -18,16 +18,17 @@ import {
     bucketCount,
     categoryTotals,
     defaultRange,
+    previousRange,
     spendingBuckets,
     spendingTotal,
     type Granularity,
     type Range,
 } from '@core/charts';
 import { toDateString } from '@core/date';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { CategoryBreakdown } from './category-breakdown';
-import { SpendingBars } from './spending-bars';
+import { SpendingChart } from './spending-chart';
+import { SpendingStats } from './spending-stats';
 
 import './charts.css';
 
@@ -35,7 +36,6 @@ type Problem = 'rangeInvalid' | 'rangeTooLong';
 
 function Charts() {
     const t = useTranslations('charts');
-    const { locale } = useLocale();
     const id = useId();
     const { expenses } = useExpenses();
     const { options, labelOf, styleOf } = useCategoryOptions();
@@ -47,7 +47,7 @@ function Charts() {
     // Null until the person picks dates: the range then follows the grouping
     const [picked, setPicked] = useState<Range | null>(null);
 
-    const range = picked ?? defaultRange(granularity, today);
+    const range = useMemo(() => picked ?? defaultRange(granularity, today), [picked, granularity, today]);
     const problem: Problem | null =
         range.from > range.to ? 'rangeInvalid' : bucketCount(granularity, range) > MAX_BUCKETS ? 'rangeTooLong' : null;
 
@@ -71,6 +71,12 @@ function Charts() {
         [filed, granularity, range, filter]
     );
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
+    // The same number of rows right before, in the same category
+    const previous = useMemo(() => previousRange(granularity, range), [granularity, range]);
+    const previousTotal = useMemo(
+        () => spendingTotal(filed, { range: previous, categoryId: filter }),
+        [filed, previous, filter]
+    );
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
     return (
@@ -85,16 +91,17 @@ function Charts() {
                 onChange={setGranularity}
             />
 
-            <div className="charts__field">
-                <label htmlFor={`${id}-category`}>{t('category')}</label>
-                <CategorySelect
-                    id={`${id}-category`}
-                    label={t('category')}
-                    options={[{ id: '', label: t('allCategories') }, ...options]}
-                    value={categoryId}
-                    onChange={setCategoryId}
-                />
-            </div>
+            <Field label={t('category')}>
+                {(control) => (
+                    <CategorySelect
+                        {...control}
+                        label={t('category')}
+                        options={[{ id: '', label: t('allCategories') }, ...options]}
+                        value={categoryId}
+                        onChange={setCategoryId}
+                    />
+                )}
+            </Field>
 
             <DateRangeFields
                 from={range.from}
@@ -115,20 +122,29 @@ function Charts() {
                     {t(problem)}
                 </Notice>
             )}
-            {problem === null && <SpendingBars buckets={buckets} granularity={granularity} />}
             {problem !== 'rangeInvalid' && (
-                <>
-                    <p className="charts__total">
-                        <span>{t('total')}</span>
-                        <strong>{formatAmount(total, DEFAULT_CURRENCY, locale)}</strong>
-                    </p>
-                    {totals.length > 0 ? (
-                        <CategoryBreakdown totals={totals} labelOf={labelOf} styleOf={styleOf} />
-                    ) : (
-                        <p className="charts__empty">{t('empty')}</p>
-                    )}
-                </>
+                <SpendingStats
+                    totalCents={total}
+                    previousCents={previousTotal}
+                    previous={previous}
+                    granularity={granularity}
+                    today={today}
+                />
             )}
+            {problem === null && (
+                <SpendingChart
+                    buckets={buckets}
+                    granularity={granularity}
+                    today={today}
+                    category={filter === null ? null : labelOf(filter)}
+                />
+            )}
+            {problem !== 'rangeInvalid' &&
+                (totals.length > 0 ? (
+                    <CategoryBreakdown totals={totals} labelOf={labelOf} styleOf={styleOf} />
+                ) : (
+                    <p className="charts__empty">{t('empty')}</p>
+                ))}
         </section>
     );
 }

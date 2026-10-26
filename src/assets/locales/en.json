@@ -285,6 +285,16 @@
         "weekOf": "Week of {date}",
         "total": "Total",
         "byCategory": "By category",
-        "empty": "Nothing spent in this period."
+        "empty": "Nothing spent in this period.",
+        "amount": "Amount",
+        "showNumbers": "Show the numbers",
+        "readout": "{label}: {amount}",
+        "readoutCategory": "{label}, {category}: {amount}",
+        "readoutHint": "Tap a column, or use the arrow keys, to read its amount.",
+        "chartSpan": "{granularity, select, day {{count, plural, one {# day} other {# days}}} week {{count, plural, one {# week} other {# weeks}}} other {{count, plural, one {# month} other {# months}}}}",
+        "chartSummary": "Spending over {span}: {total} in total. Highest: {biggest} ({label}).",
+        "chartSummaryEmpty": "Spending over {span}: nothing spent.",
+        "vsPrevious": "{change} vs. {period}",
+        "noPrevious": "Nothing spent in the previous period ({period}) to compare with."
     }
 }

@@ -285,6 +285,16 @@
         "weekOf": "Semana del {date}",
         "total": "Total",
         "byCategory": "Por categoría",
-        "empty": "No hay gastos en este periodo."
+        "empty": "No hay gastos en este periodo.",
+        "amount": "Importe",
+        "showNumbers": "Ver las cifras",
+        "readout": "{label}: {amount}",
+        "readoutCategory": "{label}, {category}: {amount}",
+        "readoutHint": "Toca una columna, o usa las flechas, para ver su importe.",
+        "chartSpan": "{granularity, select, day {{count, plural, one {# día} other {# días}}} week {{count, plural, one {# semana} other {# semanas}}} other {{count, plural, one {# mes} other {# meses}}}}",
+        "chartSummary": "Gasto en {span}: {total} en total. Máximo: {biggest} ({label}).",
+        "chartSummaryEmpty": "Gasto en {span}: sin gastos.",
+        "vsPrevious": "{change} frente a {period}",
+        "noPrevious": "No hubo gastos en el periodo anterior ({period}) con los que comparar."
     }
 }
