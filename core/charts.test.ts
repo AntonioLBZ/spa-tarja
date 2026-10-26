@@ -410,6 +410,23 @@ describe('categoryTotals', () => {
         ]);
     });
 
+    it('leaves out a category that adds up to nothing, like a restaurant card expense with none of it yours', () => {
+        const totals = categoryTotals(
+            [
+                expense({
+                    categoryId: 'food',
+                    amountCents: 4000,
+                    personalCents: 0,
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([]);
+    });
+
     it('is empty when nothing counts in the range', () => {
         expect(categoryTotals([], range)).toEqual([]);
         expect(categoryTotals([expense()], { from: '2026-10-26', to: '2026-10-24' })).toEqual([]);

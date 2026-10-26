@@ -920,7 +920,7 @@ describe('by category', () => {
         expect(breakdown()[1]!.textContent).toContain('1%');
     });
 
-    it('gives no share to a category that took nothing, rather than a broken one', async () => {
+    it('says nothing was spent when the only expense has none of it as yours', async () => {
         await open([
             expense({
                 amountCents: 1000,
@@ -931,9 +931,8 @@ describe('by category', () => {
             }),
         ]);
 
-        expect(breakdown()[0]!.textContent).toContain('0%');
-        expect(breakdown()[0]!.textContent).not.toContain('NaN');
-        expect([...document.querySelectorAll('.category-split__segment')].map(shareOf)).toEqual([0]);
+        expect(screen.getByText(text.empty)).toBeTruthy();
+        expect(document.querySelector('.category-split')).toBeNull();
     });
 
     it('names a custom category, and shows a deleted one as the fallback', async () => {

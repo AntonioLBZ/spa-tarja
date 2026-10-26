@@ -92,7 +92,7 @@ function spendingTotal(expenses: readonly Expense[], options: { range: Range; ca
         .reduce((sum, expense) => sum + countedCents(expense), 0);
 }
 
-// What each category took in the range, the biggest first and by name when they tie
+// What each category took in the range, the biggest first and by name when they tie; one that took nothing is left out
 function categoryTotals(expenses: readonly Expense[], range: Range): CategoryTotal[] {
     const totals = new Map<string, number>();
     for (const expense of inRange(expenses, range)) {
@@ -100,6 +100,7 @@ function categoryTotals(expenses: readonly Expense[], range: Range): CategoryTot
     }
     return [...totals]
         .map(([categoryId, totalCents]) => ({ categoryId, totalCents }))
+        .filter((total) => total.totalCents > 0)
         .sort((a, b) => b.totalCents - a.totalCents || a.categoryId.localeCompare(b.categoryId));
 }
 

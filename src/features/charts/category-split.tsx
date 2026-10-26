@@ -19,7 +19,7 @@ interface CategorySplitProps {
 
 // What each category took: one strip cut into a segment per category, and under it a row for each with its icon and
 // name (the color alone says nothing), its amount and its share. The biggest comes first, and the ones that took the
-// same go in the order of the names that are read.
+// same go in the order of the names that are read. Every total is above zero.
 function CategorySplit(props: CategorySplitProps) {
     const { totals, labelOf, styleOf } = props;
     const t = useTranslations('charts');
@@ -37,8 +37,7 @@ function CategorySplit(props: CategorySplitProps) {
         // Each segment starts where the ones before it end
         return ordered.reduce<(CategoryTotal & { start: number; share: number })[]>((done, item) => {
             const last = done.at(-1);
-            // Nothing at all to share out, as with restaurant card expenses whose part is 0, gives every one none
-            const share = all > 0 ? item.totalCents / all : 0;
+            const share = item.totalCents / all;
             done.push({ ...item, start: last ? last.start + last.share : 0, share });
             return done;
         }, []);
