@@ -9,14 +9,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - Guest mode (item 8) overturns a recorded decision ("Google login only"): say whether to build it.
 - Charts (item 7): may a category color fill that category's mark in a chart? It needs a `design.md` §2 change. Built without it until you answer.
 
-## 6. Search, filters and grouping of the list (M, after 2 and 3)
-
-- `core/text.ts` (move `normalizeText` out of the classifier) and `core/expense-list.ts`: `buildList(expenses, filters, grouping, ctx)` collapses plans first, filters on the row shown, groups by day, week, month or category and returns `{ key, items, totalCents }`. Replaces `groupByDay`.
-- Filters: text (every word, ignoring case and accents, over the text and the category label), category (unknown ids count as Other), from/to on the day made, and paid with (any, now, credit card, restaurant card, installments). They live in `useState` and reset on leaving, so a stale filter never hides a new expense. The grouping is remembered in `tarja:list-grouping`.
-- UI: search field, "Filters (n)" toggle with a panel (group by, "Filter by category", dates, paid with), "Showing x of y" with Clear, a no-match state, `DateRangeFields` extracted from the charts, 100 rows with "Show more" instead of virtualisation.
-- Group header: label plus subtotal of the rows listed, by day made, a plan at full price on its purchase day, so it can differ from Summary's "spent". Week groups read "Week of …"; category groups use the badge. Edit gets the original expense, not the filtered copy.
-- Tests: core (accents, a plan stays one row, weeks start on Monday, subtotals, unknown category) and an `expenses.test.tsx` block. Docs: `design.md` §5 "Expense list controls", `ARCHITECTURE.md` §5 (the list is by day made, not spending).
-
 ## 7. Charts rework (L, after 2 and 6)
 
 - No dependency: hand-rolled SVG is about 4 KB, against 20 to 150 KB gzipped for libraries that can't read the CSS tokens.
