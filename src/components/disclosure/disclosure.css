@@ -3,6 +3,12 @@
     gap: var(--size-2);
 }
 
+/* Around a toggle that titles a section: the size of the text around it, and the toggle takes its weight */
+.disclosure__heading {
+    font-size: inherit;
+    margin: 0;
+}
+
 /* The notch comes from the button; the toggle only lays out what is inside it */
 .disclosure__toggle {
     align-items: center;
@@ -40,7 +46,14 @@
     }
 }
 
-/* `display` above would otherwise win over the `hidden` attribute */
+/* `display` above would otherwise win over the `hidden` attribute. A panel kept in the page leaves the way it came in,
+   and only then drops out of the layout */
 .disclosure__panel[hidden] {
     display: none;
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--size-2)));
+    transition:
+        display var(--duration-base) allow-discrete,
+        opacity var(--duration-base) var(--ease-exit),
+        transform var(--duration-base) var(--ease-exit);
 }

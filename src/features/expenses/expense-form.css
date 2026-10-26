@@ -3,11 +3,6 @@
     gap: var(--size-4);
 }
 
-.expense-form__title {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
 .expense-form__hint {
     color: var(--color-content-secondary);
     margin: 0;

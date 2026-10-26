@@ -169,6 +169,25 @@ describe('Disclosure', () => {
         });
     });
 
+    it('has no heading unless asked', () => {
+        render(<Disclosure summary="Details">Shown</Disclosure>);
+
+        expect(screen.queryByRole('heading')).toBeNull();
+    });
+
+    it('can put the toggle in a heading, for a disclosure that titles a section', () => {
+        render(
+            <Disclosure heading="h2" summary="Details" chevron>
+                Shown
+            </Disclosure>
+        );
+
+        const heading = screen.getByRole('heading', { level: 2, name: 'Details' });
+        expect(heading.classList.contains('disclosure__heading')).toBe(true);
+        expect(heading.firstElementChild).toBe(toggle());
+        expect(heading.childElementCount).toBe(1);
+    });
+
     it('hands the toggle to whoever needs to focus it', () => {
         const toggleRef = createRef<HTMLButtonElement>();
         render(

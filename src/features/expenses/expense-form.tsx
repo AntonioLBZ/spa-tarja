@@ -132,12 +132,9 @@ function ExpenseForm() {
         }
     }
 
+    // Its visible title is the heading that collapses it (AddExpense)
     return (
-        <form className="expense-form" aria-labelledby={`${id}-title`} onSubmit={(event) => void handleSubmit(event)}>
-            <h2 className="expense-form__title" id={`${id}-title`}>
-                {t('title')}
-            </h2>
-
+        <form className="expense-form" aria-label={t('title')} onSubmit={(event) => void handleSubmit(event)}>
             <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
                 {(control) => (
                     <input

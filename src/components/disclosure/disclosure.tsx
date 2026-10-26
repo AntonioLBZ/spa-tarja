@@ -7,6 +7,8 @@ import './disclosure.css';
 
 interface DisclosureProps {
     as?: 'li' | 'div' | 'section';
+    // Puts the toggle in a heading of that level, for a disclosure that titles a section
+    heading?: 'h2' | 'h3';
     // What the toggle shows
     summary: ReactNode;
     // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
@@ -46,6 +48,7 @@ function DisclosurePanel(props: DisclosurePanelProps) {
 function Disclosure(props: DisclosureProps) {
     const {
         as: Tag = 'div',
+        heading: Heading,
         summary,
         open,
         defaultOpen = false,
@@ -67,24 +70,28 @@ function Disclosure(props: DisclosureProps) {
         onOpenChange?.(next);
     }
 
+    const toggle = (
+        <button
+            ref={toggleRef}
+            className="disclosure__toggle"
+            aria-controls={isOpen ? panelId : undefined}
+            aria-expanded={isOpen}
+            disabled={disabled}
+            type="button"
+            onClick={handleToggle}
+        >
+            {summary}
+            {chevron && (
+                <span className="disclosure__chevron">
+                    <Icon name="expand_more" />
+                </span>
+            )}
+        </button>
+    );
+
     return (
         <Tag className={clsx('disclosure', className)}>
-            <button
-                ref={toggleRef}
-                className="disclosure__toggle"
-                aria-controls={isOpen ? panelId : undefined}
-                aria-expanded={isOpen}
-                disabled={disabled}
-                type="button"
-                onClick={handleToggle}
-            >
-                {summary}
-                {chevron && (
-                    <span className="disclosure__chevron">
-                        <Icon name="expand_more" />
-                    </span>
-                )}
-            </button>
+            {Heading ? <Heading className="disclosure__heading">{toggle}</Heading> : toggle}
             {(isOpen || keepMounted) && (
                 <DisclosurePanel id={panelId} hidden={!isOpen}>
                     {children}

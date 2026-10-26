@@ -227,6 +227,67 @@ describe('expense form', () => {
     });
 });
 
+describe('the add form', () => {
+    function formToggle() {
+        return screen.getByRole('button', { name: en.expenses.form.title });
+    }
+
+    function submitShown() {
+        return screen.queryByRole('button', { name: en.expenses.form.submit }) !== null;
+    }
+
+    it('is open to start with, under a heading that is its toggle', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        const heading = await screen.findByRole('heading', { level: 2, name: en.expenses.form.title });
+
+        expect(heading.firstElementChild).toBe(formToggle());
+        expect(formToggle().getAttribute('aria-expanded')).toBe('true');
+        expect(formToggle().getAttribute('aria-controls')).toBe(
+            field(en.expenses.form.amount).closest('.disclosure__panel')!.id
+        );
+        expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined();
+        expect(screen.getAllByRole('heading', { name: en.expenses.form.title })).toHaveLength(1);
+        expect(submitShown()).toBe(true);
+    });
+
+    it('collapses and opens again from its heading, keeping the focus on it', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+        const toggle = formToggle();
+        toggle.focus();
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(toggle.hasAttribute('aria-controls')).toBe(false);
+        expect(submitShown()).toBe(false);
+        expect(document.activeElement).toBe(toggle);
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(submitShown()).toBe(true);
+        expect(document.activeElement).toBe(toggle);
+    });
+
+    it('keeps what was typed while it is collapsed', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+        fireEvent.change(field(en.expenses.form.amount), { target: { value: '12.50' } });
+        fireEvent.change(field(en.expenses.form.text), { target: { value: 'Lunch' } });
+
+        fireEvent.click(formToggle());
+        fireEvent.click(formToggle());
+
+        expect(field(en.expenses.form.amount).value).toBe('12.50');
+        expect(field(en.expenses.form.text).value).toBe('Lunch');
+    });
+});
+
 describe('deferred expenses', () => {
     const paymentField = () => field(en.expenses.form.payment);
     const chargeField = () => field(en.expenses.form.chargeDate);

@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { Notice } from '@/components/notice/notice';
-import { ExpenseForm } from '@/features/expenses/expense-form';
+import { AddExpense } from '@/features/expenses/add-expense';
 import { ExpenseList } from '@/features/expenses/expense-list';
 import { SyncStatus } from '@/features/expenses/sync-status';
 import { healthQuery } from '@/lib/api';
@@ -22,7 +22,7 @@ function Home() {
     return (
         <section className="home">
             <h1 className="visually-hidden">Tarja</h1>
-            <ExpenseForm />
+            <AddExpense />
             <SyncStatus />
             <ExpenseList />
             <Notice tone={TONES[state]} role="status">
