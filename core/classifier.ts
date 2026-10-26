@@ -1,5 +1,6 @@
 import { DEFAULT_CATEGORY_IDS, FALLBACK_CATEGORY_ID, type DefaultCategoryId } from './categories';
 import { CATEGORY_KEYWORDS } from './category-keywords';
+import { normalizeText } from './text';
 
 interface Entry {
     category: DefaultCategoryId;
@@ -7,16 +8,6 @@ interface Entry {
     forms: string[];
     // Words in the keyword: a phrase outweighs a single word
     weight: number;
-}
-
-// Lowercase, no accents, and every run of punctuation collapsed into one space
-function normalizeText(text: string): string {
-    return text
-        .normalize('NFD')
-        .replace(/\p{M}/gu, '')
-        .toLowerCase()
-        .replace(/[^\p{L}\p{N}]+/gu, ' ')
-        .trim();
 }
 
 const ENTRIES: Entry[] = DEFAULT_CATEGORY_IDS.flatMap((category) =>
