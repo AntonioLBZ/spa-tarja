@@ -102,4 +102,3 @@ function SpendingStats(props: SpendingStatsProps) {
 }
 
 export { SpendingStats };
-export type { ComparedTotals };

@@ -189,4 +189,4 @@ export {
     spendingBuckets,
     spendingTotal,
 };
-export type { Bucket, CategoryTotal, Comparison, Granularity, Range, Scale };
+export type { Bucket, CategoryTotal, Granularity, Range };

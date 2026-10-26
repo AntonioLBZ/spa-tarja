@@ -183,9 +183,8 @@ export {
     groupItems,
     hasFilters,
     isListGrouping,
-    itemCents,
     limitRows,
     listItems,
     shownExpense,
 };
-export type { ListContext, ListFilters, ListGroup, ListGrouping, PaidWith };
+export type { ListContext, ListFilters, ListGroup, ListGrouping };
