@@ -220,6 +220,27 @@ describe('buildList grouped by week or month', () => {
         ]);
     });
 
+    it('names a week that crosses a New Year by its Monday, in the old year', () => {
+        const groups = buildList(
+            [
+                expense('first-of-2026', { date: '2026-01-01' }),
+                expense('monday', { date: '2025-12-29' }),
+                expense('first-of-2027', { date: '2027-01-01' }),
+                expense('sunday-of-2026', { date: '2027-01-03' }),
+                expense('next-monday', { date: '2027-01-04' }),
+            ],
+            NO_FILTERS,
+            'week',
+            ctx
+        );
+
+        expect(groups.map((group) => [group.key, group.items.length])).toEqual([
+            ['2027-01-04', 1],
+            ['2026-12-28', 2],
+            ['2025-12-29', 2],
+        ]);
+    });
+
     it('names a month by its first day, newest first', () => {
         const groups = buildList(days, NO_FILTERS, 'month', ctx);
 
