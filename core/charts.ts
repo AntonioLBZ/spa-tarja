@@ -122,6 +122,29 @@ function previousRange(granularity: Granularity, range: Range): Range {
     };
 }
 
+// The days a total is compared on, and the earlier span it is compared with
+interface Comparison {
+    current: Range;
+    previous: Range;
+}
+
+// What the total of a range is compared with, always over spans as long as each other. A range of whole buckets that
+// has ended compares with as many buckets before it; any other that has ended, with as many days before it. One still
+// running is compared from its start up to today, with as many days before its start; one that hasn't started, or
+// that ends before it begins, has nothing to compare.
+function comparison(granularity: Granularity, range: Range, today: string): Comparison | null {
+    if (range.from > range.to || range.from > today) return null;
+    const ended = range.to <= today;
+    const whole =
+        bucketStart(range.from, granularity) === range.from &&
+        addDays(nextBucket(bucketStart(range.to, granularity), granularity), -1) === range.to;
+    if (ended && whole) return { current: range, previous: previousRange(granularity, range) };
+
+    const current = ended ? range : { from: range.from, to: today };
+    const days = daysBetween(current.from, current.to) + 1;
+    return { current, previous: { from: addDays(current.from, -days), to: addDays(current.from, -1) } };
+}
+
 interface Scale {
     max: number;
     step: number;
@@ -133,9 +156,9 @@ interface Scale {
 const STEP_MANTISSAS = [1, 2, 2.5, 5];
 
 // A round scale for values up to `maxCents`: 2 to 4 equal steps, the lowest top that holds the value and, of the steps
-// that reach it, the smallest. Nothing to show gets the scale of one euro.
+// that reach it, the smallest. Nothing to show, or what isn't a finite amount, gets the scale of one euro.
 function niceScale(maxCents: number): Scale {
-    const value = maxCents > 0 ? maxCents : 100;
+    const value = Number.isFinite(maxCents) && maxCents > 0 ? Math.ceil(maxCents) : 100;
     let best = { max: Infinity, step: 0 };
 
     for (let power = 1; power <= value; power *= 10) {
@@ -158,10 +181,11 @@ export {
     bucketCount,
     bucketStart,
     categoryTotals,
+    comparison,
     defaultRange,
     niceScale,
     previousRange,
     spendingBuckets,
     spendingTotal,
 };
-export type { Bucket, CategoryTotal, Granularity, Range, Scale };
+export type { Bucket, CategoryTotal, Comparison, Granularity, Range, Scale };

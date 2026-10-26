@@ -5,13 +5,14 @@ import {
     bucketCount,
     bucketStart,
     categoryTotals,
+    comparison,
     defaultRange,
     niceScale,
     previousRange,
     spendingBuckets,
     spendingTotal,
 } from './charts';
-import { addDays } from './date';
+import { addDays, daysBetween } from './date';
 
 import type { Expense } from './expense';
 
@@ -463,6 +464,17 @@ describe('niceScale', () => {
         expect(niceScale(0)).toEqual({ max: 100, step: 25, ticks: [0, 25, 50, 75, 100] });
     });
 
+    it('draws one euro for what is not a finite amount', () => {
+        expect(niceScale(Infinity)).toEqual(niceScale(0));
+        expect(niceScale(Number.NaN)).toEqual(niceScale(0));
+        expect(niceScale(-5)).toEqual(niceScale(0));
+    });
+
+    it('rounds a fraction of a cent up to a whole one', () => {
+        expect(niceScale(0.5)).toEqual(niceScale(1));
+        expect(niceScale(4898.2)).toEqual(niceScale(4899));
+    });
+
     it.each([1, 2, 7, 99, 100, 101, 999, 1001, 2499, 2501, 4899, 33_333, 99_999, 123_456, 7_654_321, 99_999_999_999])(
         'has 3 to 5 evenly spaced round ticks from 0 to a top that holds %i, at most twice as high',
         (value) => {
@@ -564,4 +576,102 @@ describe('previousRange', () => {
         expect(addDays(previous.to, 1)).toBe(bucketStart(range.from, granularity));
         expect(bucketStart(previous.from, granularity)).toBe(previous.from);
     });
+});
+
+describe('comparison', () => {
+    it('compares a range of whole rows that has ended with as many rows before it', () => {
+        expect(comparison('month', { from: '2026-10-01', to: '2026-10-31' }, '2026-11-05')).toEqual({
+            current: { from: '2026-10-01', to: '2026-10-31' },
+            previous: { from: '2026-09-01', to: '2026-09-30' },
+        });
+        expect(comparison('week', { from: '2026-08-03', to: '2026-10-25' }, '2026-10-25')).toEqual({
+            current: { from: '2026-08-03', to: '2026-10-25' },
+            previous: { from: '2026-05-11', to: '2026-08-02' },
+        });
+        expect(comparison('day', { from: '2026-10-07', to: '2026-10-25' }, '2026-10-26')).toEqual({
+            current: { from: '2026-10-07', to: '2026-10-25' },
+            previous: { from: '2026-09-18', to: '2026-10-06' },
+        });
+    });
+
+    it('compares a range that is not whole rows with as many days before it', () => {
+        expect(comparison('month', { from: '2026-10-15', to: '2026-10-31' }, '2026-11-05')).toEqual({
+            current: { from: '2026-10-15', to: '2026-10-31' },
+            previous: { from: '2026-09-28', to: '2026-10-14' },
+        });
+        expect(comparison('week', { from: '2026-10-07', to: '2026-10-25' }, '2026-10-30')).toEqual({
+            current: { from: '2026-10-07', to: '2026-10-25' },
+            previous: { from: '2026-09-18', to: '2026-10-06' },
+        });
+        expect(comparison('month', { from: '2026-09-01', to: '2026-10-20' }, '2026-10-30')).toEqual({
+            current: { from: '2026-09-01', to: '2026-10-20' },
+            previous: { from: '2026-07-13', to: '2026-08-31' },
+        });
+    });
+
+    it('compares a range still running up to today with as many days before its start', () => {
+        expect(comparison('day', { from: '2026-10-01', to: '2026-10-31' }, '2026-10-03')).toEqual({
+            current: { from: '2026-10-01', to: '2026-10-03' },
+            previous: { from: '2026-09-28', to: '2026-09-30' },
+        });
+        expect(comparison('month', { from: '2025-11-01', to: '2026-10-31' }, '2026-10-25')).toEqual({
+            current: { from: '2025-11-01', to: '2026-10-25' },
+            previous: { from: '2024-11-07', to: '2025-10-31' },
+        });
+    });
+
+    it('compares the first day of a running range with the day before it', () => {
+        expect(comparison('week', { from: '2026-10-26', to: '2026-11-01' }, '2026-10-26')).toEqual({
+            current: { from: '2026-10-26', to: '2026-10-26' },
+            previous: { from: '2026-10-25', to: '2026-10-25' },
+        });
+    });
+
+    it('treats a range that ends today as ended', () => {
+        expect(comparison('day', { from: '2026-10-25', to: '2026-10-25' }, '2026-10-25')).toEqual({
+            current: { from: '2026-10-25', to: '2026-10-25' },
+            previous: { from: '2026-10-24', to: '2026-10-24' },
+        });
+    });
+
+    it('has nothing to compare for a range that starts after today, or ends before it begins', () => {
+        expect(comparison('day', { from: '2026-11-01', to: '2026-11-30' }, '2026-10-25')).toBeNull();
+        expect(comparison('day', { from: '2026-10-25', to: '2026-10-24' }, '2026-10-30')).toBeNull();
+    });
+
+    it('counts a leap day like any other', () => {
+        expect(comparison('day', { from: '2024-03-01', to: '2024-03-31' }, '2024-03-02')).toEqual({
+            current: { from: '2024-03-01', to: '2024-03-02' },
+            previous: { from: '2024-02-28', to: '2024-02-29' },
+        });
+        expect(comparison('month', { from: '2024-03-01', to: '2024-03-31' }, '2024-04-10')).toEqual({
+            current: { from: '2024-03-01', to: '2024-03-31' },
+            previous: { from: '2024-02-01', to: '2024-02-29' },
+        });
+    });
+
+    it('goes back over a New Year', () => {
+        expect(comparison('day', { from: '2026-01-01', to: '2026-01-31' }, '2026-01-02')).toEqual({
+            current: { from: '2026-01-01', to: '2026-01-02' },
+            previous: { from: '2025-12-30', to: '2025-12-31' },
+        });
+        expect(comparison('month', { from: '2026-01-01', to: '2026-03-31' }, '2026-04-01')).toEqual({
+            current: { from: '2026-01-01', to: '2026-03-31' },
+            previous: { from: '2025-10-01', to: '2025-12-31' },
+        });
+    });
+
+    it.each(['day', 'week', 'month'] as const)(
+        'compares spans of the same number of days whenever the %s range is not whole rows that have ended',
+        (granularity) => {
+            const range = { from: '2026-03-17', to: '2026-10-31' };
+
+            const compared = comparison(granularity, range, '2026-10-20')!;
+
+            expect(daysBetween(compared.previous.from, compared.previous.to)).toBe(
+                daysBetween(compared.current.from, compared.current.to)
+            );
+            expect(addDays(compared.previous.to, 1)).toBe(compared.current.from);
+        }
+    );
 });
