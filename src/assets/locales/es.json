@@ -26,6 +26,8 @@
             "date": "Fecha",
             "payment": "Pago",
             "chargeDate": "Se carga el",
+            "personal": "Tu parte",
+            "paidBack": "Los demás te devuelven {amount}",
             "installments": "Plazos",
             "installmentsOption": "{count, plural, one {En un solo pago} other {En # pagos mensuales}}",
             "part": "Pago {part} de {parts}, {date}",
@@ -34,6 +36,8 @@
             "submit": "Añadir",
             "amountInvalid": "Introduce un importe mayor que cero.",
             "chargeDateInvalid": "No se puede cargar antes del día del gasto.",
+            "personalInvalid": "Introduce un importe, o déjalo vacío si fue todo tuyo.",
+            "personalOver": "Tu parte no puede ser mayor que el importe.",
             "partInvalid": "Cada pago necesita un importe mayor que cero.",
             "saveFailed": "No se pudo guardar el gasto en este dispositivo. Inténtalo de nuevo."
         },
@@ -50,7 +54,8 @@
             "deleteItem": "Eliminar {name}",
             "pending": "Sin sincronizar",
             "charged": "{payment}, se carga el {date}",
-            "plan": "{parts} pagos, hasta el {date}"
+            "plan": "{parts} pagos, hasta el {date}",
+            "paid": "Pagado {total}"
         }
     },
     "categories": {
@@ -213,6 +218,7 @@
         "chartsLink": "Ver gráficos",
         "income": "Ingresos",
         "voucher": "Tarjeta restaurante",
+        "paidBack": "Reembolsado por otros",
         "spent": "Gastado",
         "left": "Queda",
         "notSet": "Sin definir",

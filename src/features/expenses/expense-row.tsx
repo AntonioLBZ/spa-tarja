@@ -6,7 +6,7 @@ import { Disclosure } from '@/components/disclosure/disclosure';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
-import { paymentOf } from '@core/counting';
+import { countedCents, paymentOf } from '@core/counting';
 import { planTotal } from '@core/installments';
 import { formatAmount } from '@core/money';
 
@@ -45,6 +45,12 @@ function ExpenseRow(props: ExpenseRowProps) {
         : expense.chargeDate && paymentOf(expense) !== 'direct'
           ? t('charged', { payment: tPayment(paymentOf(expense)), date: shortDate(expense.chargeDate) })
           : null;
+    // A restaurant card expense shows your part, and what the card paid when others pay back the rest
+    const amountCents = isPlan ? planTotal(expenses) : countedCents(expense);
+    const paid =
+        !isPlan && amountCents !== expense.amountCents
+            ? t('paid', { total: formatAmount(expense.amountCents, expense.currency, locale) })
+            : null;
 
     return (
         <Disclosure
@@ -57,13 +63,12 @@ function ExpenseRow(props: ExpenseRowProps) {
                         <CategoryBadge style={styleOf(expense.categoryId)} />
                         <span className="expense-item__text">{name}</span>
                     </span>
-                    <span className="expense-item__amount">
-                        {formatAmount(planTotal(expenses), expense.currency, locale)}
-                    </span>
-                    {(expense.text || pending || charged) && (
+                    <span className="expense-item__amount">{formatAmount(amountCents, expense.currency, locale)}</span>
+                    {(expense.text || pending || charged || paid) && (
                         <span className="expense-item__meta">
                             {expense.text && <span>{category}</span>}
                             {charged && <span>{charged}</span>}
+                            {paid && <span>{paid}</span>}
                             {pending && <span className="expense-item__pending">{t('pending')}</span>}
                         </span>
                     )}

@@ -59,6 +59,12 @@ function Summary() {
                         <dd className="summary__value">{money(summary.voucherCents)}</dd>
                     </Card>
                 )}
+                {summary.paidBackCents > 0 && (
+                    <Card className="summary__row">
+                        <dt>{t('paidBack')}</dt>
+                        <dd className="summary__value">{money(summary.paidBackCents)}</dd>
+                    </Card>
+                )}
                 <Card className="summary__row">
                     <dt>{t('spent')}</dt>
                     <dd className="summary__value">{money(summary.spentCents)}</dd>

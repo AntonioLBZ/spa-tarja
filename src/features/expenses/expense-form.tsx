@@ -38,11 +38,13 @@ function ExpenseForm() {
     const [date, setDate] = useState(() => toDateString(new Date()));
     const [payment, setPayment] = useState<Payment>('direct');
     const [pickedCharge, setPickedCharge] = useState<string | null>(null);
+    const [personal, setPersonal] = useState('');
     const [installments, setInstallments] = useState(1);
     // What the person typed in the parts, valid only for the total and the count it was typed for
     const [editedParts, setEditedParts] = useState<{ key: string; values: string[] } | null>(null);
     const [chargeInvalid, setChargeInvalid] = useState(false);
     const [amountInvalid, setAmountInvalid] = useState(false);
+    const [personalInvalid, setPersonalInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
 
@@ -58,6 +60,11 @@ function ExpenseForm() {
     const parts = payment === 'direct' ? installments : 1;
     const totalCents = parseAmount(amount, locale);
     const planDates = installmentDates(date, parts);
+    // Your part of what a restaurant card paid, when others pay you back the rest; empty is the whole amount
+    const personalText = payment === 'voucher' ? personal.trim() : '';
+    const personalCents = personalText === '' ? null : parseAmount(personalText, locale);
+    const personalOver = personalCents !== null && totalCents !== null && personalCents > totalCents;
+    const paidBack = personalCents !== null && totalCents !== null ? totalCents - personalCents : 0;
     const partsKey = `${totalCents}:${parts}`;
     const partTexts =
         editedParts?.key === partsKey
@@ -99,12 +106,20 @@ function ExpenseForm() {
 
         if (partsProblem !== null) return;
 
+        if (personalText !== '' && personalCents === null) {
+            setPersonalInvalid(true);
+            return;
+        }
+
+        if (personalOver) return;
+
         if (chargeDate !== null && chargeDate < date) {
             setChargeInvalid(true);
             return;
         }
 
         setAmountInvalid(false);
+        setPersonalInvalid(false);
         setChargeInvalid(false);
         setSaveFailed(false);
         setSaving(true);
@@ -114,6 +129,7 @@ function ExpenseForm() {
             date,
             payment,
             chargeDate,
+            personalCents,
             amounts: parts === 1 ? [amountCents] : partCents.filter((cents) => cents !== null),
         });
         try {
@@ -123,6 +139,7 @@ function ExpenseForm() {
             setPicked(null);
             setPayment('direct');
             setPickedCharge(null);
+            setPersonal('');
             setInstallments(1);
             setEditedParts(null);
         } catch {
@@ -198,8 +215,13 @@ function ExpenseForm() {
                         {...control}
                         value={payment}
                         onChange={(event) => {
-                            setPayment(event.target.value as Payment);
+                            const next = event.target.value as Payment;
+                            setPayment(next);
                             setChargeInvalid(false);
+                            if (next !== 'voucher') {
+                                setPersonal('');
+                                setPersonalInvalid(false);
+                            }
                         }}
                     >
                         {PAYMENTS.map((kind) => (
@@ -222,6 +244,32 @@ function ExpenseForm() {
                             onChange={(event) => {
                                 setPickedCharge(event.target.value);
                                 setChargeInvalid(false);
+                            }}
+                        />
+                    )}
+                </Field>
+            )}
+
+            {payment === 'voucher' && (
+                <Field
+                    label={t('personal')}
+                    hint={
+                        paidBack > 0
+                            ? t('paidBack', { amount: formatAmount(paidBack, DEFAULT_CURRENCY, locale) })
+                            : undefined
+                    }
+                    error={personalOver ? t('personalOver') : personalInvalid ? t('personalInvalid') : null}
+                >
+                    {(control) => (
+                        <input
+                            {...control}
+                            autoComplete="off"
+                            inputMode="decimal"
+                            type="text"
+                            value={personal}
+                            onChange={(event) => {
+                                setPersonal(event.target.value);
+                                setPersonalInvalid(false);
                             }}
                         />
                     )}

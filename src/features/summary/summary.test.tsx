@@ -189,6 +189,63 @@ describe('the numbers of a month', () => {
 
         expect(screen.queryByText(text.voucher)).toBeNull();
     });
+
+    it('show a shared dinner: your part spent and the rest paid back in October, your part as card income in November', async () => {
+        await open({
+            expenses: [
+                expense({
+                    amountCents: 4000,
+                    personalCents: 2000,
+                    date: '2026-10-12',
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+            ],
+            income: [
+                { month: '2026-10', amountCents: 200_000, currency: 'EUR' },
+                { month: '2026-11', amountCents: 200_000, currency: 'EUR' },
+            ],
+        });
+
+        expect(within(row(text.spent)).getByText('€20.00')).toBeDefined();
+        expect(within(row(text.paidBack)).getByText('€20.00')).toBeDefined();
+        expect(screen.queryByText(text.voucher)).toBeNull();
+        expect(within(row(text.left)).getByText('€2,000.00')).toBeDefined();
+
+        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+
+        expect(within(row(text.voucher)).getByText('€20.00')).toBeDefined();
+        expect(within(row(text.spent)).getByText('€0.00')).toBeDefined();
+        expect(screen.queryByText(text.paidBack)).toBeNull();
+        expect(within(row(text.left)).getByText('€2,020.00')).toBeDefined();
+    });
+
+    it('list what others paid back between the restaurant card and what was spent', async () => {
+        await open({
+            expenses: [
+                expense({ amountCents: 4000, personalCents: 2000, payment: 'voucher', chargeDate: '2026-11-12' }),
+                expense({ amountCents: 1800, date: '2026-09-20', payment: 'voucher', chargeDate: '2026-10-05' }),
+            ],
+            income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }],
+        });
+
+        const labels = [...document.querySelectorAll('.summary__row dt')].map((label) => label.textContent);
+        expect(labels).toEqual([text.income, text.voucher, text.paidBack, text.spent, text.left]);
+    });
+
+    it('count an older restaurant card expense in full, with nothing paid back', async () => {
+        await open({
+            expenses: [
+                expense({ amountCents: 1800, date: '2026-10-03', payment: 'voucher', chargeDate: '2026-10-20' }),
+            ],
+            income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }],
+        });
+
+        expect(within(row(text.voucher)).getByText('€18.00')).toBeDefined();
+        expect(within(row(text.spent)).getByText('€18.00')).toBeDefined();
+        expect(screen.queryByText(text.paidBack)).toBeNull();
+        expect(within(row(text.left)).getByText('€2,000.00')).toBeDefined();
+    });
 });
 
 describe('what is left', () => {

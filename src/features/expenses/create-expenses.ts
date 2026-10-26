@@ -10,6 +10,8 @@ interface Draft {
     payment: Payment;
     // Of a deferred expense; an expense in installments takes the day of each part instead
     chargeDate: string | null;
+    // Your part of a restaurant card expense, or null for the whole amount
+    personalCents: number | null;
     // One amount in cents for an expense paid at once, or one for each installment
     amounts: readonly number[];
 }
@@ -30,6 +32,7 @@ function createExpenses(draft: Draft): Expense[] {
         date: draft.date,
         payment: draft.payment,
         chargeDate: parts === 1 ? draft.chargeDate : dates[index],
+        personalCents: draft.personalCents,
         plan: parts === 1 ? null : { id: planId, part: index + 1, parts },
         createdAt: now,
         updatedAt: now,

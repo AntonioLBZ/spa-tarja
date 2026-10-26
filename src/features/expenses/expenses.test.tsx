@@ -435,6 +435,200 @@ describe('deferred expenses', () => {
     });
 });
 
+describe('your part of a restaurant card expense', () => {
+    const paymentField = () => field(en.expenses.form.payment);
+    const personalField = () => field(en.expenses.form.personal) as HTMLInputElement;
+    const pay = (payment: string) => fireEvent.change(paymentField(), { target: { value: payment } });
+    const typeAmount = (value: string) => fireEvent.change(field(en.expenses.form.amount), { target: { value } });
+    const typePart = (value: string) => fireEvent.change(personalField(), { target: { value } });
+    const submit = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+    async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
+        const api = createFakeApi(options);
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        return api;
+    }
+
+    it('is asked only for a restaurant card, empty to begin with', async () => {
+        await open();
+        expect(screen.queryByLabelText(en.expenses.form.personal)).toBeNull();
+
+        pay('credit');
+        expect(screen.queryByLabelText(en.expenses.form.personal)).toBeNull();
+
+        pay('voucher');
+        expect(personalField().value).toBe('');
+        expect(field(en.expenses.form.amount)).toBeDefined();
+        expect(screen.queryByLabelText(en.expenses.form.installments)).toBeNull();
+    });
+
+    it('is saved with what the card paid', async () => {
+        const api = await open();
+        pay('voucher');
+        typePart('20');
+
+        fillAndSubmit({ amount: '40', text: 'Dinner' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ amountCents: 4000, personalCents: 2000, payment: 'voucher' });
+    });
+
+    it('is the whole amount when left empty', async () => {
+        const api = await open();
+        pay('voucher');
+
+        fillAndSubmit({ amount: '9', text: 'Menu' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ amountCents: 900, personalCents: null, payment: 'voucher' });
+    });
+
+    it('can be nothing, when the others pay all of it back', async () => {
+        const api = await open();
+        pay('voucher');
+        typePart('0');
+
+        fillAndSubmit({ amount: '40', text: 'Their dinner' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ amountCents: 4000, personalCents: 0 });
+    });
+
+    it('says what the others pay back, under the field it describes', async () => {
+        await open();
+        pay('voucher');
+        typeAmount('40');
+
+        typePart('15');
+
+        const hint = screen.getByText(t('expenses.form.paidBack', { amount: '€25.00' }));
+        expect(hint.parentElement).toBe(personalField().closest('.field'));
+        expect(personalField().getAttribute('aria-describedby')).toBe(hint.id);
+    });
+
+    it('says nothing about paying back when the part is all of it, or empty', async () => {
+        await open();
+        pay('voucher');
+        typeAmount('40');
+
+        typePart('40');
+        expect(screen.queryByText(/pay back/)).toBeNull();
+
+        typePart('');
+        expect(screen.queryByText(/pay back/)).toBeNull();
+    });
+
+    it('refuses a part over the total, with the message under the field', async () => {
+        const api = await open();
+        pay('voucher');
+        typeAmount('40');
+
+        typePart('50');
+
+        const alert = await screen.findByRole('alert');
+        expect(alert.textContent).toBe(en.expenses.form.personalOver);
+        expect(alert.parentElement).toBe(personalField().closest('.field'));
+        expect(personalField().getAttribute('aria-invalid')).toBe('true');
+        expect(personalField().getAttribute('aria-describedby')).toBe(alert.id);
+        submit();
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(api.writes).toHaveLength(0);
+        expect(field(en.expenses.form.amount).value).toBe('40');
+    });
+
+    it('stops complaining once the part fits in the total', async () => {
+        await open();
+        pay('voucher');
+        typeAmount('40');
+        typePart('50');
+        await screen.findByRole('alert');
+
+        typeAmount('60');
+
+        expect(screen.queryByRole('alert')).toBeNull();
+        expect(personalField().getAttribute('aria-invalid')).toBe('false');
+    });
+
+    it('refuses a part that is not an amount', async () => {
+        const api = await open();
+        pay('voucher');
+        typePart('abc');
+
+        fillAndSubmit({ amount: '40', text: 'Dinner' });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.personalInvalid);
+        expect(personalField().getAttribute('aria-invalid')).toBe('true');
+        expect(api.writes).toHaveLength(0);
+
+        typePart('20');
+        expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it('is cleared when the payment changes away from the restaurant card', async () => {
+        const api = await open();
+        pay('voucher');
+        typePart('20');
+
+        pay('credit');
+        expect(screen.queryByLabelText(en.expenses.form.personal)).toBeNull();
+        pay('voucher');
+        expect(personalField().value).toBe('');
+        pay('credit');
+        fillAndSubmit({ amount: '40', text: 'Shoes' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ payment: 'credit', personalCents: null });
+    });
+
+    it('is empty again for the next expense once one is saved', async () => {
+        await open();
+        pay('voucher');
+        typePart('20');
+        fillAndSubmit({ amount: '40', text: 'Dinner' });
+        await screen.findByRole('listitem');
+
+        pay('voucher');
+
+        expect(personalField().value).toBe('');
+    });
+
+    it('is what the list shows, with what the card paid when the two differ', async () => {
+        stubApi(
+            createFakeApi({
+                expenses: [
+                    expense({
+                        text: 'Dinner',
+                        amountCents: 4000,
+                        personalCents: 2000,
+                        payment: 'voucher',
+                        chargeDate: '2026-11-12',
+                    }),
+                    expense({ text: 'Menu', amountCents: 900, payment: 'voucher', chargeDate: '2026-11-24' }),
+                    expense({
+                        text: 'All mine',
+                        amountCents: 1500,
+                        personalCents: 1500,
+                        payment: 'voucher',
+                        chargeDate: '2026-11-24',
+                    }),
+                ],
+            }).handler
+        );
+
+        renderApp();
+
+        const row = async (text: string) => (await screen.findByText(text)).closest('li')!;
+        const dinner = await row('Dinner');
+        expect(dinner.querySelector('.expense-item__amount')!.textContent).toBe('€20.00');
+        expect(dinner.textContent).toContain(t('expenses.list.paid', { total: '€40.00' }));
+        expect((await row('Menu')).querySelector('.expense-item__amount')!.textContent).toBe('€9.00');
+        expect((await row('Menu')).textContent).not.toContain('Paid');
+        expect((await row('All mine')).querySelector('.expense-item__amount')!.textContent).toBe('€15.00');
+        expect((await row('All mine')).textContent).not.toContain('Paid');
+    });
+});
+
 describe('installments', () => {
     const installments = () => field(en.expenses.form.installments) as HTMLSelectElement;
     const partLabel = (part: number, parts: number, day: string) =>
