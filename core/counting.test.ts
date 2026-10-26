@@ -146,6 +146,26 @@ describe('a dinner of 40 € on 12 October paid with the restaurant card, 20 €
     });
 });
 
+describe('a dinner of 40 € on 20 December paid with the restaurant card, 15 € of it yours, charged on 5 January', () => {
+    const dinner = expense({
+        amountCents: 4000,
+        personalCents: 1500,
+        date: '2026-12-20',
+        payment: 'voucher',
+        chargeDate: '2027-01-05',
+    });
+
+    it('is 15 of restaurant card income on 1 January, in the next year and not on the 5th', () => {
+        expect(voucherIncomeOn(dinner)).toEqual({ day: '2027-01-01', cents: 1500 });
+    });
+
+    it('is 15 spent and 25 paid back in December, on the day it was made', () => {
+        expect(countedOn(dinner)).toBe('2026-12-20');
+        expect(countedCents(dinner)).toBe(1500);
+        expect(paidBackCents(dinner)).toBe(2500);
+    });
+});
+
 describe('paymentOf', () => {
     it('is direct for an expense that never said', () => {
         expect(paymentOf(expense())).toBe('direct');
