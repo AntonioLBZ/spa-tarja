@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -22,18 +23,13 @@ import {
     type Granularity,
     type Range,
 } from '@core/charts';
-import { isCalendarDate, toDateString } from '@core/date';
+import { toDateString } from '@core/date';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { CategoryBreakdown } from './category-breakdown';
 import { SpendingBars } from './spending-bars';
 
 import './charts.css';
-
-// The years a day can be picked in. A date field passes through 0002, 0020 and 0202 while a year is typed, and none
-// of those is a day anybody means.
-const FIRST_DAY = '2000-01-01';
-const LAST_DAY = '2099-12-31';
 
 type Problem = 'rangeInvalid' | 'rangeTooLong';
 
@@ -50,8 +46,6 @@ function Charts() {
     const [categoryId, setCategoryId] = useState('');
     // Null until the person picks dates: the range then follows the grouping
     const [picked, setPicked] = useState<Range | null>(null);
-    // What a date field holds while it doesn't make a day yet, so that typing in it isn't undone
-    const [drafts, setDrafts] = useState<Partial<Record<keyof Range, string>>>({});
 
     const range = picked ?? defaultRange(granularity, today);
     const problem: Problem | null =
@@ -79,37 +73,6 @@ function Charts() {
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
-    function editDate(edge: keyof Range, value: string) {
-        if (isCalendarDate(value) && value >= FIRST_DAY && value <= LAST_DAY) {
-            setPicked({ ...range, [edge]: value });
-            setDrafts((current) => ({ ...current, [edge]: undefined }));
-        } else {
-            setDrafts((current) => ({ ...current, [edge]: value }));
-        }
-    }
-
-    function resetRange() {
-        setPicked(null);
-        setDrafts({});
-    }
-
-    const dateField = (edge: keyof Range, label: string) => (
-        <div className="charts__field">
-            <label htmlFor={`${id}-${edge}`}>{label}</label>
-            <input
-                id={`${id}-${edge}`}
-                aria-describedby={problem ? `${id}-problem` : undefined}
-                aria-invalid={problem !== null}
-                max={LAST_DAY}
-                min={FIRST_DAY}
-                type="date"
-                value={drafts[edge] ?? range[edge]}
-                onBlur={() => setDrafts((current) => ({ ...current, [edge]: undefined }))}
-                onChange={(event) => editDate(edge, event.target.value)}
-            />
-        </div>
-    );
-
     return (
         <section className="charts">
             <h1 className="charts__title">{t('title')}</h1>
@@ -133,12 +96,16 @@ function Charts() {
                 />
             </div>
 
-            <div className="charts__dates">
-                {dateField('from', t('from'))}
-                {dateField('to', t('to'))}
-            </div>
+            <DateRangeFields
+                from={range.from}
+                to={range.to}
+                labels={{ from: t('from'), to: t('to') }}
+                invalid={problem !== null}
+                describedBy={problem ? `${id}-problem` : undefined}
+                onChange={(edge, day) => setPicked({ ...range, [edge]: day })}
+            />
             {picked && (
-                <Button className="charts__reset" onClick={resetRange}>
+                <Button className="charts__reset" onClick={() => setPicked(null)}>
                     {t('resetRange')}
                 </Button>
             )}

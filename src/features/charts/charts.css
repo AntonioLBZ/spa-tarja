@@ -14,12 +14,6 @@
     gap: var(--size-1);
 }
 
-.charts__dates {
-    display: grid;
-    gap: var(--size-4);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .charts__reset {
     justify-self: start;
 }
