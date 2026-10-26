@@ -97,7 +97,7 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 - **Filters**: the text (every normalised word of the search is a substring of the description plus the name of the category as the row shows it; `normalizeText` in `core/text.ts` lowercases and strips accents, as the classifier does), the category, a range on the day made with both ends included and either one optional, and how it was paid (any, now, credit card, restaurant card, installments). An expense whose category no longer exists counts as the fallback category inside the filter and the grouping only; the expense itself is not rewritten (§7).
 - **Groups**: days, weeks (from Monday) and months newest first, categories by subtotal from the biggest and by id on a tie.
 - The filters are the screen's state and are lost on leaving it, so a stale filter cannot hide a new expense. The grouping is a preference kept in `localStorage` as `tarja:list-grouping`. The search is deferred (`useDeferredValue`) and the list draws 100 rows at a time, with "Show more", rather than windowing it: the cards vary in height, a deleted row fades out before it goes and the browser's find in page has to see the rows.
-- Sorting and collapsing depend on the expenses only, so they are done once per change of data, and each keystroke only filters and groups; the text a search looks in is built once per expense.
+- `buildList` is `listItems` (drop, sort, collapse: depends on the expenses only, so it runs once per change of data) followed by `groupItems` (filter and group: runs on each keystroke, with the text a search looks in built once per expense), and `limitRows` cuts the groups at the rows to draw while each keeps its whole subtotal.
 
 ### Editing an expense
 
