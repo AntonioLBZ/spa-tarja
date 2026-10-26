@@ -49,6 +49,28 @@
             "credit": "Credit card",
             "voucher": "Restaurant card"
         },
+        "filters": {
+            "search": "Search",
+            "toggle": "{count, plural, =0 {Filters} other {Filters (#)}}",
+            "groupBy": "Group by",
+            "group": {
+                "day": "Day",
+                "week": "Week",
+                "month": "Month",
+                "category": "Category"
+            },
+            "category": "Filter by category",
+            "allCategories": "All categories",
+            "from": "From",
+            "to": "To",
+            "paidWith": "Paid with",
+            "paid": {
+                "any": "Any",
+                "plan": "Installments"
+            },
+            "showing": "Showing {shown} of {total}",
+            "clear": "Clear"
+        },
         "list": {
             "title": "Expenses",
             "empty": "No expenses yet",
@@ -61,7 +83,10 @@
             "pending": "Not synced yet",
             "charged": "{payment}, charged {date}",
             "plan": "{parts} payments, until {date}",
-            "paid": "Paid {total}"
+            "paid": "Paid {total}",
+            "weekOf": "Week of {date}",
+            "noMatch": "No expenses match",
+            "showMore": "Show more"
         }
     },
     "categories": {

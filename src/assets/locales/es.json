@@ -49,6 +49,28 @@
             "credit": "Tarjeta de crédito",
             "voucher": "Tarjeta restaurante"
         },
+        "filters": {
+            "search": "Buscar",
+            "toggle": "{count, plural, =0 {Filtros} other {Filtros (#)}}",
+            "groupBy": "Agrupar por",
+            "group": {
+                "day": "Día",
+                "week": "Semana",
+                "month": "Mes",
+                "category": "Categoría"
+            },
+            "category": "Filtrar por categoría",
+            "allCategories": "Todas las categorías",
+            "from": "Desde",
+            "to": "Hasta",
+            "paidWith": "Pagado con",
+            "paid": {
+                "any": "Cualquiera",
+                "plan": "Plazos"
+            },
+            "showing": "Mostrando {shown} de {total}",
+            "clear": "Limpiar"
+        },
         "list": {
             "title": "Gastos",
             "empty": "Aún no hay gastos",
@@ -61,7 +83,10 @@
             "pending": "Sin sincronizar",
             "charged": "{payment}, se carga el {date}",
             "plan": "{parts} pagos, hasta el {date}",
-            "paid": "Pagado {total}"
+            "paid": "Pagado {total}",
+            "weekOf": "Semana del {date}",
+            "noMatch": "Ningún gasto coincide",
+            "showMore": "Mostrar más"
         }
     },
     "categories": {

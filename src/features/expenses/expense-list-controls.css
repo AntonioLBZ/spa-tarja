@@ -1,0 +1,16 @@
+.expense-list-controls {
+    display: grid;
+    gap: var(--size-4);
+}
+
+/* Safari draws a search field with rounded corners of its own unless it is told not to */
+.expense-list-controls__search {
+    appearance: none;
+}
+
+.expense-list-controls__status {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2) var(--size-4);
+}

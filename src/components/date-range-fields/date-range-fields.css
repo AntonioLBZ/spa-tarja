@@ -1,5 +1,10 @@
+/* Side by side while both fit (a date field is never narrower than about 9.5rem), one under the other on a narrow phone */
 .date-range-fields {
     display: grid;
     gap: var(--size-4);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.date-range-fields .field {
+    min-width: 0;
 }

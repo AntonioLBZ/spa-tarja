@@ -27,6 +27,8 @@ interface ExpenseRowProps {
     pending: boolean;
     // Deleted a moment ago, fading out
     leaving: boolean;
+    // Starts the details with the day it was made, for a list that is not grouped by day
+    showDate?: boolean;
     onEdit: (expenses: readonly Expense[]) => void;
     onDelete: (expenses: readonly Expense[]) => void;
     // Of the toggle, which takes the focus back once an edit of the expense is over
@@ -35,7 +37,7 @@ interface ExpenseRowProps {
 
 // An expense of the list. Pressing it opens a panel under it with what can be done to it.
 function ExpenseRow(props: ExpenseRowProps) {
-    const { expenses, isPlan, pending, leaving, onEdit, onDelete, toggleRef } = props;
+    const { expenses, isPlan, pending, leaving, showDate, onEdit, onDelete, toggleRef } = props;
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -74,8 +76,9 @@ function ExpenseRow(props: ExpenseRowProps) {
                         <span className="expense-item__text">{name}</span>
                     </span>
                     <span className="expense-item__amount">{formatAmount(amountCents, expense.currency, locale)}</span>
-                    {(expense.text || pending || charged || paid) && (
+                    {(showDate || expense.text || pending || charged || paid) && (
                         <span className="expense-item__meta">
+                            {showDate && <span>{shortDate(expense.date)}</span>}
                             {expense.text && <span>{category}</span>}
                             {charged && <span>{charged}</span>}
                             {paid && <span>{paid}</span>}

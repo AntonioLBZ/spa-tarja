@@ -8,20 +8,44 @@
     margin: 0;
 }
 
-.expense-list__day {
+.expense-list__group {
     display: grid;
     gap: var(--size-2);
 }
 
-.expense-list__date {
+/* The label of a group at one end of the hairline and what its rows add up to at the other */
+.expense-list__header {
+    align-items: center;
     border-bottom: var(--size-px) solid var(--color-border);
     color: var(--color-content-secondary);
+    display: flex;
     font-size: var(--font-size-s);
-    font-weight: 400;
-    margin: 0;
+    gap: var(--size-3);
+    justify-content: space-between;
     padding-bottom: var(--size-1);
 }
 
-.expense-list__date::first-letter {
+.expense-list__label {
+    align-items: center;
+    display: flex;
+    font-size: inherit;
+    font-weight: 400;
+    gap: var(--size-2);
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Spanish writes the weekday and the month in lowercase */
+.expense-list__label--date::first-letter {
     text-transform: uppercase;
+}
+
+.expense-list__subtotal {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.expense-list__more {
+    justify-self: start;
 }
