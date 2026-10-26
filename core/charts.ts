@@ -34,10 +34,11 @@ function bucketStart(day: string, granularity: Granularity): string {
     return `${monthOf(day)}-01`;
 }
 
-function nextBucket(start: string, granularity: Granularity): string {
-    if (granularity === 'day') return addDays(start, 1);
-    if (granularity === 'week') return addDays(start, 7);
-    return addMonths(start, 1);
+// The start of the bucket that many buckets later, or earlier when the count is negative
+function nextBucket(start: string, granularity: Granularity, count = 1): string {
+    if (granularity === 'day') return addDays(start, count);
+    if (granularity === 'week') return addDays(start, 7 * count);
+    return addMonths(start, count);
 }
 
 // How many rows a range makes: the days, the weeks it touches or the months it touches; none when it ends before it begins
@@ -111,6 +112,46 @@ function defaultRange(granularity: Granularity, today: string): Range {
     return { from: `${shiftMonth(monthOf(today), -11)}-01`, to: endOfMonth(today) };
 }
 
+// What a range is compared with: as many buckets again, ending the day before its first bucket starts. Days give the
+// same number of days, weeks whole weeks from Monday and months whole months.
+function previousRange(granularity: Granularity, range: Range): Range {
+    const first = bucketStart(range.from, granularity);
+    return {
+        from: nextBucket(first, granularity, -bucketCount(granularity, range)),
+        to: addDays(first, -1),
+    };
+}
+
+interface Scale {
+    max: number;
+    step: number;
+    // From 0 to max, `step` apart
+    ticks: number[];
+}
+
+// The round steps of a scale, in cents: 1, 2, 2.5 and 5 times a power of ten that leave whole cents
+const STEP_MANTISSAS = [1, 2, 2.5, 5];
+
+// A round scale for values up to `maxCents`: 2 to 4 equal steps, the lowest top that holds the value and, of the steps
+// that reach it, the smallest. Nothing to show gets the scale of one euro.
+function niceScale(maxCents: number): Scale {
+    const value = maxCents > 0 ? maxCents : 100;
+    let best = { max: Infinity, step: 0 };
+
+    for (let power = 1; power <= value; power *= 10) {
+        for (const mantissa of STEP_MANTISSAS) {
+            const step = mantissa * power;
+            if (!Number.isInteger(step)) continue;
+            const steps = Math.max(2, Math.ceil(value / step));
+            const max = steps * step;
+            if (steps <= 4 && (max < best.max || (max === best.max && step < best.step))) best = { max, step };
+        }
+    }
+
+    const ticks = Array.from({ length: best.max / best.step + 1 }, (_, index) => index * best.step);
+    return { ...best, ticks };
+}
+
 export {
     GRANULARITIES,
     MAX_BUCKETS,
@@ -118,7 +159,9 @@ export {
     bucketStart,
     categoryTotals,
     defaultRange,
+    niceScale,
+    previousRange,
     spendingBuckets,
     spendingTotal,
 };
-export type { Bucket, CategoryTotal, Granularity, Range };
+export type { Bucket, CategoryTotal, Granularity, Range, Scale };

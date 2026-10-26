@@ -6,6 +6,8 @@ import {
     bucketStart,
     categoryTotals,
     defaultRange,
+    niceScale,
+    previousRange,
     spendingBuckets,
     spendingTotal,
 } from './charts';
@@ -434,5 +436,132 @@ describe('defaultRange', () => {
         for (const granularity of ['day', 'week', 'month'] as const) {
             expect(bucketCount(granularity, defaultRange(granularity, today))).toBeLessThan(MAX_BUCKETS);
         }
+    });
+});
+
+describe('niceScale', () => {
+    it('stops at the first round amount that holds the biggest value', () => {
+        expect(niceScale(4899)).toEqual({ max: 5000, step: 2500, ticks: [0, 2500, 5000] });
+        expect(niceScale(5001)).toEqual({ max: 6000, step: 2000, ticks: [0, 2000, 4000, 6000] });
+        expect(niceScale(12_000)).toEqual({ max: 15_000, step: 5000, ticks: [0, 5000, 10_000, 15_000] });
+    });
+
+    it('keeps a value that is already round as its top', () => {
+        expect(niceScale(5000)).toEqual({ max: 5000, step: 2500, ticks: [0, 2500, 5000] });
+    });
+
+    it('takes the most ticks when two steps reach the same top', () => {
+        expect(niceScale(10_000)).toEqual({ max: 10_000, step: 2500, ticks: [0, 2500, 5000, 7500, 10_000] });
+    });
+
+    it('steps by whole cents for the smallest amounts', () => {
+        expect(niceScale(1)).toEqual({ max: 2, step: 1, ticks: [0, 1, 2] });
+        expect(niceScale(3)).toEqual({ max: 3, step: 1, ticks: [0, 1, 2, 3] });
+    });
+
+    it('draws one euro when there is nothing to show', () => {
+        expect(niceScale(0)).toEqual({ max: 100, step: 25, ticks: [0, 25, 50, 75, 100] });
+    });
+
+    it.each([1, 2, 7, 99, 100, 101, 999, 1001, 2499, 2501, 4899, 33_333, 99_999, 123_456, 7_654_321, 99_999_999_999])(
+        'has 3 to 5 evenly spaced round ticks from 0 to a top that holds %i, at most twice as high',
+        (value) => {
+            const { max, step, ticks } = niceScale(value);
+
+            expect(ticks.length).toBeGreaterThanOrEqual(3);
+            expect(ticks.length).toBeLessThanOrEqual(5);
+            expect(ticks[0]).toBe(0);
+            expect(ticks.at(-1)).toBe(max);
+            expect(ticks.every((tick, index) => tick === index * step)).toBe(true);
+            expect(Number.isInteger(step)).toBe(true);
+            expect([1, 2, 2.5, 5]).toContain(step / 10 ** Math.floor(Math.log10(step)));
+            expect(max).toBeGreaterThanOrEqual(value);
+            expect(max).toBeLessThanOrEqual(2 * value);
+        }
+    );
+});
+
+describe('previousRange', () => {
+    it('is the day before a single day', () => {
+        expect(previousRange('day', { from: '2026-10-25', to: '2026-10-25' })).toEqual({
+            from: '2026-10-24',
+            to: '2026-10-24',
+        });
+    });
+
+    it('is as many days again for days, not the month before', () => {
+        expect(previousRange('day', { from: '2026-10-01', to: '2026-10-31' })).toEqual({
+            from: '2026-08-31',
+            to: '2026-09-30',
+        });
+    });
+
+    it('goes back over a New Year', () => {
+        expect(previousRange('day', { from: '2026-01-01', to: '2026-01-31' })).toEqual({
+            from: '2025-12-01',
+            to: '2025-12-31',
+        });
+        expect(previousRange('month', { from: '2026-01-01', to: '2026-03-31' })).toEqual({
+            from: '2025-10-01',
+            to: '2025-12-31',
+        });
+        expect(previousRange('week', { from: '2026-01-05', to: '2026-01-18' })).toEqual({
+            from: '2025-12-22',
+            to: '2026-01-04',
+        });
+    });
+
+    it('counts a leap day like any other', () => {
+        expect(previousRange('day', { from: '2024-03-01', to: '2024-03-31' })).toEqual({
+            from: '2024-01-30',
+            to: '2024-02-29',
+        });
+        expect(previousRange('day', { from: '2024-02-29', to: '2024-03-01' })).toEqual({
+            from: '2024-02-27',
+            to: '2024-02-28',
+        });
+        expect(previousRange('month', { from: '2024-03-01', to: '2024-03-31' })).toEqual({
+            from: '2024-02-01',
+            to: '2024-02-29',
+        });
+    });
+
+    it('is as many whole weeks again, from Monday, for weeks', () => {
+        expect(previousRange('week', { from: '2026-08-03', to: '2026-10-25' })).toEqual({
+            from: '2026-05-11',
+            to: '2026-08-02',
+        });
+    });
+
+    it('is as many whole months again for months', () => {
+        expect(previousRange('month', { from: '2025-11-01', to: '2026-10-31' })).toEqual({
+            from: '2024-11-01',
+            to: '2025-10-31',
+        });
+    });
+
+    it('ends the day before the first row of a range that does not start on one', () => {
+        expect(previousRange('week', { from: '2026-10-07', to: '2026-10-25' })).toEqual({
+            from: '2026-09-14',
+            to: '2026-10-04',
+        });
+        expect(previousRange('month', { from: '2026-08-15', to: '2026-10-20' })).toEqual({
+            from: '2026-05-01',
+            to: '2026-07-31',
+        });
+        expect(previousRange('day', { from: '2026-10-07', to: '2026-10-25' })).toEqual({
+            from: '2026-09-18',
+            to: '2026-10-06',
+        });
+    });
+
+    it.each(['day', 'week', 'month'] as const)('makes as many %s rows, right before the first one', (granularity) => {
+        const range = { from: '2026-03-17', to: '2026-10-25' };
+
+        const previous = previousRange(granularity, range);
+
+        expect(bucketCount(granularity, previous)).toBe(bucketCount(granularity, range));
+        expect(addDays(previous.to, 1)).toBe(bucketStart(range.from, granularity));
+        expect(bucketStart(previous.from, granularity)).toBe(previous.from);
     });
 });
