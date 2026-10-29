@@ -8,17 +8,18 @@ Items build on each other in the order they appear below. Delete an item when it
 - Decide whether the app gets locales beyond `en` and `es`; the owner's `spa-anicalendar` also ships `fr` and `de`.
 - Decide the domain. `tarja.dev` is available (checked on 2026-10-25) but costs money, which clashes with [free tiers only](docs/adr/0003-spa-on-one-worker-on-free-tiers.md); `tarja.app` and `tarja.com` are taken. `workers.dev` is in use, and a custom domain would mean updating the Google redirect URIs ([ADR-0008](docs/adr/0008-google-login-with-better-auth.md)).
 
-## 16. Llevar a un storybook todos los componentes del proyecto como sistema de diseño.
-
-Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con diferentes size o variants
-
-Decided: Storybook in a workspace folder of its own, `design-system/`, local only for now ([ADR-0011](docs/adr/0011-design-system-in-storybook.md)). The components stay in `src/components`. `pnpm storybook` runs it, with the real providers and a toolbar for the theme, the accent, the language and the viewport. It has the Foundations (colors, category colors, accents, spacing, type, motion, icons), one story file for each of the 13 shared components and, in `stories/features/`, the category badge, select, row and style picker, the expense row, the budget bars, the sync status and the three pieces of the charts.
-
-What is left is the forms and the screens: the expense form, the income form, the category manager, "Your data", the account and the sign-in screen. They need the same `AppData` frame and, for the form and the manager, a way to submit into the fake server. Only a pure move with no visual change is done here; the near duplicates go to 17: `ChoiceGroup` and `StylePicker`, the option of `ChoiceGroup` and `Button`, the four `__actions` rows (two of them use `--size-2` between wrapped rows, `DESIGN.md` says `--size-4`), the two raw `<details>` and the update bar, which is a full-width bar with no notch and has no entry in `DESIGN.md`.
-
-## 17. Revisar junto al owner los componentes, a11y y diseño (depende del 16)
+## 17. Revisar junto al owner los componentes, a11y y diseño
 
 El owner pedirá cambios en diferentes componentes llegado el momento, ir de la mano paso a paso.
+
+Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con diferentes size o variants.
+
+The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What writing them showed, all of it left as it is until the owner says:
+
+- `ChoiceGroup` and `StylePicker` are both a group of options drawn as boxes, and the option of `ChoiceGroup` looks like a `Button`.
+- The four `__actions` rows: two of them use `--size-2` between wrapped rows, and `DESIGN.md` says `--size-4`.
+- The two raw `<details>` that are not a `Disclosure`.
+- The update bar (`UpdatePrompt`) is a full-width bar with no notch and has no entry in `DESIGN.md`.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
 
