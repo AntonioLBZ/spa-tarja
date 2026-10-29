@@ -179,6 +179,8 @@ Discarded:
 - **Cloudflare Pages**: in maintenance.
 - **Cuadra, Menudo, Tally, Slate, Tab** as a name: taken on `.app`, `.dev` and `.com`.
 - **Guest mode** (use the app with no account, local data only, moved to the account on sign-in), discarded by the owner on 2026-10-29: it overturns "Google login only", every future feature would need a guest behaviour, and guest data can be lost with the browser's storage. Revisit only if strangers should be able to try the app.
+- **PWA shortcuts** on the installed icon, discarded by the owner on 2026-10-29: the icon already opens on the add form.
+- **Recurring expenses**, not needed for now according to the owner (2026-10-29): duplicating an expense covers it.
 
 Open:
 
