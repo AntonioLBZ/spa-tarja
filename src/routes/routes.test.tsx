@@ -140,6 +140,7 @@ describe('header', () => {
 
     it.each([
         ['/charts', en.nav.summary, en.charts.title],
+        ['/budgets', en.nav.summary, en.budgets.title],
         ['/categories', en.nav.settings, en.categoryManager.title],
     ])('underlines the section %s is reached from, which it marks as current', async (path, section, title) => {
         await home(path);
@@ -150,7 +151,7 @@ describe('header', () => {
         expect(link(en.nav.expenses).hasAttribute('aria-current')).toBe(false);
     });
 
-    it.each(['/', '/summary', '/settings', '/charts', '/categories'])(
+    it.each(['/', '/summary', '/settings', '/charts', '/budgets', '/categories'])(
         'never underlines the logo, on %s or on the way home from it',
         async (path) => {
             await home(path);

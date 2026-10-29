@@ -267,9 +267,6 @@
     },
     "summary": {
         "title": "Summary",
-        "previousMonth": "Previous month",
-        "nextMonth": "Next month",
-        "chartsLink": "See charts",
         "income": "Income",
         "voucher": "Restaurant card",
         "paidBack": "Paid back by others",
@@ -286,7 +283,25 @@
             "invalid": "Enter an amount above zero.",
             "saveFailed": "Couldn't save the income. Try again.",
             "removeFailed": "Couldn't remove the income. Try again."
-        }
+        },
+        "budgetsLink": "See budgets",
+        "chartsLink": "See charts"
+    },
+    "budgets": {
+        "title": "Budgets",
+        "hint": "A limit holds for the following months until one sets another. Leave a field empty, or type 0, for no limit from this month on.",
+        "total": "Total",
+        "save": "Save",
+        "invalid": "Enter an amount, or leave it empty for no limit.",
+        "saveFailed": "Couldn't save the limits. Try again.",
+        "offline": "You're offline. Connect to change your limits.",
+        "loadFailed": "Couldn't load your limits.",
+        "setIn": "Set in {month}",
+        "ofIncome": "{percent} % of the income"
+    },
+    "monthSwitch": {
+        "previous": "Previous month",
+        "next": "Next month"
     },
     "charts": {
         "title": "Charts",

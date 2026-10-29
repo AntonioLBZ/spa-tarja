@@ -4,8 +4,8 @@ import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/components/button/button';
 import { Card, CardList } from '@/components/card/card';
+import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { incomeQuery } from '@/lib/api';
@@ -38,15 +38,11 @@ function Summary() {
         <section className="summary">
             <h1 className="summary__title">{t('title')}</h1>
 
-            <div className="summary__month">
-                <Button glyph aria-label={t('previousMonth')} onClick={() => setMonth(shiftMonth(month, -1))}>
-                    ←
-                </Button>
-                <span className="summary__month-name">{monthName}</span>
-                <Button glyph aria-label={t('nextMonth')} onClick={() => setMonth(shiftMonth(month, 1))}>
-                    →
-                </Button>
-            </div>
+            <MonthSwitch
+                monthName={monthName}
+                onPrevious={() => setMonth(shiftMonth(month, -1))}
+                onNext={() => setMonth(shiftMonth(month, 1))}
+            />
 
             <CardList as="dl">
                 <Card className="summary__row">
@@ -89,9 +85,14 @@ function Summary() {
 
             <IncomeForm month={month} monthName={monthName} income={set} />
 
-            <Link className="summary__link" to="/charts">
-                {t('chartsLink')}
-            </Link>
+            <div className="summary__links">
+                <Link className="summary__link" to="/budgets">
+                    {t('budgetsLink')}
+                </Link>
+                <Link className="summary__link" to="/charts">
+                    {t('chartsLink')}
+                </Link>
+            </div>
         </section>
     );
 }

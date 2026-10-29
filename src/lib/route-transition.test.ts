@@ -21,6 +21,7 @@ describe('routeDepth', () => {
         expect(routeDepth('/summary')).toBe(1);
         expect(routeDepth('/categories')).toBe(2);
         expect(routeDepth('/charts')).toBe(2);
+        expect(routeDepth('/budgets')).toBe(2);
     });
 
     it('takes a page it does not know for the home screen', () => {
@@ -33,6 +34,7 @@ describe('navSection', () => {
         expect(navSection('/')).toBe('/');
         expect(navSection('/summary')).toBe('/summary');
         expect(navSection('/charts')).toBe('/summary');
+        expect(navSection('/budgets')).toBe('/summary');
         expect(navSection('/settings')).toBe('/settings');
         expect(navSection('/categories')).toBe('/settings');
     });
@@ -49,6 +51,7 @@ describe('slideTypes', () => {
         expect(between('/', '/categories')).toEqual(['forward']);
         expect(between('/', '/summary')).toEqual(['forward']);
         expect(between('/summary', '/charts')).toEqual(['forward']);
+        expect(between('/summary', '/budgets')).toEqual(['forward']);
     });
 
     it('goes back when the new screen is shallower', () => {
@@ -57,6 +60,7 @@ describe('slideTypes', () => {
         expect(between('/categories', '/')).toEqual(['back']);
         expect(between('/summary', '/')).toEqual(['back']);
         expect(between('/charts', '/summary')).toEqual(['back']);
+        expect(between('/budgets', '/summary')).toEqual(['back']);
     });
 
     it('stays level between two screens at the same depth', () => {
@@ -64,6 +68,7 @@ describe('slideTypes', () => {
         expect(between('/settings', '/summary')).toEqual(['level']);
         expect(between('/charts', '/categories')).toEqual(['level']);
         expect(between('/categories', '/charts')).toEqual(['level']);
+        expect(between('/charts', '/budgets')).toEqual(['level']);
     });
 
     it('does not slide for the first screen, nor for a change inside the same screen', () => {

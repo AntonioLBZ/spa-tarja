@@ -267,9 +267,6 @@
     },
     "summary": {
         "title": "Resumen",
-        "previousMonth": "Mes anterior",
-        "nextMonth": "Mes siguiente",
-        "chartsLink": "Ver gráficos",
         "income": "Ingresos",
         "voucher": "Tarjeta restaurante",
         "paidBack": "Reembolsado por otros",
@@ -286,7 +283,25 @@
             "invalid": "Introduce un importe mayor que cero.",
             "saveFailed": "No se pudieron guardar los ingresos. Inténtalo de nuevo.",
             "removeFailed": "No se pudieron quitar los ingresos. Inténtalo de nuevo."
-        }
+        },
+        "budgetsLink": "Ver presupuestos",
+        "chartsLink": "Ver gráficos"
+    },
+    "budgets": {
+        "title": "Presupuestos",
+        "hint": "Un límite se mantiene en los meses siguientes hasta que uno fije otro. Deja un campo vacío, o escribe 0, para quitar el límite desde este mes.",
+        "total": "Total",
+        "save": "Guardar",
+        "invalid": "Introduce un importe, o déjalo vacío para quitar el límite.",
+        "saveFailed": "No se pudieron guardar los límites. Inténtalo de nuevo.",
+        "offline": "Sin conexión. Conéctate para cambiar tus límites.",
+        "loadFailed": "No se pudieron cargar tus límites.",
+        "setIn": "Fijado en {month}",
+        "ofIncome": "{percent} % del ingreso"
+    },
+    "monthSwitch": {
+        "previous": "Mes anterior",
+        "next": "Mes siguiente"
     },
     "charts": {
         "title": "Gráficos",

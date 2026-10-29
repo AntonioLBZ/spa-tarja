@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BudgetsRouteImport } from './routes/budgets'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -18,6 +19,11 @@ import { Route as SummaryRouteImport } from './routes/summary'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BudgetsRoute = BudgetsRouteImport.update({
+  id: '/budgets',
+  path: '/budgets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -43,6 +49,7 @@ const SummaryRoute = SummaryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/budgets': typeof BudgetsRoute
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
@@ -65,14 +74,23 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/categories' | '/charts' | '/settings' | '/summary'
+  fullPaths:
+    '/' | '/budgets' | '/categories' | '/charts' | '/settings' | '/summary'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/categories' | '/charts' | '/settings' | '/summary'
-  id: '__root__' | '/' | '/categories' | '/charts' | '/settings' | '/summary'
+  to: '/' | '/budgets' | '/categories' | '/charts' | '/settings' | '/summary'
+  id:
+    | '__root__'
+    | '/'
+    | '/budgets'
+    | '/categories'
+    | '/charts'
+    | '/settings'
+    | '/summary'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BudgetsRoute: typeof BudgetsRoute
   CategoriesRoute: typeof CategoriesRoute
   ChartsRoute: typeof ChartsRoute
   SettingsRoute: typeof SettingsRoute
@@ -86,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/budgets': {
+      id: '/budgets'
+      path: '/budgets'
+      fullPath: '/budgets'
+      preLoaderRoute: typeof BudgetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -121,6 +146,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BudgetsRoute: BudgetsRoute,
   CategoriesRoute: CategoriesRoute,
   ChartsRoute: ChartsRoute,
   SettingsRoute: SettingsRoute,

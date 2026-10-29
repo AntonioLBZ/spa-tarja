@@ -1,0 +1,14 @@
+.month-switch {
+    align-items: center;
+    display: flex;
+    gap: var(--size-4);
+    justify-content: space-between;
+}
+
+.month-switch__name {
+    font-weight: 700;
+}
+
+.month-switch__name::first-letter {
+    text-transform: uppercase;
+}

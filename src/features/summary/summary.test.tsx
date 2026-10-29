@@ -79,20 +79,29 @@ describe('the month on screen', () => {
     it('moves to the next month and to the previous one', async () => {
         await open();
 
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
         expect(screen.getByText('November 2026')).toBeDefined();
 
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
         expect(screen.getByText('September 2026')).toBeDefined();
     });
 
     it('goes across the turn of the year', async () => {
         await open();
 
-        for (let step = 0; step < 3; step++) fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        for (let step = 0; step < 3; step++) fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         expect(screen.getByText('January 2027')).toBeDefined();
+    });
+});
+
+describe('the links at the bottom', () => {
+    it('lead to the budgets and to the charts', async () => {
+        await open();
+
+        expect(screen.getByRole('link', { name: text.budgetsLink }).getAttribute('href')).toBe('/budgets');
+        expect(screen.getByRole('link', { name: text.chartsLink }).getAttribute('href')).toBe('/charts');
     });
 });
 
@@ -120,7 +129,7 @@ describe('the numbers of a month', () => {
             expenses: [expense({ amountCents: 1250 }), expense({ amountCents: 300, date: '2026-09-30' })],
         });
 
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
 
         expect(within(row(text.spent)).getByText('€3.00')).toBeDefined();
     });
@@ -131,7 +140,7 @@ describe('the numbers of a month', () => {
         });
 
         expect(within(row(text.spent)).getByText('€0.00')).toBeDefined();
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
         expect(within(row(text.spent)).getByText('€40.00')).toBeDefined();
     });
 
@@ -149,7 +158,7 @@ describe('the numbers of a month', () => {
         });
 
         expect(within(row(text.spent)).getByText('€5.00')).toBeDefined();
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
         expect(within(row(text.spent)).getByText('€5.01')).toBeDefined();
     });
 
@@ -179,7 +188,7 @@ describe('the numbers of a month', () => {
         expect(within(row(text.voucher)).getByText('€18.00')).toBeDefined();
         expect(within(row(text.spent)).getByText('€10.00')).toBeDefined();
         expect(within(row(text.left)).getByText('€2,008.00')).toBeDefined();
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
         expect(within(row(text.spent)).getByText('€18.00')).toBeDefined();
         expect(screen.queryByText(text.voucher)).toBeNull();
     });
@@ -212,7 +221,7 @@ describe('the numbers of a month', () => {
         expect(screen.queryByText(text.voucher)).toBeNull();
         expect(within(row(text.left)).getByText('€2,000.00')).toBeDefined();
 
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         expect(within(row(text.voucher)).getByText('€20.00')).toBeDefined();
         expect(within(row(text.spent)).getByText('€0.00')).toBeDefined();
@@ -312,7 +321,7 @@ describe('setting the income', () => {
 
     it('is for the month on screen', async () => {
         const { api } = await open();
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         save('1500,50');
 
@@ -334,7 +343,7 @@ describe('setting the income', () => {
         await open({ income: [{ month: '2026-11', amountCents: 150_000, currency: 'EUR' }] });
         expect(incomeField().value).toBe('');
 
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         expect(incomeField().value).toBe('1500.00');
     });
@@ -344,7 +353,7 @@ describe('setting the income', () => {
         save('abc');
         await screen.findByRole('alert');
 
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         expect(incomeField().value).toBe('');
         expect(screen.queryByRole('alert')).toBeNull();
@@ -356,18 +365,18 @@ describe('setting the income', () => {
         save('2000');
         await screen.findByRole('alert');
 
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         expect(screen.queryByRole('alert')).toBeNull();
     });
 
     it('keeps the income of the other months when one is set', async () => {
         const { api } = await open({ income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }] });
-        fireEvent.click(screen.getByRole('button', { name: text.nextMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
 
         save('1500');
         await waitFor(() => expect(api.income).toHaveLength(2));
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
 
         expect(within(row(text.income)).getByText('€2,000.00')).toBeDefined();
         expect(api.incomeRequests).toEqual(['PUT 2026-11']);
@@ -511,7 +520,7 @@ describe('removing the income', () => {
 
         fireEvent.click(screen.getByRole('button', { name: text.form.remove }));
         await screen.findByText(text.leftHint);
-        fireEvent.click(screen.getByRole('button', { name: text.previousMonth }));
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.previous }));
 
         expect(within(row(text.income)).getByText('€1,000.00')).toBeDefined();
     });

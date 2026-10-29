@@ -1,0 +1,31 @@
+.budgets {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.budgets__title {
+    font-size: var(--font-size-l);
+    margin: 0;
+}
+
+.budgets__hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.budgets__form {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.budgets__label {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--size-2);
+}
+
+.budgets__hint-line {
+    display: block;
+}

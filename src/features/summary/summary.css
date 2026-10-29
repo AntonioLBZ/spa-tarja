@@ -9,21 +9,6 @@
     margin: 0;
 }
 
-.summary__month {
-    align-items: center;
-    display: flex;
-    gap: var(--size-4);
-    justify-content: space-between;
-}
-
-.summary__month-name {
-    font-weight: 700;
-}
-
-.summary__month-name::first-letter {
-    text-transform: uppercase;
-}
-
 .summary__row {
     align-items: center;
     display: flex;
@@ -53,6 +38,12 @@
     color: var(--color-content-secondary);
     font-size: var(--font-size-s);
     margin: 0;
+}
+
+.summary__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
 }
 
 .summary__link {
