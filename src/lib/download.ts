@@ -7,8 +7,8 @@ function downloadFile(name: string, content: string, type: string) {
     document.body.appendChild(link);
     link.click();
     link.remove();
-    // The browser has started reading the file by the time a second has gone by
-    setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    // A browser may start reading the file well after the click, so the address stays valid for a while
+    setTimeout(() => URL.revokeObjectURL(url), 40_000);
 }
 
 export { downloadFile };
