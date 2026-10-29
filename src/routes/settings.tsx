@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
-import { ButtonLink } from '@/components/button/button';
+import { ButtonLink } from '@/components/button/button-link';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Account } from '@/features/auth/account';
 import { YourData } from '@/features/export/your-data';
