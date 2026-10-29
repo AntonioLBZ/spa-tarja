@@ -41,8 +41,12 @@ async function listCategories(db: D1Database, userId: string): Promise<Category[
     return results;
 }
 
+// The limits of the category go with it (ARCHITECTURE.md §5), in the same batch
 async function deleteCategory(db: D1Database, userId: string, id: string): Promise<void> {
-    await db.prepare('DELETE FROM categories WHERE id = ?1 AND user_id = ?2').bind(id, userId).run();
+    await db.batch([
+        db.prepare('DELETE FROM budget WHERE user_id = ?1 AND scope = ?2').bind(userId, id),
+        db.prepare('DELETE FROM categories WHERE id = ?1 AND user_id = ?2').bind(id, userId),
+    ]);
 }
 
 export { deleteCategory, listCategories, saveCategory };

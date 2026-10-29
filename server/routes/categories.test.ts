@@ -227,4 +227,41 @@ describe('DELETE /api/categories/:id', () => {
     it('rejects an id that is not a UUID', async () => {
         expect((await remove('food')).status).toBe(400);
     });
+
+    describe('and its budget rows', () => {
+        async function insertBudget(userId: string, scope: string) {
+            await env.DB.prepare(
+                `INSERT INTO budget (user_id, month, scope, amount_cents, currency, updated_at) VALUES (?1, '2026-10', ?2, 100, 'EUR', 1)`
+            )
+                .bind(userId, scope)
+                .run();
+        }
+
+        async function scopesOf(userId: string) {
+            const { results } = await env.DB.prepare('SELECT scope FROM budget WHERE user_id = ?1 ORDER BY scope')
+                .bind(userId)
+                .all<{ scope: string }>();
+            return results.map((item) => item.scope);
+        }
+
+        it('deletes the rows of the category and keeps the total and the other categories', async () => {
+            const id = crypto.randomUUID();
+            await put(id, { name: 'Gym' });
+            for (const scope of [id, 'total', 'food']) await insertBudget(session.userId, scope);
+
+            await remove(id);
+
+            expect(await scopesOf(session.userId)).toEqual(['food', 'total']);
+        });
+
+        it('keeps the rows of another user that have the same scope', async () => {
+            const id = crypto.randomUUID();
+            await put(id, { name: 'Gym' });
+            await insertBudget('someone-else', id);
+
+            await remove(id);
+
+            expect(await scopesOf('someone-else')).toEqual([id]);
+        });
+    });
 });
