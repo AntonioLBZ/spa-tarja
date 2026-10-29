@@ -1,10 +1,11 @@
 import clsx from 'clsx';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
+import { useToast } from '@/components/toast/toast';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -13,6 +14,7 @@ import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { useAddForm } from './add-form-state';
+import { restoreExpenses } from './create-expenses';
 import { ExpenseListControls } from './expense-list-controls';
 import { ExpenseRow } from './expense-row';
 import { useExpenseList } from './use-expense-list';
@@ -27,6 +29,7 @@ function ExpenseList() {
     const t = useTranslations('expenses.list');
     const { locale } = useLocale();
     const save = useSaveExpense();
+    const toast = useToast();
     const { editing, startEdit, endEdit, refocus, clearRefocus } = useAddForm();
     const list = useExpenseList();
     const { groups, grouping, leaving, pendingIds, hasData, isError, isWaitingForNetwork } = list;
@@ -39,6 +42,15 @@ function ExpenseList() {
         (toggles.current.get(refocus) ?? title.current)?.focus();
         clearRefocus();
     }, [refocus, clearRefocus]);
+    // The expense that Undo brought back, whose row takes the focus once it is there
+    const [restored, setRestored] = useState<string | null>(null);
+    useEffect(() => {
+        if (restored === null) return;
+        const toggle = toggles.current.get(restored);
+        if (!toggle) return;
+        toggle.focus();
+        setRestored(null);
+    }, [restored, groups]);
     // The expense of the row that "Show more" brought in first, which takes the focus once the row is there
     const moreFocus = useRef<string | null>(null);
     useEffect(() => {
@@ -57,19 +69,28 @@ function ExpenseList() {
         return staying[at + 1] ?? (at > 0 ? staying[at - 1] : undefined);
     }
 
+    async function undo(deleted: readonly Expense[]) {
+        await save(restoreExpenses(deleted));
+        setRestored(deleted[0]!.id);
+    }
+
     // All the parts of a plan go together. The focus leaves the button that is going away for a neighbour row, or the
-    // title when there is none.
+    // title when there is none. A toast offers to take it back.
     function remove(expenses: readonly Expense[], now: number) {
         const neighbour = neighbourOf(expenses[0]!.id);
-        void save(
-            expenses.map((expense) => {
-                const at = Math.max(now, expense.updatedAt + 1);
-                return { ...expense, updatedAt: at, deletedAt: at };
-            })
-        );
+        const deleted = expenses.map((expense) => {
+            const at = Math.max(now, expense.updatedAt + 1);
+            return { ...expense, updatedAt: at, deletedAt: at };
+        });
+        void save(deleted);
         if (editing && expenses.some((expense) => expense.id === editing[0]!.id)) endEdit();
         list.fadeOut(expenses);
+        setRestored(null);
         ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
+        toast.show({
+            message: t('deleted', { name: expenses[0]!.text || labelOf(expenses[0]!.categoryId) }),
+            action: { label: t('undo'), onAction: () => void undo(deleted) },
+        });
     }
 
     // Days, weeks and months say the year only when the list goes over a New Year

@@ -1345,6 +1345,193 @@ describe('a deleted plan leaving the list', () => {
     });
 });
 
+describe('undoing a delete', () => {
+    const NOW = new Date(2026, 9, 25, 12).getTime();
+    const undoButton = () => screen.getByRole('button', { name: en.expenses.list.undo });
+    const deletedMessage = (name: string) => t('expenses.list.deleted', { name });
+
+    it('says what was deleted and offers Undo', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Lunch' })] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+
+        deleteExpense('Lunch');
+
+        expect(screen.getByText(deletedMessage('Lunch'))).toBeDefined();
+        expect(undoButton()).toBeDefined();
+    });
+
+    it('names an expense with no text by its category', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: '' })] }).handler);
+        renderApp();
+        await screen.findByText(en.categories.food);
+
+        deleteExpense(en.categories.food);
+
+        expect(screen.getByText(deletedMessage(en.categories.food))).toBeDefined();
+    });
+
+    it('brings the expense back, newer than the delete, and writes it again', async () => {
+        const lunch = expense({ text: 'Lunch', updatedAt: 1_000 });
+        const api = createFakeApi({ expenses: [lunch] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+        await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+
+        fireEvent.click(undoButton());
+
+        expect(await screen.findByText('Lunch')).toBeDefined();
+        await waitFor(() => expect(api.writes).toHaveLength(2));
+        expect(api.writes[0]!.deletedAt).toBe(NOW);
+        expect(api.writes[1]).toMatchObject({ id: lunch.id, text: 'Lunch', deletedAt: null, updatedAt: NOW + 1 });
+    });
+
+    it('goes away once it is used', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Lunch' })] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+
+        fireEvent.click(undoButton());
+
+        expect(screen.queryByText(deletedMessage('Lunch'))).toBeNull();
+        expect(screen.queryByRole('button', { name: en.expenses.list.undo })).toBeNull();
+    });
+
+    it('puts the focus on the row that came back', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Lunch' })] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+
+        fireEvent.click(undoButton());
+
+        await waitFor(() => expect(document.activeElement).toBe(rowToggle('Lunch')));
+    });
+
+    it('brings a plan back whole, with its total', async () => {
+        const plan = crypto.randomUUID();
+        const parts = ['2026-10-25', '2026-11-25', '2026-12-25'].map((day, index) =>
+            expense({ text: 'Sofa', amountCents: 500, chargeDate: day, plan: { id: plan, part: index + 1, parts: 3 } })
+        );
+        const api = createFakeApi({ expenses: parts });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Sofa');
+        deleteExpense('Sofa');
+        await waitFor(() => expect(api.writes).toHaveLength(3));
+        await waitFor(() => expect(screen.queryByText('Sofa')).toBeNull());
+
+        fireEvent.click(undoButton());
+
+        const row = (await screen.findByText('Sofa')).closest('li')!;
+        expect(row.textContent).toContain('€15.00');
+        await waitFor(() => expect(api.writes).toHaveLength(6));
+        expect(api.writes.slice(3).map((write) => [write.id, write.plan, write.deletedAt])).toEqual(
+            parts.map((part) => [part.id, part.plan, null])
+        );
+        expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    });
+
+    it('sends neither the delete nor anything else about it when the delete had not reached the server yet', async () => {
+        const lunch = expense({ text: 'Lunch', updatedAt: 1_000 });
+        const api = createFakeApi({ expenses: [lunch] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        onlineManager.setOnline(false);
+        deleteExpense('Lunch');
+        await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+
+        fireEvent.click(undoButton());
+        expect(await screen.findByText('Lunch')).toBeDefined();
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(api.attempts).toHaveLength(1));
+        expect(api.attempts[0]).toMatchObject({ id: lunch.id, deletedAt: null, updatedAt: NOW + 1 });
+        await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
+        expect(api.attempts).toHaveLength(1);
+    });
+
+    it('works while offline after the delete had reached the server', async () => {
+        const api = createFakeApi({ expenses: [expense({ text: 'Lunch', updatedAt: 1_000 })] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        onlineManager.setOnline(false);
+
+        fireEvent.click(undoButton());
+
+        const row = (await screen.findByText('Lunch')).closest('li')!;
+        expect(within(row).getByText(en.expenses.list.pending)).toBeDefined();
+        expect(api.writes).toHaveLength(1);
+        onlineManager.setOnline(true);
+        await waitFor(() => expect(api.writes).toHaveLength(2));
+        expect(api.writes[1]!.deletedAt).toBeNull();
+    });
+
+    it('is replaced by the next delete, so only the last one can be taken back', async () => {
+        const api = createFakeApi({
+            expenses: [expense({ text: 'First', date: '2026-10-25' }), expense({ text: 'Second', date: '2026-10-24' })],
+        });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('First');
+        deleteExpense('First');
+        deleteExpense('Second');
+
+        expect(screen.queryByText(deletedMessage('First'))).toBeNull();
+        expect(screen.getByText(deletedMessage('Second'))).toBeDefined();
+        expect(screen.getAllByRole('button', { name: en.expenses.list.undo })).toHaveLength(1);
+        fireEvent.click(undoButton());
+
+        expect(await screen.findByText('Second')).toBeDefined();
+        expect(screen.queryByText('First')).toBeNull();
+        await waitFor(() => expect(api.writes.filter((write) => write.deletedAt === null)).toHaveLength(1));
+    });
+
+    it('survives a change of screen', async () => {
+        const api = createFakeApi({ expenses: [expense({ text: 'Lunch' })] });
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+
+        fireEvent.click(screen.getByRole('link', { name: en.nav.summary }));
+        await screen.findByRole('heading', { name: en.summary.title });
+
+        expect(screen.getByText(deletedMessage('Lunch'))).toBeDefined();
+        fireEvent.click(undoButton());
+        await waitFor(() => expect(api.writes).toHaveLength(2));
+        expect(api.writes[1]!.deletedAt).toBeNull();
+    });
+});
+
+describe('undoing a delete in Spanish', () => {
+    const tEs = createTranslator({ locale: 'es', messages: es });
+
+    beforeEach(() => localStorage.setItem('tarja:locale', 'es'));
+    afterEach(() => localStorage.clear());
+
+    it('speaks Spanish', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Cena' })] }).handler);
+        renderApp();
+        await screen.findByText('Cena');
+
+        fireEvent.click(rowToggle('Cena'));
+        fireEvent.click(screen.getByRole('button', { name: tEs('expenses.list.deleteItem', { name: 'Cena' }) }));
+
+        expect(screen.getByText(tEs('expenses.list.deleted', { name: 'Cena' }))).toBeDefined();
+        expect(screen.getByRole('button', { name: es.expenses.list.undo })).toBeDefined();
+    });
+});
+
 describe('the focus after a delete', () => {
     const root = document.documentElement;
     const first = expense({ text: 'First', date: '2026-10-25' });

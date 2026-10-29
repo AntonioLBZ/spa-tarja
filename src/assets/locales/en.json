@@ -80,6 +80,8 @@
             "editIncomplete": "Not every payment of this plan is on this device yet, so it can't be edited.",
             "delete": "Delete",
             "deleteItem": "Delete {name}",
+            "deleted": "Deleted {name}",
+            "undo": "Undo",
             "pending": "Not synced yet",
             "charged": "{payment}, charged {date}",
             "plan": "{parts} payments, until {date}",

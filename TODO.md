@@ -8,15 +8,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - Offline, the income and new-category fields still look enabled while their buttons are disabled; disable the fields too?
 - The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead?
 
-## 11. Undo after delete (S)
-
-Delete keeps no confirmation, so it gets an Undo.
-
-1. A shared `Toast` (`src/components/toast/`): a flat box with the notch on the left, above the safe area, with a provider in the root layout next to `AddFormProvider` so it survives a change of screen. The `role="status"` region is always mounted; the message ("Deleted <name>") and an Undo button go inside it. It stays 8 s, paused while hovered or focused; Escape closes it; a new delete replaces it. It comes in and leaves with a fade and a short shift over `--duration-base`.
-2. Undo writes every part again with `deletedAt: null` and `updatedAt = max(now, deletedAt + 1)` (the later-than rule of an edit), through the outbox, so it works offline and after the delete has synced. A plan comes back whole, and the row enters with the usual animation.
-3. Focus stays on the neighbour row after Delete, as now; the toast is the last stop in the tab order.
-4. Docs first: `design.md` §3 (Toast) and §6, `ARCHITECTURE.md` §5 (Delete: no confirmation, but Undo). Tests: undo, a plan, offline, expiry, replaced by the next delete, Spanish copy.
-
 ## 12. Duplicate an expense (S)
 
 1. A Duplicate button in the row panel, next to Edit and Delete, with the rule of Edit (`canEdit`: not for a plan with parts missing on the device).

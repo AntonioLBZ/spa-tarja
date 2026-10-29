@@ -1,0 +1,50 @@
+/* Always in the page, so what comes in is announced. It covers nothing and never takes a click that is not the toast's */
+.toast-region {
+    bottom: 0;
+    display: flex;
+    inset-inline: 0;
+    justify-content: center;
+    padding: 0 max(var(--size-4), env(safe-area-inset-right)) max(var(--size-4), env(safe-area-inset-bottom))
+        max(var(--size-4), env(safe-area-inset-left));
+    pointer-events: none;
+    position: fixed;
+}
+
+/* A box with the notch, in with a fade and a short shift, and out the same way */
+.toast {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2) var(--size-4);
+    justify-content: space-between;
+    max-width: 40rem;
+    padding: var(--size-2) var(--size-3);
+    pointer-events: auto;
+    transition:
+        opacity var(--duration-base) var(--ease-enter),
+        transform var(--duration-base) var(--ease-enter);
+    width: 100%;
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(var(--size-2));
+    }
+}
+
+.toast--leaving {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(var(--size-2));
+    transition-timing-function: var(--ease-exit);
+}
+
+.toast__message {
+    flex: 1 1 auto;
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

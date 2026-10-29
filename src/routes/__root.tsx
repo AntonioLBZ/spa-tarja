@@ -2,6 +2,7 @@ import { Link, Outlet, createRootRoute, useRouterState } from '@tanstack/react-r
 import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
+import { ToastProvider } from '@/components/toast/toast';
 import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
 import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
 import { navSection, type NavSection } from '@/lib/route-transition';
@@ -20,13 +21,15 @@ function opensElsewhere(event: MouseEvent) {
 function RootLayout() {
     return (
         <AddFormProvider>
-            <div className="root">
-                <RootHeader />
-                <main className="root__main">
-                    <Outlet />
-                </main>
-                <UpdatePrompt />
-            </div>
+            <ToastProvider>
+                <div className="root">
+                    <RootHeader />
+                    <main className="root__main">
+                        <Outlet />
+                    </main>
+                    <UpdatePrompt />
+                </div>
+            </ToastProvider>
         </AddFormProvider>
     );
 }

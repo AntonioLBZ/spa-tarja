@@ -109,5 +109,15 @@ function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.n
     return [...partsOf(draft, identities, planId, updatedAt, first.currency), ...removed];
 }
 
-export { canEdit, createExpenses, draftOf, reviseExpenses };
+// The writes that take back a delete: every deleted part again, newer than its delete so it wins on every device
+// (ARCHITECTURE.md §5)
+function restoreExpenses(deleted: readonly Expense[], now = Date.now()): Expense[] {
+    return deleted.map((part) => ({
+        ...part,
+        updatedAt: Math.max(now, (part.deletedAt ?? part.updatedAt) + 1),
+        deletedAt: null,
+    }));
+}
+
+export { canEdit, createExpenses, draftOf, restoreExpenses, reviseExpenses };
 export type { Draft };

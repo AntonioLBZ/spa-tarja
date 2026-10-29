@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { addMonths } from '@core/date';
 import { expenseInputSchema, type Expense } from '@core/expense';
 
-import { canEdit, createExpenses, draftOf, reviseExpenses, type Draft } from './create-expenses';
+import { canEdit, createExpenses, draftOf, restoreExpenses, reviseExpenses, type Draft } from './create-expenses';
 
 const NOW = 1_800_000_000_000;
 
@@ -366,5 +366,54 @@ describe('reviseExpenses', () => {
             text: 'Dinner for two',
         });
         expectAccepted(writes);
+    });
+});
+
+describe('restoreExpenses', () => {
+    it('writes the expense again, not deleted and newer than the delete, with everything else as it was', () => {
+        const lunch = expense({
+            updatedAt: NOW - 5_000,
+            deletedAt: NOW - 5_000,
+            personalCents: 600,
+            payment: 'voucher',
+            chargeDate: '2026-11-24',
+        });
+
+        const [restored] = restoreExpenses([lunch], NOW);
+
+        expect(restored).toEqual({ ...lunch, updatedAt: NOW, deletedAt: null });
+        expectAccepted([restored!]);
+    });
+
+    it('is newer than the delete even when the clock of the device is behind', () => {
+        const lunch = expense({ updatedAt: NOW + 600_000, deletedAt: NOW + 600_000 });
+
+        const [restored] = restoreExpenses([lunch], NOW);
+
+        expect(restored).toMatchObject({ updatedAt: NOW + 600_001, deletedAt: null });
+    });
+
+    it('brings every part of a plan back, each newer than its own delete', () => {
+        const sofa = plan([500, 500, 500]).map((part, index) => ({
+            ...part,
+            updatedAt: NOW - 1_000 * (index + 1),
+            deletedAt: NOW - 1_000 * (index + 1),
+        }));
+
+        const restored = restoreExpenses(sofa, NOW);
+
+        expect(restored.map((part) => [part.id, part.plan, part.deletedAt, part.updatedAt])).toEqual(
+            sofa.map((part) => [part.id, part.plan, null, NOW])
+        );
+        expectAccepted(restored);
+    });
+
+    it('takes the time of the device when no moment is given', () => {
+        const before = Date.now();
+
+        const [restored] = restoreExpenses([expense({ updatedAt: 1_000, deletedAt: 1_000 })]);
+
+        expect(restored!.updatedAt).toBeGreaterThanOrEqual(before);
+        expect(restored!.deletedAt).toBeNull();
     });
 });

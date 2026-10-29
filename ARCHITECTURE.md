@@ -106,6 +106,7 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 - Your part goes only with a restaurant card: an edit that pays it another way sends `personalCents: null`, since the API answers 400 otherwise and the outbox drops a 400 for good.
 - The category stays the saved id, even one whose category was deleted (it shows as "Other" and is kept unless the person picks another); the suggestion from the text never replaces it.
 - Known limits, acceptable for one person: a plan edited on two devices before they sync can end up with parts of both edits, because each part wins on its own; and an edit made after a delete on another device brings the expense back, as the newer write.
+- **Undo after a delete.** Delete keeps no confirmation, so it can be taken back for a few seconds (the `Toast` of `design.md`). `restoreExpenses` writes every deleted part again with `deleted_at` null and an `updated_at` of the later of now and one more than the deletion, the later-than rule of an edit, so it wins over the delete on every device. It goes through the outbox like any write: offline it replaces the entry of the delete that is still waiting, so the server never hears of either, and after the delete has synced it is one more `PUT`. A plan comes back whole. Only the last delete can be undone: there is no history.
 - Confirmed by the owner (2026-10-29): editing a plan edits the whole plan, charged parts included; Edit replaces a new expense half typed in the form without asking; Delete keeps no confirmation; adding an expense clears the search and the filters of the list, not its grouping.
 
 ## 6. Offline strategy
@@ -150,7 +151,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 - **Mobile-first**: base CSS targets phones and widens with `@media (width >= 40rem)` and `(width >= 64rem)`. Touch targets are at least `--size-touch` (44 px), layouts honor `env(safe-area-inset-*)` (`viewport-fit=cover`), full-height blocks use `dvh`, and form controls inherit 16 px so iOS doesn't zoom on focus.
 - Styles: variables in `src/assets/styles/tokens.css`, BEM in the CSS of each route or component, Stylelint with alphabetical properties and no `!important`. Transitions always use the `--duration-*` and `--ease-*` tokens; `prefers-reduced-motion` zeroes them in a single place.
 - Visual rules (colors, themes, shape, motion) live in `design.md`.
-- Shared components live in `src/components/<name>/` with their CSS and tests next to them: `Brand` (the logo), `UpdatePrompt` (the offer of a new version), `Notice`, `Button`, `Field`, `DateRangeFields`, `Card` and `CardList`, `Disclosure`, `ChoiceGroup` and `Icon`. Screens compose them instead of restyling raw elements (`design.md` §3, "Components").
+- Shared components live in `src/components/<name>/` with their CSS and tests next to them: `Brand` (the logo), `UpdatePrompt` (the offer of a new version), `Notice`, `Toast`, `Button`, `Field`, `DateRangeFields`, `Card` and `CardList`, `Disclosure`, `ChoiceGroup` and `Icon`. Screens compose them instead of restyling raw elements (`design.md` §3, "Components").
 - `src/lib` never imports from `src/features` (ESLint enforces it), so the composition of the app around its pages lives in `src/providers.tsx`, used by `main.tsx` and by the tests.
 
 ## 10. Testing
