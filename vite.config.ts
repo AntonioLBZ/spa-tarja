@@ -20,8 +20,9 @@ export default defineConfig({
                 start_url: '/',
                 scope: '/',
                 display: 'standalone',
-                // Light values of --color-bg-secondary and --color-bg-primary; a manifest holds a single value
-                theme_color: '#f4f4f4',
+                // A manifest holds a single value: the dark --color-bg-secondary (Android paints its navigation bar
+                // with it) and the light --color-bg-primary (the splash screen)
+                theme_color: '#141414',
                 background_color: '#fff',
                 icons: [
                     { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
