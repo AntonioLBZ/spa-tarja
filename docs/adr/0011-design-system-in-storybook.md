@@ -16,8 +16,8 @@ The shared components in `src/components` and the rules in [`DESIGN.md`](../../d
 
 ## Consequences
 
-- Shared components take their copy by props: they read no messages (`use-intl`), import no virtual module and only `ButtonLink` knows the router. `MonthSwitch`, `UpdatePrompt` and `ButtonLink` don't comply yet (`TODO.md`). `Toast` reads the duration tokens through `lib/motion` and `DateRangeFields` the day check of `core/date`; both stay.
-- Stories are not tests, and `types:check` and `lint` cover the folder. Whether CI also builds Storybook is open in `TODO.md`.
+- Shared components take their copy by props: they read no messages (`use-intl`), import no virtual module and only `ButtonLink` knows the router. `Toast` reads the duration tokens through `lib/motion` and `DateRangeFields` the day check of `core/date`; both stay.
+- Stories are not tests, and `types:check` and `lint` cover the folder. CI doesn't build Storybook: a broken story would otherwise stop the deploy of the app.
 
 ## Alternatives considered
 

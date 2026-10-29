@@ -10,6 +10,7 @@ export default defineConfig([
     {
         ignores: [
             'dist',
+            'design-system/storybook-static',
             'node_modules',
             '.wrangler',
             '.agents',
@@ -48,7 +49,7 @@ export default defineConfig([
         },
     },
     {
-        files: ['src/**/*.{ts,tsx}'],
+        files: ['src/**/*.{ts,tsx}', 'design-system/**/*.{ts,tsx}'],
         extends: [reactHooks.configs.flat.recommended],
         languageOptions: { globals: globals.browser },
     },
@@ -84,6 +85,11 @@ export default defineConfig([
                             target: './core',
                             from: ['./src', './server'],
                             message: 'core is shared logic and cannot import from the SPA or the Worker.',
+                        },
+                        {
+                            target: ['./src', './core', './server'],
+                            from: './design-system',
+                            message: 'Nothing imports from the design system.',
                         },
                         {
                             target: './src/components',

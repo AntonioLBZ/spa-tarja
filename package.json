@@ -16,6 +16,7 @@
         "format:check": "prettier --check .",
         "test": "vitest run",
         "test:watch": "vitest",
+        "storybook": "pnpm --filter design-system storybook",
         "pwa:icons": "pwa-assets-generator",
         "db:migrate": "wrangler d1 migrations apply DB --local",
         "db:migrate:remote": "wrangler d1 migrations apply DB --remote",

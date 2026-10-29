@@ -3,6 +3,7 @@ node_modules
 
 # build
 /dist
+/design-system/storybook-static
 *.tsbuildinfo
 
 # Cloudflare: local D1 state, secrets

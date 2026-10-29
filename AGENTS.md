@@ -41,6 +41,7 @@ pnpm types:check         # tsc -b over app, server and node configs
 pnpm types:gen           # wrangler types -> worker-configuration.d.ts (rerun after editing wrangler.jsonc)
 pnpm lint                # eslint + stylelint (src/**/*.css)
 pnpm format / format:check
+pnpm storybook           # the design system on :6006, local only (design-system/)
 pnpm test                # vitest: `core` (node), `server` (workerd), `front` (jsdom) and `docs` (node: the index above) projects
 pnpm test -t "name"      # by test name
 pnpm db:migrate          # apply db/migrations to the local D1
@@ -97,6 +98,6 @@ design-system/   Storybook and the stories (a pnpm workspace package)
 
 - Everything about the project is in English: docs, code, comments, identifiers and commit messages. Only the UI copy is localized.
 - Prettier: 4 spaces, single quotes, `printWidth` 120, `trailingComma: es5`, LF.
-- Named exports go in one `export { … }` statement at the bottom of the file (`export type { … }` for types). Components destructure `props` inside the function body. Route files use `export const Route`.
+- Named exports go in one `export { … }` statement at the bottom of the file (`export type { … }` for types). Components destructure `props` inside the function body. Route files use `export const Route`. Storybook's files (`*.stories.tsx`, `design-system/.storybook/`) use `export default` where it asks for one, as the Vite configs do.
 - Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it. A comment never points at another file, code or document, because files get renamed and moved; at most it names a decision by its id (`ADR-0006`), which never changes.- Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
 - Secrets live in `.dev.vars` (local), `wrangler secret` (production) and, for the deployment from CI, the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Never commit them or log them.
