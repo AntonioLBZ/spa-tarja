@@ -5,7 +5,6 @@ Items build on each other in the order they appear below. Delete an item when it
 ## Needs the owner
 
 - Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install, the Undo toast and that the backup and the spreadsheet download from the installed app), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
-- The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead? The owner wants to see the difference first (a picture of both).
 
 ## 16. Llevar a un storybook todos los componentes del proyecto como sistema de diseño.
 

@@ -63,8 +63,12 @@
     fill: transparent;
 }
 
+/* The frame is twice as thick as the one of today, and a mark of shape where the accent is close to ink */
 .spending-chart__slot--selected {
     fill: var(--color-bg-secondary);
+    stroke: var(--color-border);
+    stroke-width: calc(var(--size-1) / 2);
+    vector-effect: non-scaling-stroke;
 }
 
 .spending-chart__grid {
