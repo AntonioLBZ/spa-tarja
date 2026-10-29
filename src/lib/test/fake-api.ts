@@ -2,6 +2,7 @@ import { categoryNameKey, type Category } from '@core/category';
 import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
 
 import type { Handler } from './render-app';
+import type { Budget, BudgetLimitsInput } from '@core/budget';
 import type { Expense } from '@core/expense';
 import type { Income, IncomeInput } from '@core/income';
 
@@ -9,6 +10,7 @@ interface FakeApiOptions {
     expenses?: Expense[];
     categories?: Category[];
     income?: Income[];
+    budgets?: Budget[];
     // Most rows per page, whatever the client asks for
     pageSize?: number;
 }
@@ -33,6 +35,10 @@ function createFakeApi(options: FakeApiOptions = {}) {
     const income = [...(options.income ?? [])];
     const incomeRequests: string[] = [];
 
+    const budgets = [...(options.budgets ?? [])];
+    const budgetRequests: string[] = [];
+    const budgetBodies: unknown[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
@@ -45,6 +51,8 @@ function createFakeApi(options: FakeApiOptions = {}) {
         categoryWriteStatus: null as number | null,
         // An HTTP status to answer every income write with, or null to accept them
         incomeWriteStatus: null as number | null,
+        // An HTTP status to answer every budget write with, or null to accept them
+        budgetWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
     };
@@ -122,6 +130,29 @@ function createFakeApi(options: FakeApiOptions = {}) {
             return Response.json(saved);
         }
 
+        if (url.pathname === '/api/budgets' && method === 'GET') return Response.json({ budgets });
+
+        const budgetMonth = /^\/api\/budgets\/([^/]+)$/.exec(url.pathname)?.[1];
+        if (budgetMonth && method === 'PUT') {
+            budgetRequests.push(`${method} ${budgetMonth}`);
+            const body = JSON.parse(String(init?.body)) as BudgetLimitsInput;
+            budgetBodies.push(body);
+            if (state.budgetWriteStatus !== null) return new Response(null, { status: state.budgetWriteStatus });
+
+            const saved = body.limits.map((limit): Budget => ({
+                month: budgetMonth,
+                scope: limit.scope,
+                amountCents: limit.amountCents,
+                currency: body.currency,
+            }));
+            for (const row of saved) {
+                const at = budgets.findIndex((item) => item.month === row.month && item.scope === row.scope);
+                if (at >= 0) budgets[at] = row;
+                else budgets.push(row);
+            }
+            return Response.json({ budgets: saved });
+        }
+
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
@@ -147,6 +178,9 @@ function createFakeApi(options: FakeApiOptions = {}) {
         categoryRequests,
         income,
         incomeRequests,
+        budgets,
+        budgetRequests,
+        budgetBodies,
     };
 }
 

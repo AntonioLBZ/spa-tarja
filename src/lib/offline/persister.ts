@@ -1,4 +1,4 @@
-import { CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
+import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 
 import type { KeyValueStorage } from './storage';
 import type { PersistedClient, Persister, PersistQueryClientOptions } from '@tanstack/react-query-persist-client';
@@ -16,7 +16,7 @@ function createPersister(storage: KeyValueStorage): Persister {
     };
 }
 
-const PERSISTED_QUERIES: readonly unknown[] = [EXPENSES_KEY[0], CATEGORIES_KEY[0], INCOME_KEY[0]];
+const PERSISTED_QUERIES: readonly unknown[] = [EXPENSES_KEY[0], CATEGORIES_KEY[0], INCOME_KEY[0], BUDGETS_KEY[0]];
 
 // What survives a reload: the expenses, which are the local copy of the user's data, the categories they are filed under
 // and the income of each month. Everything else is cheap to refetch.

@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 
+import { BUDGETS_KEY, fetchBudgets } from './budgets';
 import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 import { INCOME_KEY, fetchIncome } from './income';
@@ -25,4 +26,9 @@ function incomeQuery() {
     return queryOptions({ queryKey: INCOME_KEY, queryFn: fetchIncome });
 }
 
-export { categoriesQuery, healthQuery, incomeQuery };
+// The limits each month sets, kept offline by the persisted cache
+function budgetsQuery() {
+    return queryOptions({ queryKey: BUDGETS_KEY, queryFn: fetchBudgets });
+}
+
+export { budgetsQuery, categoriesQuery, healthQuery, incomeQuery };

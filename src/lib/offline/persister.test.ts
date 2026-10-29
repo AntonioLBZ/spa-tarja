@@ -2,7 +2,7 @@ import { QueryClient, dehydrate } from '@tanstack/react-query';
 import { persistQueryClientRestore } from '@tanstack/react-query-persist-client';
 import { describe, expect, it } from 'vitest';
 
-import { CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
+import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
 import { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
@@ -16,17 +16,18 @@ async function storeCopy(storage: ReturnType<typeof createMemoryStorage>, copy: 
 }
 
 describe('createPersistOptions', () => {
-    it('keeps the expenses, the categories and the income and leaves every other query out', () => {
+    it('keeps the expenses, the categories, the income and the budgets and leaves every other query out', () => {
         const client = new QueryClient();
         client.setQueryData(EXPENSES_KEY, state);
         client.setQueryData(CATEGORIES_KEY, []);
         client.setQueryData(INCOME_KEY, []);
+        client.setQueryData(BUDGETS_KEY, []);
         client.setQueryData(['health'], { ok: true });
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
 
         const keys = dehydrate(client, dehydrateOptions).queries.map((query) => query.queryKey);
 
-        expect(keys).toEqual([EXPENSES_KEY, CATEGORIES_KEY, INCOME_KEY]);
+        expect(keys).toEqual([EXPENSES_KEY, CATEGORIES_KEY, INCOME_KEY, BUDGETS_KEY]);
     });
 
     it('keeps the expenses when the latest sync failed, so a bad connection never wipes the local copy', async () => {
