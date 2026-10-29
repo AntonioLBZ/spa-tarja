@@ -8,7 +8,7 @@ An installable web app (PWA) to log everyday expenses: food, groceries, leisure,
 
 Name: a _tarja_ is the notched stick that was used to keep accounts. The repo is `spa-tarja`, like the owner's other SPAs.
 
-Out of scope for now: budgets, export, shared expenses, multiple currencies.
+Out of scope for now: budgets, importing a backup, shared expenses, multiple currencies.
 
 ## 2. Closed decisions
 
@@ -109,6 +109,15 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 - **Undo after a delete.** Delete keeps no confirmation, so it can be taken back for a few seconds (the `Toast` of `design.md`). `restoreExpenses` writes every deleted part again with `deleted_at` null and an `updated_at` of the later of now and one more than the deletion, the later-than rule of an edit, so it wins over the delete on every device. It goes through the outbox like any write: offline it replaces the entry of the delete that is still waiting, so the server never hears of either, and after the delete has synced it is one more `PUT`. A plan comes back whole. Only the last delete can be undone: there is no history.
 - Confirmed by the owner (2026-10-29): editing a plan edits the whole plan, charged parts included; Edit replaces a new expense half typed in the form without asking; Delete keeps no confirmation; adding an expense clears the search and the filters of the list, not its grouping.
 - **Duplicating an expense** is the add form loaded with an expense (`draftOf`) and saved as a new one, so it needs no endpoint or migration and works offline like any new expense. `createExpenses` gives every part a new id and a plan a new `plan_id`, and keeps the currency of the original. The day is today and `created_at` is now; a deferred payment takes the charge date the form proposes for that day; a plan keeps its number of payments and its amounts, on dates counted from today. It opens the form and saves nothing by itself (owner decision), replaces a half typed expense without asking, and, like Edit, is only for a plan with every part on the device (`canEdit`). `AddFormProvider` holds it as `copying`, next to `editing`, and never both at once.
+
+### Exporting your data
+
+Settings offers a backup and a spreadsheet (owner decision: export only, no import for now). Both are built on the device from what it already holds, the persisted cache with the outbox on top (`applyPending`), so they work offline and send nothing to the server. Settings reads the expenses, the categories and the income like any other screen does, so a device that never opened the summary still has its income in the backup; a device that has never heard from the server exports only what is waiting in its outbox. Deleted expenses are left out, and the logic is pure, in `core/export.ts`.
+
+- **JSON** is a backup: `{ app: "tarja", version: 1, exportedAt, expenses, categories, income }`. `exportedAt` is an ISO 8601 time. `expenses` are the stored fields as they are, one entry per expense and one per part of a plan, ordered by the day made, then `createdAt`, the part and the id. `categories` are the custom ones only (`id`, `name`, `color`, `icon`), since the built-in ones come with the app, and `income` is the months the person set. Nothing in it is derived, so a later import can restore a database from it.
+- **CSV** is for a spreadsheet: one row per expense or part of a plan, in the same order, with the columns date, text, category, amount, currency, payment, charge date, your part and part. The header, the category name (the built-in names in the language of the app, "Other" for one that no longer exists) and the payment are in the app language. Days are `YYYY-MM-DD`. The amount is what was paid, in the decimals of the language without a currency symbol or grouping: Spanish uses `;` between columns and `12,50`, English `,` and `12.50`, as the delimiter follows the decimal mark. Your part is filled for a restaurant card expense only (the whole amount when none was set) and empty for the rest; the part is `2/3` for the second of three payments and empty for an expense that is not a plan. The file is UTF-8 with a byte order mark, so a spreadsheet reads the accents, and fields are quoted when they hold the delimiter, a quote or a line break.
+- **A spreadsheet never runs a text.** A text or a category name that starts with `=`, `+`, `-`, `@`, a tab or a carriage return gets a leading `'`, so the cell is read as text and never as a formula.
+- The file is `tarja-YYYY-MM-DD.json` or `.csv`, with the day of the device.
 
 ## 6. Offline strategy
 

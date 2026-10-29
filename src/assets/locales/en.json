@@ -150,6 +150,23 @@
             "description": "Create your own categories to sort your expenses, and pick their color and icon.",
             "link": "Manage categories"
         },
+        "data": {
+            "title": "Your data",
+            "description": "Download a copy of your expenses, your own categories and your income. It is made on this device, so it works offline.",
+            "backup": "Backup (JSON)",
+            "spreadsheet": "Spreadsheet (CSV)",
+            "columns": {
+                "date": "Date",
+                "text": "Text",
+                "category": "Category",
+                "amount": "Amount",
+                "currency": "Currency",
+                "payment": "Payment",
+                "chargeDate": "Charge date",
+                "personal": "Your part",
+                "part": "Part"
+            }
+        },
         "account": {
             "title": "Account",
             "signOut": "Sign out",

@@ -1,0 +1,21 @@
+.your-data {
+    display: grid;
+    gap: var(--size-2);
+    justify-items: start;
+}
+
+.your-data__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.your-data__hint {
+    color: var(--color-content-secondary);
+    margin: 0;
+}
+
+.your-data__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}

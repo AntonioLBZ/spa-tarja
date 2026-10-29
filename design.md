@@ -191,6 +191,11 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - Delete asks in the panel, with the question and Delete and Cancel, and says what happens to the expenses.
 - Offline, the rows still open but the buttons in the panel are off, with the notice at the top saying why.
 
+### Settings
+
+- `/settings`, linked from the header. One column of sections, `--size-8` apart: the language, the theme and the app color (each a `ChoiceGroup`, see §2), Categories (a hint and a link to `/categories`), Your data, and the account.
+- **Your data** has a heading, a hint that says what the files hold and that they are made on the device, so they work offline, and two `Button`s side by side, `--size-4` apart and wrapping: the backup (JSON) and the spreadsheet (CSV). A press downloads the file at once, with nothing to confirm and no state to show: the browser says that it saved it. Both are always on, offline too. The formats are in `ARCHITECTURE.md` §5.
+
 ### Summary
 
 - `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.

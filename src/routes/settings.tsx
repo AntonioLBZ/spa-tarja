@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Account } from '@/features/auth/account';
+import { YourData } from '@/features/export/your-data';
 import { ACCENTS, useAccent } from '@/lib/accent';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { THEMES, useTheme } from '@/lib/theme';
@@ -47,6 +48,7 @@ function Settings() {
                 <p className="settings__hint">{t('categories.description')}</p>
                 <ButtonLink to="/categories">{t('categories.link')}</ButtonLink>
             </section>
+            <YourData />
             <Account />
         </section>
     );

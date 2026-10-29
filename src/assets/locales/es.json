@@ -150,6 +150,23 @@
             "description": "Crea tus propias categorías para clasificar tus gastos y elige su color e icono.",
             "link": "Gestionar categorías"
         },
+        "data": {
+            "title": "Tus datos",
+            "description": "Descarga una copia de tus gastos, de tus categorías y de tus ingresos. Se hace en este dispositivo, así que funciona sin conexión.",
+            "backup": "Copia de seguridad (JSON)",
+            "spreadsheet": "Hoja de cálculo (CSV)",
+            "columns": {
+                "date": "Fecha",
+                "text": "Texto",
+                "category": "Categoría",
+                "amount": "Importe",
+                "currency": "Moneda",
+                "payment": "Pago",
+                "chargeDate": "Fecha de cargo",
+                "personal": "Tu parte",
+                "part": "Parte"
+            }
+        },
         "account": {
             "title": "Cuenta",
             "signOut": "Cerrar sesión",

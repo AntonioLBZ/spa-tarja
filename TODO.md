@@ -4,19 +4,10 @@ Items build on each other in the order they appear below. Delete an item when it
 
 ## Needs the owner
 
-- Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
+- Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install, the Undo toast and that the backup and the spreadsheet download from the installed app), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
 - Offline, the income and new-category fields still look enabled while their buttons are disabled; disable the fields too?
+- The spreadsheet writes the part of a plan as `2/3`, which Excel and Google Sheets may read as a date (2 March). Keep it as you asked, or write it another way (`2 of 3`, or two columns)?
 - The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead?
-
-## 13. Export (S to M)
-
-Owner decision: export only, no import for now.
-
-1. Settings gets a "Your data" section with two buttons, a JSON backup and a CSV for a spreadsheet. Both are built on the device from the local copy (the cache with the outbox on top), so they work offline and send nothing to the server. Deleted expenses are left out.
-2. JSON: `{ app, version, exportedAt, expenses, categories, income }`, the stored fields as they are, custom categories only, a plan as one row per part.
-3. CSV: one row per expense or plan part with date, text, category name, amount, currency, payment, charge date, your part and part ("2/3"). The delimiter and the decimal follow the app language (Spanish `;` and `12,50`, English `,` and `12.50`), UTF-8 with BOM. A text that starts with `=`, `+`, `-` or `@` gets a leading `'` so a spreadsheet never runs it as a formula.
-4. Pure logic in `core/export.ts` with tests; the download in Settings; the file is `tarja-YYYY-MM-DD.json` or `.csv`.
-5. Docs first: `ARCHITECTURE.md` §1 (export is no longer out of scope) and §5 (the formats), `design.md` §5 (Settings), locale keys in `en` and `es`.
 
 ## 14. Category suggestion from your own history (S, client only)
 
