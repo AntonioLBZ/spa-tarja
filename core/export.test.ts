@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { backupJson, buildBackup, expensesCsv, exportFileName, type CsvLabels } from './export';
 
+import type { Budget } from './budget';
 import type { Category } from './category';
 import type { Expense } from './expense';
 import type { Income } from './income';
@@ -59,7 +60,7 @@ function rows(csv: string): string[] {
 
 describe('buildBackup', () => {
     it('names the app and the version of the format, and says when it was made', () => {
-        const backup = buildBackup({ expenses: [], categories: [], income: [] }, NOW);
+        const backup = buildBackup({ expenses: [], categories: [], income: [], budgets: [] }, NOW);
 
         expect(backup).toEqual({
             app: 'tarja',
@@ -68,6 +69,7 @@ describe('buildBackup', () => {
             expenses: [],
             categories: [],
             income: [],
+            budgets: [],
         });
     });
 
@@ -81,7 +83,7 @@ describe('buildBackup', () => {
             updatedAt: 9,
         });
 
-        const backup = buildBackup({ expenses: [dinner], categories: [], income: [] }, NOW);
+        const backup = buildBackup({ expenses: [dinner], categories: [], income: [], budgets: [] }, NOW);
 
         expect(backup.expenses).toEqual([dinner]);
     });
@@ -90,7 +92,7 @@ describe('buildBackup', () => {
         const kept = expense({ text: 'Kept' });
         const gone = expense({ text: 'Gone', deletedAt: 5_000 });
 
-        const backup = buildBackup({ expenses: [gone, kept], categories: [], income: [] }, NOW);
+        const backup = buildBackup({ expenses: [gone, kept], categories: [], income: [], budgets: [] }, NOW);
 
         expect(backup.expenses.map((item) => item.text)).toEqual(['Kept']);
     });
@@ -99,7 +101,7 @@ describe('buildBackup', () => {
         const plan = { id: crypto.randomUUID(), parts: 3 };
         const parts = [3, 1, 2].map((part) => expense({ text: 'Sofa', plan: { ...plan, part }, date: '2026-10-01' }));
 
-        const backup = buildBackup({ expenses: parts, categories: [], income: [] }, NOW);
+        const backup = buildBackup({ expenses: parts, categories: [], income: [], budgets: [] }, NOW);
 
         expect(backup.expenses.map((item) => item.plan?.part)).toEqual([1, 2, 3]);
     });
@@ -110,24 +112,37 @@ describe('buildBackup', () => {
         const c = expense({ id: 'c0000000-0000-4000-8000-000000000000', date: '2026-10-02', createdAt: 1 });
         const d = expense({ id: 'd0000000-0000-4000-8000-000000000000', date: '2026-10-02', createdAt: 1 });
 
-        const backup = buildBackup({ expenses: [d, a, b, c], categories: [], income: [] }, NOW);
+        const backup = buildBackup({ expenses: [d, a, b, c], categories: [], income: [], budgets: [] }, NOW);
 
         expect(backup.expenses.map((item) => item.id)).toEqual([b.id, c.id, d.id, a.id]);
     });
 
     it('holds the custom categories and the income of every month', () => {
-        const backup = buildBackup({ expenses: [], categories: [GYM], income: INCOME }, NOW);
+        const backup = buildBackup({ expenses: [], categories: [GYM], income: INCOME, budgets: [] }, NOW);
 
         expect(backup.categories).toEqual([GYM]);
         expect(backup.income.map((item) => item.month)).toEqual(['2026-09', '2026-10']);
         expect(backup.income[1]).toEqual(INCOME[0]);
     });
 
+    it('holds the budgets ordered by month and then scope', () => {
+        const budgets: Budget[] = [
+            { month: '2026-11', scope: 'food', amountCents: 100, currency: 'EUR' },
+            { month: '2026-10', scope: 'total', amountCents: 900, currency: 'EUR' },
+            { month: '2026-10', scope: 'food', amountCents: 0, currency: 'EUR' },
+        ];
+
+        const backup = buildBackup({ expenses: [], categories: [], income: [], budgets }, NOW);
+
+        expect(backup.budgets).toEqual([budgets[2], budgets[1], budgets[0]]);
+        expect(budgets.map((item) => item.month)).toEqual(['2026-11', '2026-10', '2026-10']);
+    });
+
     it('does not change what it is given', () => {
         const expenses = [expense({ date: '2026-10-02' }), expense({ date: '2026-10-01' })];
         const ids = expenses.map((item) => item.id);
 
-        buildBackup({ expenses, categories: [], income: INCOME }, NOW);
+        buildBackup({ expenses, categories: [], income: INCOME, budgets: [] }, NOW);
 
         expect(expenses.map((item) => item.id)).toEqual(ids);
         expect(INCOME.map((item) => item.month)).toEqual(['2026-10', '2026-09']);
@@ -136,7 +151,7 @@ describe('buildBackup', () => {
 
 describe('backupJson', () => {
     it('is the backup as readable JSON that reads back to the same thing', () => {
-        const data = { expenses: [expense({ text: 'Café' })], categories: [GYM], income: INCOME };
+        const data = { expenses: [expense({ text: 'Café' })], categories: [GYM], income: INCOME, budgets: [] };
 
         const json = backupJson(data, NOW);
 

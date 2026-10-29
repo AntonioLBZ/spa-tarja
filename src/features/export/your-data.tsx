@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
-import { categoriesQuery, incomeQuery } from '@/lib/api';
+import { budgetsQuery, categoriesQuery, incomeQuery } from '@/lib/api';
 import { downloadFile } from '@/lib/download';
 import { useLocale } from '@/lib/i18n';
 import { backupJson, expensesCsv, exportFileName, type CsvLabels } from '@core/export';
@@ -32,12 +32,13 @@ function YourData() {
     const { labelOf } = useCategoryOptions();
     const { data: categories = [] } = useQuery(categoriesQuery());
     const { data: income = [] } = useQuery(incomeQuery());
+    const { data: budgets = [] } = useQuery(budgetsQuery());
 
     function downloadBackup() {
         const now = new Date();
         downloadFile(
             exportFileName(now, 'json'),
-            backupJson({ expenses, categories, income }, now),
+            backupJson({ expenses, categories, income, budgets }, now),
             'application/json'
         );
     }

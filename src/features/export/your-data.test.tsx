@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
+import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
@@ -57,6 +57,7 @@ async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
         expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success');
         expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success');
         expect(app.queryClient.getQueryState(INCOME_KEY)?.status).toBe('success');
+        expect(app.queryClient.getQueryState(BUDGETS_KEY)?.status).toBe('success');
     });
     return { api, app, fetchMock };
 }
@@ -121,12 +122,13 @@ describe('your data in the settings', () => {
 });
 
 describe('the backup', () => {
-    it('downloads tarja and the day, as JSON, with the expenses, the custom categories and the income', async () => {
+    it('downloads tarja and the day, as JSON, with the expenses, the custom categories, the income and the budgets', async () => {
         const lunch = expense({ text: 'Lunch', categoryId: GYM.id });
         await open({
             expenses: [lunch, expense({ text: 'Gone', deletedAt: 5_000 })],
             categories: [GYM],
             income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }],
+            budgets: [{ month: '2026-10', scope: 'food', amountCents: 30_000, currency: 'EUR' }],
         });
 
         const file = await press(en.settings.data.backup);
@@ -140,6 +142,7 @@ describe('the backup', () => {
             expenses: [lunch],
             categories: [GYM],
             income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }],
+            budgets: [{ month: '2026-10', scope: 'food', amountCents: 30_000, currency: 'EUR' }],
         });
     });
 
@@ -265,7 +268,11 @@ describe('the spreadsheet', () => {
 
 describe('offline', () => {
     it('makes both files from the local copy and sends nothing, with the server out of reach', async () => {
-        const { api, fetchMock } = await open({ expenses: [expense({ text: 'Lunch' })], categories: [GYM] });
+        const { api, fetchMock } = await open({
+            expenses: [expense({ text: 'Lunch' })],
+            categories: [GYM],
+            budgets: [{ month: '2026-10', scope: 'food', amountCents: 30_000, currency: 'EUR' }],
+        });
         api.state.offline = true;
         onlineManager.setOnline(false);
         const calls = fetchMock.mock.calls.length;
@@ -275,6 +282,7 @@ describe('offline', () => {
         const csv = await press(en.settings.data.spreadsheet);
 
         expect(JSON.parse(json.text).expenses).toHaveLength(1);
+        expect(JSON.parse(json.text).budgets).toHaveLength(1);
         expect(csv.text).toContain('Lunch');
         expect(fetchMock.mock.calls).toHaveLength(calls);
         expect(api.requests).toHaveLength(requests);

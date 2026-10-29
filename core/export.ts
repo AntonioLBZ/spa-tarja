@@ -2,6 +2,7 @@ import { countedCents, paymentOf } from './counting';
 import { toDateString } from './date';
 import { formatAmountInput } from './money';
 
+import type { Budget } from './budget';
 import type { Category } from './category';
 import type { Expense, Payment } from './expense';
 import type { Income } from './income';
@@ -20,6 +21,7 @@ interface BackupData {
     // The custom categories only: the built-in ones come with the app
     categories: readonly Category[];
     income: readonly Income[];
+    budgets: readonly Budget[];
 }
 
 interface Backup {
@@ -29,6 +31,7 @@ interface Backup {
     expenses: Expense[];
     categories: Category[];
     income: Income[];
+    budgets: Budget[];
 }
 
 // The words of the file, in the language of the app. The names of the categories come from outside because the built-in
@@ -66,6 +69,7 @@ function buildBackup(data: BackupData, now: Date): Backup {
         expenses: listed(data.expenses),
         categories: [...data.categories],
         income: data.income.toSorted((a, b) => compare(a.month, b.month)),
+        budgets: data.budgets.toSorted((a, b) => compare(a.month, b.month) || compare(a.scope, b.scope)),
     };
 }
 
