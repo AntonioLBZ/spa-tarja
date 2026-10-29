@@ -1,28 +1,28 @@
-import { useTranslations } from 'use-intl';
-import { useRegisterSW } from 'virtual:pwa-register/react';
-
 import { Button } from '@/components/button/button';
 
 import './update-prompt.css';
 
-function UpdatePrompt() {
-    const t = useTranslations('pwa.update');
-    const {
-        needRefresh: [needRefresh, setNeedRefresh],
-        updateServiceWorker,
-    } = useRegisterSW();
+interface UpdatePromptProps {
+    message: string;
+    labels: { apply: string; dismiss: string };
+    onApply: () => void;
+    onDismiss: () => void;
+}
 
-    if (!needRefresh) return null;
+// A bar fixed to the bottom edge that says a new version is ready, to apply now or leave for later
+function UpdatePrompt(props: UpdatePromptProps) {
+    const { message, labels, onApply, onDismiss } = props;
 
     return (
         <div className="update-prompt" role="status">
-            <p className="update-prompt__message">{t('message')}</p>
-            <Button variant="primary" onClick={() => void updateServiceWorker(true)}>
-                {t('apply')}
+            <p className="update-prompt__message">{message}</p>
+            <Button variant="primary" onClick={onApply}>
+                {labels.apply}
             </Button>
-            <Button onClick={() => setNeedRefresh(false)}>{t('dismiss')}</Button>
+            <Button onClick={onDismiss}>{labels.dismiss}</Button>
         </div>
     );
 }
 
 export { UpdatePrompt };
+export type { UpdatePromptProps };

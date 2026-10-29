@@ -3,8 +3,8 @@ import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
 import { ToastProvider } from '@/components/toast/toast';
-import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
 import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
+import { AppUpdate } from '@/features/pwa/app-update';
 import { navSection, type NavSection } from '@/lib/route-transition';
 
 import type { MouseEvent } from 'react';
@@ -27,7 +27,7 @@ function RootLayout() {
                     <main className="root__main">
                         <Outlet />
                     </main>
-                    <UpdatePrompt />
+                    <AppUpdate />
                 </div>
             </ToastProvider>
         </AddFormProvider>

@@ -14,9 +14,7 @@ Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con dif
 
 Decided: Storybook in a workspace folder of its own, `design-system/`, local only for now ([ADR-0011](docs/adr/0011-design-system-in-storybook.md)). The components stay in `src/components`. In this order:
 
-1. Bring two shared components into line with "copy by props" (`docs/specs/frontend.md`), one commit each, with no visual change:
-    - `UpdatePrompt` becomes a view in `src/components` (message, the two labels, `onApply`, `onDismiss`) plus a thin container that keeps `useRegisterSW` and `useTranslations`, next to the root route or in `src/features/pwa`. Its test stops mocking `virtual:pwa-register`.
-    - `ButtonLink` moves to `button-link.tsx`, so `Button` and `buttonClass` no longer import the router.
+1. Bring `ButtonLink` into line with "copy by props" (`docs/specs/frontend.md`), with no visual change: it moves to `button-link.tsx`, so `Button` and `buttonClass` no longer import the router.
 2. Set up `design-system/`:
     - A private `package.json`, Storybook 10 with `@storybook/react-vite` and `@storybook/addon-a11y`, and its own Vite config: React and the `@/` and `@core/` aliases only, plus `VitePWA({ disable: true })` if a story needs the virtual module, as the `front` project does.
     - A preview that imports `main.css`, wraps the stories in the real `LocaleProvider`, `ThemeProvider` and `AccentProvider`, and has toolbar controls for the theme, the accent (six), the language and the viewport from 320 px.
