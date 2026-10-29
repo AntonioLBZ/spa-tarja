@@ -8,7 +8,7 @@ An installable web app (PWA) to log everyday expenses: food, groceries, leisure,
 
 Name: a _tarja_ is the notched stick that was used to keep accounts. The repo is `spa-tarja`, like the owner's other SPAs.
 
-Out of scope for now: budgets, importing a backup, shared expenses, multiple currencies.
+Out of scope for now: importing a backup, shared expenses, multiple currencies.
 
 ## 2. Closed decisions
 
@@ -110,6 +110,20 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 - Confirmed by the owner (2026-10-29): editing a plan edits the whole plan, charged parts included; Edit replaces a new expense half typed in the form without asking; Delete keeps no confirmation; adding an expense clears the search and the filters of the list, not its grouping.
 - **Duplicating an expense** is the add form loaded with an expense (`draftOf`) and saved as a new one, so it needs no endpoint or migration and works offline like any new expense. `createExpenses` gives every part a new id and a plan a new `plan_id`, and keeps the currency of the original. The day is today and `created_at` is now; a deferred payment takes the charge date the form proposes for that day; a plan keeps its number of payments and its amounts, on dates counted from today. It opens the form and saves nothing by itself (owner decision), replaces a half typed expense without asking, and, like Edit, is only for a plan with every part on the device (`canEdit`). `AddFormProvider` holds it as `copying`, next to `editing`, and never both at once.
 
+### Budgets
+
+Specified on 2026-10-29, not built yet: this section is the spec until the code lands, and the note goes away with it. Owner decisions: a limit for the month's total and one for each category, warnings inside the app only (never a push), and a budget never blocks anything: it only warns.
+
+- **Storage** (migration `0009`): a table `budget` with one row per user, month and scope (`user_id`, `month` as `YYYY-MM`, `scope`, `amount_cents`, `currency`, `updated_at`; the key is `(user_id, month, scope)`). `scope` is `total` or a category id; no category has the id `total` (a test checks the default ids, the custom ones are UUIDs). `amount_cents` goes from 0 to `MAX_AMOUNT_CENTS`, and **0 means no limit** from that month on.
+- **The limit of a month** (`limitFor` in `core/budget.ts`, pure) is the row of the latest month up to and including it, for that scope; none, or a 0, is no limit. A month nobody set has no row of its own and holds the limit of the latest earlier month, so a limit stays until a month sets another and setting one never writes the months after it. Saving a month again replaces its row, so editing it three times is still one row. A 0 is stored, never deleted: deleting the row would make the month hold the earlier limit again. A change reaches every later month that has no row of its own. A value equal to the one the month already holds is not written, a 0 over no limit included.
+- **What counts toward it** is what the summary counts: each expense adds `countedCents` to the month of `countedOn` (§5), the total adds all of them and a category the ones filed under it. An expense whose category no longer exists counts as "Other", as in the list. A credit card expense therefore counts in the month it is charged, and a warning says which month it speaks of: that closes the open question about a credit card whose charges pile up in a month.
+- **A percentage is shown, never typed.** A limit is an amount. When the month has an income (the one the person set, without the restaurant card or what was paid back), a limit is also shown as `round(limit ÷ income × 100)` % of it, which can go over 100, and its use as `round(spent ÷ limit × 100)` %. Neither is stored.
+- **Thresholds** (`core/budget.ts`): near is 80 % of the limit spent or more, over is more than the limit; spent exactly at the limit is near.
+- **Warnings** come when an expense is added or duplicated, never when one is edited or deleted. For each month and scope the saved parts count in, the state before and after is compared (none, near, over): a warning comes only when a state is crossed (none to near, none to over, near to over), so being over already doesn't warn again. It also comes when the month has an income and its leftover (`summarizeMonth`) goes from zero or more to below zero. There is one message: the most serious (the leftover below zero, then over, then near), then the earliest month, then the scope with the highest use. A plan warns for the most serious of its parts. No limit, no warning.
+- **API**, like the income: `GET /budgets` answers every row of the user (`month`, `scope`, `amountCents`, `currency`) and an idempotent `PUT /budgets/:month` takes `{ currency, limits: [{ scope, amountCents }] }` (1 to 200 entries, each scope once) and replaces those rows in one D1 batch, all or nothing. There is no `DELETE`. The server checks the shape of the month and of each scope (`total`, a default id or a UUID), never that a category exists, as for an expense (§7). Deleting a category deletes its rows in the same batch, and the client ignores the rows of a scope it doesn't know.
+- **Offline**, like the income: changing a limit needs a connection, and the `budgets` list sits in the persisted cache (§6), so the bars and the warnings work from the local copy.
+- **Backup**: the JSON gains `budgets`, the rows as they are stored. The version stays 1, as nothing reads a backup yet.
+
 ### Exporting your data
 
 Settings offers a backup and a spreadsheet (owner decision: export only, no import for now). Both are built on the device from what it already holds, the persisted cache with the outbox on top (`applyPending`), so they work offline and send nothing to the server. Settings reads the expenses, the categories and the income like any other screen does, so a device that never opened the summary still has its income in the backup; a device that has never heard from the server exports only what is waiting in its outbox. Deleted expenses are left out, and the logic is pure, in `core/export.ts`.
@@ -195,6 +209,5 @@ Discarded:
 
 Open:
 
-- Whether the app should warn when a credit card's charges pile up in a month, or when the leftover goes negative.
 - Locales beyond `en` and `es` (`spa-anicalendar` also ships `fr` and `de`).
 - Domain: `tarja.dev` is available (2026-10-25) but costs money, which clashes with "free tiers only"; `tarja.app` and `tarja.com` are taken. `workers.dev` is in use; a custom domain would mean updating the Google redirect URIs.

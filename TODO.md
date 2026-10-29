@@ -9,15 +9,9 @@ Items build on each other in the order they appear below. Delete an item when it
 - The spreadsheet writes the part of a plan as `2/3`, which Excel and Google Sheets may read as a date (2 March). Keep it as you asked, or write it another way (`2 of 3`, or two columns)?
 - The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead?
 
-## 15. Budgets (L, architectural: spec before code)
+## 15. Budgets (L)
 
-Owner decisions: a monthly total and a limit per category, both; warnings inside the app only, no push. A budget never blocks anything: it only warns when an expense brings a limit near or over it.
-
-1. Progress bars in Summary (the total and each category with a limit), a notice when an added expense brings a limit near or over it, and one when the leftover goes negative.
-2. To settle in the spec: whether a limit holds for every month until changed or is set for a month; the thresholds (for example 80 % and 100 %); what counts toward it (`countedCents` by the day made, so a restaurant card counts your part; to confirm); the warning for a credit card whose charges pile up in a month (the open question of `ARCHITECTURE.md` §12); a category deleted while it has a limit; where limits are edited.
-3. Storage like income, to confirm: a D1 table by an additive migration, `/api/budgets` behind `withUser`, cached for reading offline, editing needs a connection.
-4. Docs: `ARCHITECTURE.md` §1 (budgets are no longer out of scope), §5, §8 if needed, `design.md` §5 (Summary).
-5. Process: questions, approaches, a written spec and a plan before any code.
+The spec is written (`ARCHITECTURE.md` §5 "Budgets", `design.md` §5 "Budgets") and waits for the owner's review; then the plan, then the code with its tests. When the code lands, update the sections that still don't name the budgets (`ARCHITECTURE.md` §6, §8 and the backup in §5, `design.md` §3 Toast and §6 routes, `AGENTS.md`) and drop the "not built yet" notes.
 
 ## Far future (an idea to keep in mind, not planned)
 
