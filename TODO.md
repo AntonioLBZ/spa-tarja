@@ -14,8 +14,7 @@ Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con dif
 
 Decided: Storybook in a workspace folder of its own, `design-system/`, local only for now ([ADR-0011](docs/adr/0011-design-system-in-storybook.md)). The components stay in `src/components`. In this order:
 
-1. Bring three shared components into line with "copy by props" (`docs/specs/frontend.md`), one commit each, with no visual change:
-    - `MonthSwitch` takes its two labels as props instead of reading `monthSwitch.*` from the messages (its two callers, `summary.tsx` and `budgets.tsx`, and its test change).
+1. Bring two shared components into line with "copy by props" (`docs/specs/frontend.md`), one commit each, with no visual change:
     - `UpdatePrompt` becomes a view in `src/components` (message, the two labels, `onApply`, `onDismiss`) plus a thin container that keeps `useRegisterSW` and `useTranslations`, next to the root route or in `src/features/pwa`. Its test stops mocking `virtual:pwa-register`.
     - `ButtonLink` moves to `button-link.tsx`, so `Button` and `buttonClass` no longer import the router.
 2. Set up `design-system/`:

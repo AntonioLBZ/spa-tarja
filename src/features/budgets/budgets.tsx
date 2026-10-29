@@ -23,6 +23,7 @@ import './budgets.css';
 
 function Budgets() {
     const t = useTranslations('budgets');
+    const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
     const online = useOnline();
     const { budgets, scopes, isError } = useBudgets();
@@ -104,6 +105,7 @@ function Budgets() {
 
             <MonthSwitch
                 monthName={monthName}
+                labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
                 onPrevious={() => setMonth(shiftMonth(month, -1))}
                 onNext={() => setMonth(shiftMonth(month, 1))}
             />

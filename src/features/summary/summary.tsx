@@ -23,6 +23,7 @@ import './summary.css';
 
 function Summary() {
     const t = useTranslations('summary');
+    const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
     const online = useOnline();
     const { expenses } = useExpenses();
@@ -41,6 +42,7 @@ function Summary() {
 
             <MonthSwitch
                 monthName={monthName}
+                labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
                 onPrevious={() => setMonth(shiftMonth(month, -1))}
                 onNext={() => setMonth(shiftMonth(month, 1))}
             />
