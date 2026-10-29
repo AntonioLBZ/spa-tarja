@@ -11,7 +11,7 @@ afterEach(() => {
 });
 
 describe('accents', () => {
-    it('are the fixed list of design.md, the default first', () => {
+    it('are a fixed list, the default first', () => {
         expect(ACCENTS).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
         expect(DEFAULT_ACCENT).toBe('gray');
     });

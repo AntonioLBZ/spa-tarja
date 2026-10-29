@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-// Keys, never values: the colors are tokens in `tokens.css` and the icons are drawn by the app (design.md)
+// Keys, never values: the colors are CSS tokens and the icons are drawn by the app
 const CATEGORY_COLORS = ['vermillion', 'green', 'purple', 'blue', 'orange', 'sky', 'yellow', 'gray'] as const;
 
 // The names of Material Symbols, in the order the picker shows them

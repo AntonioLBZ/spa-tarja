@@ -13,7 +13,7 @@
     view-transition-name: header;
 }
 
-/* Expenses, the logo and the other screens (design.md). The side columns grow alike while there is room, which keeps
+/* Expenses, the logo and the other screens. The side columns grow alike while there is room, which keeps
    the logo in the middle; on a narrow phone the wider side keeps its width and the logo moves off the middle instead
    of anything overflowing */
 .root__nav {
@@ -70,7 +70,7 @@
     width: 100%;
 }
 
-/* Screens slide (design.md). The header holds still under its own name while the page moves, and where the browser has
+/* Screens slide. The header holds still under its own name while the page moves, and where the browser has
    no view transitions the screens simply change. */
 ::view-transition-group(*) {
     animation-duration: var(--duration-base);

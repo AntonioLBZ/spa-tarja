@@ -3,7 +3,7 @@ import { betterAuth, type BetterAuthOptions } from 'better-auth';
 const SESSION_DAYS = 30;
 const SESSION_CACHE_SECONDS = 5 * 60;
 
-// Google is the only way in. `baseURL` is where the request came from (ARCHITECTURE.md §8).
+// Google is the only way in. `baseURL` is where the request came from.
 function authOptions(env: Env, baseURL: string) {
     return {
         baseURL,

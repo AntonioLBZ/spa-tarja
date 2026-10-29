@@ -2,7 +2,7 @@
     position: relative;
 }
 
-/* The look of the other fields (base.css); only what a button needs to hold an icon and a name differs */
+/* The look of the other fields; only what a button needs to hold an icon and a name differs */
 .category-select__field {
     align-items: center;
     background: var(--color-bg-secondary);

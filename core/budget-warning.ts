@@ -27,7 +27,7 @@ function moreSerious(a: BudgetWarning, b: BudgetWarning): number {
 }
 
 // The one thing to tell the person after they add expenses: the most serious state crossed, in any month they count
-// in, or null when none was (ARCHITECTURE.md §5). A state a month was already in is not crossed again.
+// in, or null when none was. A state a month was already in is not crossed again.
 function budgetWarning(input: {
     before: readonly Expense[];
     added: readonly Expense[];

@@ -17,7 +17,7 @@ function LocaleProvider(props: { children: ReactNode }) {
 
     useEffect(() => {
         document.documentElement.lang = locale;
-        // index.html carries the English one, for readers that run no script
+        // The static HTML carries the English one, for readers that run no script
         document
             .querySelector('meta[name="description"]')
             ?.setAttribute('content', MESSAGES[locale].metadata.description);

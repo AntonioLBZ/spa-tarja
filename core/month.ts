@@ -1,4 +1,4 @@
-// A month is a year and a month of the calendar as YYYY-MM text, like the days it holds (see date.ts)
+// A month is a year and a month of the calendar as YYYY-MM text, like the days it holds
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 function isMonth(value: string): boolean {

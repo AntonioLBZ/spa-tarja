@@ -7,7 +7,7 @@ interface MonthSummary {
     month: string;
     // What the person set for the month, or null while they haven't
     incomeCents: number | null;
-    // What the restaurant card paid for you of the expenses charged in the month: that is also income (ARCHITECTURE.md §5)
+    // What the restaurant card paid for you of the expenses charged in the month: that is also income
     voucherCents: number;
     // What others paid back of the restaurant card expenses made in the month, beyond your part
     paidBackCents: number;

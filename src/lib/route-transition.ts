@@ -37,7 +37,7 @@ interface LocationChange {
 }
 
 // The view transition types of a navigation, which the styles turn into a slide, or a fade between two screens at the
-// same depth (design.md); false for no transition
+// same depth; false for no transition
 function slideTypes(change: LocationChange): string[] | false {
     const { fromLocation, toLocation, pathChanged } = change;
     if (!fromLocation || !pathChanged) return false;

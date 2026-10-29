@@ -38,7 +38,7 @@ function Probe(props: { onData: (data: UserData) => void }) {
     return null;
 }
 
-// The app as `main.tsx` mounts it, over memory storage and a fake sign-in. Signed in as the test user unless told so.
+// The app as it is mounted for real, over memory storage and a fake sign-in. Signed in as the test user unless told so.
 // `outbox` and `queryClient` exist once somebody is signed in.
 function renderApp({
     path = '/',

@@ -1,4 +1,4 @@
--- What a person earns each month (ARCHITECTURE.md §5): one row per user and month, replaced by each write.
+-- What a person earns each month: one row per user and month, replaced by each write.
 CREATE TABLE income (
     user_id TEXT NOT NULL,
     month TEXT NOT NULL,

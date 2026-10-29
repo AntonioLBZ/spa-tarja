@@ -12,7 +12,7 @@ import {
 } from './category-style';
 
 describe('category colors', () => {
-    it('are the eight of design.md', () => {
+    it('are the eight, in order', () => {
         expect([...CATEGORY_COLORS]).toEqual([
             'vermillion',
             'green',
@@ -100,7 +100,7 @@ describe('default category styles', () => {
         expect(new Set(styles.map((style) => style.icon)).size).toBe(styles.length);
     });
 
-    it('follow the table of design.md', () => {
+    it('give each default category its fixed color and icon', () => {
         expect(DEFAULT_CATEGORY_STYLES).toEqual({
             food: { color: 'vermillion', icon: 'restaurant' },
             groceries: { color: 'green', icon: 'shopping_cart' },

@@ -16,7 +16,7 @@ const categoryInputSchema = v.object({
 
 type CategoryInput = v.InferOutput<typeof categoryInputSchema>;
 
-// A custom category; the default ones live in `categories.ts` and have no row
+// A custom category; the default ones are fixed in code and have no row
 type Category = { id: string; name: string } & CategoryStyle;
 
 // What two names must differ in to count as different: case, accents and spacing don't
@@ -24,7 +24,7 @@ function categoryNameKey(name: string): string {
     return name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().split(/\s+/).filter(Boolean).join(' ');
 }
 
-// Shape only: a default id or a UUID, whether or not that category still exists (ARCHITECTURE.md §7)
+// Shape only: a default id or a UUID, whether or not that category still exists
 function isCategoryId(value: unknown): boolean {
     return isDefaultCategoryId(value) || v.is(categoryIdSchema, value);
 }

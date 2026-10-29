@@ -9,7 +9,7 @@ const TEXT_MAX_LENGTH = 200;
 const timestamp = v.pipe(v.number(), v.integer(), v.minValue(0));
 
 // How an expense was paid: at once, with a credit card or with a restaurant card (what a restaurant card pays for you
-// also counts as income of the month it is charged, see ARCHITECTURE.md §5)
+// also counts as income of the month it is charged)
 const PAYMENTS = ['direct', 'credit', 'voucher'] as const;
 
 const paymentSchema = v.picklist(PAYMENTS);

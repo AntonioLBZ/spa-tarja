@@ -59,7 +59,7 @@ interface BudgetUse {
 }
 
 // The limit a scope holds in a month: the row of the latest month up to it, or none when there is no such row or its
-// amount is 0 (ARCHITECTURE.md §5)
+// amount is 0
 function limitFor(budgets: readonly Budget[], scope: string, month: string): { cents: number; since: string } | null {
     let latest: Budget | null = null;
     for (const row of budgets) {

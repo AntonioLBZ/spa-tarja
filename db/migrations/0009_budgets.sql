@@ -1,4 +1,4 @@
--- The limit a month sets for its total or for a category (ARCHITECTURE.md §5): one row per user, month and scope, replaced
+-- The limit a month sets for its total or for a category: one row per user, month and scope, replaced
 -- by each write. `scope` is 'total' or a category id, and an amount of 0 means no limit from that month on.
 CREATE TABLE budget (
     user_id TEXT NOT NULL,

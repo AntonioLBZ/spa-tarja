@@ -36,7 +36,7 @@ function applyTheme(theme: Theme): void {
 
 let colorTransitionTimer: ReturnType<typeof setTimeout> | undefined;
 
-// Marks the root for `--duration-slow` so the colors fade instead of snapping (see design.md)
+// Marks the root for `--duration-slow` so the colors fade instead of snapping
 function withColorTransition(update: () => void): void {
     const duration = readDuration('--duration-slow');
     if (duration === 0) {
@@ -60,7 +60,7 @@ function readSurfaceColor(): string {
     return color;
 }
 
-// index.html carries one color per OS preference; an explicit theme overrides both
+// The static HTML carries one color per OS preference; an explicit theme overrides both
 function syncThemeColor(theme: Theme, readColor: () => string = readSurfaceColor): void {
     const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
     const surface = theme === 'system' ? null : readColor();

@@ -96,7 +96,7 @@ function draftOf(parts: readonly Expense[]): Draft {
     };
 }
 
-// The writes that turn an expense, or every part of a plan, into what the form holds (ARCHITECTURE.md §5)
+// The writes that turn an expense, or every part of a plan, into what the form holds
 function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.now()): Expense[] {
     const sorted = original.toSorted(byPart);
     const first = sorted[0]!;
@@ -111,7 +111,6 @@ function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.n
 }
 
 // The writes that take back a delete: every deleted part again, newer than its delete so it wins on every device
-// (ARCHITECTURE.md §5)
 function restoreExpenses(deleted: readonly Expense[], now = Date.now()): Expense[] {
     return deleted.map((part) => ({
         ...part,

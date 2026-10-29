@@ -13,7 +13,7 @@ function personalPart(expense: Expense): number {
 }
 
 // The day an expense counts on: the day it is charged when that isn't the day it was made, except for a restaurant
-// card, which counts on the day it was made (ARCHITECTURE.md §5)
+// card, which counts on the day it was made
 function countedOn(expense: Expense): string {
     if (paymentOf(expense) === 'voucher') return expense.date;
     return expense.chargeDate ?? expense.date;
