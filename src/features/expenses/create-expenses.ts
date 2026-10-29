@@ -56,11 +56,12 @@ function partsOf(
     }));
 }
 
-// The expenses to save for what the form holds: one, or a part for each installment linked as a plan
-function createExpenses(draft: Draft): Expense[] {
+// The expenses to save for what the form holds: one, or a part for each installment linked as a plan. A copy keeps the
+// currency of the expense it copies.
+function createExpenses(draft: Draft, currency = DEFAULT_CURRENCY): Expense[] {
     const now = Date.now();
     const identities = draft.amounts.map(() => ({ id: crypto.randomUUID(), createdAt: now }));
-    return partsOf(draft, identities, crypto.randomUUID(), now, DEFAULT_CURRENCY);
+    return partsOf(draft, identities, crypto.randomUUID(), now, currency);
 }
 
 // Whether the form can load them: an expense, or a plan with every one of its parts on this device

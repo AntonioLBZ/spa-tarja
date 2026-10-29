@@ -20,6 +20,7 @@
         "form": {
             "title": "Añadir un gasto",
             "editTitle": "Editar el gasto",
+            "copyTitle": "Duplicar el gasto",
             "amount": "Importe",
             "text": "Descripción",
             "category": "Categoría",
@@ -77,7 +78,9 @@
             "loadFailed": "No se pudieron cargar tus gastos.",
             "edit": "Editar",
             "editItem": "Editar {name}",
-            "editIncomplete": "Aún no están todos los pagos de este plan en este dispositivo, así que no se puede editar.",
+            "editIncomplete": "Aún no están todos los pagos de este plan en este dispositivo, así que no se puede editar ni duplicar.",
+            "duplicate": "Duplicar",
+            "duplicateItem": "Duplicar {name}",
             "delete": "Eliminar",
             "deleteItem": "Eliminar {name}",
             "deleted": "Eliminado: {name}",

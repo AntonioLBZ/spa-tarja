@@ -30,7 +30,9 @@ interface ExpenseFormProps {
     title: string;
     // The expense, or every part of its plan, to change; without it the form adds a new one
     editing?: readonly Expense[] | null;
-    // After an edit is saved or cancelled
+    // The expense, or every part of its plan, to start a new one from
+    copying?: readonly Expense[] | null;
+    // After an edit or a copy is saved or cancelled
     onDone?: () => void;
     // Called once a new expense is saved, not an edit
     onAdded?: () => void;
@@ -55,8 +57,9 @@ interface StartingFields {
     parts: TypedParts | null;
 }
 
-// What the fields start with: empty for a new expense, what was saved for one being edited
-function startingFields(draft: Draft | null, locale: string): StartingFields {
+// What the fields start with: empty for a new expense, what was saved for one being edited. A copy has the same, but
+// made today and, when it is deferred, charged on the day the form proposes.
+function startingFields(draft: Draft | null, locale: string, copy: boolean): StartingFields {
     if (!draft) {
         return {
             amount: '',
@@ -77,9 +80,9 @@ function startingFields(draft: Draft | null, locale: string): StartingFields {
         amount: formatAmountInput(totalCents, locale),
         text: draft.text,
         categoryId: draft.categoryId,
-        date: draft.date,
+        date: copy ? toDateString(new Date()) : draft.date,
         payment: draft.payment,
-        chargeDate: draft.chargeDate,
+        chargeDate: copy ? null : draft.chargeDate,
         personal: draft.personalCents === null ? '' : formatAmountInput(draft.personalCents, locale),
         installments: count,
         // The saved parts, which an even split would lose when they aren't even
@@ -94,7 +97,7 @@ function startingFields(draft: Draft | null, locale: string): StartingFields {
 }
 
 function ExpenseForm(props: ExpenseFormProps) {
-    const { title, editing = null, onDone, onAdded } = props;
+    const { title, editing = null, copying = null, onDone, onAdded } = props;
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -103,8 +106,9 @@ function ExpenseForm(props: ExpenseFormProps) {
     const { options } = useCategoryOptions();
     const id = useId();
 
-    // A form edits one expense for its whole life: a new one is mounted for another (AddExpense)
-    const [start] = useState(() => startingFields(editing && draftOf(editing), locale));
+    // A form edits or copies one expense for its whole life: a new one is mounted for another (AddExpense)
+    const source = editing ?? copying;
+    const [start] = useState(() => startingFields(source && draftOf(source), locale, copying !== null));
     const [amount, setAmount] = useState(start.amount);
     const [text, setText] = useState(start.text);
     const [picked, setPicked] = useState<string | null>(null);
@@ -211,7 +215,7 @@ function ExpenseForm(props: ExpenseFormProps) {
             personalCents,
             amounts: parts === 1 ? [amountCents] : partCents.filter((cents) => cents !== null),
         };
-        const expenses = editing ? reviseExpenses(editing, draft) : createExpenses(draft);
+        const expenses = editing ? reviseExpenses(editing, draft) : createExpenses(draft, copying?.[0]?.currency);
         try {
             await save(expenses);
             if (editing) {
@@ -219,6 +223,10 @@ function ExpenseForm(props: ExpenseFormProps) {
                 return;
             }
             onAdded?.();
+            if (copying) {
+                onDone?.();
+                return;
+            }
             setAmount('');
             setText('');
             setPicked(null);
@@ -433,7 +441,7 @@ function ExpenseForm(props: ExpenseFormProps) {
                 >
                     {editing ? t('save') : t('submit')}
                 </Button>
-                {editing && <Button onClick={onDone}>{t('cancel')}</Button>}
+                {(editing || copying) && <Button onClick={onDone}>{t('cancel')}</Button>}
             </div>
         </form>
     );

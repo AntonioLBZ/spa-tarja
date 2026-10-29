@@ -30,7 +30,7 @@ function ExpenseList() {
     const { locale } = useLocale();
     const save = useSaveExpense();
     const toast = useToast();
-    const { editing, startEdit, endEdit, refocus, clearRefocus } = useAddForm();
+    const { editing, startEdit, startCopy, endEdit, refocus, clearRefocus } = useAddForm();
     const list = useExpenseList();
     const { groups, grouping, leaving, pendingIds, hasData, isError, isWaitingForNetwork } = list;
     const { labelOf, styleOf } = useCategoryOptions();
@@ -173,6 +173,7 @@ function ExpenseList() {
                                     leaving={leaving.has(first.id)}
                                     showDate={grouping !== 'day'}
                                     onEdit={startEdit}
+                                    onDuplicate={startCopy}
                                     onDelete={(parts) => remove(parts, Date.now())}
                                     toggleRef={(node) => {
                                         if (node) toggles.current.set(first.id, node);

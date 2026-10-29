@@ -160,6 +160,30 @@ describe('createExpenses', () => {
     });
 });
 
+describe('createExpenses for a copy', () => {
+    it('keeps the currency it is given', () => {
+        const [created] = createExpenses(draft(), 'USD');
+
+        expect(created!.currency).toBe('USD');
+    });
+
+    it('gives the euro when no currency is given', () => {
+        const [created] = createExpenses(draft());
+
+        expect(created!.currency).toBe('EUR');
+    });
+
+    it('gives every payment of a plan an id of its own and the plan an id of its own', () => {
+        const sofa = plan([500, 500, 500]);
+
+        const created = createExpenses(draft({ amounts: [500, 500, 500] }));
+
+        expect(created.map((part) => part.id).filter((id) => sofa.some((part) => part.id === id))).toEqual([]);
+        expect(new Set(created.map((part) => part.plan?.id)).size).toBe(1);
+        expect(created[0]!.plan!.id).not.toBe(sofa[0]!.plan!.id);
+    });
+});
+
 describe('reviseExpenses', () => {
     it('keeps the id and the creation time, and writes what the form holds', () => {
         const lunch = expense({ createdAt: 1_000, updatedAt: 2_000 });

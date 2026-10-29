@@ -8,13 +8,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - Offline, the income and new-category fields still look enabled while their buttons are disabled; disable the fields too?
 - The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead?
 
-## 12. Duplicate an expense (S)
-
-1. A Duplicate button in the row panel, next to Edit and Delete, with the rule of Edit (`canEdit`: not for a plan with parts missing on the device).
-2. It opens the add form loaded with the expense (`draftOf`): text, category, amount, payment and your part. The date is today; a deferred payment takes the charge date the form proposes for that date; a plan keeps its installments and amounts. Owner decision: it opens the form, it does not copy in one tap.
-3. Save writes a new expense with `createExpenses`: new ids and, for a plan, a new plan id; the currency is kept. Like Edit, it replaces an unsaved draft without asking. `AddFormProvider` gains `startCopy(parts)`; heading and focus as in Edit.
-4. Docs first: `design.md` (the row panel), `ARCHITECTURE.md` §5.
-
 ## 13. Export (S to M)
 
 Owner decision: export only, no import for now.

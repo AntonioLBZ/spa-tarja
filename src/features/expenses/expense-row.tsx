@@ -30,6 +30,7 @@ interface ExpenseRowProps {
     // Starts the details with the day it was made, for a list that is not grouped by day
     showDate?: boolean;
     onEdit: (expenses: readonly Expense[]) => void;
+    onDuplicate: (expenses: readonly Expense[]) => void;
     onDelete: (expenses: readonly Expense[]) => void;
     // Of the toggle, which takes the focus back once an edit of the expense is over
     toggleRef?: Ref<HTMLButtonElement>;
@@ -37,7 +38,7 @@ interface ExpenseRowProps {
 
 // An expense of the list. Pressing it opens a panel under it with what can be done to it.
 function ExpenseRow(props: ExpenseRowProps) {
-    const { expenses, isPlan, pending, leaving, showDate, onEdit, onDelete, toggleRef } = props;
+    const { expenses, isPlan, pending, leaving, showDate, onEdit, onDuplicate, onDelete, toggleRef } = props;
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -46,7 +47,7 @@ function ExpenseRow(props: ExpenseRowProps) {
     const reasonId = useId();
 
     const expense = expenses[0]!;
-    // A plan is edited whole, so every part of it has to be here
+    // A plan is edited or duplicated whole, so every part of it has to be here
     const editable = canEdit(expenses);
     const category = labelOf(expense.categoryId);
     const name = expense.text || category;
@@ -96,6 +97,14 @@ function ExpenseRow(props: ExpenseRowProps) {
                     onClick={() => onEdit(expenses)}
                 >
                     {t('edit')}
+                </Button>
+                <Button
+                    aria-describedby={editable ? undefined : reasonId}
+                    aria-label={t('duplicateItem', { name })}
+                    disabled={leaving || !editable}
+                    onClick={() => onDuplicate(expenses)}
+                >
+                    {t('duplicate')}
                 </Button>
                 <Button
                     variant="danger"
