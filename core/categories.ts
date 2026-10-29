@@ -16,7 +16,7 @@ type DefaultCategoryId = (typeof DEFAULT_CATEGORY_IDS)[number];
 
 const FALLBACK_CATEGORY_ID = 'other' satisfies DefaultCategoryId;
 
-// What each default category looks like; fixed, unlike the custom ones
+// What each default category looks like; fixed, unlike the custom ones (ADR-0006)
 const DEFAULT_CATEGORY_STYLES: Record<DefaultCategoryId, CategoryStyle> = {
     food: { color: 'vermillion', icon: 'restaurant' },
     groceries: { color: 'green', icon: 'shopping_cart' },

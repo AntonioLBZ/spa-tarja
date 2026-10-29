@@ -15,7 +15,7 @@ import { useBudgets } from './use-budgets';
 
 import type { Expense } from '@core/expense';
 
-// Tells the person, in a toast, what the expenses they have just added did to a month. It reads the
+// Tells the person, in a toast, what the expenses they have just added did to a month (ADR-0009). It reads the
 // expenses of the render it was made in, which are the ones from before the save, so a call after the save compares
 // the month as it was with the month as it is.
 function useBudgetWarning(): (added: readonly Expense[]) => void {

@@ -1,3 +1,4 @@
+// The only currency for now, stored on each row (ADR-0004)
 const DEFAULT_CURRENCY = 'EUR';
 
 // Nine integer digits keep the amount in cents far below Number.MAX_SAFE_INTEGER

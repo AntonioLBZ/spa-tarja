@@ -15,3 +15,10 @@ public/          static files
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
 - `worker-configuration.d.ts` (runtime and binding types) is generated with `pnpm types:gen` and committed. Regenerate it after editing `wrangler.jsonc`.
 - **Production** is `https://tarja.antoniolbz.workers.dev` (account subdomain `antoniolbz`, free). The D1 database `tarja` is bound as `DB` with its `database_id` committed in `wrangler.jsonc` (an id, not a secret). A release goes out on its own: every push to `main` that passes the checks is deployed by GitHub Actions ([testing and CI](testing-and-ci.md)), after applying the migrations if `db/migrations` changed. By hand it is `pnpm db:migrate:remote`, then `pnpm deploy:prod`. The migrations go first so the new code never meets an old schema, which means each one must work with the code still running: add, never rename or drop. Secrets go up with `wrangler secret put`.
+
+## Dependencies
+
+- pnpm only, with `save-exact` in `.npmrc`: dependencies are added with `pnpm add -E`. The versions are in `package.json`.
+- Install scripts are allowed only for `workerd` and `esbuild`, in `pnpm-workspace.yaml`. pnpm 12 also offers "agent skills" shipped by some packages; the two that offer them, `@tanstack/react-router` and `@tanstack/router-plugin`, are denied: they only feed AI assistants and the build doesn't need them.
+- Held back, as of 2026-10-25: TypeScript stays on 6.0, because 7.0 exists but `typescript-eslint` 8.72 requires `<6.1`. ESLint stays on 9, because `eslint-plugin-import` doesn't support ESLint 10.
+- Tests use `@cloudflare/vitest-plugin`, which replaces the deprecated `@cloudflare/vitest-pool-workers`. `vite-plugin-pwa` goes with `workbox-build` and `workbox-window` at the same version, and the icons come from `@vite-pwa/assets-generator`.

@@ -24,7 +24,7 @@ function categoryNameKey(name: string): string {
     return name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().split(/\s+/).filter(Boolean).join(' ');
 }
 
-// Shape only: a default id or a UUID, whether or not that category still exists
+// Shape only: a default id or a UUID, whether or not that category still exists (ADR-0006)
 function isCategoryId(value: unknown): boolean {
     return isDefaultCategoryId(value) || v.is(categoryIdSchema, value);
 }

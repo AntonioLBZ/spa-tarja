@@ -37,6 +37,13 @@ export default defineConfig({
                 },
             },
             {
+                test: {
+                    name: 'docs',
+                    environment: 'node',
+                    include: ['docs/**/*.test.ts'],
+                },
+            },
+            {
                 plugins: [VitePWA({ disable: true })],
                 resolve: { tsconfigPaths: true },
                 test: {

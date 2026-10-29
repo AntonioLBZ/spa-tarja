@@ -2,7 +2,7 @@
 
 ## Rules
 
-Owner decisions (2026-10-29): a limit for the month's total and one for each category, warnings inside the app only (never a push), and a budget never blocks anything: it only warns.
+A limit for the month's total and one for each category, warnings inside the app only (never a push), and a budget never blocks anything: it only warns ([ADR-0009](../adr/0009-budgets-only-warn.md)).
 
 - **Storage** (migration `0009`): a table `budget` with one row per user, month and scope (`user_id`, `month` as `YYYY-MM`, `scope`, `amount_cents`, `currency`, `updated_at`; the key is `(user_id, month, scope)`). `scope` is `total` or a category id; no category has the id `total` (a test checks the default ids, the custom ones are UUIDs). `amount_cents` goes from 0 to `MAX_AMOUNT_CENTS`, and **0 means no limit** from that month on.
 - **The limit of a month** (`limitFor` in `core/budget.ts`, pure) is the row of the latest month up to and including it, for that scope; none, or a 0, is no limit. A month nobody set has no row of its own and holds the limit of the latest earlier month, so a limit stays until a month sets another and setting one never writes the months after it. Saving a month again replaces its row, so editing it three times is still one row. A 0 is stored, never deleted: deleting the row would make the month hold the earlier limit again. A change reaches every later month that has no row of its own. A value equal to the one the month already holds is not written, a 0 over no limit included.

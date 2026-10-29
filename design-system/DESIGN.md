@@ -1,6 +1,6 @@
 # Tarja — Design
 
-Source of truth for the visual and interaction rules of the design system. `src/assets/styles/tokens.css` implements the tokens; if a rule changes, update this document first. How each screen behaves is in [`docs/specs/`](../docs/specs/) and the decisions are in [`docs/decisions.md`](../docs/decisions.md).
+Source of truth for the visual and interaction rules of the design system. `src/assets/styles/tokens.css` implements the tokens; if a rule changes, update this document first. How each screen behaves is in [`docs/specs/`](../docs/specs/) and the decisions are in [`docs/adr/`](../docs/adr/).
 
 ## 1. Principles
 

@@ -41,7 +41,7 @@ function toExpense(row: ExpenseRow): Expense {
 }
 
 // `seq` is the per-user sync cursor: every applied write takes the next one. The update only runs for the
-// owner and when the write is strictly newer, so a retry and a stale write both leave the row alone.
+// owner and when the write is strictly newer, so a retry and a stale write both leave the row alone (ADR-0005).
 const UPSERT = `
     INSERT INTO expenses (id, user_id, category_id, text, amount_cents, currency, date, payment, charge_date, personal_cents, plan_id, plan_part, plan_parts, created_at, updated_at, deleted_at, seq)
     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?11, ?12, ?16, ?13, ?14, ?15, ?8, ?9, ?10, (SELECT COALESCE(MAX(seq), 0) + 1 FROM expenses WHERE user_id = ?2))

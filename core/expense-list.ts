@@ -139,7 +139,7 @@ function groupItems(
 }
 
 // What the expense list shows: the expenses the device holds, filtered and grouped. Everything is by the day the
-// expense was made, which is not the day it counts on.
+// expense was made, which is not the day it counts on (ADR-0007).
 function buildList(
     expenses: readonly Expense[],
     filters: ListFilters,

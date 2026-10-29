@@ -60,7 +60,7 @@ function listed(expenses: readonly Expense[]): Expense[] {
         );
 }
 
-// Everything the person keeps, as it is stored and nothing derived, so that it can be restored from it
+// Everything the person keeps, as it is stored and nothing derived, so that it can be restored from it (ADR-0001)
 function buildBackup(data: BackupData, now: Date): Backup {
     return {
         app: BACKUP_APP,

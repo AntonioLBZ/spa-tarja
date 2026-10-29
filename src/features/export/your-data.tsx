@@ -23,7 +23,7 @@ const COLUMNS = [
     'part',
 ] as const;
 
-// A backup and a spreadsheet, made on the device from what it holds: the cache with the outbox on top. Nothing is sent.
+// A backup and a spreadsheet, made on the device from what it holds: the cache with the outbox on top. Nothing is sent (ADR-0001).
 function YourData() {
     const t = useTranslations('settings.data');
     const tPayment = useTranslations('expenses.payment');
