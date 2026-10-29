@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { useBudgetWarning } from '@/features/budgets/use-budget-warning';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -103,6 +104,7 @@ function ExpenseForm(props: ExpenseFormProps) {
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const save = useSaveExpense();
+    const warn = useBudgetWarning();
     const { options } = useCategoryOptions();
     const id = useId();
 
@@ -223,6 +225,7 @@ function ExpenseForm(props: ExpenseFormProps) {
                 onDone?.();
                 return;
             }
+            warn(expenses);
             onAdded?.();
             if (copying) {
                 onDone?.();

@@ -301,6 +301,13 @@
         "bar": {
             "of": "{spent} of {limit}",
             "over": "over by {amount}"
+        },
+        "warning": {
+            "near": "{name} of {month} is at {percent} % of its limit",
+            "nearTotal": "The total of {month} is at {percent} % of its limit",
+            "over": "{name} of {month} went over its limit",
+            "overTotal": "The total of {month} went over its limit",
+            "negative": "This leaves {month} below zero"
         }
     },
     "monthSwitch": {

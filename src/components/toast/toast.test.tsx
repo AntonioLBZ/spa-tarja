@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ToastProvider, useToast } from './toast';
@@ -22,6 +22,9 @@ function Harness(props: { onAction?: () => void }) {
                 onClick={() => toast.show({ message: 'Deleted Coffee', action: { label: 'Undo', onAction } })}
             >
                 Show another
+            </button>
+            <button type="button" onClick={() => toast.show({ message: 'Close to the limit' })}>
+                Show plain
             </button>
             <button type="button" onClick={toast.dismiss}>
                 Dismiss
@@ -93,6 +96,40 @@ describe('Toast', () => {
         const last = screen.getByRole('button', { name: 'Dismiss' });
 
         expect(last.compareDocumentPosition(region)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    it('can come without an action, with only its message, and still goes after 8 seconds', () => {
+        setup();
+
+        show('Show plain');
+
+        const region = screen.getByRole('status');
+        expect(region.textContent).toBe('Close to the limit');
+        expect(within(region).queryByRole('button')).toBeNull();
+        elapse(7_999);
+        expect(screen.queryByText('Close to the limit')).not.toBeNull();
+        elapse(1);
+        expect(screen.queryByText('Close to the limit')).toBeNull();
+    });
+
+    it('closes with Escape when it has no action', () => {
+        setup();
+        show('Show plain');
+
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+
+        expect(screen.queryByText('Close to the limit')).toBeNull();
+    });
+
+    it('holds the count while the pointer is over it when it has no action', () => {
+        setup();
+        show('Show plain');
+        elapse(5_000);
+
+        fireEvent.mouseEnter(screen.getByText('Close to the limit').closest('.toast')!);
+        elapse(60_000);
+
+        expect(screen.queryByText('Close to the limit')).not.toBeNull();
     });
 
     it('runs the action and goes', () => {

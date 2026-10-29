@@ -11,7 +11,8 @@ const SHOW_FOR_MS = 8_000;
 
 interface ToastOptions {
     message: string;
-    action: { label: string; onAction: () => void };
+    // What the person can do about it, when there is something to do
+    action?: { label: string; onAction: () => void };
 }
 
 interface ToastApi {
@@ -55,15 +56,17 @@ function ToastBox(props: { toast: ShownToast; onDismiss: () => void }) {
             onMouseLeave={() => setHovered(false)}
         >
             <p className="toast__message">{toast.message}</p>
-            <Button
-                disabled={toast.leaving}
-                onClick={() => {
-                    toast.action.onAction();
-                    onDismiss();
-                }}
-            >
-                {toast.action.label}
-            </Button>
+            {toast.action && (
+                <Button
+                    disabled={toast.leaving}
+                    onClick={() => {
+                        toast.action?.onAction();
+                        onDismiss();
+                    }}
+                >
+                    {toast.action.label}
+                </Button>
+            )}
         </div>
     );
 }
