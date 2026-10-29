@@ -1,0 +1,6 @@
+# Summary
+
+- `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.
+- The month's numbers are notch-bordered rows: income (what the person set, or "Not set"), restaurant card (what the card paid for you of the expenses charged in the month, only when there is some), paid back by others (what others paid back of the restaurant card expenses made in the month, only when there is some), spent, and left. Left is the row that matters: bold, and in `--color-danger` below zero. It stays hidden, with a hint, until the income is set. The rows are `--size-2` apart, as in the category list, and the arrows of the month and the income field with its buttons are `--size-4` apart, also when the income row wraps.
+- Under the rows, one form sets the income: an amount field and Save, and Remove once there is one. Setting it needs a connection ([when an expense counts](expense-counting.md)), so offline the form is disabled, the field as well as its buttons, and says why; the numbers themselves still show from the local copy.
+- Under the numbers come the bars of the limits ([budgets](budgets.md)). Two links at the bottom lead to the budgets and to the charts, `--size-4` apart.

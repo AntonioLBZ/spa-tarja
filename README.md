@@ -24,4 +24,4 @@ pnpm build
 
 Every push to `main` runs the checks in GitHub Actions. If they pass, the new migrations are applied to the production D1 and the app is deployed to Cloudflare.
 
-Design decisions are in [ARCHITECTURE.md](ARCHITECTURE.md).
+Decisions are in [docs/decisions.md](docs/decisions.md), how each part behaves in [docs/specs](docs/specs) and the visual rules in [design-system/DESIGN.md](design-system/DESIGN.md).

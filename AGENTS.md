@@ -4,8 +4,19 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 
 ## Source of truth
 
-- **`ARCHITECTURE.md` is the source of truth** for decisions, stack versions and the roadmap; read it before any work. This file only distills the rules that are easy to break. If a decision changes, update `ARCHITECTURE.md` first, then this file.
-- **`design.md` is the source of truth for the visual rules** (colors, themes, shape, motion, mobile-first); read it before touching styles. Same order: update it first, then this file.
+- **`docs/` is the source of truth for decisions and behavior**: read what your task touches, not all of it. This file only distills the rules that are easy to break. If a decision or a behavior changes, update its document first, then this file.
+    - `docs/decisions.md`: scope, closed decisions, what is pinned and why, what was discarded and what is open. Read it before changing the stack, the architecture or the scope.
+    - `docs/specs/`, one file per topic; read the ones you touch:
+        - `repository-structure.md`: the layout, the import rules and how a release goes out.
+        - `data-model.md`: the schema, ids, timestamps, `seq` and indexes.
+        - `expense-counting.md`: what counts in a month (deferred payments, restaurant card, installments, income).
+        - `expense-list.md` and `expenses.md`: the list (search, filters, groups) and adding, editing, duplicating and deleting an expense.
+        - `budgets.md`, `charts.md`, `summary.md`, `categories.md`, `settings.md` and `header.md`: the rules and the screen of each.
+        - `export.md`: the backup and the spreadsheet.
+        - `offline-sync.md`: the outbox, the sync and the conflicts.
+        - `authentication.md`: Better Auth, sessions and the local data of each user.
+        - `frontend.md` and `testing-and-ci.md`: the client conventions, the tests and CI.
+- **`design-system/DESIGN.md` is the source of truth for the visual rules** (colors, themes, shape, components, motion, mobile-first); read it before touching styles. Same order: update it first, then this file.
 - Remaining work is `TODO.md`; delete an item when it is done.
 
 ### Owner decisions (don't revisit silently)
@@ -13,11 +24,12 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 - SPA on one Cloudflare Worker (Workers + static assets, not Pages) with a Hono API and D1. Not SSR, not Next.js.
 - Everything about the project is in English: docs, code, comments, identifiers, commit messages. Only the UI copy is localized.
 - Mobile-first.
-- Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests. Every push to `main` that passes CI is deployed to production, with its migrations (`ARCHITECTURE.md` §4).
+- Work directly on `main`: the owner is the only developer, so no feature branches and no pull requests. Every push to `main` that passes CI is deployed to production, with its migrations (`docs/specs/repository-structure.md`).
 - Google login only, no own passwords.
 - Default categories are read-only for now. Custom ones can be created, edited and deleted.
-- Visual identity (see `design.md`): flat colors with themes (light by default, dark, system) over a white or black base; an accent the user picks from a fixed list (gray by default); a color and a Material Symbols Sharp icon for every category; IBM Plex Mono everywhere; no rounded corners; the notch (thick left and bottom borders on every box); horizontal route transitions. What is still open is listed in `design.md` §8: ask before settling it.
+- Visual identity (see `design-system/DESIGN.md`): flat colors with themes (light by default, dark, system) over a white or black base; an accent the user picks from a fixed list (gray by default); a color and a Material Symbols Sharp icon for every category; IBM Plex Mono everywhere; no rounded corners; the notch (thick left and bottom borders on every box); horizontal route transitions. What is still open is listed in `design-system/DESIGN.md` §8: ask before settling it.
 - Plain CSS. No SCSS, no Tailwind.
+- The design system is shown in Storybook, in the workspace folder `design-system/`, local only (`docs/decisions.md`). The components stay in `src/components`; no story or Storybook dependency goes into `src/`.
 
 ## Commands
 
@@ -41,24 +53,26 @@ pnpm deploy:prod         # build and deploy to Cloudflare (`pnpm deploy` is pnpm
 ## Architecture
 
 ```
-server/   Hono Worker: app.ts (routes, exports AppType), index.ts (entry)
-src/      SPA: routes/ (file-based), features/, components/, lib/, assets/styles/
-db/       D1 SQL migrations (db/migrations)
-core/     pure logic shared by client and server
+server/          Hono Worker: app.ts (routes, exports AppType), index.ts (entry)
+src/             SPA: routes/ (file-based), features/, components/, lib/, assets/styles/
+db/              D1 SQL migrations (db/migrations)
+core/            pure logic shared by client and server
+design-system/   Storybook and the stories (a pnpm workspace package)
 ```
 
 - `server/` never imports from `src/`. `src/` imports only **types** from `@server/*`. `src/lib` and `src/components` never import from `src/features`.
+- `design-system/` imports from `src/` and `core/`; nothing imports from it.
 - `core/` imports nothing from React, Hono or Workers.
 - Chain the Hono routes on one expression (`new Hono().basePath('/api').get(...)`) so `typeof app` carries the route types to the `hc<AppType>` client in `src/lib/api`. Statements like `app.get(...)` on a separate line lose them.
 - `wrangler.jsonc` sends only `/api/*` to the Worker first; every other missing path falls back to `index.html`. A new SPA route needs no config. An unknown `/api/...` answers 404 from the Worker.
 - `src/routeTree.gen.ts` and `worker-configuration.d.ts` are generated but committed (Prettier and ESLint ignore them).
 - Relative imports are `./` inside the same folder; otherwise `@/` (`src/`), `@core/` or `@server/`. Never `../`.
-- Offline model (see `ARCHITECTURE.md` §6): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB, stored under the signed-in user's id like the persisted cache) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`ARCHITECTURE.md` §7), and an expense is never refused for its category.
-- Login (`ARCHITECTURE.md` §8): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses`, `/api/categories`, `/api/income` and `/api/budgets` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them. In the app, `AuthGate` (`src/features/auth`) shows the sign-in screen to anybody not signed in, and `UserDataProvider` (`src/lib/offline`) gives the signed-in user their own outbox and cache; a `401` makes the app ask the session again, and only a definite answer signs the user out, never a network error.
+- Offline model (see `docs/specs/offline-sync.md`): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB, stored under the signed-in user's id like the persisted cache) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`docs/specs/categories.md`), and an expense is never refused for its category.
+- Login (`docs/specs/authentication.md`): Better Auth on Hono at `/api/auth/*`, Google only. `/api/expenses`, `/api/categories`, `/api/income` and `/api/budgets` need a session (`withUser`, `server/user.ts`); `/api/health` and `/api/auth/*` don't. A user's rows are filed under the Better Auth `user.id`. The secrets (`BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`) are typed in `server/secrets.d.ts`; `.dev.vars.example` lists them. In the app, `AuthGate` (`src/features/auth`) shows the sign-in screen to anybody not signed in, and `UserDataProvider` (`src/lib/offline`) gives the signed-in user their own outbox and cache; a `401` makes the app ask the session again, and only a definite answer signs the user out, never a network error.
 - Money is an integer in cents plus a currency code, never a float.
-- What counts in a month goes through `core/counting.ts` (`countedOn`, `countedCents`, `voucherIncomeOn`, `paidBackCents`), never `amountCents` or `chargeDate` read directly: a restaurant card counts your part (`personalCents`, NULL = the whole amount) on the day it was made (`ARCHITECTURE.md` §5).
-- A budget limit is read through `limitFor` (`core/budget.ts`), never from a row of the month directly: the limit a month holds is the row of the latest month up to it, and an amount of 0 means no limit, so removing a limit is writing 0, never deleting the row (`ARCHITECTURE.md` §5). Percentages are only shown, never typed or stored.
-- The expense list (`core/expense-list.ts`, `buildList`) filters, groups and adds up by the day made, not by what counts: its subtotals can differ from the summary and the charts, on purpose. Plans are collapsed before anything is filtered, so Edit and Delete always get every part of a plan (`ARCHITECTURE.md` §5).
+- What counts in a month goes through `core/counting.ts` (`countedOn`, `countedCents`, `voucherIncomeOn`, `paidBackCents`), never `amountCents` or `chargeDate` read directly: a restaurant card counts your part (`personalCents`, NULL = the whole amount) on the day it was made (`docs/specs/expense-counting.md`).
+- A budget limit is read through `limitFor` (`core/budget.ts`), never from a row of the month directly: the limit a month holds is the row of the latest month up to it, and an amount of 0 means no limit, so removing a limit is writing 0, never deleting the row (`docs/specs/budgets.md`). Percentages are only shown, never typed or stored.
+- The expense list (`core/expense-list.ts`, `buildList`) filters, groups and adds up by the day made, not by what counts: its subtotals can differ from the summary and the charts, on purpose. Plans are collapsed before anything is filtered, so Edit and Delete always get every part of a plan (`docs/specs/expense-list.md`).
 - Schema in hand-written SQL, no ORM. Migrations reach production before the new code goes live, so each one must work with the code still running: add, never rename or drop. `date` is `YYYY-MM-DD` text; timestamps are epoch milliseconds. An existing expense id owned by another user is rejected, never overwritten.
 
 ## Frontend
@@ -66,9 +80,10 @@ core/     pure logic shared by client and server
 - TanStack Router (file-based) and TanStack Query. The query client (one per signed-in user) uses `staleTime` 60 s, `retry: false` and `gcTime: Infinity` (the persisted cache is the local copy of the data).
 - Styles: CSS variables from `src/assets/styles/tokens.css`, BEM class names, alphabetical properties, no `!important` (Stylelint enforces it). Combine classes with `clsx`.
 - Transitions always use `--duration-*` and `--ease-*`; `prefers-reduced-motion` zeroes the durations in one place. Animate only `transform` and `opacity` where possible.
-- Colors are flat (no gradients, no shadows) and come only from the semantic `--color-*` tokens in `tokens.css`, defined once with `light-dark()`. Never put a raw color in a component. Don't add a color without updating the palette table in `design.md`.
+- Colors are flat (no gradients, no shadows) and come only from the semantic `--color-*` tokens in `tokens.css`, defined once with `light-dark()`. Never put a raw color in a component. Don't add a color without updating the palette table in `design-system/DESIGN.md`.
 - Browser toolbar color (`theme-color` in `index.html`) mirrors the header surface, `--color-bg-secondary`: keep them in sync.
-- **Shared components** (`src/components`, described in `design.md` §3 "Components"): use `Notice`, `Toast` (a message that goes away by itself, with an action when there is something to do about it), `Button`, `ButtonLink` and `buttonClass()`, `Field` and `DateRangeFields`, `MonthSwitch`, `Card` and `CardList`, and `Disclosure` instead of styling raw elements again. No new left-border message, no hand-built label and control wrapper, no notched row or collapsible panel copied into the CSS of a feature. A raw `<button>` is for a control with a look of its own, like `category-select__field`.
+- **Shared components** (`src/components`, described in `design-system/DESIGN.md` "Components"): use `Notice`, `Toast` (a message that goes away by itself, with an action when there is something to do about it), `Button`, `ButtonLink` and `buttonClass()`, `Field` and `DateRangeFields`, `MonthSwitch`, `Card` and `CardList`, and `Disclosure` instead of styling raw elements again. No new left-border message, no hand-built label and control wrapper, no notched row or collapsible panel copied into the CSS of a feature. A raw `<button>` is for a control with a look of its own, like `category-select__field`.
+- Shared components take their copy by props: no `use-intl`, no `virtual:*` import, and only `ButtonLink` knows the router (`MonthSwitch`, `UpdatePrompt` and `ButtonLink` still don't comply: `TODO.md` 16).
 - **Mobile-first:** base CSS targets phones; widen with `@media (width >= 40rem)` / `(width >= 64rem)`, never `max-width`. Touch targets are at least `--size-touch` (44 px). Pad edge-anchored layouts with `env(safe-area-inset-*)` (`viewport-fit=cover` is on), use `dvh` instead of `vh`, and let form controls inherit `font: inherit` (16 px) so iOS doesn't zoom on focus.
 - **i18n:** `use-intl`. UI copy lives in `src/assets/locales/{en,es}.json`, never hard-coded in components; read it with `useTranslations`. English is the source of the key types. A new key goes into every locale (a test checks key parity). The locale is stored preference, then `navigator.languages`, then `en`, and is not in the URL. The brand name "Tarja" isn't translated.
 
@@ -83,6 +98,5 @@ core/     pure logic shared by client and server
 
 - Prettier: 4 spaces, single quotes, `printWidth` 120, `trailingComma: es5`, LF.
 - Named exports go in one `export { … }` statement at the bottom of the file (`export type { … }` for types). Components destructure `props` inside the function body. Route files use `export const Route`.
-- Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it.
-- Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
+- Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it. A comment never points at another file, code or document, because files get renamed and moved; at most it names a decision by its id (`ADR-0007`), which never changes.- Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
 - Secrets live in `.dev.vars` (local), `wrangler secret` (production) and, for the deployment from CI, the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Never commit them or log them.
