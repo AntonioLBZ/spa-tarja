@@ -112,7 +112,7 @@ The charts need no endpoint: they aggregate the expenses the device already hold
 
 ### Budgets
 
-Specified on 2026-10-29, not built yet: this section is the spec until the code lands, and the note goes away with it. Owner decisions: a limit for the month's total and one for each category, warnings inside the app only (never a push), and a budget never blocks anything: it only warns.
+Owner decisions (2026-10-29): a limit for the month's total and one for each category, warnings inside the app only (never a push), and a budget never blocks anything: it only warns.
 
 - **Storage** (migration `0009`): a table `budget` with one row per user, month and scope (`user_id`, `month` as `YYYY-MM`, `scope`, `amount_cents`, `currency`, `updated_at`; the key is `(user_id, month, scope)`). `scope` is `total` or a category id; no category has the id `total` (a test checks the default ids, the custom ones are UUIDs). `amount_cents` goes from 0 to `MAX_AMOUNT_CENTS`, and **0 means no limit** from that month on.
 - **The limit of a month** (`limitFor` in `core/budget.ts`, pure) is the row of the latest month up to and including it, for that scope; none, or a 0, is no limit. A month nobody set has no row of its own and holds the limit of the latest earlier month, so a limit stays until a month sets another and setting one never writes the months after it. Saving a month again replaces its row, so editing it three times is still one row. A 0 is stored, never deleted: deleting the row would make the month hold the earlier limit again. A change reaches every later month that has no row of its own. A value equal to the one the month already holds is not written, a 0 over no limit included.
@@ -194,6 +194,7 @@ Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/aut
 5. Custom categories (create, edit, delete) (done).
 6. Visual identity and transitions (done).
 7. CI and husky (done), then automatic migrations and deployment to Cloudflare from GitHub Actions.
+8. Budgets: a limit for the month's total and for each category, bars in the Summary and a warning when an added expense crosses one (done, §5).
 
 ## 12. Discarded and open decisions
 
