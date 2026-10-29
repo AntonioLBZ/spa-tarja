@@ -894,14 +894,32 @@ describe('by category', () => {
         expect(document.querySelector('.category-split__strip')!.getAttribute('aria-hidden')).toBe('true');
     });
 
-    it('paints the strip in the accent, never in a category color, while the icons keep theirs', async () => {
+    it('paints each segment in the color of its category, the same as its icon', async () => {
         await open();
 
-        for (const mark of document.querySelectorAll('.category-split__strip *')) {
-            expect(mark.getAttribute('class')).not.toMatch(/category-badge|--(vermillion|green|purple|blue|orange)/);
-        }
+        const segments = [...document.querySelectorAll('.category-split__segment')];
+        expect(segments.map((segment) => segment.className)).toEqual([
+            'category-split__segment category-split__segment--green',
+            'category-split__segment category-split__segment--purple',
+            'category-split__segment category-split__segment--vermillion',
+        ]);
         expect(breakdown()[0]!.querySelector('.category-badge--green')).not.toBeNull();
         expect(breakdown()[1]!.querySelector('.category-badge--purple')).not.toBeNull();
+    });
+
+    it('keeps the gaps in the page color', async () => {
+        await open();
+
+        for (const gap of document.querySelectorAll('.category-split__gap')) {
+            expect(gap.getAttribute('class')).toBe('category-split__gap');
+        }
+    });
+
+    it('paints a deleted category as the fallback, in gray', async () => {
+        await open([expense({ categoryId: crypto.randomUUID(), amountCents: 300 })]);
+
+        const [segment] = document.querySelectorAll('.category-split__segment');
+        expect(segment!.classList.contains('category-split__segment--gray')).toBe(true);
     });
 
     it('is one whole segment for a single category', async () => {

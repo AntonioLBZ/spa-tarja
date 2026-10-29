@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useMemo, type CSSProperties } from 'react';
 import { useTranslations } from 'use-intl';
 
@@ -17,9 +18,9 @@ interface CategorySplitProps {
     styleOf: (id: string) => CategoryStyle;
 }
 
-// What each category took: one strip cut into a segment per category, and under it a row for each with its icon and
-// name (the color alone says nothing), its amount and its share. The biggest comes first, and the ones that took the
-// same go in the order of the names that are read. Every total is above zero.
+// What each category took: one strip cut into a segment per category in its color, and under it a row for each with
+// its icon and name (the color alone says nothing), its amount and its share. The biggest comes first, and the ones
+// that took the same go in the order of the names that are read. Every total is above zero.
 function CategorySplit(props: CategorySplitProps) {
     const { totals, labelOf, styleOf } = props;
     const t = useTranslations('charts');
@@ -48,7 +49,10 @@ function CategorySplit(props: CategorySplitProps) {
             <div className="category-split__strip" aria-hidden="true">
                 {segments.map((segment) => (
                     <span
-                        className="category-split__segment"
+                        className={clsx(
+                            'category-split__segment',
+                            `category-split__segment--${styleOf(segment.categoryId).color}`
+                        )}
                         key={segment.categoryId}
                         style={{ '--start': segment.start, '--share': segment.share } as CSSProperties}
                     />

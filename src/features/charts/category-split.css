@@ -11,7 +11,6 @@
 }
 
 .category-split__segment {
-    background: var(--color-bg-accent);
     inset: 0;
     position: absolute;
     transform: translateX(calc(var(--start) * 100%)) scaleX(var(--share));
@@ -21,6 +20,38 @@
     @starting-style {
         transform: translateX(calc(var(--start) * 100%)) scaleX(0);
     }
+}
+
+.category-split__segment--vermillion {
+    background: var(--color-category-vermillion);
+}
+
+.category-split__segment--green {
+    background: var(--color-category-green);
+}
+
+.category-split__segment--purple {
+    background: var(--color-category-purple);
+}
+
+.category-split__segment--blue {
+    background: var(--color-category-blue);
+}
+
+.category-split__segment--orange {
+    background: var(--color-category-orange);
+}
+
+.category-split__segment--sky {
+    background: var(--color-category-sky);
+}
+
+.category-split__segment--yellow {
+    background: var(--color-category-yellow);
+}
+
+.category-split__segment--gray {
+    background: var(--color-category-gray);
 }
 
 /* Where one segment ends and the next begins, a line of the page color, moved like the segments so it stays 2px */

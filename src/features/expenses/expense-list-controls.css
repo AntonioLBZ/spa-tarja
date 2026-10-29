@@ -8,6 +8,20 @@
     appearance: none;
 }
 
+/* Chrome and Safari draw a blue × of their own. This one is the `close` icon, in the text color, with a touch target */
+.expense-list-controls__search::-webkit-search-cancel-button {
+    appearance: none;
+    background: var(--color-content-primary);
+    background-clip: content-box;
+    block-size: var(--size-6);
+    box-sizing: content-box;
+    cursor: pointer;
+    inline-size: var(--size-6);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z'/%3E%3C/svg%3E")
+        center / contain no-repeat content-box;
+    padding: calc((var(--size-touch) - var(--size-6)) / 2);
+}
+
 .expense-list-controls__status {
     align-items: center;
     display: flex;
