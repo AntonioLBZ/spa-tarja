@@ -40,21 +40,26 @@ Owner decision: export only, no import for now.
 4. Pure logic in `core/export.ts` with tests; the download in Settings; the file is `tarja-YYYY-MM-DD.json` or `.csv`.
 5. Docs first: `ARCHITECTURE.md` §1 (export is no longer out of scope) and §5 (the formats), `design.md` §5 (Settings), locale keys in `en` and `es`.
 
-## 14. Suggestions from your own history (S to M, client only)
+## 14. Category suggestion from your own history (S, client only)
 
-Owner: "ideal". The design below still needs a yes before building.
+Owner: it works like the current suggestion and stays simple. No list of earlier expenses and no amount filled in.
 
-1. The description field offers the user's earlier expenses that start with what is typed (`normalizeText`: no case, no accents). Picking one fills category and amount.
-2. The suggested category looks at the history first: the category most used for the same normalized text, the latest on a tie; without a match, the keyword classifier as now. A category picked by hand is never replaced.
-3. No new storage and no network: it reads the expenses already on the device.
-4. To settle first: how many suggestions to show, whether the payment is filled too, and a native `datalist` against a custom listbox (styling and accessibility).
+1. Only when the keyword classifier (`suggestCategory`) finds nothing and would give "Other", the words of the typed text are looked up in the user's earlier expenses. Doing it always is the other option the owner left open; this one is simpler and leaves the built-in classifier as it is.
+2. A word counts when it has at least 4 letters (`normalizeText`, whole words) and every earlier expense that has it is in the same category. The category with the most such words wins, the one with the most expenses on a tie. A word seen in several categories is ignored, which also drops filler like "con" or "the".
+3. It can suggest a custom category, which the keyword list never can; a category that no longer exists is skipped. The existing suggestion hint shows as now, and a category picked by hand is never replaced.
+4. No new storage, no network and no new screen element: the expenses are already on the device. Tests: the pure function in `core`, and one in the form.
+5. Docs: `ARCHITECTURE.md` (where the category is suggested); `design.md` only if the hint changes.
 
 ## 15. Budgets (L, architectural: spec before code)
 
-Owner decisions: a monthly total and a limit per category, both; warnings inside the app only, no push.
+Owner decisions: a monthly total and a limit per category, both; warnings inside the app only, no push. A budget never blocks anything: it only warns when an expense brings a limit near or over it.
 
 1. Progress bars in Summary (the total and each category with a limit), a notice when an added expense brings a limit near or over it, and one when the leftover goes negative.
 2. To settle in the spec: whether a limit holds for every month until changed or is set for a month; the thresholds (for example 80 % and 100 %); what counts toward it (`countedCents` by the day made, so a restaurant card counts your part; to confirm); the warning for a credit card whose charges pile up in a month (the open question of `ARCHITECTURE.md` §12); a category deleted while it has a limit; where limits are edited.
 3. Storage like income, to confirm: a D1 table by an additive migration, `/api/budgets` behind `withUser`, cached for reading offline, editing needs a connection.
 4. Docs: `ARCHITECTURE.md` §1 (budgets are no longer out of scope), §5, §8 if needed, `design.md` §5 (Summary).
 5. Process: questions, approaches, a written spec and a plan before any code.
+
+## Far future (an idea to keep in mind, not planned)
+
+A Splitwise-like function: expenses shared between people, who paid, who owes whom and settling up. It is out of scope today (`ARCHITECTURE.md` §1) and would change the model: every row belongs to one user, so it needs groups, invitations between Google accounts, access rules on the server, balances, and a way to relate it to "your part" of an expense and to the offline sync. Nothing to do now.
