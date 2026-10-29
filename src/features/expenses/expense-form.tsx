@@ -8,7 +8,6 @@ import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { suggestCategory } from '@core/classifier';
 import { addMonths, toDateString } from '@core/date';
 import { PAYMENTS, TEXT_MAX_LENGTH, type Payment } from '@core/expense';
 import { installmentDates, planBalance, splitEvenly } from '@core/installments';
@@ -17,6 +16,7 @@ import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from '
 import { createExpenses, draftOf, reviseExpenses, type Draft } from './create-expenses';
 import { useSaveExpense } from './use-save-expense';
 import { useShortDate } from './use-short-date';
+import { useSuggestCategory } from './use-suggest-category';
 
 import type { Expense } from '@core/expense';
 
@@ -109,6 +109,7 @@ function ExpenseForm(props: ExpenseFormProps) {
     // A form edits or copies one expense for its whole life: a new one is mounted for another (AddExpense)
     const source = editing ?? copying;
     const [start] = useState(() => startingFields(source && draftOf(source), locale, copying !== null));
+    const suggest = useSuggestCategory(source === null);
     const [amount, setAmount] = useState(start.amount);
     const [text, setText] = useState(start.text);
     const [picked, setPicked] = useState<string | null>(null);
@@ -124,10 +125,10 @@ function ExpenseForm(props: ExpenseFormProps) {
     const [saving, setSaving] = useState(false);
     const [saveFailed, setSaveFailed] = useState(false);
 
-    // A new expense's category follows the description until the user picks one; an edited one keeps what was saved,
-    // even an id with no category behind it any more, which shows as the fallback. A pick that has since been deleted
-    // no longer counts.
-    const suggestion = suggestCategory(text);
+    // A new expense's category follows the description until the user picks one (the keywords, else the person's own
+    // history); an edited one keeps what was saved, even an id with no category behind it any more, which shows as the
+    // fallback. A pick that has since been deleted no longer counts.
+    const suggestion = suggest(text);
     const pick = options.some((option) => option.id === picked) ? picked : null;
     const categoryId = pick ?? start.categoryId ?? suggestion;
     const shownCategory = options.some((option) => option.id === categoryId) ? categoryId : FALLBACK_CATEGORY_ID;

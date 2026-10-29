@@ -1210,6 +1210,118 @@ describe('an expense row', () => {
     });
 });
 
+describe('suggesting a category from your own expenses', () => {
+    const GYM = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
+    const label = en.expenses.form.category;
+    const typeText = (value: string) => fireEvent.change(field(en.expenses.form.text), { target: { value } });
+
+    async function open(expenses: Expense[], categories: (typeof GYM)[] = []) {
+        const api = createFakeApi({ expenses, categories: [...categories] });
+        stubApi(api.handler);
+        const app = renderApp();
+        await screen.findAllByText(expenses[0]!.text);
+        await waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success'));
+        return { api, app };
+    }
+
+    it('suggests the category of an earlier expense with the same word when the keywords find nothing', async () => {
+        await open([expense({ text: 'Padel con Ana', categoryId: 'leisure' })]);
+
+        typeText('Padel');
+
+        expect(chosenCategory(label)).toBe(en.categories.leisure);
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('keeps the suggestion of the keywords when they find something', async () => {
+        await open([expense({ text: 'Padel', categoryId: 'health' })]);
+
+        typeText('Padel Mercadona');
+
+        expect(chosenCategory(label)).toBe(en.categories.groceries);
+    });
+
+    it('can suggest a category of your own, which the keywords never do', async () => {
+        await open([expense({ text: 'Crossfit', categoryId: GYM.id })], [GYM]);
+
+        typeText('crossfit monday');
+
+        expect(chosenCategory(label)).toBe('Gym');
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('skips a category that no longer exists', async () => {
+        await open([expense({ text: 'Crossfit', categoryId: crypto.randomUUID() })]);
+
+        typeText('crossfit');
+
+        expect(chosenCategory(label)).toBe(en.categories.other);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
+    });
+
+    it('says nothing for a word that was seen in two categories', async () => {
+        await open([
+            expense({ text: 'Padel', categoryId: 'leisure' }),
+            expense({ text: 'Padel', categoryId: 'health', date: '2026-10-20' }),
+        ]);
+
+        typeText('Padel');
+
+        expect(chosenCategory(label)).toBe(en.categories.other);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
+    });
+
+    it('never replaces a category that was picked by hand', async () => {
+        await open([expense({ text: 'Padel', categoryId: 'leisure' })]);
+
+        pickCategory(label, en.categories.health);
+        typeText('Padel');
+
+        expect(chosenCategory(label)).toBe(en.categories.health);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
+    });
+
+    it('learns from a category the person picked, on the very next expense', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        typeText('Padel');
+        expect(chosenCategory(label)).toBe(en.categories.other);
+        pickCategory(label, en.categories.leisure);
+        fireEvent.change(field(en.expenses.form.amount), { target: { value: '12' } });
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+        await screen.findByRole('listitem');
+
+        typeText('Padel');
+
+        expect(chosenCategory(label)).toBe(en.categories.leisure);
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('saves the category that was suggested', async () => {
+        const { api } = await open([expense({ text: 'Crossfit', categoryId: GYM.id })], [GYM]);
+
+        fillAndSubmit({ amount: '30', text: 'Crossfit' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(api.writes[0]).toMatchObject({ categoryId: GYM.id, text: 'Crossfit' });
+    });
+
+    it('stays out of an expense being edited, which keeps the category it was saved with', async () => {
+        await open([
+            expense({ text: 'Padel', categoryId: 'leisure' }),
+            expense({ text: 'Lunch', categoryId: 'health', date: '2026-10-20' }),
+        ]);
+        fireEvent.click(rowToggle('Lunch'));
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Lunch' }) }));
+
+        typeText('Padel');
+
+        expect(chosenCategory(label)).toBe(en.categories.health);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
+    });
+});
+
 describe('deleting an expense', () => {
     it('marks it as deleted and removes it from the list', async () => {
         const lunch = expense({ text: 'Lunch' });

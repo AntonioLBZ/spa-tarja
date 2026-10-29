@@ -9,16 +9,6 @@ Items build on each other in the order they appear below. Delete an item when it
 - The spreadsheet writes the part of a plan as `2/3`, which Excel and Google Sheets may read as a date (2 March). Keep it as you asked, or write it another way (`2 of 3`, or two columns)?
 - The selected column of the spending chart turns ink, which in the gray accent in dark is a weak change (`design.md` §8). Give it an ink frame instead?
 
-## 14. Category suggestion from your own history (S, client only)
-
-Owner: it works like the current suggestion and stays simple. No list of earlier expenses and no amount filled in.
-
-1. Only when the keyword classifier (`suggestCategory`) finds nothing and would give "Other", the words of the typed text are looked up in the user's earlier expenses. Doing it always is the other option the owner left open; this one is simpler and leaves the built-in classifier as it is.
-2. A word counts when it has at least 4 letters (`normalizeText`, whole words) and every earlier expense that has it is in the same category. The category with the most such words wins, the one with the most expenses on a tie. A word seen in several categories is ignored, which also drops filler like "con" or "the".
-3. It can suggest a custom category, which the keyword list never can; a category that no longer exists is skipped. The existing suggestion hint shows as now, and a category picked by hand is never replaced.
-4. No new storage, no network and no new screen element: the expenses are already on the device. Tests: the pure function in `core`, and one in the form.
-5. Docs: `ARCHITECTURE.md` (where the category is suggested); `design.md` only if the hint changes.
-
 ## 15. Budgets (L, architectural: spec before code)
 
 Owner decisions: a monthly total and a limit per category, both; warnings inside the app only, no push. A budget never blocks anything: it only warns when an expense brings a limit near or over it.
