@@ -94,6 +94,7 @@ function CategoryManager() {
                                 // A save that went wrong is not the fault of the name
                                 aria-invalid={failure === 'nameTaken'}
                                 autoComplete="off"
+                                disabled={!online}
                                 maxLength={CATEGORY_NAME_MAX_LENGTH}
                                 required
                                 type="text"

@@ -603,6 +603,25 @@ describe('without a connection', () => {
         expect((screen.getByRole('button', { name: text.form.remove }) as HTMLButtonElement).disabled).toBe(true);
     });
 
+    it('turns the income field off too, with its value still in it', async () => {
+        await open({ income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }] });
+
+        onlineManager.setOnline(false);
+
+        await waitFor(() => expect(incomeField().disabled).toBe(true));
+        expect(incomeField().value).toBe('2000.00');
+    });
+
+    it('turns the income field on again once back online', async () => {
+        await open();
+        onlineManager.setOnline(false);
+        await waitFor(() => expect(incomeField().disabled).toBe(true));
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(incomeField().disabled).toBe(false));
+    });
+
     it('says so when the income could not be loaded and there is no copy of it', async () => {
         const api = createFakeApi({ expenses: [expense()] });
         stubApi((url, init) =>

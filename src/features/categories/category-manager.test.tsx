@@ -599,6 +599,16 @@ describe('without a connection', () => {
         expect(button(named(text.deleteItem, 'Gym')).disabled).toBe(true);
     });
 
+    it('turns the name field off too, with what was typed still in it', async () => {
+        await open();
+        fireEvent.change(newNameField(), { target: { value: 'Gym' } });
+
+        onlineManager.setOnline(false);
+
+        await waitFor(() => expect(newNameField().disabled).toBe(true));
+        expect(newNameField().value).toBe('Gym');
+    });
+
     it('still opens a category to look at it', async () => {
         await open({ categories: [gym] });
         await screen.findByText('Gym');
@@ -619,6 +629,7 @@ describe('without a connection', () => {
         onlineManager.setOnline(true);
 
         await waitFor(() => expect(button(text.add.submit).disabled).toBe(false));
+        expect(newNameField().disabled).toBe(false);
         expect(screen.queryByText(text.offline)).toBeNull();
     });
 });

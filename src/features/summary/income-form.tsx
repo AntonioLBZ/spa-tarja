@@ -80,6 +80,7 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
                             {...control}
                             className="income-form__input"
                             autoComplete="off"
+                            disabled={!online}
                             inputMode="decimal"
                             type="text"
                             value={value}
