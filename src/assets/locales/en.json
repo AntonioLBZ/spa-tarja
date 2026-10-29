@@ -297,7 +297,11 @@
         "offline": "You're offline. Connect to change your limits.",
         "loadFailed": "Couldn't load your limits.",
         "setIn": "Set in {month}",
-        "ofIncome": "{percent} % of the income"
+        "ofIncome": "{percent} % of the income",
+        "bar": {
+            "of": "{spent} of {limit}",
+            "over": "over by {amount}"
+        }
     },
     "monthSwitch": {
         "previous": "Previous month",

@@ -1,0 +1,54 @@
+.budget-bar {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.budget-bar__head {
+    align-items: center;
+    display: flex;
+    gap: var(--size-3);
+    justify-content: space-between;
+}
+
+.budget-bar__name {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--size-2);
+}
+
+.budget-bar__percent {
+    font-weight: 700;
+}
+
+.budget-bar__amounts {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.budget-bar__track {
+    block-size: var(--size-2);
+    border: var(--size-px) solid var(--color-border);
+    overflow: hidden;
+}
+
+/* The fill spans the track and is cut to the use by transform, so a change animates */
+.budget-bar__fill {
+    background: var(--color-border);
+    block-size: 100%;
+    transform: scaleX(var(--use));
+    transform-origin: left;
+    transition: transform var(--duration-base) var(--ease-standard);
+
+    @starting-style {
+        transform: scaleX(0);
+    }
+}
+
+.budget-bar--over .budget-bar__percent {
+    color: var(--color-danger);
+}
+
+.budget-bar--over .budget-bar__fill {
+    background: var(--color-danger);
+}

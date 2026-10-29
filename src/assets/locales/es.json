@@ -297,7 +297,11 @@
         "offline": "Sin conexión. Conéctate para cambiar tus límites.",
         "loadFailed": "No se pudieron cargar tus límites.",
         "setIn": "Fijado en {month}",
-        "ofIncome": "{percent} % del ingreso"
+        "ofIncome": "{percent} % del ingreso",
+        "bar": {
+            "of": "{spent} de {limit}",
+            "over": "pasado por {amount}"
+        }
     },
     "monthSwitch": {
         "previous": "Mes anterior",

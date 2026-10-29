@@ -7,6 +7,7 @@ import { useTranslations } from 'use-intl';
 import { Card, CardList } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
+import { BudgetBars } from '@/features/budgets/budget-bars';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
@@ -82,6 +83,8 @@ function Summary() {
                 </p>
             )}
             {!online && <Notice role="status">{t('offline')}</Notice>}
+
+            <BudgetBars month={month} />
 
             <IncomeForm month={month} monthName={monthName} income={set} />
 
