@@ -178,6 +178,7 @@ Discarded:
 - **React Router 7 in framework mode**: its `loader`/`action` assume the network.
 - **Cloudflare Pages**: in maintenance.
 - **Cuadra, Menudo, Tally, Slate, Tab** as a name: taken on `.app`, `.dev` and `.com`.
+- **Guest mode** (use the app with no account, local data only, moved to the account on sign-in), discarded by the owner on 2026-10-29: it overturns "Google login only", every future feature would need a guest behaviour, and guest data can be lost with the browser's storage. Revisit only if strangers should be able to try the app.
 
 Open:
 
