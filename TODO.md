@@ -16,7 +16,7 @@ Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con dif
 
 The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What writing them showed, all of it left as it is until the owner says:
 
-- `ChoiceGroup` and `StylePicker` are both a group of options drawn as boxes, and the option of `ChoiceGroup` looks like a `Button`.
+- `StylePicker` still draws each swatch as a box of its own, while `ChoiceGroup` is now one joined box.
 - The four `__actions` rows: two of them use `--size-2` between wrapped rows, and `DESIGN.md` says `--size-4`.
 - The two raw `<details>` that are not a `Disclosure`.
 - The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch.

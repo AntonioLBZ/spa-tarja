@@ -11,7 +11,7 @@ import { createContext, use, useState, type ReactNode } from 'react';
 
 import type { Meta } from '@storybook/react-vite';
 
-type ButtonLinkArgs = Pick<ButtonProps, 'variant' | 'children'> & GlyphName;
+type ButtonLinkArgs = Pick<ButtonProps, 'variant' | 'block' | 'children'> & GlyphName;
 
 interface RouterFrameProps {
     children: ReactNode;
@@ -43,7 +43,7 @@ const RouterFrame = (props: RouterFrameProps) => {
 
 const Story: Meta<ButtonLinkArgs> = {
     title: 'Components/ButtonLink',
-    args: { children: 'Categories', variant: 'default', glyph: false },
+    args: { children: 'Categories', variant: 'default', block: false, glyph: false },
     argTypes: {
         children: { control: 'text' },
         variant: { control: 'inline-radio', options: ['default', 'primary', 'danger'] },

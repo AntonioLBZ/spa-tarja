@@ -19,7 +19,7 @@
     border-width: 0 0 0 var(--size-1);
     display: flex;
     flex-wrap: wrap;
-    overflow: hidden;
+    overflow: clip;
 }
 
 /* As many to a row as hold the widest word with their edge and room, and every row fills the line */
