@@ -10,7 +10,11 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function ThemeProvider(props: { children: ReactNode }) {
+interface ThemeProviderProps {
+    children: ReactNode;
+}
+
+const ThemeProvider = (props: ThemeProviderProps) => {
     const { children } = props;
     const [theme, setThemeState] = useState(readStoredTheme);
 
@@ -27,12 +31,12 @@ function ThemeProvider(props: { children: ReactNode }) {
     const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
     return <ThemeContext value={value}>{children}</ThemeContext>;
-}
+};
 
-function useTheme(): ThemeContextValue {
+const useTheme = (): ThemeContextValue => {
     const value = use(ThemeContext);
     if (value === null) throw new Error('useTheme needs a ThemeProvider');
     return value;
-}
+};
 
-export { ThemeProvider, useTheme };
+export { ThemeProvider, useTheme, type ThemeProviderProps };

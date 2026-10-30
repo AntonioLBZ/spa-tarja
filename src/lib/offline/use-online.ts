@@ -1,17 +1,17 @@
 import { onlineManager } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 
-function subscribe(listener: () => void) {
+const subscribe = (listener: () => void) => {
     return onlineManager.subscribe(listener);
-}
+};
 
-function isOnline() {
+const isOnline = () => {
     return onlineManager.isOnline();
-}
+};
 
 // What the browser says about the connection, which Query follows
-function useOnline(): boolean {
+const useOnline = (): boolean => {
     return useSyncExternalStore(subscribe, isOnline);
-}
+};
 
 export { useOnline };

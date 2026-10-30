@@ -3,7 +3,7 @@ import { createRouter, type RouterHistory } from '@tanstack/react-router';
 import { slideTypes } from './lib/route-transition';
 import { routeTree } from './routeTree.gen';
 
-function createAppRouter(history?: RouterHistory) {
+const createAppRouter = (history?: RouterHistory) => {
     return createRouter({
         routeTree,
         history,
@@ -11,7 +11,7 @@ function createAppRouter(history?: RouterHistory) {
         scrollRestoration: true,
         defaultViewTransition: { types: slideTypes },
     });
-}
+};
 
 declare module '@tanstack/react-router' {
     interface Register {

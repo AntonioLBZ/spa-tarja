@@ -11,7 +11,7 @@ interface UserStorage {
 }
 
 // The user's own corner of a storage: what one account keeps on a device is never seen or pushed by another
-function createUserStorage(storage: KeyValueStorage, userId: string): UserStorage {
+const createUserStorage = (storage: KeyValueStorage, userId: string): UserStorage => {
     let discarded = false;
     const scoped = (key: string) => `${key}:${userId}`;
 
@@ -28,7 +28,6 @@ function createUserStorage(storage: KeyValueStorage, userId: string): UserStorag
             await Promise.all([OUTBOX_STORAGE_KEY, QUERY_CACHE_STORAGE_KEY].map((key) => storage.remove(scoped(key))));
         },
     };
-}
+};
 
-export { createUserStorage };
-export type { UserStorage };
+export { createUserStorage, type UserStorage };

@@ -11,14 +11,12 @@ import type { MouseEvent } from 'react';
 
 import './root.css';
 
-export const Route = createRootRoute({ component: RootLayout });
-
 // A click that opens the link in another tab or window, which leaves the add form as it is
-function opensElsewhere(event: MouseEvent) {
+const opensElsewhere = (event: MouseEvent) => {
     return event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
-}
+};
 
-function RootLayout() {
+const RootLayout = () => {
     return (
         <AddFormProvider>
             <ToastProvider>
@@ -32,11 +30,11 @@ function RootLayout() {
             </ToastProvider>
         </AddFormProvider>
     );
-}
+};
 
 // Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home,
 // to the form adding: Expenses with it collapsed, the logo with it open. The logo is never underlined.
-function RootHeader() {
+const RootHeader = () => {
     const t = useTranslations('nav');
     const { collapse, reveal } = useAddForm();
     // The screen already shown, not the one being opened: the underline has to be in its old place when the view
@@ -46,13 +44,13 @@ function RootHeader() {
     });
 
     // The router marks only the link of its own path; a deeper screen marks the section it is reached from
-    function current(target: NavSection) {
+    const current = (target: NavSection) => {
         return section === target ? 'true' : undefined;
-    }
+    };
 
-    function underline(target: NavSection) {
+    const underline = (target: NavSection) => {
         return section === target && <span aria-hidden className="root__underline" />;
-    }
+    };
 
     return (
         <header className="root__header">
@@ -92,4 +90,6 @@ function RootHeader() {
             </nav>
         </header>
     );
-}
+};
+
+export const Route = createRootRoute({ component: RootLayout });

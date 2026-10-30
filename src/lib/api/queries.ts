@@ -5,7 +5,7 @@ import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 import { INCOME_KEY, fetchIncome } from './income';
 
-function healthQuery() {
+const healthQuery = () => {
     return queryOptions({
         queryKey: ['health'],
         queryFn: async () => {
@@ -14,21 +14,21 @@ function healthQuery() {
             return response.json();
         },
     });
-}
+};
 
 // The custom categories, kept offline by the persisted cache
-function categoriesQuery() {
+const categoriesQuery = () => {
     return queryOptions({ queryKey: CATEGORIES_KEY, queryFn: fetchCategories });
-}
+};
 
 // What the person earns each month, kept offline by the persisted cache
-function incomeQuery() {
+const incomeQuery = () => {
     return queryOptions({ queryKey: INCOME_KEY, queryFn: fetchIncome });
-}
+};
 
 // The limits each month sets, kept offline by the persisted cache
-function budgetsQuery() {
+const budgetsQuery = () => {
     return queryOptions({ queryKey: BUDGETS_KEY, queryFn: fetchBudgets });
-}
+};
 
 export { budgetsQuery, categoriesQuery, healthQuery, incomeQuery };

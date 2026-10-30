@@ -5,5 +5,4 @@ const authUserSchema = v.object({ id: v.pipe(v.string(), v.minLength(1)), name: 
 
 type AuthUser = v.InferOutput<typeof authUserSchema>;
 
-export { authUserSchema };
-export type { AuthUser };
+export { authUserSchema, type AuthUser };

@@ -10,9 +10,9 @@ const DEPTHS: Record<string, number> = {
     '/budgets': 2,
 };
 
-function routeDepth(pathname: string): number {
+const routeDepth = (pathname: string): number => {
     return DEPTHS[pathname] ?? 0;
-}
+};
 
 type NavSection = '/' | '/summary' | '/settings';
 
@@ -26,9 +26,9 @@ const SECTIONS: Record<string, NavSection> = {
     '/categories': '/settings',
 };
 
-function navSection(pathname: string): NavSection {
+const navSection = (pathname: string): NavSection => {
     return SECTIONS[pathname] ?? '/';
-}
+};
 
 interface LocationChange {
     fromLocation?: ParsedLocation;
@@ -38,14 +38,13 @@ interface LocationChange {
 
 // The view transition types of a navigation, which the styles turn into a slide, or a fade between two screens at the
 // same depth; false for no transition
-function slideTypes(change: LocationChange): string[] | false {
+const slideTypes = (change: LocationChange): string[] | false => {
     const { fromLocation, toLocation, pathChanged } = change;
     if (!fromLocation || !pathChanged) return false;
     const from = routeDepth(fromLocation.pathname);
     const to = routeDepth(toLocation.pathname);
     if (from === to) return ['level'];
     return [to > from ? 'forward' : 'back'];
-}
+};
 
-export { navSection, routeDepth, slideTypes };
-export type { NavSection };
+export { navSection, routeDepth, slideTypes, type NavSection };

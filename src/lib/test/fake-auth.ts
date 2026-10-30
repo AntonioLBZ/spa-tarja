@@ -10,7 +10,7 @@ interface FakeAuthOptions {
 }
 
 // An in-memory stand-in for Better Auth's three routes, wired to the real auth store
-function createFakeAuth(options: FakeAuthOptions = {}) {
+const createFakeAuth = (options: FakeAuthOptions = {}) => {
     const session = options.session === undefined ? TEST_USER : options.session;
     const cached = options.cached === undefined ? session : options.cached;
     if (cached) writeCachedUser(cached);
@@ -45,6 +45,6 @@ function createFakeAuth(options: FakeAuthOptions = {}) {
     };
 
     return { auth: createAuth(service, (url) => navigated.push(url)), state, calls, navigated };
-}
+};
 
 export { TEST_USER, createFakeAuth };

@@ -17,19 +17,18 @@ interface Changes {
 
 const EXPENSES_KEY = ['expenses'] as const;
 
-async function fetchChanges(after: number): Promise<Changes> {
+const fetchChanges = async (after: number): Promise<Changes> => {
     const response = await api.api.expenses.$get({ query: { after: String(after) } });
     if (!response.ok) throw new ApiError(response.status);
     return response.json();
-}
+};
 
 // Creates or updates by id, so sending it twice is harmless
-async function putExpense(expense: Expense): Promise<Expense> {
+const putExpense = async (expense: Expense): Promise<Expense> => {
     const { id, ...body } = expense;
     const response = await api.api.expenses[':id'].$put({ param: { id }, json: body });
     if (!response.ok) throw new ApiError(response.status);
     return response.json();
-}
+};
 
-export { EXPENSES_KEY, fetchChanges, putExpense };
-export type { Changes, ExpensesState };
+export { EXPENSES_KEY, fetchChanges, putExpense, type Changes, type ExpensesState };

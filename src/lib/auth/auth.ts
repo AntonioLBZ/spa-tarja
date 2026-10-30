@@ -21,27 +21,27 @@ interface Auth {
     signOut: () => Promise<void>;
 }
 
-function goTo(url: string) {
+const goTo = (url: string) => {
     window.location.assign(url);
-}
+};
 
-function createAuth(service: AuthService, navigate: (url: string) => void = goTo): Auth {
+const createAuth = (service: AuthService, navigate: (url: string) => void = goTo): Auth => {
     const cached = readCachedUser();
     let state: AuthState = cached ? { status: 'signed-in', user: cached } : { status: 'loading' };
     const listeners = new Set<() => void>();
     let checking: Promise<void> | null = null;
 
-    function commit(next: AuthState) {
+    const commit = (next: AuthState) => {
         state = next;
         listeners.forEach((listener) => listener());
-    }
+    };
 
-    function signedOut(unreachable: boolean) {
+    const signedOut = (unreachable: boolean) => {
         clearCachedUser();
         commit({ status: 'signed-out', unreachable });
-    }
+    };
 
-    async function ask() {
+    const ask = async () => {
         try {
             const user = await service.getSession();
             if (user === null) {
@@ -53,7 +53,7 @@ function createAuth(service: AuthService, navigate: (url: string) => void = goTo
         } catch {
             if (state.status === 'loading') commit({ status: 'signed-out', unreachable: true });
         }
-    }
+    };
 
     return {
         getState: () => state,
@@ -75,7 +75,6 @@ function createAuth(service: AuthService, navigate: (url: string) => void = goTo
             signedOut(false);
         },
     };
-}
+};
 
-export { createAuth };
-export type { Auth, AuthState };
+export { createAuth, type Auth, type AuthState };

@@ -18,8 +18,13 @@ interface UserData {
 
 const UserDataContext = createContext<UserData | null>(null);
 
+interface UserDataProviderProps {
+    storage: KeyValueStorage;
+    children: ReactNode;
+}
+
 // The outbox and the cache of the signed-in user, kept on the device apart from any other account's
-function UserDataProvider(props: { storage: KeyValueStorage; children: ReactNode }) {
+const UserDataProvider = (props: UserDataProviderProps) => {
     const { storage, children } = props;
     const user = useUser();
     const { check } = useAuth();
@@ -42,12 +47,12 @@ function UserDataProvider(props: { storage: KeyValueStorage; children: ReactNode
             </OutboxProvider>
         </UserDataContext>
     );
-}
+};
 
-function useUserData(): UserData {
+const useUserData = (): UserData => {
     const userData = use(UserDataContext);
     if (userData === null) throw new Error('useUserData needs a UserDataProvider');
     return userData;
-}
+};
 
-export { UserDataProvider, useUserData };
+export { UserDataProvider, useUserData, type UserDataProviderProps };

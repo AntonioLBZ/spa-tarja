@@ -10,25 +10,25 @@ const UPSERT = `
         updated_at = excluded.updated_at
     RETURNING month, amount_cents AS amountCents, currency`;
 
-async function saveIncome(db: D1Database, userId: string, month: string, input: IncomeInput): Promise<Income> {
+const saveIncome = async (db: D1Database, userId: string, month: string, input: IncomeInput): Promise<Income> => {
     const saved = await db
         .prepare(UPSERT)
         .bind(userId, month, input.amountCents, input.currency, Date.now())
         .first<Income>();
     if (!saved) throw new Error('The income was not saved');
     return saved;
-}
+};
 
-async function listIncome(db: D1Database, userId: string): Promise<Income[]> {
+const listIncome = async (db: D1Database, userId: string): Promise<Income[]> => {
     const { results } = await db
         .prepare('SELECT month, amount_cents AS amountCents, currency FROM income WHERE user_id = ?1 ORDER BY month')
         .bind(userId)
         .all<Income>();
     return results;
-}
+};
 
-async function deleteIncome(db: D1Database, userId: string, month: string): Promise<void> {
+const deleteIncome = async (db: D1Database, userId: string, month: string): Promise<void> => {
     await db.prepare('DELETE FROM income WHERE user_id = ?1 AND month = ?2').bind(userId, month).run();
-}
+};
 
 export { deleteIncome, listIncome, saveIncome };

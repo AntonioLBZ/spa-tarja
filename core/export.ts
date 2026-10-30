@@ -43,12 +43,12 @@ interface CsvLabels {
     categoryName: (categoryId: string) => string;
 }
 
-function compare(a: string | number, b: string | number): number {
+const compare = (a: string | number, b: string | number): number => {
     return a < b ? -1 : a > b ? 1 : 0;
-}
+};
 
 // The expenses that are listed, the deleted ones left out, by the day made, when created, the part and the id
-function listed(expenses: readonly Expense[]): Expense[] {
+const listed = (expenses: readonly Expense[]): Expense[] => {
     return expenses
         .filter((expense) => expense.deletedAt === null)
         .toSorted(
@@ -58,10 +58,10 @@ function listed(expenses: readonly Expense[]): Expense[] {
                 compare(a.plan?.part ?? 0, b.plan?.part ?? 0) ||
                 compare(a.id, b.id)
         );
-}
+};
 
 // Everything the person keeps, as it is stored and nothing derived, so that it can be restored from it (ADR-0001)
-function buildBackup(data: BackupData, now: Date): Backup {
+const buildBackup = (data: BackupData, now: Date): Backup => {
     return {
         app: BACKUP_APP,
         version: BACKUP_VERSION,
@@ -71,32 +71,32 @@ function buildBackup(data: BackupData, now: Date): Backup {
         income: data.income.toSorted((a, b) => compare(a.month, b.month)),
         budgets: data.budgets.toSorted((a, b) => compare(a.month, b.month) || compare(a.scope, b.scope)),
     };
-}
+};
 
-function backupJson(data: BackupData, now: Date): string {
+const backupJson = (data: BackupData, now: Date): string => {
     return `${JSON.stringify(buildBackup(data, now), null, 2)}\n`;
-}
+};
 
 // Where a language puts its decimal mark; its columns are told apart by the other one so the two never meet
-function decimalMarkOf(locale: string): string {
+const decimalMarkOf = (locale: string): string => {
     return new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.';
-}
+};
 
-function delimiterOf(locale: string): string {
+const delimiterOf = (locale: string): string => {
     return decimalMarkOf(locale) === ',' ? ';' : ',';
-}
+};
 
 // A leading apostrophe makes a spreadsheet read the cell as text, never as a formula
-function inert(text: string): string {
+const inert = (text: string): string => {
     return FORMULA_START.test(text) ? `'${text}` : text;
-}
+};
 
-function quoted(field: string, delimiter: string): string {
+const quoted = (field: string, delimiter: string): string => {
     return field.includes(delimiter) || /["\r\n]/.test(field) ? `"${field.replaceAll('"', '""')}"` : field;
-}
+};
 
 // One row for each expense, and for each part of a plan, with the amounts and the delimiter of the language
-function expensesCsv(expenses: readonly Expense[], locale: string, labels: CsvLabels): string {
+const expensesCsv = (expenses: readonly Expense[], locale: string, labels: CsvLabels): string => {
     const delimiter = delimiterOf(locale);
     const line = (fields: readonly string[]) => fields.map((field) => quoted(field, delimiter)).join(delimiter);
 
@@ -116,12 +116,11 @@ function expensesCsv(expenses: readonly Expense[], locale: string, labels: CsvLa
     });
 
     return `${BOM}${[line(labels.columns), ...rows].join('\r\n')}\r\n`;
-}
+};
 
 // The name of the file, with the day of the device
-function exportFileName(now: Date, extension: 'json' | 'csv'): string {
+const exportFileName = (now: Date, extension: 'json' | 'csv'): string => {
     return `tarja-${toDateString(now)}.${extension}`;
-}
+};
 
-export { backupJson, buildBackup, expensesCsv, exportFileName };
-export type { Backup, BackupData, CsvLabels };
+export { backupJson, buildBackup, expensesCsv, exportFileName, type Backup, type BackupData, type CsvLabels };

@@ -24,7 +24,7 @@ const ENTRIES: Entry[] = DEFAULT_CATEGORY_IDS.flatMap((category) =>
 );
 
 // The category whose keywords match the most words; on a tie, the first one in the default order
-function suggestCategory(text: string): DefaultCategoryId {
+const suggestCategory = (text: string): DefaultCategoryId => {
     const padded = ` ${normalizeText(text)} `;
     const scores = new Map<DefaultCategoryId, number>();
 
@@ -42,6 +42,6 @@ function suggestCategory(text: string): DefaultCategoryId {
         }
     }
     return best;
-}
+};
 
 export { suggestCategory };

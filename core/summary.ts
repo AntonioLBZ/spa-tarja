@@ -17,7 +17,7 @@ interface MonthSummary {
 }
 
 // Everything that counts in the month, as `countedOn` and `voucherIncomeOn` say, whichever category it has
-function summarizeMonth(month: string, expenses: readonly Expense[], incomeCents: number | null): MonthSummary {
+const summarizeMonth = (month: string, expenses: readonly Expense[], incomeCents: number | null): MonthSummary => {
     let spentCents = 0;
     let voucherCents = 0;
     let paidBack = 0;
@@ -40,7 +40,6 @@ function summarizeMonth(month: string, expenses: readonly Expense[], incomeCents
         spentCents,
         leftCents: incomeCents === null ? null : incomeCents + voucherCents + paidBack - spentCents,
     };
-}
+};
 
-export { summarizeMonth };
-export type { MonthSummary };
+export { summarizeMonth, type MonthSummary };

@@ -68,19 +68,19 @@ const categoryIconSchema = v.picklist(CATEGORY_ICONS);
 
 // The color a new category starts with: the least used of the seven that stand out, the first one on ties. Gray is
 // the plain look, so it is never picked for anyone.
-function nextCategoryColor(used: readonly CategoryColor[]): CategoryColor {
+const nextCategoryColor = (used: readonly CategoryColor[]): CategoryColor => {
     const colors = CATEGORY_COLORS.filter((color) => color !== DEFAULT_CATEGORY_COLOR);
     const uses = (color: CategoryColor) => used.filter((item) => item === color).length;
     return colors.reduce((best, color) => (uses(color) < uses(best) ? color : best));
-}
+};
 
-function isCategoryColor(value: unknown): value is CategoryColor {
+const isCategoryColor = (value: unknown): value is CategoryColor => {
     return v.is(categoryColorSchema, value);
-}
+};
 
-function isCategoryIcon(value: unknown): value is CategoryIcon {
+const isCategoryIcon = (value: unknown): value is CategoryIcon => {
     return v.is(categoryIconSchema, value);
-}
+};
 
 export {
     CATEGORY_COLORS,
@@ -92,5 +92,7 @@ export {
     isCategoryColor,
     isCategoryIcon,
     nextCategoryColor,
+    type CategoryColor,
+    type CategoryIcon,
+    type CategoryStyle,
 };
-export type { CategoryColor, CategoryIcon, CategoryStyle };

@@ -8,12 +8,12 @@ const MAX_AMOUNT_CENTS = 10 ** (MAX_INTEGER_DIGITS + 2) - 1;
 
 const GROUPED_INTEGER = /^\d{1,3}([.,])\d{3}(\1\d{3})*$/;
 
-function decimalSeparatorOf(locale: string): string {
+const decimalSeparatorOf = (locale: string): string => {
     return new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.';
-}
+};
 
 // Reads what a person types as an amount and returns cents, or null when it isn't a valid one
-function parseAmount(input: string, locale: string): number | null {
+const parseAmount = (input: string, locale: string): number | null => {
     const text = input.replace(/[\s€]/g, '');
     if (!/^\d[\d.,]*$/.test(text)) return null;
 
@@ -42,19 +42,19 @@ function parseAmount(input: string, locale: string): number | null {
     if (integerDigits.length > MAX_INTEGER_DIGITS) return null;
 
     return Number(integerDigits) * 100 + Number(fraction.padEnd(2, '0'));
-}
+};
 
-function formatAmount(cents: number, currency: string, locale: string): string {
+const formatAmount = (cents: number, currency: string, locale: string): string => {
     return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(cents / 100);
-}
+};
 
 // Cents as text for an amount field: what parseAmount reads back, so no grouping and no currency
-function formatAmountInput(cents: number, locale: string): string {
+const formatAmountInput = (cents: number, locale: string): string => {
     return new Intl.NumberFormat(locale, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
         useGrouping: false,
     }).format(cents / 100);
-}
+};
 
 export { DEFAULT_CURRENCY, MAX_AMOUNT_CENTS, formatAmount, formatAmountInput, parseAmount };

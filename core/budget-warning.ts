@@ -18,24 +18,24 @@ interface BudgetWarning {
 const SEVERITY: Record<BudgetWarning['kind'], number> = { negative: 0, over: 1, near: 2 };
 const RANK: Record<BudgetState, number> = { none: 0, near: 1, over: 2 };
 
-function moreSerious(a: BudgetWarning, b: BudgetWarning): number {
+const moreSerious = (a: BudgetWarning, b: BudgetWarning): number => {
     return (
         SEVERITY[a.kind] - SEVERITY[b.kind] ||
         (a.month < b.month ? -1 : a.month > b.month ? 1 : 0) ||
         (b.percent ?? 0) - (a.percent ?? 0)
     );
-}
+};
 
 // The one thing to tell the person after they add expenses: the most serious state crossed, in any month they count
 // in, or null when none was. A state a month was already in is not crossed again.
-function budgetWarning(input: {
+const budgetWarning = (input: {
     before: readonly Expense[];
     added: readonly Expense[];
     budgets: readonly Budget[];
     income: readonly Income[];
     scopes: readonly string[];
     categoryOf: (categoryId: string) => string;
-}): BudgetWarning | null {
+}): BudgetWarning | null => {
     const { before, added, budgets, income, scopes, categoryOf } = input;
     const after = [...before, ...added];
     const months = new Set(
@@ -65,7 +65,6 @@ function budgetWarning(input: {
     }
 
     return found.toSorted(moreSerious)[0] ?? null;
-}
+};
 
-export { budgetWarning };
-export type { BudgetWarning };
+export { budgetWarning, type BudgetWarning };

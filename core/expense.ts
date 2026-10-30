@@ -84,5 +84,13 @@ type Payment = (typeof PAYMENTS)[number];
 
 type Expense = ExpenseInput & { id: string };
 
-export { PAYMENTS, TEXT_MAX_LENGTH, expenseIdSchema, expenseInputSchema, paymentSchema };
-export type { Expense, ExpenseInput, Payment };
+export {
+    PAYMENTS,
+    TEXT_MAX_LENGTH,
+    expenseIdSchema,
+    expenseInputSchema,
+    paymentSchema,
+    type Expense,
+    type ExpenseInput,
+    type Payment,
+};

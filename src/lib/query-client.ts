@@ -7,7 +7,7 @@ interface QueryClientOptions {
     onUnauthorized?: () => void;
 }
 
-function createQueryClient(options: QueryClientOptions = {}) {
+const createQueryClient = (options: QueryClientOptions = {}) => {
     const { onUnauthorized } = options;
     const onError = (error: unknown) => {
         if (error instanceof ApiError && error.status === 401) onUnauthorized?.();
@@ -18,6 +18,6 @@ function createQueryClient(options: QueryClientOptions = {}) {
         mutationCache: new MutationCache({ onError }),
         defaultOptions: { queries: { gcTime: Infinity, staleTime: 60_000, retry: false } },
     });
-}
+};
 
 export { createQueryClient };

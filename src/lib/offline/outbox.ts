@@ -26,30 +26,30 @@ interface Outbox {
     dismissRejected: () => void;
 }
 
-function createOutbox(storage: KeyValueStorage): Outbox {
+const createOutbox = (storage: KeyValueStorage): Outbox => {
     let state: OutboxState = { pending: [], rejected: 0 };
     const listeners = new Set<() => void>();
     let queue: Promise<unknown> = Promise.resolve();
 
-    function commit(next: OutboxState) {
+    const commit = (next: OutboxState) => {
         state = next;
         listeners.forEach((listener) => listener());
-    }
+    };
 
     // One operation at a time, each on top of the previous result; a failure doesn't block the next ones
-    function run<T>(task: () => Promise<T>): Promise<T> {
+    const run = <T>(task: () => Promise<T>): Promise<T> => {
         const result = queue.then(task);
         queue = result.catch(() => undefined);
         return result;
-    }
+    };
 
     // The new state is on disk before anyone sees it, so what's on screen is never lost on a crash
-    async function save(next: OutboxState) {
+    const save = async (next: OutboxState) => {
         await storage.set(OUTBOX_STORAGE_KEY, next.pending);
         commit(next);
-    }
+    };
 
-    function forget(sent: Expense, rejected: boolean) {
+    const forget = (sent: Expense, rejected: boolean) => {
         return run(async () => {
             const stored = state.pending.find((item) => item.id === sent.id);
             if (stored?.updatedAt !== sent.updatedAt) return;
@@ -58,7 +58,7 @@ function createOutbox(storage: KeyValueStorage): Outbox {
                 rejected: state.rejected + (rejected ? 1 : 0),
             });
         });
-    }
+    };
 
     // A failed read leaves the outbox empty; writing still works
     const ready = run(async () => {
@@ -84,7 +84,6 @@ function createOutbox(storage: KeyValueStorage): Outbox {
         reject: (sent) => forget(sent, true),
         dismissRejected: () => commit({ ...state, rejected: 0 }),
     };
-}
+};
 
-export { OUTBOX_STORAGE_KEY, createOutbox };
-export type { Outbox, OutboxState };
+export { OUTBOX_STORAGE_KEY, createOutbox, type Outbox, type OutboxState };

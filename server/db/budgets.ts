@@ -11,7 +11,12 @@ const UPSERT = `
     RETURNING month, scope, amount_cents AS amountCents, currency`;
 
 // All the limits of a month land together or not at all: D1 runs a batch as one transaction
-async function saveBudgets(db: D1Database, userId: string, month: string, input: BudgetLimitsInput): Promise<Budget[]> {
+const saveBudgets = async (
+    db: D1Database,
+    userId: string,
+    month: string,
+    input: BudgetLimitsInput
+): Promise<Budget[]> => {
     const now = Date.now();
     const results = await db.batch<Budget>(
         input.limits.map((limit) =>
@@ -19,9 +24,9 @@ async function saveBudgets(db: D1Database, userId: string, month: string, input:
         )
     );
     return results.flatMap((result) => result.results);
-}
+};
 
-async function listBudgets(db: D1Database, userId: string): Promise<Budget[]> {
+const listBudgets = async (db: D1Database, userId: string): Promise<Budget[]> => {
     const { results } = await db
         .prepare(
             'SELECT month, scope, amount_cents AS amountCents, currency FROM budget WHERE user_id = ?1 ORDER BY month, scope'
@@ -29,6 +34,6 @@ async function listBudgets(db: D1Database, userId: string): Promise<Budget[]> {
         .bind(userId)
         .all<Budget>();
     return results;
-}
+};
 
 export { listBudgets, saveBudgets };

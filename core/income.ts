@@ -13,7 +13,8 @@ const incomeInputSchema = v.object({
 type IncomeInput = v.InferOutput<typeof incomeInputSchema>;
 
 // What a person earns in a month; there is one for each month they set
-type Income = { month: string } & IncomeInput;
+interface Income extends IncomeInput {
+    month: string;
+}
 
-export { incomeInputSchema, monthSchema };
-export type { Income, IncomeInput };
+export { incomeInputSchema, monthSchema, type Income, type IncomeInput };

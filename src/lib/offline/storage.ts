@@ -12,5 +12,4 @@ const idbStorage: KeyValueStorage = {
     remove: (key) => del(key),
 };
 
-export { idbStorage };
-export type { KeyValueStorage };
+export { idbStorage, type KeyValueStorage };

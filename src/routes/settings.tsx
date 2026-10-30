@@ -11,9 +11,7 @@ import { THEMES, useTheme } from '@/lib/theme';
 
 import './settings.css';
 
-export const Route = createFileRoute('/settings')({ component: Settings });
-
-function Settings() {
+const Settings = () => {
     const t = useTranslations('settings');
     const { locale, setLocale } = useLocale();
     const { theme, setTheme } = useTheme();
@@ -52,4 +50,6 @@ function Settings() {
             <Account />
         </section>
     );
-}
+};
+
+export const Route = createFileRoute('/settings')({ component: Settings });

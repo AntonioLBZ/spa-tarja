@@ -16,16 +16,16 @@ interface FakeApiOptions {
 }
 
 // An in-memory stand-in for the Worker's routes; anything it doesn't know answers 404
-function createFakeApi(options: FakeApiOptions = {}) {
+const createFakeApi = (options: FakeApiOptions = {}) => {
     const rows: Array<{ expense: Expense; seq: number }> = [];
     let lastSeq = 0;
 
-    function store(expense: Expense) {
+    const store = (expense: Expense) => {
         const seq = ++lastSeq;
         const existing = rows.findIndex((row) => row.expense.id === expense.id);
         if (existing >= 0) rows[existing] = { expense, seq };
         else rows.push({ expense, seq });
-    }
+    };
 
     for (const expense of options.expenses ?? []) store(expense);
 
@@ -182,6 +182,6 @@ function createFakeApi(options: FakeApiOptions = {}) {
         budgetRequests,
         budgetBodies,
     };
-}
+};
 
 export { createFakeApi };

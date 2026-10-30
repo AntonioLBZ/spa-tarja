@@ -28,9 +28,14 @@ const DEFAULT_CATEGORY_STYLES: Record<DefaultCategoryId, CategoryStyle> = {
     other: { color: 'gray', icon: 'more_horiz' },
 };
 
-function isDefaultCategoryId(value: unknown): value is DefaultCategoryId {
+const isDefaultCategoryId = (value: unknown): value is DefaultCategoryId => {
     return DEFAULT_CATEGORY_IDS.some((id) => id === value);
-}
+};
 
-export { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID, isDefaultCategoryId };
-export type { DefaultCategoryId };
+export {
+    DEFAULT_CATEGORY_IDS,
+    DEFAULT_CATEGORY_STYLES,
+    FALLBACK_CATEGORY_ID,
+    isDefaultCategoryId,
+    type DefaultCategoryId,
+};

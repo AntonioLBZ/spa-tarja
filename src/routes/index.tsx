@@ -12,9 +12,7 @@ import './index.css';
 
 const TONES = { pending: 'quiet', ok: 'info', error: 'danger' } as const;
 
-export const Route = createFileRoute('/')({ component: Home });
-
-function Home() {
+const Home = () => {
     const t = useTranslations('home');
     const health = useQuery(healthQuery());
     const state = health.isPending ? 'pending' : health.data?.ok ? 'ok' : 'error';
@@ -30,4 +28,6 @@ function Home() {
             </Notice>
         </section>
     );
-}
+};
+
+export const Route = createFileRoute('/')({ component: Home });

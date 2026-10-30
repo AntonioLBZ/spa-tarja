@@ -11,7 +11,11 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-function LocaleProvider(props: { children: ReactNode }) {
+interface LocaleProviderProps {
+    children: ReactNode;
+}
+
+const LocaleProvider = (props: LocaleProviderProps) => {
     const { children } = props;
     const [locale, setLocaleState] = useState(() => detectLocale(readStoredLocale(), navigator.languages));
 
@@ -37,12 +41,12 @@ function LocaleProvider(props: { children: ReactNode }) {
             </IntlProvider>
         </LocaleContext>
     );
-}
+};
 
-function useLocale(): LocaleContextValue {
+const useLocale = (): LocaleContextValue => {
     const value = use(LocaleContext);
     if (value === null) throw new Error('useLocale needs a LocaleProvider');
     return value;
-}
+};
 
-export { LocaleProvider, useLocale };
+export { LocaleProvider, useLocale, type LocaleProviderProps };

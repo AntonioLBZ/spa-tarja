@@ -29,5 +29,4 @@ const app = new Hono<AppEnv>()
 
 type AppType = typeof app;
 
-export { app };
-export type { AppType };
+export { app, type AppType };

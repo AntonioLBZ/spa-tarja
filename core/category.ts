@@ -17,17 +17,27 @@ const categoryInputSchema = v.object({
 type CategoryInput = v.InferOutput<typeof categoryInputSchema>;
 
 // A custom category; the default ones are fixed in code and have no row
-type Category = { id: string; name: string } & CategoryStyle;
+interface Category extends CategoryStyle {
+    id: string;
+    name: string;
+}
 
 // What two names must differ in to count as different: case, accents and spacing don't
-function categoryNameKey(name: string): string {
+const categoryNameKey = (name: string): string => {
     return name.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().split(/\s+/).filter(Boolean).join(' ');
-}
+};
 
 // Shape only: a default id or a UUID, whether or not that category still exists (ADR-0006)
-function isCategoryId(value: unknown): boolean {
+const isCategoryId = (value: unknown): boolean => {
     return isDefaultCategoryId(value) || v.is(categoryIdSchema, value);
-}
+};
 
-export { CATEGORY_NAME_MAX_LENGTH, categoryIdSchema, categoryInputSchema, categoryNameKey, isCategoryId };
-export type { Category, CategoryInput };
+export {
+    CATEGORY_NAME_MAX_LENGTH,
+    categoryIdSchema,
+    categoryInputSchema,
+    categoryNameKey,
+    isCategoryId,
+    type Category,
+    type CategoryInput,
+};

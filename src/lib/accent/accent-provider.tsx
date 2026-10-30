@@ -12,7 +12,11 @@ interface AccentContextValue {
 
 const AccentContext = createContext<AccentContextValue | null>(null);
 
-function AccentProvider(props: { children: ReactNode }) {
+interface AccentProviderProps {
+    children: ReactNode;
+}
+
+const AccentProvider = (props: AccentProviderProps) => {
     const { children } = props;
     const [accent, setAccentState] = useState(readStoredAccent);
 
@@ -28,12 +32,12 @@ function AccentProvider(props: { children: ReactNode }) {
     const value = useMemo(() => ({ accent, setAccent }), [accent, setAccent]);
 
     return <AccentContext value={value}>{children}</AccentContext>;
-}
+};
 
-function useAccent(): AccentContextValue {
+const useAccent = (): AccentContextValue => {
     const value = use(AccentContext);
     if (value === null) throw new Error('useAccent needs an AccentProvider');
     return value;
-}
+};
 
-export { AccentProvider, useAccent };
+export { AccentProvider, useAccent, type AccentProviderProps };

@@ -48,47 +48,47 @@ interface ListGroup {
     totalCents: number;
 }
 
-function isListGrouping(value: unknown): value is ListGrouping {
+const isListGrouping = (value: unknown): value is ListGrouping => {
     return LIST_GROUPINGS.some((grouping) => grouping === value);
-}
+};
 
 // The expense a row shows: the expense itself, or the first part present of a plan
-function shownExpense(item: ListItem): Expense {
+const shownExpense = (item: ListItem): Expense => {
     return item.kind === 'plan' ? item.parts[0]! : item.expense;
-}
+};
 
 // What a row adds up to: a plan at its total, a restaurant card expense at your part
-function itemCents(item: ListItem): number {
+const itemCents = (item: ListItem): number => {
     return item.kind === 'plan' ? planTotal(item.parts) : countedCents(item.expense);
-}
+};
 
-function newestFirst(a: Expense, b: Expense): number {
+const newestFirst = (a: Expense, b: Expense): number => {
     if (a.date !== b.date) return a.date < b.date ? 1 : -1;
     return b.createdAt - a.createdAt;
-}
+};
 
 // The rows of the list before any filter: deleted expenses dropped, the newest day first and, within a day, the
 // latest logged first, with the parts of a plan collapsed into one row
-function listItems(expenses: readonly Expense[]): ListItem[] {
+const listItems = (expenses: readonly Expense[]): ListItem[] => {
     return collapsePlans(expenses.filter((expense) => expense.deletedAt === null).toSorted(newestFirst));
-}
+};
 
-function searchTextOf(expense: Expense, ctx: ListContext): string {
+const searchTextOf = (expense: Expense, ctx: ListContext): string => {
     const cached = ctx.searchTexts?.get(expense);
     if (cached !== undefined) return cached;
     const text = normalizeText(`${expense.text} ${ctx.labelOf(expense.categoryId)}`);
     ctx.searchTexts?.set(expense, text);
     return text;
-}
+};
 
-function paidWithMatches(item: ListItem, paidWith: PaidWith): boolean {
+const paidWithMatches = (item: ListItem, paidWith: PaidWith): boolean => {
     if (paidWith === 'any') return true;
     if (paidWith === 'plan') return item.kind === 'plan';
     return item.kind === 'single' && paymentOf(item.expense) === paidWith;
-}
+};
 
 // Filters are applied to the row as it is shown, by the day it was made
-function matcher(filters: ListFilters, ctx: ListContext): (item: ListItem) => boolean {
+const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => boolean) => {
     const { categoryId, from, to, paidWith } = filters;
     const words = searchWords(filters.query);
 
@@ -102,21 +102,21 @@ function matcher(filters: ListFilters, ctx: ListContext): (item: ListItem) => bo
         const text = searchTextOf(expense, ctx);
         return words.every((word) => text.includes(word));
     };
-}
+};
 
-function keyOf(expense: Expense, grouping: ListGrouping, ctx: ListContext): string {
+const keyOf = (expense: Expense, grouping: ListGrouping, ctx: ListContext): string => {
     if (grouping === 'category') return ctx.categoryOf(expense.categoryId);
     return bucketStart(expense.date, grouping);
-}
+};
 
 // The rows that pass the filters, in groups. Days, weeks and months come newest first, categories from the biggest
 // subtotal and by id when two tie. The rows keep their order inside a group.
-function groupItems(
+const groupItems = (
     items: readonly ListItem[],
     filters: ListFilters,
     grouping: ListGrouping,
     ctx: ListContext
-): ListGroup[] {
+): ListGroup[] => {
     const matches = matcher(filters, ctx);
     const groups = new Map<string, ListGroup>();
 
@@ -136,21 +136,21 @@ function groupItems(
     return [...groups.values()].sort(
         grouping === 'category' ? (a, b) => b.totalCents - a.totalCents || byKey(a, b) : (a, b) => byKey(b, a)
     );
-}
+};
 
 // What the expense list shows: the expenses the device holds, filtered and grouped. Everything is by the day the
 // expense was made, which is not the day it counts on (ADR-0007).
-function buildList(
+const buildList = (
     expenses: readonly Expense[],
     filters: ListFilters,
     grouping: ListGrouping,
     ctx: ListContext
-): ListGroup[] {
+): ListGroup[] => {
     return groupItems(listItems(expenses), filters, grouping, ctx);
-}
+};
 
 // The first `max` rows of the groups, in order. A group cut short keeps the subtotal of all its rows.
-function limitRows(groups: readonly ListGroup[], max: number): ListGroup[] {
+const limitRows = (groups: readonly ListGroup[], max: number): ListGroup[] => {
     const limited: ListGroup[] = [];
     let left = max;
     for (const group of groups) {
@@ -159,19 +159,19 @@ function limitRows(groups: readonly ListGroup[], max: number): ListGroup[] {
         left -= group.items.length;
     }
     return limited;
-}
+};
 
 // How many of the filters of the panel are in use: the category, the dates and how it was paid, one each
-function activeFilterCount(filters: ListFilters): number {
+const activeFilterCount = (filters: ListFilters): number => {
     return [filters.categoryId !== '', filters.from !== '' || filters.to !== '', filters.paidWith !== 'any'].filter(
         Boolean
     ).length;
-}
+};
 
 // Whether the search or any filter narrows the list
-function hasFilters(filters: ListFilters): boolean {
+const hasFilters = (filters: ListFilters): boolean => {
     return searchWords(filters.query).length > 0 || activeFilterCount(filters) > 0;
-}
+};
 
 export {
     DEFAULT_LIST_GROUPING,
@@ -186,5 +186,8 @@ export {
     limitRows,
     listItems,
     shownExpense,
+    type ListContext,
+    type ListFilters,
+    type ListGroup,
+    type ListGrouping,
 };
-export type { ListContext, ListFilters, ListGroup, ListGrouping };

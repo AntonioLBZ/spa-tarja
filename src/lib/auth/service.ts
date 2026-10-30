@@ -18,13 +18,13 @@ const signInSchema = v.object({ url: v.pipe(v.string(), v.minLength(1)) });
 
 const JSON_HEADERS = { 'content-type': 'application/json' };
 
-async function send(path: string, init?: RequestInit): Promise<unknown> {
+const send = async (path: string, init?: RequestInit): Promise<unknown> => {
     const response = await fetch(path, init);
     if (!response.ok) throw new ApiError(response.status);
     return response.json();
-}
+};
 
-function createAuthService(): AuthService {
+const createAuthService = (): AuthService => {
     return {
         getSession: async () => v.parse(sessionSchema, await send('/api/auth/get-session'))?.user ?? null,
         startSignIn: async () => {
@@ -40,7 +40,6 @@ function createAuthService(): AuthService {
             await send('/api/auth/sign-out', { method: 'POST', headers: JSON_HEADERS, body: '{}' });
         },
     };
-}
+};
 
-export { createAuthService };
-export type { AuthService };
+export { createAuthService, type AuthService };

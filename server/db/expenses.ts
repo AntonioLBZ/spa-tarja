@@ -22,7 +22,7 @@ interface ExpenseRow {
 const COLUMNS =
     'id, category_id, text, amount_cents, currency, date, payment, charge_date, personal_cents, plan_id, plan_part, plan_parts, created_at, updated_at, deleted_at, seq';
 
-function toExpense(row: ExpenseRow): Expense {
+const toExpense = (row: ExpenseRow): Expense => {
     return {
         id: row.id,
         categoryId: row.category_id,
@@ -38,7 +38,7 @@ function toExpense(row: ExpenseRow): Expense {
         updatedAt: row.updated_at,
         deletedAt: row.deleted_at,
     };
-}
+};
 
 // `seq` is the per-user sync cursor: every applied write takes the next one. The update only runs for the
 // owner and when the write is strictly newer, so a retry and a stale write both leave the row alone (ADR-0005).
@@ -64,7 +64,12 @@ const UPSERT = `
     RETURNING ${COLUMNS}`;
 
 // The stored expense after the write, or null when the id belongs to someone else
-async function upsertExpense(db: D1Database, userId: string, id: string, input: ExpenseInput): Promise<Expense | null> {
+const upsertExpense = async (
+    db: D1Database,
+    userId: string,
+    id: string,
+    input: ExpenseInput
+): Promise<Expense | null> => {
     const written = await db
         .prepare(UPSERT)
         .bind(
@@ -93,7 +98,7 @@ async function upsertExpense(db: D1Database, userId: string, id: string, input: 
         .bind(id)
         .first<ExpenseRow & { user_id: string }>();
     return stored?.user_id === userId ? toExpense(stored) : null;
-}
+};
 
 interface Changes {
     expenses: Expense[];
@@ -102,7 +107,7 @@ interface Changes {
 }
 
 // Everything written after `cursor`, oldest first, tombstones included
-async function listChanges(db: D1Database, userId: string, cursor: number, limit: number): Promise<Changes> {
+const listChanges = async (db: D1Database, userId: string, cursor: number, limit: number): Promise<Changes> => {
     const { results } = await db
         .prepare(`SELECT ${COLUMNS} FROM expenses WHERE user_id = ?1 AND seq > ?2 ORDER BY seq LIMIT ?3`)
         .bind(userId, cursor, limit + 1)
@@ -111,7 +116,6 @@ async function listChanges(db: D1Database, userId: string, cursor: number, limit
     const hasMore = results.length > limit;
     const page = hasMore ? results.slice(0, limit) : results;
     return { expenses: page.map(toExpense), cursor: page.at(-1)?.seq ?? cursor, hasMore };
-}
+};
 
-export { listChanges, upsertExpense };
-export type { Changes };
+export { listChanges, upsertExpense, type Changes };

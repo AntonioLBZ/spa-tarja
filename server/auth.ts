@@ -4,7 +4,7 @@ const SESSION_DAYS = 30;
 const SESSION_CACHE_SECONDS = 5 * 60;
 
 // Google is the only way in. `baseURL` is where the request came from (ADR-0008).
-function authOptions(env: Env, baseURL: string) {
+const authOptions = (env: Env, baseURL: string) => {
     return {
         baseURL,
         secret: env.BETTER_AUTH_SECRET,
@@ -15,10 +15,10 @@ function authOptions(env: Env, baseURL: string) {
             cookieCache: { enabled: true, maxAge: SESSION_CACHE_SECONDS },
         },
     } satisfies BetterAuthOptions;
-}
+};
 
-function createAuth(env: Env, request: Request) {
+const createAuth = (env: Env, request: Request) => {
     return betterAuth(authOptions(env, new URL(request.url).origin));
-}
+};
 
 export { authOptions, createAuth };

@@ -17,7 +17,7 @@ const UPSERT = `
     WHERE categories.user_id = excluded.user_id
     RETURNING id, name, color, icon`;
 
-async function saveCategory(db: D1Database, userId: string, id: string, input: CategoryInput): Promise<SaveResult> {
+const saveCategory = async (db: D1Database, userId: string, id: string, input: CategoryInput): Promise<SaveResult> => {
     const { name, color, icon } = input;
     try {
         const saved = await db
@@ -31,22 +31,22 @@ async function saveCategory(db: D1Database, userId: string, id: string, input: C
             return { error: 'name-taken' };
         throw error;
     }
-}
+};
 
-async function listCategories(db: D1Database, userId: string): Promise<Category[]> {
+const listCategories = async (db: D1Database, userId: string): Promise<Category[]> => {
     const { results } = await db
         .prepare('SELECT id, name, color, icon FROM categories WHERE user_id = ?1 ORDER BY created_at, rowid')
         .bind(userId)
         .all<Category>();
     return results;
-}
+};
 
 // The limits of the category go with it, in the same batch
-async function deleteCategory(db: D1Database, userId: string, id: string): Promise<void> {
+const deleteCategory = async (db: D1Database, userId: string, id: string): Promise<void> => {
     await db.batch([
         db.prepare('DELETE FROM budget WHERE user_id = ?1 AND scope = ?2').bind(userId, id),
         db.prepare('DELETE FROM categories WHERE id = ?1 AND user_id = ?2').bind(id, userId),
     ]);
-}
+};
 
 export { deleteCategory, listCategories, saveCategory };

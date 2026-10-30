@@ -15,9 +15,9 @@ const NEAR_PERCENT = 80;
 
 const MAX_LIMITS_PER_REQUEST = 200;
 
-function isBudgetScope(value: unknown): boolean {
+const isBudgetScope = (value: unknown): boolean => {
     return value === TOTAL_SCOPE || isCategoryId(value);
-}
+};
 
 // The limits of one month; an amount of 0 is no limit from that month on
 const budgetLimitsSchema = v.object({
@@ -44,7 +44,12 @@ const budgetLimitsSchema = v.object({
 type BudgetLimitsInput = v.InferOutput<typeof budgetLimitsSchema>;
 
 // What a month sets for a scope; the months after it hold it until another row sets theirs
-type Budget = { month: string; scope: string; amountCents: number; currency: string };
+interface Budget {
+    month: string;
+    scope: string;
+    amountCents: number;
+    currency: string;
+}
 
 type BudgetState = 'none' | 'near' | 'over';
 
@@ -60,49 +65,53 @@ interface BudgetUse {
 
 // The limit a scope holds in a month: the row of the latest month up to it, or none when there is no such row or its
 // amount is 0 (ADR-0009)
-function limitFor(budgets: readonly Budget[], scope: string, month: string): { cents: number; since: string } | null {
+const limitFor = (
+    budgets: readonly Budget[],
+    scope: string,
+    month: string
+): { cents: number; since: string } | null => {
     let latest: Budget | null = null;
     for (const row of budgets) {
         if (row.scope !== scope || row.month > month) continue;
         if (latest === null || row.month > latest.month) latest = row;
     }
     return latest === null || latest.amountCents === 0 ? null : { cents: latest.amountCents, since: latest.month };
-}
+};
 
-function percentOf(part: number, whole: number): number {
+const percentOf = (part: number, whole: number): number => {
     return Math.round((part * 100) / whole);
-}
+};
 
-function stateOf(spentCents: number, limitCents: number | null): BudgetState {
+const stateOf = (spentCents: number, limitCents: number | null): BudgetState => {
     if (limitCents === null) return 'none';
     if (spentCents > limitCents) return 'over';
     return spentCents * 100 >= limitCents * NEAR_PERCENT ? 'near' : 'none';
-}
+};
 
 // What counts toward a scope in a month: the total adds everything, a category what is filed under it, with a category
 // that no longer exists read as `categoryOf` says
-function spentFor(
+const spentFor = (
     expenses: readonly Expense[],
     scope: string,
     month: string,
     categoryOf: (categoryId: string) => string
-): number {
+): number => {
     let spent = 0;
     for (const expense of expenses) {
         if (expense.deletedAt !== null || monthOf(countedOn(expense)) !== month) continue;
         if (scope === TOTAL_SCOPE || categoryOf(expense.categoryId) === scope) spent += countedCents(expense);
     }
     return spent;
-}
+};
 
 // The use of every listed scope that holds a limit in the month, in the order listed
-function budgetUses(input: {
+const budgetUses = (input: {
     month: string;
     expenses: readonly Expense[];
     budgets: readonly Budget[];
     scopes: readonly string[];
     categoryOf: (categoryId: string) => string;
-}): BudgetUse[] {
+}): BudgetUse[] => {
     const { month, expenses, budgets, scopes, categoryOf } = input;
 
     return scopes.flatMap((scope) => {
@@ -120,7 +129,7 @@ function budgetUses(input: {
             },
         ];
     });
-}
+};
 
 export {
     NEAR_PERCENT,
@@ -132,5 +141,8 @@ export {
     percentOf,
     spentFor,
     stateOf,
+    type Budget,
+    type BudgetLimitsInput,
+    type BudgetState,
+    type BudgetUse,
 };
-export type { Budget, BudgetLimitsInput, BudgetState, BudgetUse };

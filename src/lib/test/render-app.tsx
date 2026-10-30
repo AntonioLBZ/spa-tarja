@@ -13,22 +13,26 @@ import { createAppRouter } from '@/router';
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
 
 // Unmatched requests fail loudly instead of reaching the network
-function stubApi(handler: Handler) {
+const stubApi = (handler: Handler) => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = new URL(input instanceof Request ? input.url : String(input), 'http://localhost');
         return handler(url, init);
     });
     vi.stubGlobal('fetch', fetchMock);
     return fetchMock;
-}
+};
 
 interface UserData {
     outbox: Outbox;
     queryClient: QueryClient;
 }
 
+interface ProbeProps {
+    onData: (data: UserData) => void;
+}
+
 // Hands the test the outbox and the query client the signed-in user got
-function Probe(props: { onData: (data: UserData) => void }) {
+const Probe = (props: ProbeProps) => {
     const { onData } = props;
     const outbox = useOutbox();
     const queryClient = useQueryClient();
@@ -36,15 +40,15 @@ function Probe(props: { onData: (data: UserData) => void }) {
         onData({ outbox, queryClient });
     }, [onData, outbox, queryClient]);
     return null;
-}
+};
 
 // The app as it is mounted for real, over memory storage and a fake sign-in. Signed in as the test user unless told so.
 // `outbox` and `queryClient` exist once somebody is signed in.
-function renderApp({
+const renderApp = ({
     path = '/',
     storage = createMemoryStorage(),
     fakeAuth = createFakeAuth(),
-}: { path?: string; storage?: KeyValueStorage; fakeAuth?: ReturnType<typeof createFakeAuth> } = {}) {
+}: { path?: string; storage?: KeyValueStorage; fakeAuth?: ReturnType<typeof createFakeAuth> } = {}) => {
     const router = createAppRouter(createMemoryHistory({ initialEntries: [path] }));
     let data: UserData | undefined;
     const rendered = render(
@@ -64,7 +68,6 @@ function renderApp({
             return data!.queryClient;
         },
     };
-}
+};
 
-export { renderApp, stubApi };
-export type { Handler };
+export { renderApp, stubApi, type Handler };
