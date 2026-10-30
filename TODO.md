@@ -4,7 +4,7 @@ Items build on each other in the order they appear below. Delete an item when it
 
 ## Needs the owner
 
-- Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install, the Undo toast and that the backup and the spreadsheet download from the installed app), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
+- Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install, the Undo toast and that the JSON and the CSV files download from the installed app), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
 - Decide whether the app gets locales beyond `en` and `es`; the owner's `spa-anicalendar` also ships `fr` and `de`.
 - Decide the domain. `tarja.dev` is available (checked on 2026-10-25) but costs money, which clashes with [free tiers only](docs/adr/0003-spa-on-one-worker-on-free-tiers.md); `tarja.app` and `tarja.com` are taken. `workers.dev` is in use, and a custom domain would mean updating the Google redirect URIs ([ADR-0008](docs/adr/0008-google-login-with-better-auth.md)).
 

@@ -105,23 +105,19 @@ describe('your data in the settings', () => {
         const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
         expect(headings).toEqual([en.settings.categories.title, en.settings.data.title, en.settings.account.title]);
         expect(screen.getByText(en.settings.data.description)).toBeDefined();
-        expect(screen.getByRole('button', { name: en.settings.data.backup }).getAttribute('type')).toBe('button');
-        expect(screen.getByRole('button', { name: en.settings.data.spreadsheet }).getAttribute('type')).toBe('button');
+        expect(screen.getByRole('button', { name: en.settings.data.json }).getAttribute('type')).toBe('button');
+        expect(screen.getByRole('button', { name: en.settings.data.csv }).getAttribute('type')).toBe('button');
     });
 
     it('is always on, with nothing to confirm', async () => {
         await open();
 
-        expect((screen.getByRole('button', { name: en.settings.data.backup }) as HTMLButtonElement).disabled).toBe(
-            false
-        );
-        expect((screen.getByRole('button', { name: en.settings.data.spreadsheet }) as HTMLButtonElement).disabled).toBe(
-            false
-        );
+        expect((screen.getByRole('button', { name: en.settings.data.json }) as HTMLButtonElement).disabled).toBe(false);
+        expect((screen.getByRole('button', { name: en.settings.data.csv }) as HTMLButtonElement).disabled).toBe(false);
     });
 });
 
-describe('the backup', () => {
+describe('the JSON file', () => {
     it('downloads tarja and the day, as JSON, with the expenses, the custom categories, the income and the budgets', async () => {
         const lunch = expense({ text: 'Lunch', categoryId: GYM.id });
         await open({
@@ -131,7 +127,7 @@ describe('the backup', () => {
             budgets: [{ month: '2026-10', scope: 'food', amountCents: 30_000, currency: 'EUR' }],
         });
 
-        const file = await press(en.settings.data.backup);
+        const file = await press(en.settings.data.json);
 
         expect(file.name).toBe('tarja-2026-10-25.json');
         expect(file.type).toBe('application/json');
@@ -151,7 +147,7 @@ describe('the backup', () => {
         onlineManager.setOnline(false);
         await app.outbox.put(expense({ text: 'Waiting', date: '2026-10-25' }));
 
-        const file = await press(en.settings.data.backup);
+        const file = await press(en.settings.data.json);
 
         expect(JSON.parse(file.text).expenses.map((item: Expense) => item.text)).toEqual(['Synced', 'Waiting']);
     });
@@ -162,17 +158,17 @@ describe('the backup', () => {
         onlineManager.setOnline(false);
         await app.outbox.put({ ...lunch, updatedAt: 9_000, deletedAt: 9_000 });
 
-        const file = await press(en.settings.data.backup);
+        const file = await press(en.settings.data.json);
 
         expect(JSON.parse(file.text).expenses).toEqual([]);
     });
 });
 
-describe('the spreadsheet', () => {
+describe('the CSV file', () => {
     it('downloads tarja and the day, as CSV in UTF-8 with a byte order mark', async () => {
         await open({ expenses: [expense({ text: 'Lunch' })] });
 
-        const file = await press(en.settings.data.spreadsheet);
+        const file = await press(en.settings.data.csv);
 
         expect(file.name).toBe('tarja-2026-10-25.csv');
         expect(file.type).toBe('text/csv;charset=utf-8');
@@ -195,7 +191,7 @@ describe('the spreadsheet', () => {
             categories: [GYM],
         });
 
-        const file = await press(en.settings.data.spreadsheet);
+        const file = await press(en.settings.data.csv);
 
         const c = en.settings.data.columns;
         expect(file.text.slice(BOM.length).split('\r\n')).toEqual([
@@ -215,7 +211,7 @@ describe('the spreadsheet', () => {
         await screen.findByRole('heading', { name: es.settings.data.title });
         await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
 
-        const file = await press(es.settings.data.spreadsheet);
+        const file = await press(es.settings.data.csv);
 
         const c = es.settings.data.columns;
         expect(file.text.slice(BOM.length).split('\r\n')).toEqual([
@@ -245,7 +241,7 @@ describe('the spreadsheet', () => {
             ],
         });
 
-        const file = await press(en.settings.data.spreadsheet);
+        const file = await press(en.settings.data.csv);
 
         const lines = file.text.slice(BOM.length).split('\r\n');
         expect(lines[1]!.split(',')[1]).toBe("'=1+1");
@@ -258,7 +254,7 @@ describe('the spreadsheet', () => {
         });
         await app.outbox.put(expense({ text: 'Waiting', date: '2026-10-25' }));
 
-        const file = await press(en.settings.data.spreadsheet);
+        const file = await press(en.settings.data.csv);
 
         expect(file.text).toContain('Synced');
         expect(file.text).toContain('Waiting');
@@ -278,8 +274,8 @@ describe('offline', () => {
         const calls = fetchMock.mock.calls.length;
         const requests = api.requests.length;
 
-        const json = await press(en.settings.data.backup);
-        const csv = await press(en.settings.data.spreadsheet);
+        const json = await press(en.settings.data.json);
+        const csv = await press(en.settings.data.csv);
 
         expect(JSON.parse(json.text).expenses).toHaveLength(1);
         expect(JSON.parse(json.text).budgets).toHaveLength(1);

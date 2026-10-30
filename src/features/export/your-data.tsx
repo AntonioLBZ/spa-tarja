@@ -23,7 +23,8 @@ const COLUMNS = [
     'part',
 ] as const;
 
-// A backup and a spreadsheet, made on the device from what it holds: the cache with the outbox on top. Nothing is sent (ADR-0001).
+// All the data as JSON and the expenses as CSV, made on the device from what it holds: the cache with the outbox on top.
+// Nothing is sent (ADR-0001).
 const YourData = () => {
     const t = useTranslations('settings.data');
     const tPayment = useTranslations('expenses.payment');
@@ -34,7 +35,7 @@ const YourData = () => {
     const { data: income = [] } = useQuery(incomeQuery());
     const { data: budgets = [] } = useQuery(budgetsQuery());
 
-    const downloadBackup = () => {
+    const downloadJson = () => {
         const now = new Date();
         downloadFile(
             exportFileName(now, 'json'),
@@ -43,7 +44,7 @@ const YourData = () => {
         );
     };
 
-    const downloadSpreadsheet = () => {
+    const downloadCsv = () => {
         const labels: CsvLabels = {
             columns: COLUMNS.map((column) => t(`columns.${column}`)),
             payments: { direct: tPayment('direct'), credit: tPayment('credit'), voucher: tPayment('voucher') },
@@ -61,8 +62,8 @@ const YourData = () => {
             <h2 className="your-data__title">{t('title')}</h2>
             <p className="your-data__hint">{t('description')}</p>
             <div className="your-data__actions">
-                <Button onClick={downloadBackup}>{t('backup')}</Button>
-                <Button onClick={downloadSpreadsheet}>{t('spreadsheet')}</Button>
+                <Button onClick={downloadJson}>{t('json')}</Button>
+                <Button onClick={downloadCsv}>{t('csv')}</Button>
             </div>
         </section>
     );

@@ -23,7 +23,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
     - `expense-counting.md`: what counts in a month (deferred payments, restaurant card, installments, income).
     - `expense-list.md` and `expenses.md`: the list (search, filters, groups) and adding, editing, duplicating and deleting an expense.
     - `budgets.md`, `charts.md`, `summary.md`, `categories.md`, `settings.md` and `header.md`: the rules and the screen of each.
-    - `export.md`: the backup and the spreadsheet.
+    - `export.md`: the JSON and the CSV files.
     - `offline-sync.md`: the outbox, the sync and the conflicts.
     - `authentication.md`: Better Auth, sessions and the local data of each user.
     - `frontend.md` and `testing-and-ci.md`: the client conventions, the tests and CI.

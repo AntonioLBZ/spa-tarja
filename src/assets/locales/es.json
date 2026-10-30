@@ -152,9 +152,9 @@
         },
         "data": {
             "title": "Tus datos",
-            "description": "Descarga una copia de tus gastos, de tus categorías y de tus ingresos. Se hace en este dispositivo, así que funciona sin conexión.",
-            "backup": "Copia de seguridad (JSON)",
-            "spreadsheet": "Hoja de cálculo (CSV)",
+            "description": "Descarga una copia de tus datos: todo en un archivo JSON, o solo los gastos en un CSV que se abre en una hoja de cálculo. Se hacen en este dispositivo, así que funcionan sin conexión.",
+            "json": "Todos tus datos (JSON)",
+            "csv": "Solo los gastos (CSV)",
             "columns": {
                 "date": "Fecha",
                 "text": "Texto",

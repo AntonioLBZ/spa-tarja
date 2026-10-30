@@ -152,9 +152,9 @@
         },
         "data": {
             "title": "Your data",
-            "description": "Download a copy of your expenses, your own categories and your income. It is made on this device, so it works offline.",
-            "backup": "Backup (JSON)",
-            "spreadsheet": "Spreadsheet (CSV)",
+            "description": "Download a copy of your data: everything in a JSON file, or just the expenses in a CSV file that opens in a spreadsheet. They are made on this device, so they work offline.",
+            "json": "All your data (JSON)",
+            "csv": "Only the expenses (CSV)",
             "columns": {
                 "date": "Date",
                 "text": "Text",
