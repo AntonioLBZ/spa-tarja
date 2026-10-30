@@ -17,7 +17,7 @@ interface StoryCategory {
 }
 
 // The categories of the app, named in the chosen language, and two of the person's own
-function useStoryCategories() {
+const useStoryCategories = () => {
     const t = useTranslations('categories');
 
     return useMemo(() => {
@@ -33,7 +33,6 @@ function useStoryCategories() {
             styleOf: (id: string) => byId.get(id)?.style ?? DEFAULT_CATEGORY_STYLES.other,
         };
     }, [t]);
-}
+};
 
-export { CUSTOM_CATEGORIES, useStoryCategories };
-export type { StoryCategory };
+export { CUSTOM_CATEGORIES, useStoryCategories, type StoryCategory };

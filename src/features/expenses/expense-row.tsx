@@ -37,7 +37,7 @@ interface ExpenseRowProps {
 }
 
 // An expense of the list. Pressing it opens a panel under it with what can be done to it.
-function ExpenseRow(props: ExpenseRowProps) {
+const ExpenseRow = (props: ExpenseRowProps) => {
     const { expenses, isPlan, pending, leaving, showDate, onEdit, onDuplicate, onDelete, toggleRef } = props;
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
@@ -64,10 +64,12 @@ function ExpenseRow(props: ExpenseRowProps) {
             ? t('paid', { total: formatAmount(expense.amountCents, expense.currency, locale) })
             : null;
 
+    const expenseClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
+
     return (
         <Disclosure
             as="li"
-            className={clsx('expense-item', leaving && 'expense-item--leaving')}
+            className={expenseClsx}
             chevron
             toggleRef={toggleRef}
             summary={
@@ -122,6 +124,6 @@ function ExpenseRow(props: ExpenseRowProps) {
             )}
         </Disclosure>
     );
-}
+};
 
-export { ExpenseRow };
+export { ExpenseRow, type ExpenseRowProps };

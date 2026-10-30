@@ -16,7 +16,13 @@ import './income-form.css';
 
 type Failure = 'saveFailed' | 'removeFailed';
 
-function IncomeForm(props: { month: string; monthName: string; income: Income | undefined }) {
+interface IncomeFormProps {
+    month: string;
+    monthName: string;
+    income: Income | undefined;
+}
+
+const IncomeForm = (props: IncomeFormProps) => {
     const { month, monthName, income } = props;
     const t = useTranslations('summary.form');
     const { locale } = useLocale();
@@ -39,7 +45,7 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
         setFailure(null);
     }
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const amountCents = parseAmount(value, locale);
         if (amountCents === null || amountCents < 1) {
@@ -57,9 +63,9 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
         } finally {
             setBusy(false);
         }
-    }
+    };
 
-    async function handleRemove() {
+    const handleRemove = async () => {
         setFailure(null);
         setBusy(true);
         try {
@@ -69,7 +75,7 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
         } finally {
             setBusy(false);
         }
-    }
+    };
 
     return (
         <form className="income-form" onSubmit={(event) => void handleSubmit(event)}>
@@ -107,6 +113,6 @@ function IncomeForm(props: { month: string; monthName: string; income: Income | 
             )}
         </form>
     );
-}
+};
 
-export { IncomeForm };
+export { IncomeForm, type IncomeFormProps };

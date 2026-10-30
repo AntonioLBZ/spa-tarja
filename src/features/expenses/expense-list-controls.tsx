@@ -31,7 +31,7 @@ interface ExpenseListControlsProps {
 
 // The search field and, under a toggle, the grouping and the filters of the expense list; while anything narrows the
 // list, a line that says how much of it is left
-function ExpenseListControls(props: ExpenseListControlsProps) {
+const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const { filters, grouping, shown, total, filtering, onFiltersChange, onGroupingChange, onClear } = props;
     const t = useTranslations('expenses.filters');
     const tList = useTranslations('expenses.list');
@@ -40,10 +40,12 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
     const search = useRef<HTMLInputElement>(null);
 
     // The button goes with the filters, so the focus goes to the field
-    function clear() {
+    const clear = () => {
         onClear();
         search.current?.focus();
-    }
+    };
+
+    const statusClsx = clsx('expense-list-controls__status', { 'expense-list-controls__status--idle': !filtering });
 
     return (
         <div className="expense-list-controls">
@@ -98,7 +100,7 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
                 />
             </Disclosure>
 
-            <div className={clsx('expense-list-controls__status', !filtering && 'expense-list-controls__status--idle')}>
+            <div className={statusClsx}>
                 <div role="status">
                     {filtering && (
                         <Notice tone="quiet">{shown === 0 ? tList('noMatch') : t('showing', { shown, total })}</Notice>
@@ -108,6 +110,6 @@ function ExpenseListControls(props: ExpenseListControlsProps) {
             </div>
         </div>
     );
-}
+};
 
-export { ExpenseListControls };
+export { ExpenseListControls, type ExpenseListControlsProps };

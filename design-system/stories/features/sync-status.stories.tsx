@@ -1,15 +1,20 @@
-import { SyncStatus } from '@/features/expenses/sync-status';
+import { SyncStatus as SyncStatusComponent } from '@/features/expenses/sync-status';
 import { useOutbox } from '@/lib/offline';
 import { onlineManager } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { AppData, sampleExpense } from './app-data';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
+
+interface SeedProps {
+    unsent: number;
+    refused: number;
+}
 
 // Puts what the story needs into the outbox of the signed-in person
-function Seed(props: { unsent?: number; refused?: number }) {
-    const { unsent = 0, refused = 0 } = props;
+const Seed = (props: SeedProps) => {
+    const { unsent, refused } = props;
     const outbox = useOutbox();
 
     useEffect(() => {
@@ -22,10 +27,22 @@ function Seed(props: { unsent?: number; refused?: number }) {
     }, [outbox, unsent, refused]);
 
     return null;
+};
+
+interface SyncStatusStoryProps {
+    offline: boolean;
+    // Expenses waiting to be sent, and expenses the server refused
+    unsent: number;
+    refused: number;
 }
 
-function Status(props: { offline?: boolean; unsent?: number; refused?: number }) {
-    const { offline = false, unsent, refused } = props;
+const Story: Meta<SyncStatusStoryProps> = {
+    title: 'Features/SyncStatus',
+    args: { offline: true, unsent: 3, refused: 2 },
+};
+
+export const SyncStatus = (args: SyncStatusStoryProps) => {
+    const { offline, unsent, refused } = args;
 
     useEffect(() => {
         onlineManager.setOnline(!offline);
@@ -34,33 +51,18 @@ function Status(props: { offline?: boolean; unsent?: number; refused?: number })
 
     return (
         // A server that can't be reached keeps what was put in the outbox from being sent
-        <AppData api={{}}>
+        <AppData key={`${unsent}:${refused}`} api={{}}>
             {(api) => {
                 api.state.offline = true;
                 return (
                     <>
                         <Seed unsent={unsent} refused={refused} />
-                        <SyncStatus />
+                        <SyncStatusComponent />
                     </>
                 );
             }}
         </AppData>
     );
-}
+};
 
-const meta = {
-    title: 'Features/SyncStatus',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Offline: Story = { render: () => <Status offline /> };
-
-const Waiting: Story = { render: () => <Status unsent={2} /> };
-
-const Refused: Story = { render: () => <Status refused={1} /> };
-
-const Everything: Story = { render: () => <Status offline unsent={3} refused={2} /> };
-
-export default meta;
-export { Everything, Offline, Refused, Waiting };
+export default Story;

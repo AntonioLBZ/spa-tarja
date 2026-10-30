@@ -6,7 +6,7 @@ import { INCOME_KEY, deleteIncome, putIncome } from '@/lib/api';
 import type { Income, IncomeInput } from '@core/income';
 
 // Each call waits for the server and then puts its answer in the cache, so the months never need a refetch
-function useIncomeActions() {
+const useIncomeActions = () => {
     const queryClient = useQueryClient();
 
     return useMemo(
@@ -28,6 +28,6 @@ function useIncomeActions() {
         }),
         [queryClient]
     );
-}
+};
 
 export { useIncomeActions };

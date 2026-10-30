@@ -34,7 +34,7 @@ import './charts.css';
 
 type Problem = 'rangeInvalid' | 'rangeTooLong';
 
-function Charts() {
+const Charts = () => {
     const t = useTranslations('charts');
     const id = useId();
     const { expenses } = useExpenses();
@@ -150,6 +150,6 @@ function Charts() {
                 ))}
         </section>
     );
-}
+};
 
 export { Charts };

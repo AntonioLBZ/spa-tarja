@@ -6,7 +6,7 @@ import { CATEGORIES_KEY, deleteCategory, putCategory } from '@/lib/api';
 import type { Category } from '@core/category';
 
 // Each call waits for the server and then puts its answer in the cache, so the list never needs a refetch
-function useCategoryActions() {
+const useCategoryActions = () => {
     const queryClient = useQueryClient();
 
     return useMemo(
@@ -28,6 +28,6 @@ function useCategoryActions() {
         }),
         [queryClient]
     );
-}
+};
 
 export { useCategoryActions };

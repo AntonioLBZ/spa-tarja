@@ -1,31 +1,30 @@
-import { IncomeForm } from '@/features/summary/income-form';
+import { IncomeForm as IncomeFormComponent, type IncomeFormProps } from '@/features/summary/income-form';
 
 import { AppData } from './app-data';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const MONTH = '2026-10';
-
-function Form(props: { amountCents?: number }) {
-    const { amountCents } = props;
-    const income = amountCents === undefined ? [] : [{ month: MONTH, amountCents, currency: 'EUR' }];
-
-    return (
-        <AppData api={{ income }}>
-            {() => <IncomeForm month={MONTH} monthName="October 2026" income={income[0]} />}
-        </AppData>
-    );
+interface IncomeFormStoryProps extends Omit<IncomeFormProps, 'income'> {
+    // Whether the month already has an income, of `amountCents`
+    isSet: boolean;
+    amountCents: number;
 }
 
-const meta = {
+const Story: Meta<IncomeFormStoryProps> = {
     title: 'Features/IncomeForm',
-} satisfies Meta;
+    args: { month: '2026-10', monthName: 'October 2026', isSet: false, amountCents: 150000 },
+    argTypes: { month: { control: 'text' }, monthName: { control: 'text' } },
+};
 
-type Story = StoryObj<typeof meta>;
+export const IncomeForm = (args: IncomeFormStoryProps) => {
+    const { month, monthName, isSet, amountCents } = args;
+    const income = isSet ? [{ month, amountCents, currency: 'EUR' }] : [];
 
-const NotSet: Story = { render: () => <Form /> };
+    return (
+        <AppData key={`${month}:${isSet}:${amountCents}`} api={{ income }}>
+            {() => <IncomeFormComponent month={month} monthName={monthName} income={income[0]} />}
+        </AppData>
+    );
+};
 
-const AlreadySet: Story = { render: () => <Form amountCents={150000} /> };
-
-export default meta;
-export { AlreadySet, NotSet };
+export default Story;

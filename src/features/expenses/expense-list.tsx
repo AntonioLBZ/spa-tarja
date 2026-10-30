@@ -25,7 +25,7 @@ import type { ListGroup } from '@core/expense-list';
 
 import './expense-list.css';
 
-function ExpenseList() {
+const ExpenseList = () => {
     const t = useTranslations('expenses.list');
     const { locale } = useLocale();
     const save = useSaveExpense();
@@ -61,22 +61,22 @@ function ExpenseList() {
 
     // The row the focus goes to when a row is deleted: the next one that stays, else the one before it. A row fading
     // out doesn't stay.
-    function neighbourOf(rowId: string): string | undefined {
+    const neighbourOf = (rowId: string): string | undefined => {
         const staying = groups
             .flatMap((group) => group.items.map((item) => shownExpense(item).id))
             .filter((id) => id === rowId || !leaving.has(id));
         const at = staying.indexOf(rowId);
         return staying[at + 1] ?? (at > 0 ? staying[at - 1] : undefined);
-    }
+    };
 
-    async function undo(deleted: readonly Expense[]) {
+    const undo = async (deleted: readonly Expense[]) => {
         await save(restoreExpenses(deleted));
         setRestored(deleted[0]!.id);
-    }
+    };
 
     // All the parts of a plan go together. The focus leaves the button that is going away for a neighbour row, or the
     // title when there is none. A toast offers to take it back.
-    function remove(expenses: readonly Expense[], now: number) {
+    const remove = (expenses: readonly Expense[], now: number) => {
         const neighbour = neighbourOf(expenses[0]!.id);
         const deleted = expenses.map((expense) => {
             const at = Math.max(now, expense.updatedAt + 1);
@@ -91,7 +91,7 @@ function ExpenseList() {
             message: t('deleted', { name: expenses[0]!.text || labelOf(expenses[0]!.categoryId) }),
             action: { label: t('undo'), onAction: () => void undo(deleted) },
         });
-    }
+    };
 
     // Days, weeks and months say the year only when the list goes over a New Year
     const formats = useMemo(() => {
@@ -103,7 +103,7 @@ function ExpenseList() {
         };
     }, [locale, list.spansYears]);
 
-    function labelOfGroup(group: ListGroup) {
+    const labelOfGroup = (group: ListGroup) => {
         if (grouping === 'category') {
             return (
                 <>
@@ -114,10 +114,15 @@ function ExpenseList() {
         }
         const day = fromDateString(group.key);
         return grouping === 'week' ? t('weekOf', { date: formats.week.format(day) }) : formats[grouping].format(day);
-    }
+    };
 
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
     if (!hasData && !isError && !isWaitingForNetwork) return null;
+
+    const labelClsx = clsx('expense-list__label', {
+        'expense-list__label--category': grouping === 'category',
+        'expense-list__label--date': grouping !== 'category',
+    });
 
     return (
         <section className="expense-list">
@@ -147,14 +152,7 @@ function ExpenseList() {
             {groups.map((group) => (
                 <section className="expense-list__group" key={group.key}>
                     <div className="expense-list__header">
-                        <h3
-                            className={clsx(
-                                'expense-list__label',
-                                grouping === 'category' ? 'expense-list__label--category' : 'expense-list__label--date'
-                            )}
-                        >
-                            {labelOfGroup(group)}
-                        </h3>
+                        <h3 className={labelClsx}>{labelOfGroup(group)}</h3>
                         <span className="expense-list__subtotal">
                             <span className="visually-hidden">{t('groupTotal')}</span>{' '}
                             {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
@@ -195,6 +193,6 @@ function ExpenseList() {
             )}
         </section>
     );
-}
+};
 
 export { ExpenseList };

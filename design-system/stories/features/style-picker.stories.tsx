@@ -1,23 +1,20 @@
-import { StylePicker } from '@/features/categories/style-picker';
-import { useState } from 'react';
+import { StylePicker as StylePickerComponent, type StylePickerProps } from '@/features/categories/style-picker';
+import { useArgs } from 'storybook/preview-api';
 
-import type { CategoryStyle } from '@core/category-style';
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-function StylePickerDemo() {
-    const [style, setStyle] = useState<CategoryStyle>({ color: 'green', icon: 'pets' });
-
-    return <StylePicker name="look" value={style} onChange={setStyle} />;
-}
-
-const meta = {
+const Story: Meta<StylePickerProps> = {
     title: 'Features/StylePicker',
-    render: () => <StylePickerDemo />,
-} satisfies Meta;
+    component: StylePickerComponent,
+    args: { name: 'look', value: { color: 'green', icon: 'pets' } },
+    argTypes: { name: { control: 'text' }, onChange: { control: false } },
+};
 
-type Story = StoryObj<typeof meta>;
+// The look is kept in the args, so the control follows what is clicked
+export const StylePicker = (args: StylePickerProps) => {
+    const [, updateArgs] = useArgs();
 
-const Default: Story = {};
+    return <StylePickerComponent {...args} onChange={(value) => updateArgs({ value })} />;
+};
 
-export default meta;
-export { Default };
+export default Story;

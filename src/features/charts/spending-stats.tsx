@@ -34,7 +34,7 @@ const DAYS_WITH_YEAR: Intl.DateTimeFormatOptions = { ...DAYS, year: 'numeric' };
 
 // The total of the range and how it changed against an earlier span of the same length: an arrow and a signed share,
 // never a color
-function SpendingStats(props: SpendingStatsProps) {
+const SpendingStats = (props: SpendingStatsProps) => {
     const { totalCents, compared, partial, today } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
@@ -54,14 +54,14 @@ function SpendingStats(props: SpendingStatsProps) {
     );
 
     // Whole months read as months; any other span as days, with the year when it isn't this one
-    function spanName(span: Range) {
+    const spanName = (span: Range) => {
         const wholeMonths = span.from.endsWith('-01') && span.to === endOfMonth(span.to);
         const year = span.from.slice(0, 4) !== span.to.slice(0, 4) || span.to.slice(0, 4) !== today.slice(0, 4);
         const format = wholeMonths ? formats.months : year ? formats.daysWithYear : formats.days;
         return format.formatRange(fromDateString(span.from), fromDateString(span.to));
-    }
+    };
 
-    function changeLine(totals: ComparedTotals) {
+    const changeLine = (totals: ComparedTotals) => {
         const period = spanName(totals.previous);
         const current = spanName(totals.current);
         if (totals.previousCents === 0) {
@@ -77,7 +77,7 @@ function SpendingStats(props: SpendingStatsProps) {
             arrow: change > 0 ? '↑' : change < 0 ? '↓' : null,
             text: partial ? t('vsPreviousSoFar', values) : t('vsPrevious', values),
         };
-    }
+    };
 
     const line = compared && changeLine(compared);
 
@@ -99,6 +99,6 @@ function SpendingStats(props: SpendingStatsProps) {
             )}
         </Card>
     );
-}
+};
 
-export { SpendingStats };
+export { SpendingStats, type SpendingStatsProps };

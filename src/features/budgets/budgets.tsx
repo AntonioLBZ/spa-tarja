@@ -21,7 +21,7 @@ import { useBudgets } from './use-budgets';
 
 import './budgets.css';
 
-function Budgets() {
+const Budgets = () => {
     const t = useTranslations('budgets');
     const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
@@ -69,12 +69,12 @@ function Budgets() {
         return cents === null || cents !== heldCents(scope);
     });
 
-    function sinceName(since: string) {
+    const sinceName = (since: string) => {
         const day = fromDateString(`${since}-01`);
         return (since.slice(0, 4) === month.slice(0, 4) ? monthOnly : monthFormat).format(day);
-    }
+    };
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = changed.map((scope) => ({ scope, amountCents: centsOf(scope) }));
         const refused = parsed.filter((item) => item.amountCents === null).map((item) => item.scope);
@@ -97,7 +97,7 @@ function Budgets() {
         } finally {
             setBusy(false);
         }
-    }
+    };
 
     return (
         <section className="budgets">
@@ -181,6 +181,6 @@ function Budgets() {
             </form>
         </section>
     );
-}
+};
 
 export { Budgets };

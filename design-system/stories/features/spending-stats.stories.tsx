@@ -1,10 +1,10 @@
-import { SpendingStats } from '@/features/charts/spending-stats';
+import { SpendingStats as SpendingStatsComponent, type SpendingStatsProps } from '@/features/charts/spending-stats';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<SpendingStatsProps> = {
     title: 'Features/SpendingStats',
-    component: SpendingStats,
+    component: SpendingStatsComponent,
     args: {
         totalCents: 84210,
         partial: false,
@@ -16,26 +16,11 @@ const meta = {
             previousCents: 76000,
         },
     },
-} satisfies Meta<typeof SpendingStats>;
-
-type Story = StoryObj<typeof meta>;
-
-const Up: Story = {};
-
-const Down: Story = {
-    args: {
-        compared: {
-            current: { from: '2026-10-01', to: '2026-10-29' },
-            previous: { from: '2026-09-02', to: '2026-09-30' },
-            currentCents: 52000,
-            previousCents: 76000,
-        },
-    },
+    argTypes: { today: { control: 'text' } },
 };
 
-const PartialRange: Story = { args: { partial: true } };
+export const SpendingStats = (args: SpendingStatsProps) => {
+    return <SpendingStatsComponent {...args} />;
+};
 
-const NothingToCompare: Story = { args: { compared: null } };
-
-export default meta;
-export { Down, NothingToCompare, PartialRange, Up };
+export default Story;

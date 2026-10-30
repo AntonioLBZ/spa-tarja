@@ -21,7 +21,7 @@ import { IncomeForm } from './income-form';
 
 import './summary.css';
 
-function Summary() {
+const Summary = () => {
     const t = useTranslations('summary');
     const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
@@ -35,6 +35,9 @@ function Summary() {
     const set = income.data?.find((item) => item.month === month);
     const summary = summarizeMonth(month, expenses, set?.amountCents ?? null);
     const money = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
+    const leftClsx = clsx('summary__value', {
+        'summary__value--negative': summary.leftCents !== null && summary.leftCents < 0,
+    });
 
     return (
         <section className="summary">
@@ -71,9 +74,7 @@ function Summary() {
                 {summary.leftCents !== null && (
                     <Card className="summary__row summary__row--left">
                         <dt>{t('left')}</dt>
-                        <dd className={clsx('summary__value', summary.leftCents < 0 && 'summary__value--negative')}>
-                            {money(summary.leftCents)}
-                        </dd>
+                        <dd className={leftClsx}>{money(summary.leftCents)}</dd>
                     </Card>
                 )}
             </CardList>
@@ -100,6 +101,6 @@ function Summary() {
             </div>
         </section>
     );
-}
+};
 
 export { Summary };

@@ -23,18 +23,18 @@ interface Identity {
     createdAt: number;
 }
 
-function byPart(a: Expense, b: Expense): number {
+const byPart = (a: Expense, b: Expense): number => {
     return (a.plan?.part ?? 0) - (b.plan?.part ?? 0);
-}
+};
 
 // The parts to write for what the form holds, each with the identity it is given
-function partsOf(
+const partsOf = (
     draft: Draft,
     identities: readonly Identity[],
     planId: string,
     updatedAt: number,
     currency: string
-): Expense[] {
+): Expense[] => {
     const parts = draft.amounts.length;
     const dates = installmentDates(draft.date, parts);
 
@@ -54,18 +54,18 @@ function partsOf(
         updatedAt,
         deletedAt: null,
     }));
-}
+};
 
 // The expenses to save for what the form holds: one, or a part for each installment linked as a plan. A copy keeps the
 // currency of the expense it copies.
-function createExpenses(draft: Draft, currency = DEFAULT_CURRENCY): Expense[] {
+const createExpenses = (draft: Draft, currency = DEFAULT_CURRENCY): Expense[] => {
     const now = Date.now();
     const identities = draft.amounts.map(() => ({ id: crypto.randomUUID(), createdAt: now }));
     return partsOf(draft, identities, crypto.randomUUID(), now, currency);
-}
+};
 
 // Whether the form can load them: an expense, or a plan with every one of its parts on this device
-function canEdit(parts: readonly Expense[]): boolean {
+const canEdit = (parts: readonly Expense[]): boolean => {
     const plan = parts[0]?.plan;
     if (!plan) return parts.length === 1;
     return (
@@ -77,10 +77,10 @@ function canEdit(parts: readonly Expense[]): boolean {
                     part.plan?.id === plan.id && part.plan.parts === plan.parts && part.plan.part === index + 1
             )
     );
-}
+};
 
 // What the form shows for an expense, or for every part of a plan (`canEdit`)
-function draftOf(parts: readonly Expense[]): Draft {
+const draftOf = (parts: readonly Expense[]): Draft => {
     const sorted = parts.toSorted(byPart);
     const first = sorted[0]!;
     const payment = paymentOf(first);
@@ -94,10 +94,10 @@ function draftOf(parts: readonly Expense[]): Draft {
         personalCents: payment === 'voucher' ? (first.personalCents ?? null) : null,
         amounts: sorted.map((part) => part.amountCents),
     };
-}
+};
 
 // The writes that turn an expense, or every part of a plan, into what the form holds
-function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.now()): Expense[] {
+const reviseExpenses = (original: readonly Expense[], draft: Draft, now = Date.now()): Expense[] => {
     const sorted = original.toSorted(byPart);
     const first = sorted[0]!;
     const updatedAt = Math.max(now, ...sorted.map((part) => part.updatedAt + 1));
@@ -108,16 +108,15 @@ function reviseExpenses(original: readonly Expense[], draft: Draft, now = Date.n
     const removed = sorted.slice(draft.amounts.length).map((part) => ({ ...part, updatedAt, deletedAt: updatedAt }));
 
     return [...partsOf(draft, identities, planId, updatedAt, first.currency), ...removed];
-}
+};
 
 // The writes that take back a delete: every deleted part again, newer than its delete so it wins on every device
-function restoreExpenses(deleted: readonly Expense[], now = Date.now()): Expense[] {
+const restoreExpenses = (deleted: readonly Expense[], now = Date.now()): Expense[] => {
     return deleted.map((part) => ({
         ...part,
         updatedAt: Math.max(now, (part.deletedAt ?? part.updatedAt) + 1),
         deletedAt: null,
     }));
-}
+};
 
-export { canEdit, createExpenses, draftOf, restoreExpenses, reviseExpenses };
-export type { Draft };
+export { canEdit, createExpenses, draftOf, restoreExpenses, reviseExpenses, type Draft };

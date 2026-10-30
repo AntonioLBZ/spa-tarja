@@ -10,7 +10,7 @@ import { useExpenses } from './use-expenses';
 // The category to suggest for a description: the one the keywords give and, only when they find nothing, the one the
 // person's own earlier expenses point to. Left off, as for an expense that already has its
 // category, it never looks at the history.
-function useSuggestCategory(enabled: boolean) {
+const useSuggestCategory = (enabled: boolean) => {
     const { expenses } = useExpenses();
     const { options } = useCategoryOptions();
 
@@ -28,6 +28,6 @@ function useSuggestCategory(enabled: boolean) {
         },
         [index]
     );
-}
+};
 
 export { useSuggestCategory };

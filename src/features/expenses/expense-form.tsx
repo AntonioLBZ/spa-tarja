@@ -61,7 +61,7 @@ interface StartingFields {
 
 // What the fields start with: empty for a new expense, what was saved for one being edited. A copy has the same, but
 // made today and, when it is deferred, charged on the day the form proposes.
-function startingFields(draft: Draft | null, locale: string, copy: boolean): StartingFields {
+const startingFields = (draft: Draft | null, locale: string, copy: boolean): StartingFields => {
     if (!draft) {
         return {
             amount: '',
@@ -96,9 +96,9 @@ function startingFields(draft: Draft | null, locale: string, copy: boolean): Sta
                   }
                 : null,
     };
-}
+};
 
-function ExpenseForm(props: ExpenseFormProps) {
+const ExpenseForm = (props: ExpenseFormProps) => {
     const { title, editing = null, copying = null, onDone, onAdded } = props;
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
@@ -178,11 +178,11 @@ function ExpenseForm(props: ExpenseFormProps) {
                   ? 'remaining'
                   : null;
 
-    function editPart(index: number, value: string) {
+    const editPart = (index: number, value: string) => {
         setEditedParts({ key: partsKey, values: partTexts.map((text, at) => (at === index ? value : text)) });
-    }
+    };
 
-    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         const amountCents = totalCents;
@@ -245,7 +245,7 @@ function ExpenseForm(props: ExpenseFormProps) {
         } finally {
             setSaving(false);
         }
-    }
+    };
 
     // Its visible title is the heading that collapses it (AddExpense)
     return (
@@ -444,6 +444,6 @@ function ExpenseForm(props: ExpenseFormProps) {
             </div>
         </form>
     );
-}
+};
 
-export { ExpenseForm };
+export { ExpenseForm, type ExpenseFormProps };

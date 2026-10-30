@@ -7,7 +7,7 @@ import { useOnline, useOutbox } from '@/lib/offline';
 
 import './sync-status.css';
 
-function SyncStatus() {
+const SyncStatus = () => {
     const t = useTranslations('sync');
     const outbox = useOutbox();
     const { pending, rejected } = useSyncExternalStore(outbox.subscribe, outbox.getState);
@@ -29,6 +29,6 @@ function SyncStatus() {
             )}
         </div>
     );
-}
+};
 
 export { SyncStatus };

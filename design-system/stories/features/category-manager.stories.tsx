@@ -1,23 +1,29 @@
-import { CategoryManager } from '@/features/categories/category-manager';
+import { CategoryManager as CategoryManagerComponent } from '@/features/categories/category-manager';
 
 import { AppData } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+interface CategoryManagerStoryProps {
+    // Whether the person has categories of their own besides the built-in ones
+    ownCategories: boolean;
+}
+
+const Story: Meta<CategoryManagerStoryProps> = {
     title: 'Features/CategoryManager',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const WithTheirOwn: Story = {
-    render: () => <AppData api={{ categories: [...CUSTOM_CATEGORIES] }}>{() => <CategoryManager />}</AppData>,
+    args: { ownCategories: true },
 };
 
-const OnlyTheDefaults: Story = {
-    render: () => <AppData api={{ categories: [] }}>{() => <CategoryManager />}</AppData>,
+export const CategoryManager = (args: CategoryManagerStoryProps) => {
+    const { ownCategories } = args;
+    const categories = ownCategories ? [...CUSTOM_CATEGORIES] : [];
+
+    return (
+        <AppData key={String(ownCategories)} api={{ categories }}>
+            {() => <CategoryManagerComponent />}
+        </AppData>
+    );
 };
 
-export default meta;
-export { OnlyTheDefaults, WithTheirOwn };
+export default Story;

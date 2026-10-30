@@ -15,11 +15,12 @@ interface StylePickerProps {
 
 // Picks the color and the icon of a category. Each color is shown on the current icon and each icon in the current
 // color, so every option reads as the result of choosing it.
-function StylePicker(props: StylePickerProps) {
+const StylePicker = (props: StylePickerProps) => {
     const { name, value, onChange } = props;
     const t = useTranslations('categoryManager.look');
     const tColor = useTranslations('categoryColors');
     const tIcon = useTranslations('categoryIcons');
+    const inputClsx = clsx('visually-hidden', 'style-picker__input');
 
     return (
         <div className="style-picker">
@@ -29,7 +30,7 @@ function StylePicker(props: StylePickerProps) {
                     {CATEGORY_COLORS.map((color) => (
                         <label className="style-picker__option" key={color} title={tColor(color)}>
                             <input
-                                className={clsx('visually-hidden', 'style-picker__input')}
+                                className={inputClsx}
                                 aria-label={tColor(color)}
                                 checked={value.color === color}
                                 name={`${name}-color`}
@@ -50,7 +51,7 @@ function StylePicker(props: StylePickerProps) {
                     {CATEGORY_ICONS.map((icon) => (
                         <label className="style-picker__option" key={icon} title={tIcon(icon)}>
                             <input
-                                className={clsx('visually-hidden', 'style-picker__input')}
+                                className={inputClsx}
                                 aria-label={tIcon(icon)}
                                 checked={value.icon === icon}
                                 name={`${name}-icon`}
@@ -67,6 +68,6 @@ function StylePicker(props: StylePickerProps) {
             </fieldset>
         </div>
     );
-}
+};
 
-export { StylePicker };
+export { StylePicker, type StylePickerProps };

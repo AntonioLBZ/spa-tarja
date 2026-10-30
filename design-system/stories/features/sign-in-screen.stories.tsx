@@ -1,30 +1,26 @@
-import { SignInScreen } from '@/features/auth/sign-in-screen';
+import { SignInScreen as SignInScreenComponent, type SignInScreenProps } from '@/features/auth/sign-in-screen';
 import { AuthProvider } from '@/lib/auth';
 import { createFakeAuth } from '@/lib/test/fake-auth';
+import { useState } from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-// Nobody is signed in, which is what the screen is for
-function SignedOut(props: { unreachable: boolean }) {
-    const { unreachable } = props;
+const Story: Meta<SignInScreenProps> = {
+    title: 'Features/SignInScreen',
+    component: SignInScreenComponent,
+    args: { unreachable: false },
+    parameters: { layout: 'fullscreen' },
+};
+
+export const SignInScreen = (args: SignInScreenProps) => {
+    // Nobody is signed in, which is what the screen is for
+    const [auth] = useState(() => createFakeAuth({ session: null, cached: null }).auth);
 
     return (
-        <AuthProvider auth={createFakeAuth({ session: null, cached: null }).auth}>
-            <SignInScreen unreachable={unreachable} />
+        <AuthProvider auth={auth}>
+            <SignInScreenComponent {...args} />
         </AuthProvider>
     );
-}
+};
 
-const meta = {
-    title: 'Features/SignInScreen',
-    parameters: { layout: 'fullscreen' },
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = { render: () => <SignedOut unreachable={false} /> };
-
-const ServerUnreachable: Story = { render: () => <SignedOut unreachable /> };
-
-export default meta;
-export { Default, ServerUnreachable };
+export default Story;

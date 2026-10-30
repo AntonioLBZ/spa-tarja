@@ -26,7 +26,7 @@ interface CategoryRowProps {
 }
 
 // A category the person made. Pressing it opens a panel under it: Edit and Delete, and what each of them needs.
-function CategoryRow(props: CategoryRowProps) {
+const CategoryRow = (props: CategoryRowProps) => {
     const { category, disabled, isTaken, onSave, onDelete, fallbackLabel } = props;
     const t = useTranslations('categoryManager');
     const [expanded, setExpanded] = useState(false);
@@ -49,19 +49,19 @@ function CategoryRow(props: CategoryRowProps) {
         shownMode.current = mode;
     }, [mode]);
 
-    function begin(next: 'edit' | 'delete') {
+    const begin = (next: 'edit' | 'delete') => {
         setOpener(next);
         setDraft(category.name);
         setLook({ color: category.color, icon: category.icon });
         setMode(next);
-    }
+    };
 
-    function close() {
+    const close = () => {
         setMode('view');
         setError(null);
-    }
+    };
 
-    async function handleSave(event: FormEvent<HTMLFormElement>) {
+    const handleSave = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const name = draft.trim();
         if (!name) return;
@@ -79,15 +79,15 @@ function CategoryRow(props: CategoryRowProps) {
         }
         close();
         setExpanded(false);
-    }
+    };
 
-    async function handleDelete() {
+    const handleDelete = async () => {
         setBusy(true);
         setError(null);
         const deleted = await onDelete();
         setBusy(false);
         if (!deleted) setError('deleteFailed');
-    }
+    };
 
     const message = error && (
         <Notice tone="danger" role="alert">
@@ -187,6 +187,6 @@ function CategoryRow(props: CategoryRowProps) {
             )}
         </Disclosure>
     );
-}
+};
 
-export { CategoryRow };
+export { CategoryRow, type CategoryRowProps };

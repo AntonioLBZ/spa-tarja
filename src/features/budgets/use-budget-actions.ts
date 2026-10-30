@@ -6,7 +6,7 @@ import { BUDGETS_KEY, putBudgets } from '@/lib/api';
 import type { Budget, BudgetLimitsInput } from '@core/budget';
 
 // Waits for the server and then puts its answer in the cache, so the months never need a refetch
-function useBudgetActions() {
+const useBudgetActions = () => {
     const queryClient = useQueryClient();
 
     return useMemo(
@@ -23,6 +23,6 @@ function useBudgetActions() {
         }),
         [queryClient]
     );
-}
+};
 
 export { useBudgetActions };

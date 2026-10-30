@@ -11,11 +11,15 @@ import './sign-in-screen.css';
 type Phase = 'idle' | 'opening' | 'failed';
 
 // Google sends the person back to `/?signin=failed` when the sign-in didn't go through
-function cameBackFailed(): boolean {
+const cameBackFailed = (): boolean => {
     return new URLSearchParams(window.location.search).get('signin') === 'failed';
+};
+
+interface SignInScreenProps {
+    unreachable: boolean;
 }
 
-function SignInScreen(props: { unreachable: boolean }) {
+const SignInScreen = (props: SignInScreenProps) => {
     const { unreachable } = props;
     const t = useTranslations('auth');
     const { signIn } = useAuth();
@@ -30,14 +34,14 @@ function SignInScreen(props: { unreachable: boolean }) {
         return () => window.removeEventListener('pageshow', reset);
     }, []);
 
-    async function start() {
+    const start = async () => {
         setPhase('opening');
         try {
             await signIn();
         } catch {
             setPhase('failed');
         }
-    }
+    };
 
     return (
         <main className="sign-in">
@@ -59,6 +63,6 @@ function SignInScreen(props: { unreachable: boolean }) {
             </Button>
         </main>
     );
-}
+};
 
-export { SignInScreen };
+export { SignInScreen, type SignInScreenProps };

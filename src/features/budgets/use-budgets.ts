@@ -9,7 +9,7 @@ import { FALLBACK_CATEGORY_ID } from '@core/categories';
 // The limits the person set, with what lets them be read: the scopes that exist (the total, then each category in the
 // order of the list) and how an expense is filed, a category that no longer exists reading as the fallback. The rows
 // of a scope that doesn't exist are left out.
-function useBudgets() {
+const useBudgets = () => {
     const { options } = useCategoryOptions();
     const { data, isError } = useQuery(budgetsQuery());
 
@@ -24,6 +24,6 @@ function useBudgets() {
             isError: isError && data === undefined,
         };
     }, [options, data, isError]);
-}
+};
 
 export { useBudgets };

@@ -8,7 +8,7 @@ import type { Expense } from '@core/expense';
 
 // Saving never waits for the network: the expense is safe on the device once this resolves, and so are all of them when
 // given several (the parts of a plan). It rejects only when the device can't store it.
-function useSaveExpense() {
+const useSaveExpense = () => {
     const outbox = useOutbox();
     const queryClient = useQueryClient();
 
@@ -20,6 +20,6 @@ function useSaveExpense() {
         },
         [outbox, queryClient]
     );
-}
+};
 
 export { useSaveExpense };

@@ -8,7 +8,7 @@ import { applyPending } from '@core/expense-merge';
 const RETRY_EVERY_MS = 30_000;
 
 // The expenses as the person sees them: what the server told this device, with their unsynced changes on top
-function useExpenses() {
+const useExpenses = () => {
     const outbox = useOutbox();
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const query = useQuery({ ...expensesQuery(outbox), refetchInterval: pending.length > 0 ? RETRY_EVERY_MS : false });
@@ -27,6 +27,6 @@ function useExpenses() {
         // Waiting for the connection rather than loading
         isWaitingForNetwork: query.fetchStatus === 'paused',
     };
-}
+};
 
 export { useExpenses };

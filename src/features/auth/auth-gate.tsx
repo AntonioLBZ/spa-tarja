@@ -6,8 +6,12 @@ import { SignInScreen } from './sign-in-screen';
 
 import type { ReactNode } from 'react';
 
+interface AuthGateProps {
+    children: ReactNode;
+}
+
 // The app is for whoever is signed in; everybody else gets the way to do so
-function AuthGate(props: { children: ReactNode }) {
+const AuthGate = (props: AuthGateProps) => {
     const { children } = props;
     const t = useTranslations('auth');
     const { state } = useAuth();
@@ -27,6 +31,6 @@ function AuthGate(props: { children: ReactNode }) {
             {children}
         </UserProvider>
     );
-}
+};
 
-export { AuthGate };
+export { AuthGate, type AuthGateProps };

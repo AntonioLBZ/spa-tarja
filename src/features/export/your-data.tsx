@@ -24,7 +24,7 @@ const COLUMNS = [
 ] as const;
 
 // A backup and a spreadsheet, made on the device from what it holds: the cache with the outbox on top. Nothing is sent (ADR-0001).
-function YourData() {
+const YourData = () => {
     const t = useTranslations('settings.data');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
@@ -34,16 +34,16 @@ function YourData() {
     const { data: income = [] } = useQuery(incomeQuery());
     const { data: budgets = [] } = useQuery(budgetsQuery());
 
-    function downloadBackup() {
+    const downloadBackup = () => {
         const now = new Date();
         downloadFile(
             exportFileName(now, 'json'),
             backupJson({ expenses, categories, income, budgets }, now),
             'application/json'
         );
-    }
+    };
 
-    function downloadSpreadsheet() {
+    const downloadSpreadsheet = () => {
         const labels: CsvLabels = {
             columns: COLUMNS.map((column) => t(`columns.${column}`)),
             payments: { direct: tPayment('direct'), credit: tPayment('credit'), voucher: tPayment('voucher') },
@@ -54,7 +54,7 @@ function YourData() {
             expensesCsv(expenses, locale, labels),
             'text/csv;charset=utf-8'
         );
-    }
+    };
 
     return (
         <section className="your-data">
@@ -66,6 +66,6 @@ function YourData() {
             </div>
         </section>
     );
-}
+};
 
 export { YourData };

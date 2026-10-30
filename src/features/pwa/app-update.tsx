@@ -4,7 +4,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react';
 import { UpdatePrompt } from './update-prompt';
 
 // Offers the new version of the app once the service worker has it waiting
-function AppUpdate() {
+const AppUpdate = () => {
     const t = useTranslations('pwa.update');
     const {
         needRefresh: [needRefresh, setNeedRefresh],
@@ -21,6 +21,6 @@ function AppUpdate() {
             onDismiss={() => setNeedRefresh(false)}
         />
     );
-}
+};
 
 export { AppUpdate };

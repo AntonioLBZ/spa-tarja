@@ -43,7 +43,7 @@ interface SpendingChartProps {
 
 // Spending over time: a column for each bucket on a round scale, the biggest and today's marked by shape, a readout of
 // the column picked by tap or by the arrows, and the numbers in a table for whoever can't see the columns
-function SpendingChart(props: SpendingChartProps) {
+const SpendingChart = (props: SpendingChartProps) => {
     const { buckets, granularity, today, category } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
@@ -115,7 +115,7 @@ function SpendingChart(props: SpendingChartProps) {
         else if (left + slot > box.scrollLeft + box.clientWidth) box.scrollLeft = left + slot - box.clientWidth;
     }, [index, count]);
 
-    function handleKeyDown(event: KeyboardEvent<SVGSVGElement>) {
+    const handleKeyDown = (event: KeyboardEvent<SVGSVGElement>) => {
         // Alt with an arrow is the browser's back and forward
         if (event.altKey || event.ctrlKey || event.metaKey) return;
         const last = count - 1;
@@ -129,12 +129,12 @@ function SpendingChart(props: SpendingChartProps) {
         if (next === undefined) return;
         event.preventDefault();
         select(next);
-    }
+    };
 
-    function handleClick(event: MouseEvent<SVGSVGElement>) {
+    const handleClick = (event: MouseEvent<SVGSVGElement>) => {
         const slot = (event.target as Element).closest('[data-index]');
         if (slot) select(Number(slot.getAttribute('data-index')));
-    }
+    };
 
     const top = (share: number) => HEADROOM + PLOT * (1 - share);
 
@@ -165,20 +165,23 @@ function SpendingChart(props: SpendingChartProps) {
                         onClick={handleClick}
                         onKeyDown={handleKeyDown}
                     >
-                        {buckets.map((bucket, at) => (
-                            <rect
-                                className={clsx(
-                                    'spending-chart__slot',
-                                    at === index && 'spending-chart__slot--selected'
-                                )}
-                                key={bucket.start}
-                                data-index={at}
-                                x={at}
-                                y={0}
-                                width={1}
-                                height={HEADROOM + PLOT}
-                            />
-                        ))}
+                        {buckets.map((bucket, at) => {
+                            const slotClsx = clsx('spending-chart__slot', {
+                                'spending-chart__slot--selected': at === index,
+                            });
+
+                            return (
+                                <rect
+                                    className={slotClsx}
+                                    key={bucket.start}
+                                    data-index={at}
+                                    x={at}
+                                    y={0}
+                                    width={1}
+                                    height={HEADROOM + PLOT}
+                                />
+                            );
+                        })}
                         {scale.ticks.slice(1).map((tick) => (
                             <line
                                 className="spending-chart__grid"
@@ -190,21 +193,24 @@ function SpendingChart(props: SpendingChartProps) {
                                 vectorEffect="non-scaling-stroke"
                             />
                         ))}
-                        {buckets.map((bucket, at) => (
-                            <rect
-                                className={clsx(
-                                    'spending-chart__column',
-                                    bucket.totalCents > 0 && 'spending-chart__column--spent',
-                                    at === index && 'spending-chart__column--selected'
-                                )}
-                                key={bucket.start}
-                                x={at + gap / 2}
-                                y={HEADROOM}
-                                width={1 - gap}
-                                height={PLOT}
-                                style={{ '--share': bucket.totalCents / scale.max } as CSSProperties}
-                            />
-                        ))}
+                        {buckets.map((bucket, at) => {
+                            const columnClsx = clsx('spending-chart__column', {
+                                'spending-chart__column--spent': bucket.totalCents > 0,
+                                'spending-chart__column--selected': at === index,
+                            });
+
+                            return (
+                                <rect
+                                    className={columnClsx}
+                                    key={bucket.start}
+                                    x={at + gap / 2}
+                                    y={HEADROOM}
+                                    width={1 - gap}
+                                    height={PLOT}
+                                    style={{ '--share': bucket.totalCents / scale.max } as CSSProperties}
+                                />
+                            );
+                        })}
                         {todayAt >= 0 && (
                             <rect
                                 className="spending-chart__today"
@@ -261,6 +267,6 @@ function SpendingChart(props: SpendingChartProps) {
             </Disclosure>
         </div>
     );
-}
+};
 
-export { SpendingChart };
+export { SpendingChart, type SpendingChartProps };

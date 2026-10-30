@@ -17,7 +17,7 @@ const PAGE_SIZE = 100;
 
 // The expenses of the home screen, narrowed by the filters and grouped. The filters are state of the screen; the
 // grouping is a stored preference.
-function useExpenseList() {
+const useExpenseList = () => {
     const { expenses, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenses();
     const { options, labelOf } = useCategoryOptions();
     const { added } = useAddForm();
@@ -69,31 +69,31 @@ function useExpenseList() {
         setLimit(PAGE_SIZE);
     }
 
-    function changeFilters(patch: Partial<ListFilters>) {
+    const changeFilters = (patch: Partial<ListFilters>) => {
         setFilters((current) => ({ ...current, ...patch }));
         setLimit(PAGE_SIZE);
-    }
+    };
 
-    function clearFilters() {
+    const clearFilters = () => {
         setFilters(NO_FILTERS);
         setLimit(PAGE_SIZE);
-    }
+    };
 
-    function changeGrouping(next: ListGrouping) {
+    const changeGrouping = (next: ListGrouping) => {
         setGrouping(next);
         storeGrouping(next);
         setLimit(PAGE_SIZE);
-    }
+    };
 
     // Adds a page of rows and says which expense its first new row shows, for the focus to go there
-    function showMore(): string | null {
+    const showMore = (): string | null => {
         const next = groups.flatMap((group) => group.items)[shown - hiddenRows];
         setLimit((current) => current + PAGE_SIZE);
         return next ? shownExpense(next).id : null;
-    }
+    };
 
     // Keeps the expenses on screen for the length of the fade-out that deleting them starts
-    function fadeOut(deleted: readonly Expense[]) {
+    const fadeOut = (deleted: readonly Expense[]) => {
         const duration = readDuration('--duration-base');
         if (duration === 0) return;
         setLeaving((current) => new Map([...current, ...deleted.map((expense) => [expense.id, expense] as const)]));
@@ -106,7 +106,7 @@ function useExpenseList() {
             });
         }, duration);
         timers.current.add(timer);
-    }
+    };
 
     return {
         // The groups to draw, cut at the limit, and how many rows that leaves out
@@ -130,6 +130,6 @@ function useExpenseList() {
         showMore,
         fadeOut,
     };
-}
+};
 
 export { useExpenseList };

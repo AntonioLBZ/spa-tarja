@@ -1,12 +1,10 @@
-import { BudgetBars } from '@/features/budgets/budget-bars';
+import { BudgetBars as BudgetBarsComponent, type BudgetBarsProps } from '@/features/budgets/budget-bars';
 import { TOTAL_SCOPE } from '@core/budget';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
-
-const MONTH = '2026-10';
+import type { Meta } from '@storybook/react-vite';
 
 const EXPENSES = [
     sampleExpense('22222222-2222-4222-8222-222222222221', '2026-10-03', { categoryId: 'food', amountCents: 21000 }),
@@ -23,44 +21,37 @@ const EXPENSES = [
     }),
 ];
 
-function limit(scope: string, amountCents: number) {
-    return { month: MONTH, scope, amountCents, currency: 'EUR' };
+interface BudgetBarsStoryProps extends BudgetBarsProps {
+    // The limit in cents of the total and of each category; what is left out has none
+    limits: Record<string, number>;
 }
 
-function Bars(props: { limits: ReturnType<typeof limit>[] }) {
-    const { limits } = props;
+const Story: Meta<BudgetBarsStoryProps> = {
+    title: 'Features/BudgetBars',
+    args: {
+        month: '2026-10',
+        limits: { [TOTAL_SCOPE]: 100000, food: 30000, groceries: 40000, leisure: 20000, 'custom-pets': 4000 },
+    },
+    argTypes: { month: { control: 'text' } },
+};
+
+export const BudgetBars = (args: BudgetBarsStoryProps) => {
+    const { month, limits } = args;
+    const budgets = Object.entries(limits).map(([scope, amountCents]) => ({
+        month,
+        scope,
+        amountCents,
+        currency: 'EUR',
+    }));
 
     return (
-        <AppData api={{ categories: [...CUSTOM_CATEGORIES], expenses: EXPENSES, budgets: limits }}>
-            {() => <BudgetBars month={MONTH} />}
+        <AppData
+            key={`${month}:${JSON.stringify(limits)}`}
+            api={{ categories: [...CUSTOM_CATEGORIES], expenses: EXPENSES, budgets }}
+        >
+            {() => <BudgetBarsComponent month={month} />}
         </AppData>
     );
-}
-
-const meta = {
-    title: 'Features/BudgetBars',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-// Under the limit, near it and over it
-const Mixed: Story = {
-    render: () => (
-        <Bars
-            limits={[
-                limit(TOTAL_SCOPE, 100000),
-                limit('food', 30000),
-                limit('groceries', 40000),
-                limit('leisure', 20000),
-                limit('custom-pets', 4000),
-            ]}
-        />
-    ),
 };
 
-const OnlyTheTotal: Story = {
-    render: () => <Bars limits={[limit(TOTAL_SCOPE, 150000)]} />,
-};
-
-export default meta;
-export { Mixed, OnlyTheTotal };
+export default Story;

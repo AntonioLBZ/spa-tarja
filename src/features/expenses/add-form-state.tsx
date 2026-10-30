@@ -38,10 +38,14 @@ interface AddFormState {
 
 const AddFormContext = createContext<AddFormState | null>(null);
 
+interface AddFormProviderProps {
+    children: ReactNode;
+}
+
 // Whether the add form on the home screen is open, and what it is editing. In memory only, so the app always starts
 // with it open and adding. It lives above the routes because the header opens and collapses it, also from another
 // screen.
-function AddFormProvider(props: { children: ReactNode }) {
+const AddFormProvider = (props: AddFormProviderProps) => {
     const { children } = props;
     const [open, setOpen] = useState(true);
     const [editing, setEditing] = useState<readonly Expense[] | null>(null);
@@ -51,15 +55,15 @@ function AddFormProvider(props: { children: ReactNode }) {
     const [added, setAdded] = useState(0);
 
     const value = useMemo(() => {
-        function endEdit(options: { refocus?: boolean } = {}) {
+        const endEdit = (options: { refocus?: boolean } = {}) => {
             if (options.refocus && editing) setRefocus(editing[0]!.id);
             setEditing(null);
-        }
+        };
 
-        function endCopy(options: { refocus?: boolean } = {}) {
+        const endCopy = (options: { refocus?: boolean } = {}) => {
             if (options.refocus && copying) setRefocus(copying.parts[0]!.id);
             setCopying(null);
-        }
+        };
 
         return {
             open,
@@ -96,12 +100,12 @@ function AddFormProvider(props: { children: ReactNode }) {
     }, [open, editing, copying, refocus, added]);
 
     return <AddFormContext value={value}>{children}</AddFormContext>;
-}
+};
 
-function useAddForm(): AddFormState {
+const useAddForm = (): AddFormState => {
     const value = use(AddFormContext);
     if (value === null) throw new Error('useAddForm needs an AddFormProvider');
     return value;
-}
+};
 
-export { AddFormProvider, useAddForm };
+export { AddFormProvider, type AddFormProviderProps, useAddForm };

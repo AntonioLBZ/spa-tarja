@@ -1,11 +1,11 @@
 import { ToastProvider } from '@/components/toast/toast';
-import { ExpenseForm } from '@/features/expenses/expense-form';
+import { ExpenseForm as ExpenseFormComponent, type ExpenseFormProps } from '@/features/expenses/expense-form';
+import { fn } from 'storybook/test';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { Expense } from '@core/expense';
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 const SAVED = sampleExpense('55555555-5555-4555-8555-555555555551', '2026-10-27', {
     categoryId: 'groceries',
@@ -13,29 +13,38 @@ const SAVED = sampleExpense('55555555-5555-4555-8555-555555555551', '2026-10-27'
     amountCents: 4380,
 });
 
-function Form(props: { editing?: Expense[]; copying?: Expense[]; title: string }) {
-    const { editing, copying, title } = props;
+interface ExpenseFormStoryProps extends Omit<ExpenseFormProps, 'editing' | 'copying'> {
+    // Adds a new expense, or starts from a saved one to change it or to copy it
+    mode: 'adding' | 'editing' | 'copying';
+}
+
+const Story: Meta<ExpenseFormStoryProps> = {
+    title: 'Features/ExpenseForm',
+    args: { title: 'Add an expense', mode: 'adding', onDone: fn(), onAdded: fn() },
+    argTypes: {
+        title: { control: 'text' },
+        mode: { control: 'inline-radio', options: ['adding', 'editing', 'copying'] },
+        onDone: { control: false },
+        onAdded: { control: false },
+    },
+};
+
+export const ExpenseForm = (args: ExpenseFormStoryProps) => {
+    const { mode, ...props } = args;
 
     return (
         <ToastProvider>
-            <AppData api={{ categories: [...CUSTOM_CATEGORIES], expenses: [SAVED] }}>
-                {() => <ExpenseForm title={title} editing={editing} copying={copying} />}
+            <AppData key={mode} api={{ categories: [...CUSTOM_CATEGORIES], expenses: [SAVED] }}>
+                {() => (
+                    <ExpenseFormComponent
+                        {...props}
+                        editing={mode === 'editing' ? [SAVED] : undefined}
+                        copying={mode === 'copying' ? [SAVED] : undefined}
+                    />
+                )}
             </AppData>
         </ToastProvider>
     );
-}
+};
 
-const meta = {
-    title: 'Features/ExpenseForm',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Adding: Story = { render: () => <Form title="Add an expense" /> };
-
-const Editing: Story = { render: () => <Form title="Edit the expense" editing={[SAVED]} /> };
-
-const Copying: Story = { render: () => <Form title="Copy the expense" copying={[SAVED]} /> };
-
-export default meta;
-export { Adding, Copying, Editing };
+export default Story;

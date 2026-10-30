@@ -9,7 +9,7 @@ import { ExpenseForm } from './expense-form';
 
 // The add form under a heading that collapses it. The form stays in the page while collapsed, so the draft survives.
 // Editing or duplicating an expense loads it into the same form, which a new key puts back to adding once that is over.
-function AddExpense() {
+const AddExpense = () => {
     const t = useTranslations('expenses.form');
     const { open, setOpen, editing, copying, endEdit, endCopy, noteAdded } = useAddForm();
     const heading = useRef<HTMLButtonElement>(null);
@@ -48,6 +48,6 @@ function AddExpense() {
             />
         </Disclosure>
     );
-}
+};
 
 export { AddExpense };

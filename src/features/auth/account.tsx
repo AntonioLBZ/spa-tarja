@@ -8,7 +8,7 @@ import { useOutbox, useUserData } from '@/lib/offline';
 
 import './account.css';
 
-function Account() {
+const Account = () => {
     const t = useTranslations('settings.account');
     const user = useUser();
     const { signOut } = useAuth();
@@ -17,7 +17,7 @@ function Account() {
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const [phase, setPhase] = useState<'idle' | 'signing-out' | 'failed'>('idle');
 
-    async function handleSignOut() {
+    const handleSignOut = async () => {
         setPhase('signing-out');
         try {
             await signOut();
@@ -28,7 +28,7 @@ function Account() {
         // What hasn't synced stays on the device for the next time this user signs in
         await outbox.ready;
         if (outbox.getState().pending.length === 0) await discard();
-    }
+    };
 
     return (
         <section className="account">
@@ -48,6 +48,6 @@ function Account() {
             </Button>
         </section>
     );
-}
+};
 
 export { Account };

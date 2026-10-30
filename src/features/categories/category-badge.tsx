@@ -6,15 +6,20 @@ import type { CategoryStyle } from '@core/category-style';
 
 import './category-badge.css';
 
+interface CategoryBadgeProps {
+    style: CategoryStyle;
+}
+
 // The icon of a category in its color. The name always goes next to it: the color alone says nothing.
-function CategoryBadge(props: { style: CategoryStyle }) {
+const CategoryBadge = (props: CategoryBadgeProps) => {
     const { style } = props;
+    const badgeClsx = clsx('category-badge', `category-badge--${style.color}`);
 
     return (
-        <span className={clsx('category-badge', `category-badge--${style.color}`)}>
+        <span className={badgeClsx}>
             <Icon name={style.icon} />
         </span>
     );
-}
+};
 
-export { CategoryBadge };
+export { CategoryBadge, type CategoryBadgeProps };

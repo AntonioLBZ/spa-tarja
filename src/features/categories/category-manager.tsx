@@ -21,11 +21,11 @@ import './category-manager.css';
 
 type Failure = 'nameTaken' | 'saveFailed';
 
-function toFailure(error: unknown): Failure {
+const toFailure = (error: unknown): Failure => {
     return error instanceof ApiError && error.code === 'name-taken' ? 'nameTaken' : 'saveFailed';
-}
+};
 
-function CategoryManager() {
+const CategoryManager = () => {
     const t = useTranslations('categoryManager');
     const tCategory = useTranslations('categories');
     const online = useOnline();
@@ -47,15 +47,15 @@ function CategoryManager() {
     const builtIn = DEFAULT_CATEGORY_IDS.map((categoryId) => tCategory(categoryId));
 
     // The same name twice, whatever its case, would be two options nobody can tell apart
-    function isTaken(candidate: string, exceptId = '') {
+    const isTaken = (candidate: string, exceptId = '') => {
         const key = categoryNameKey(candidate);
         return (
             builtIn.some((label) => categoryNameKey(label) === key) ||
             (custom ?? []).some((category) => category.id !== exceptId && categoryNameKey(category.name) === key)
         );
-    }
+    };
 
-    async function handleAdd(event: FormEvent<HTMLFormElement>) {
+    const handleAdd = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const trimmed = name.trim();
         if (!trimmed) return;
@@ -75,7 +75,7 @@ function CategoryManager() {
         } finally {
             setSaving(false);
         }
-    }
+    };
 
     return (
         <section className="category-manager">
@@ -163,6 +163,6 @@ function CategoryManager() {
             </section>
         </section>
     );
-}
+};
 
 export { CategoryManager };

@@ -14,9 +14,13 @@ import { useBudgets } from './use-budgets';
 
 import './budget-bars.css';
 
+interface BudgetBarsProps {
+    month: string;
+}
+
 // How much of each limit the month holds has been used: the total first, then the categories that have one. The words
 // say it all, so the bar itself is only a picture of it.
-function BudgetBars(props: { month: string }) {
+const BudgetBars = (props: BudgetBarsProps) => {
     const { month } = props;
     const t = useTranslations('budgets');
     const { locale } = useLocale();
@@ -36,8 +40,10 @@ function BudgetBars(props: { month: string }) {
         <CardList label={t('title')}>
             {uses.map((use) => {
                 const over = use.state === 'over';
+                const barClsx = clsx('budget-bar', { 'budget-bar--over': over });
+
                 return (
-                    <Card as="li" key={use.scope} className={clsx('budget-bar', over && 'budget-bar--over')}>
+                    <Card as="li" key={use.scope} className={barClsx}>
                         <div className="budget-bar__head">
                             <span className="budget-bar__name">
                                 {use.scope === TOTAL_SCOPE ? (
@@ -66,6 +72,6 @@ function BudgetBars(props: { month: string }) {
             })}
         </CardList>
     );
-}
+};
 
-export { BudgetBars };
+export { BudgetBars, type BudgetBarsProps };

@@ -21,7 +21,7 @@ const SHORT_NAMES: Record<Granularity, Intl.DateTimeFormatOptions> = {
 
 // The names of the rows of a chart: in full for the table, the readout and the summary, and short for the axis. Without
 // the year two rows of different years would read the same, so it is added when the rows go over a New Year.
-function useBucketNames(buckets: readonly Bucket[], granularity: Granularity) {
+const useBucketNames = (buckets: readonly Bucket[], granularity: Granularity) => {
     const t = useTranslations('charts');
     const { locale } = useLocale();
 
@@ -44,6 +44,6 @@ function useBucketNames(buckets: readonly Bucket[], granularity: Granularity) {
     const shortNameOf = useCallback((start: string) => short.format(fromDateString(start)), [short]);
 
     return { nameOf, shortNameOf };
-}
+};
 
 export { useBucketNames };

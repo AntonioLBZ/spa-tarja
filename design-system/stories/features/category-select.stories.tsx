@@ -1,39 +1,64 @@
 import { Field } from '@/components/field/field';
-import { CategorySelect } from '@/features/categories/category-select';
-import { useState } from 'react';
-import { useTranslations } from 'use-intl';
+import {
+    CategorySelect as CategorySelectComponent,
+    type CategorySelectProps,
+} from '@/features/categories/category-select';
+import { DEFAULT_CATEGORY_IDS } from '@core/categories';
+import { useArgs } from 'storybook/preview-api';
 
-import { useStoryCategories } from './fixtures';
+import { CUSTOM_CATEGORIES, useStoryCategories } from './fixtures';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-function CategorySelectDemo(props: { withAll?: boolean; error?: string }) {
-    const { withAll, error } = props;
-    const t = useTranslations('categories');
+interface CategorySelectStoryProps extends Omit<CategorySelectProps, 'id' | 'options'> {
+    // Adds an option with no icon, like the "All categories" of the filters
+    withAll: boolean;
+    error: string;
+}
+
+const Story: Meta<CategorySelectStoryProps> = {
+    title: 'Features/CategorySelect',
+    args: { label: 'Category', value: 'food', withAll: false, error: '' },
+    argTypes: {
+        label: { control: 'text' },
+        value: {
+            control: 'select',
+            options: ['all', ...DEFAULT_CATEGORY_IDS, ...CUSTOM_CATEGORIES.map(({ id }) => id)],
+        },
+        error: { control: 'text' },
+        'aria-describedby': { control: false },
+        'aria-invalid': { control: false },
+        onChange: { control: false },
+    },
+    // Room for the list to open under the field
+    decorators: [
+        (Decorated) => (
+            <div style={{ minHeight: '24rem' }}>
+                <Decorated />
+            </div>
+        ),
+    ],
+};
+
+// The choice is kept in the args, so the control follows what is clicked
+export const CategorySelect = (args: CategorySelectStoryProps) => {
+    const { withAll, error, ...props } = args;
+    const [, updateArgs] = useArgs();
     const { options } = useStoryCategories();
-    const [value, setValue] = useState(withAll ? 'all' : 'food');
     const shown = withAll ? [{ id: 'all', label: 'All categories' }, ...options] : options;
 
     return (
-        <Field label={t('food')} error={error}>
+        <Field label={props.label} error={error || undefined}>
             {(control) => (
-                <CategorySelect {...control} label={t('food')} options={shown} value={value} onChange={setValue} />
+                <CategorySelectComponent
+                    {...props}
+                    {...control}
+                    options={shown}
+                    onChange={(value) => updateArgs({ value })}
+                />
             )}
         </Field>
     );
-}
+};
 
-const meta = {
-    title: 'Features/CategorySelect',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = { render: () => <CategorySelectDemo /> };
-
-const WithAnOptionWithoutIcon: Story = { render: () => <CategorySelectDemo withAll /> };
-
-const WithError: Story = { render: () => <CategorySelectDemo error="Pick a category." /> };
-
-export default meta;
-export { Default, WithAnOptionWithoutIcon, WithError };
+export default Story;

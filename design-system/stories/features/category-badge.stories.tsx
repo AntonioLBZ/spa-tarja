@@ -1,27 +1,19 @@
-import { CategoryBadge } from '@/features/categories/category-badge';
-import { CATEGORY_COLORS } from '@core/category-style';
+import { CategoryBadge as CategoryBadgeComponent } from '@/features/categories/category-badge';
+import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/category-style';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<CategoryStyle> = {
     title: 'Features/CategoryBadge',
-    component: CategoryBadge,
-    args: { style: { color: 'vermillion', icon: 'restaurant' } },
-} satisfies Meta<typeof CategoryBadge>;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {};
-
-const Colors: Story = {
-    render: () => (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--size-4)', fontSize: 'var(--font-size-xl)' }}>
-            {CATEGORY_COLORS.map((color) => (
-                <CategoryBadge key={color} style={{ color, icon: 'category' }} />
-            ))}
-        </div>
-    ),
+    args: { color: 'vermillion', icon: 'restaurant' },
+    argTypes: {
+        color: { control: 'select', options: CATEGORY_COLORS },
+        icon: { control: 'select', options: CATEGORY_ICONS },
+    },
 };
 
-export default meta;
-export { Colors, Default };
+export const CategoryBadge = (args: CategoryStyle) => {
+    return <CategoryBadgeComponent style={args} />;
+};
+
+export default Story;
