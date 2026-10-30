@@ -1,42 +1,28 @@
-import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { useState } from 'react';
+import {
+    DateRangeFields as DateRangeFieldsComponent,
+    type DateRangeFieldsProps,
+} from '@/components/date-range-fields/date-range-fields';
+import { useArgs } from 'storybook/preview-api';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-type Props = Parameters<typeof DateRangeFields>[0];
-
-// The component reports days; the story keeps them so the fields can be typed in
-function DateRangeDemo(props: Pick<Props, 'allowEmpty' | 'invalid'> & { initial: Pick<Props, 'from' | 'to'> }) {
-    const { initial, ...rest } = props;
-    const [range, setRange] = useState(initial);
-
-    return (
-        <DateRangeFields
-            {...range}
-            {...rest}
-            labels={{ from: 'From', to: 'To' }}
-            onChange={(edge, day) => setRange((current) => ({ ...current, [edge]: day }))}
-        />
-    );
-}
-
-const meta = {
+const Story: Meta<DateRangeFieldsProps> = {
     title: 'Components/DateRangeFields',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {
-    render: () => <DateRangeDemo initial={{ from: '2026-10-01', to: '2026-10-29' }} />,
+    component: DateRangeFieldsComponent,
+    args: {
+        from: '2026-10-01',
+        to: '2026-10-29',
+        labels: { from: 'From', to: 'To' },
+        allowEmpty: false,
+        invalid: false,
+    },
 };
 
-const AllowEmpty: Story = {
-    render: () => <DateRangeDemo allowEmpty initial={{ from: '', to: '2026-10-29' }} />,
+// The days are kept in the args, so the controls follow what is typed
+export const DateRangeFields = (args: DateRangeFieldsProps) => {
+    const [, updateArgs] = useArgs();
+
+    return <DateRangeFieldsComponent {...args} onChange={(edge, day) => updateArgs({ [edge]: day })} />;
 };
 
-const Invalid: Story = {
-    render: () => <DateRangeDemo invalid initial={{ from: '2026-10-29', to: '2026-10-01' }} />,
-};
-
-export default meta;
-export { AllowEmpty, Default, Invalid };
+export default Story;

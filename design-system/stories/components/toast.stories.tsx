@@ -1,44 +1,43 @@
 import { Button } from '@/components/button/button';
 import { ToastProvider, useToast } from '@/components/toast/toast';
+import { fn } from 'storybook/test';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-function ShowButtons() {
+interface ToastStoryProps {
+    message: string;
+    actionLabel: string;
+    onAction: () => void;
+}
+
+const ToastButtons = (props: ToastStoryProps) => {
+    const { message, actionLabel, onAction } = props;
     const toast = useToast();
+    const action = actionLabel ? { label: actionLabel, onAction } : undefined;
 
     return (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--size-4)' }}>
-            <Button onClick={() => toast.show({ message: 'Expense saved' })}>Show a message</Button>
-            <Button
-                onClick={() =>
-                    toast.show({
-                        message: 'Expense deleted',
-                        action: { label: 'Undo', onAction: () => toast.show({ message: 'Expense restored' }) },
-                    })
-                }
-            >
-                Show with an action
-            </Button>
+            <Button onClick={() => toast.show({ message, action })}>Show</Button>
             <Button onClick={() => toast.dismiss()}>Dismiss</Button>
         </div>
     );
-}
+};
 
-const meta = {
+const Story: Meta<ToastStoryProps> = {
     title: 'Components/Toast',
+    args: { message: 'Expense deleted', actionLabel: 'Undo', onAction: fn() },
+    argTypes: { message: { control: 'text' }, actionLabel: { control: 'text' } },
     parameters: { layout: 'fullscreen' },
-    render: () => (
+};
+
+export const Toast = (args: ToastStoryProps) => {
+    return (
         <ToastProvider>
             <div style={{ padding: 'var(--size-4)' }}>
-                <ShowButtons />
+                <ToastButtons {...args} />
             </div>
         </ToastProvider>
-    ),
-} satisfies Meta;
+    );
+};
 
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {};
-
-export default meta;
-export { Default };
+export default Story;

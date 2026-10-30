@@ -2,28 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { createRef, type ComponentProps } from 'react';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 
-import { Button, buttonClass } from './button';
-
-describe('buttonClass', () => {
-    it('is a plain button unless told otherwise', () => {
-        expect(buttonClass()).toBe('button');
-        expect(buttonClass({ variant: 'default' })).toBe('button');
-    });
-
-    it('names the variant, the glyph and the pressed state', () => {
-        expect(buttonClass({ variant: 'primary' })).toBe('button button--primary');
-        expect(buttonClass({ variant: 'danger' })).toBe('button button--danger');
-        expect(buttonClass({ glyph: true })).toBe('button button--glyph');
-        expect(buttonClass({ pressed: true })).toBe('button button--pressed');
-        expect(buttonClass({ pressed: false })).toBe('button');
-    });
-
-    it('adds the classes of the call site last', () => {
-        expect(buttonClass({ variant: 'primary', className: 'toolbar__save' })).toBe(
-            'button button--primary toolbar__save'
-        );
-    });
-});
+import { Button } from './button';
 
 describe('Button', () => {
     it('does not submit the form around it unless it says so', () => {

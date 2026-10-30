@@ -26,7 +26,7 @@ interface DateRangeFieldsProps {
 
 // The From and To fields of a range of days. What doesn't make a day yet stays in the field and is not reported; leaving
 // the field, or the days changing from outside, puts back the last good one.
-function DateRangeFields(props: DateRangeFieldsProps) {
+const DateRangeFields = (props: DateRangeFieldsProps) => {
     const { from, to, labels, onChange, allowEmpty = false, invalid, describedBy } = props;
     const values = { from, to };
     // What a field holds while it doesn't make a day yet, so that typing in it isn't undone
@@ -38,7 +38,7 @@ function DateRangeFields(props: DateRangeFieldsProps) {
         setDrafts({});
     }
 
-    function edit(edge: DateEdge, value: string) {
+    const edit = (edge: DateEdge, value: string) => {
         const wholeDay = isCalendarDate(value) && value >= FIRST_DAY && value <= LAST_DAY;
         if (wholeDay || (allowEmpty && value === '')) {
             onChange(edge, value);
@@ -46,7 +46,7 @@ function DateRangeFields(props: DateRangeFieldsProps) {
         } else {
             setDrafts((current) => ({ ...current, [edge]: value }));
         }
-    }
+    };
 
     return (
         <div className="date-range-fields">
@@ -68,6 +68,6 @@ function DateRangeFields(props: DateRangeFieldsProps) {
             ))}
         </div>
     );
-}
+};
 
-export { DateRangeFields };
+export { DateRangeFields, type DateEdge, type DateRangeFieldsProps };

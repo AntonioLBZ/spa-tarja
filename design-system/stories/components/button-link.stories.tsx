@@ -1,4 +1,5 @@
-import { ButtonLink } from '@/components/button/button-link';
+import { type ButtonProps, type GlyphName } from '@/components/button/button';
+import { ButtonLink as ButtonLinkComponent } from '@/components/button/button-link';
 import {
     RouterProvider,
     createMemoryHistory,
@@ -6,58 +7,55 @@ import {
     createRoute,
     createRouter,
 } from '@tanstack/react-router';
-import { useState, type ReactNode } from 'react';
+import { createContext, use, useState, type ReactNode } from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-// The smallest router that has a route for `to` to point at. It keeps the children it first got.
-function RouterFrame(props: { children: ReactNode }) {
+type ButtonLinkArgs = Pick<ButtonProps, 'variant' | 'children'> & GlyphName;
+
+interface RouterFrameProps {
+    children: ReactNode;
+}
+
+const FrameContext = createContext<ReactNode>(null);
+
+const FrameOutlet = () => use(FrameContext);
+
+// The smallest router that has a route for `to` to point at. The root route shows the children of the latest render.
+const RouterFrame = (props: RouterFrameProps) => {
     const { children } = props;
     const [router] = useState(() => {
-        const root = createRootRoute({ component: () => children });
+        const root = createRootRoute({ component: FrameOutlet });
         const categories = createRoute({ getParentRoute: () => root, path: '/categories' });
+
         return createRouter({
             routeTree: root.addChildren([categories]),
             history: createMemoryHistory({ initialEntries: ['/'] }),
         });
     });
 
-    return <RouterProvider router={router} />;
-}
+    return (
+        <FrameContext value={children}>
+            <RouterProvider router={router} />
+        </FrameContext>
+    );
+};
 
-const meta = {
+const Story: Meta<ButtonLinkArgs> = {
     title: 'Components/ButtonLink',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {
-    render: () => (
-        <RouterFrame>
-            <ButtonLink to="/categories">Categories</ButtonLink>
-        </RouterFrame>
-    ),
+    args: { children: 'Categories', variant: 'default', glyph: false },
+    argTypes: {
+        children: { control: 'text' },
+        variant: { control: 'inline-radio', options: ['default', 'primary', 'danger'] },
+    },
 };
 
-const Primary: Story = {
-    render: () => (
+export const ButtonLink = (args: ButtonLinkArgs) => {
+    return (
         <RouterFrame>
-            <ButtonLink to="/categories" variant="primary">
-                Categories
-            </ButtonLink>
+            <ButtonLinkComponent to="/categories" {...args} />
         </RouterFrame>
-    ),
+    );
 };
 
-const Glyph: Story = {
-    render: () => (
-        <RouterFrame>
-            <ButtonLink to="/categories" glyph aria-label="Categories">
-                →
-            </ButtonLink>
-        </RouterFrame>
-    ),
-};
-
-export default meta;
-export { Default, Glyph, Primary };
+export default Story;

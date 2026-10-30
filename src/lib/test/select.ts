@@ -1,25 +1,25 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 
-// Drives the category select the way a person does, by the label of its field
+// Drives a select the way a person does, by the label of its field
 
 function trigger(label: string): HTMLElement {
     return screen.getByRole('combobox', { name: label });
 }
 
-// The name of the category the field shows
-function chosenCategory(label: string): string {
+// The name of the option the field shows
+function chosenOption(label: string): string {
     return trigger(label).textContent ?? '';
 }
 
-function openCategories(label: string): HTMLElement {
+function openOptions(label: string): HTMLElement {
     const field = trigger(label);
     if (field.getAttribute('aria-expanded') !== 'true') fireEvent.click(field);
     return screen.getByRole('listbox', { name: label });
 }
 
 // The names of every option, in order
-function categoryNames(label: string): string[] {
-    const list = openCategories(label);
+function optionNames(label: string): string[] {
+    const list = openOptions(label);
     const names = within(list)
         .getAllByRole('option')
         .map((option) => option.textContent ?? '');
@@ -27,9 +27,9 @@ function categoryNames(label: string): string[] {
     return names;
 }
 
-function pickCategory(label: string, name: string): void {
-    const list = openCategories(label);
+function pickOption(label: string, name: string): void {
+    const list = openOptions(label);
     fireEvent.click(within(list).getByRole('option', { name }));
 }
 
-export { categoryNames, chosenCategory, openCategories, pickCategory, trigger };
+export { chosenOption, openOptions, optionNames, pickOption, trigger };

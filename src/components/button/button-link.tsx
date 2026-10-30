@@ -1,16 +1,28 @@
 import { createLink } from '@tanstack/react-router';
+import clsx from 'clsx';
 
-import { buttonClass } from './button';
-
-import type { ButtonStyle, GlyphName } from './button';
+import type { ButtonVariant, GlyphName } from './button';
 import type { AnyRouter, LinkComponentProps, RegisteredRouter } from '@tanstack/react-router';
 import type { ComponentPropsWithRef, ReactElement } from 'react';
 
-function ButtonAnchor(props: ComponentPropsWithRef<'a'> & ButtonStyle) {
-    const { variant, glyph, pressed, className, ...rest } = props;
-
-    return <a {...rest} className={buttonClass({ variant, glyph, pressed, className })} />;
+interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
+    variant?: ButtonVariant;
+    glyph?: boolean;
 }
+
+const ButtonAnchor = (props: ButtonAnchorProps) => {
+    const { variant = 'default', glyph, className, ...rest } = props;
+    const buttonClsx = clsx(
+        'button',
+        {
+            [`button--${variant}`]: variant !== 'default',
+            'button--glyph': glyph,
+        },
+        className
+    );
+
+    return <a {...rest} className={buttonClsx} />;
+};
 
 // `Link`'s own signature with the glyph rule added: `createLink` omits keys from the props of the anchor, which would
 // merge the two sides of `GlyphName`

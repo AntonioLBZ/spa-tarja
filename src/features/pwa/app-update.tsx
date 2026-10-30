@@ -1,7 +1,7 @@
 import { useTranslations } from 'use-intl';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
-import { UpdatePrompt } from '@/components/update-prompt/update-prompt';
+import { UpdatePrompt } from './update-prompt';
 
 // Offers the new version of the app once the service worker has it waiting
 function AppUpdate() {

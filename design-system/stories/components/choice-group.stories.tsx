@@ -1,28 +1,26 @@
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
-import { useState } from 'react';
+import { ChoiceGroup as ChoiceGroupComponent, type ChoiceGroupProps } from '@/components/choice-group/choice-group';
+import { useArgs } from 'storybook/preview-api';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 const OPTIONS = [
     { value: 'system', label: 'System' },
     { value: 'light', label: 'Light' },
     { value: 'dark', label: 'Dark' },
-] as const;
+];
 
-function ChoiceGroupDemo() {
-    const [value, setValue] = useState<(typeof OPTIONS)[number]['value']>('light');
-
-    return <ChoiceGroup legend="Theme" name="theme" options={OPTIONS} value={value} onChange={setValue} />;
-}
-
-const meta = {
+const Story: Meta<ChoiceGroupProps<string>> = {
     title: 'Components/ChoiceGroup',
-    render: () => <ChoiceGroupDemo />,
-} satisfies Meta;
+    component: ChoiceGroupComponent,
+    args: { legend: 'Theme', name: 'theme', options: OPTIONS, value: 'light' },
+    argTypes: { value: { control: 'inline-radio', options: OPTIONS.map((option) => option.value) } },
+};
 
-type Story = StoryObj<typeof meta>;
+// The choice is kept in the args, so the control follows what is clicked
+export const ChoiceGroup = (args: ChoiceGroupProps<string>) => {
+    const [, updateArgs] = useArgs();
 
-const Default: Story = {};
+    return <ChoiceGroupComponent {...args} onChange={(value) => updateArgs({ value })} />;
+};
 
-export default meta;
-export { Default };
+export default Story;

@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { Select } from '@/components/select/select';
 import { useBudgetWarning } from '@/features/budgets/use-budget-warning';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -308,11 +309,12 @@ function ExpenseForm(props: ExpenseFormProps) {
 
             <Field label={t('payment')}>
                 {(control) => (
-                    <select
+                    <Select
                         {...control}
+                        label={t('payment')}
+                        options={PAYMENTS.map((kind) => ({ value: kind, label: tPayment(kind) }))}
                         value={payment}
-                        onChange={(event) => {
-                            const next = event.target.value as Payment;
+                        onChange={(next) => {
                             setPayment(next);
                             setChargeInvalid(false);
                             if (next !== 'voucher') {
@@ -320,13 +322,7 @@ function ExpenseForm(props: ExpenseFormProps) {
                                 setPersonalInvalid(false);
                             }
                         }}
-                    >
-                        {PAYMENTS.map((kind) => (
-                            <option key={kind} value={kind}>
-                                {tPayment(kind)}
-                            </option>
-                        ))}
-                    </select>
+                    />
                 )}
             </Field>
 
@@ -376,17 +372,16 @@ function ExpenseForm(props: ExpenseFormProps) {
             {payment === 'direct' && (
                 <Field label={t('installments')}>
                     {(control) => (
-                        <select
+                        <Select
                             {...control}
-                            value={installments}
-                            onChange={(event) => setInstallments(Number(event.target.value))}
-                        >
-                            {installmentChoices.map((count) => (
-                                <option key={count} value={count}>
-                                    {t('installmentsOption', { count })}
-                                </option>
-                            ))}
-                        </select>
+                            label={t('installments')}
+                            options={installmentChoices.map((count) => ({
+                                value: String(count),
+                                label: t('installmentsOption', { count }),
+                            }))}
+                            value={String(installments)}
+                            onChange={(next) => setInstallments(Number(next))}
+                        />
                     )}
                 </Field>
             )}

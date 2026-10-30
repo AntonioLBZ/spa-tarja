@@ -16,8 +16,9 @@ interface ChoiceGroupProps<Value extends string> {
 }
 
 // A radio group drawn as a row of boxes; the checked one is filled
-function ChoiceGroup<Value extends string>(props: ChoiceGroupProps<Value>) {
+const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const { legend, name, options, value, onChange } = props;
+    const inputClsx = clsx('visually-hidden', 'choice-group__input');
 
     return (
         <fieldset className="choice-group">
@@ -26,7 +27,7 @@ function ChoiceGroup<Value extends string>(props: ChoiceGroupProps<Value>) {
                 {options.map((option) => (
                     <label key={option.value} className="choice-group__option">
                         <input
-                            className={clsx('visually-hidden', 'choice-group__input')}
+                            className={inputClsx}
                             type="radio"
                             name={name}
                             value={option.value}
@@ -39,6 +40,6 @@ function ChoiceGroup<Value extends string>(props: ChoiceGroupProps<Value>) {
             </div>
         </fieldset>
     );
-}
+};
 
-export { ChoiceGroup };
+export { ChoiceGroup, type ChoiceGroupProps, type ChoiceOption };

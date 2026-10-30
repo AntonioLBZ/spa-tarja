@@ -12,7 +12,7 @@ interface MonthSwitchProps {
 }
 
 // The name of a month between the buttons that go to the one before and the one after
-function MonthSwitch(props: MonthSwitchProps) {
+const MonthSwitch = (props: MonthSwitchProps) => {
     const { monthName, labels, onPrevious, onNext } = props;
 
     return (
@@ -26,7 +26,6 @@ function MonthSwitch(props: MonthSwitchProps) {
             </Button>
         </div>
     );
-}
+};
 
-export { MonthSwitch };
-export type { MonthSwitchProps };
+export { MonthSwitch, type MonthSwitchProps };

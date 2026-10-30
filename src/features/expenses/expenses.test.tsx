@@ -8,17 +8,23 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
-import { categoryNames, chosenCategory, pickCategory } from '@/lib/test/category-select';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
 import { addMonths } from '@core/date';
-import { expenseInputSchema, type Expense } from '@core/expense';
+import { expenseInputSchema, type Expense, type Payment } from '@core/expense';
 
 const TODAY = '2026-10-25';
 
 const t = createTranslator({ locale: 'en', messages: en });
+
+const pickPayment = (kind: Payment) => pickOption(en.expenses.form.payment, en.expenses.payment[kind]);
+const chosenPayment = () => chosenOption(en.expenses.form.payment);
+const installmentsLabel = (count: number) => t('expenses.form.installmentsOption', { count });
+const pickInstallments = (count: number) => pickOption(en.expenses.form.installments, installmentsLabel(count));
+const chosenInstallments = () => chosenOption(en.expenses.form.installments);
 
 function expense(overrides: Partial<Expense> = {}): Expense {
     return {
@@ -53,7 +59,7 @@ function categoriesLoaded(app: {
 }
 
 function categoryLabels() {
-    return categoryNames(en.expenses.form.category);
+    return optionNames(en.expenses.form.category);
 }
 
 function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
@@ -149,7 +155,7 @@ describe('expense form', () => {
 
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
 
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.groceries);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.groceries);
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
@@ -158,10 +164,10 @@ describe('expense form', () => {
         renderApp();
         await screen.findByLabelText(en.expenses.form.text);
 
-        pickCategory(en.expenses.form.category, en.categories.leisure);
+        pickOption(en.expenses.form.category, en.categories.leisure);
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
 
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.leisure);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.leisure);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
@@ -292,7 +298,6 @@ describe('the add form', () => {
 });
 
 describe('deferred expenses', () => {
-    const paymentField = () => field(en.expenses.form.payment);
     const chargeField = () => field(en.expenses.form.chargeDate);
     const inputDate = (value: string) => fireEvent.change(field(en.expenses.form.date), { target: { value } });
     async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
@@ -306,26 +311,29 @@ describe('deferred expenses', () => {
     it('are paid at once unless the person says so, with no charge date to fill in', async () => {
         await open();
 
-        expect(paymentField().value).toBe('direct');
+        expect(chosenPayment()).toBe(en.expenses.payment.direct);
         expect(screen.queryByLabelText(en.expenses.form.chargeDate)).toBeNull();
-        expect([...(paymentField() as HTMLSelectElement).options].map((option) => option.textContent)).toEqual([
+        expect(optionNames(en.expenses.form.payment)).toEqual([
             en.expenses.payment.direct,
             en.expenses.payment.credit,
             en.expenses.payment.voucher,
         ]);
     });
 
-    it.each(['credit', 'voucher'])('ask when a %s expense is charged, proposing the next month', async (payment) => {
-        await open();
+    it.each(['credit', 'voucher'] as const)(
+        'ask when a %s expense is charged, proposing the next month',
+        async (payment) => {
+            await open();
 
-        fireEvent.change(paymentField(), { target: { value: payment } });
+            pickPayment(payment);
 
-        expect(chargeField().value).toBe('2026-11-25');
-    });
+            expect(chargeField().value).toBe('2026-11-25');
+        }
+    );
 
     it('follow the day of the expense until the person picks another charge date', async () => {
         await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        pickPayment('credit');
 
         inputDate('2026-01-31');
         expect(chargeField().value).toBe('2026-02-28');
@@ -337,7 +345,7 @@ describe('deferred expenses', () => {
 
     it('are saved with how they were paid and when they are charged', async () => {
         const api = await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        pickPayment('credit');
 
         fillAndSubmit({ amount: '40', text: 'Shoes' });
 
@@ -347,7 +355,7 @@ describe('deferred expenses', () => {
 
     it('are saved on the charge date the person picked', async () => {
         const api = await open();
-        fireEvent.change(paymentField(), { target: { value: 'voucher' } });
+        pickPayment('voucher');
         fireEvent.change(chargeField(), { target: { value: '2026-12-01' } });
 
         fillAndSubmit({ amount: '9', text: 'Menu' });
@@ -358,8 +366,8 @@ describe('deferred expenses', () => {
 
     it('send no charge date once the person goes back to paying at once', async () => {
         const api = await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
-        fireEvent.change(paymentField(), { target: { value: 'direct' } });
+        pickPayment('credit');
+        pickPayment('direct');
 
         fillAndSubmit({ amount: '5', text: 'Coffee' });
 
@@ -379,7 +387,7 @@ describe('deferred expenses', () => {
 
     it('cannot be charged before the day they were made', async () => {
         const api = await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        pickPayment('credit');
         fireEvent.change(chargeField(), { target: { value: '2026-10-24' } });
 
         fillAndSubmit({ amount: '40', text: 'Shoes' });
@@ -391,7 +399,7 @@ describe('deferred expenses', () => {
 
     it('puts the message about the charge date under the charge date', async () => {
         await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        pickPayment('credit');
         fireEvent.change(chargeField(), { target: { value: '2026-10-24' } });
 
         fillAndSubmit({ amount: '40', text: 'Shoes' });
@@ -403,11 +411,11 @@ describe('deferred expenses', () => {
 
     it('go back to being paid at once after one is saved', async () => {
         await open();
-        fireEvent.change(paymentField(), { target: { value: 'credit' } });
+        pickPayment('credit');
         fillAndSubmit({ amount: '40', text: 'Shoes' });
         await screen.findByRole('listitem');
 
-        expect(paymentField().value).toBe('direct');
+        expect(chosenPayment()).toBe(en.expenses.payment.direct);
         expect(screen.queryByLabelText(en.expenses.form.chargeDate)).toBeNull();
     });
 
@@ -439,9 +447,8 @@ describe('deferred expenses', () => {
 });
 
 describe('your part of a restaurant card expense', () => {
-    const paymentField = () => field(en.expenses.form.payment);
     const personalField = () => field(en.expenses.form.personal) as HTMLInputElement;
-    const pay = (payment: string) => fireEvent.change(paymentField(), { target: { value: payment } });
+    const pay = pickPayment;
     const typeAmount = (value: string) => fireEvent.change(field(en.expenses.form.amount), { target: { value } });
     const typePart = (value: string) => fireEvent.change(personalField(), { target: { value } });
     const submit = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
@@ -633,7 +640,6 @@ describe('your part of a restaurant card expense', () => {
 });
 
 describe('installments', () => {
-    const installments = () => field(en.expenses.form.installments) as HTMLSelectElement;
     const partLabel = (part: number, parts: number, day: string) =>
         t('expenses.form.part', { part, parts, date: shown(day) });
     const partField = (part: number, parts: number, day: string) => field(partLabel(part, parts, day));
@@ -653,17 +659,16 @@ describe('installments', () => {
     it('are one payment unless the person asks for more, with no parts to fill in', async () => {
         await open();
 
-        expect(installments().value).toBe('1');
-        expect([...installments().options].map((option) => option.textContent)).toEqual([
-            t('expenses.form.installmentsOption', { count: 1 }),
-            ...Array.from({ length: 11 }, (_, index) => t('expenses.form.installmentsOption', { count: index + 2 })),
-        ]);
+        expect(chosenInstallments()).toBe(installmentsLabel(1));
+        expect(optionNames(en.expenses.form.installments)).toEqual(
+            Array.from({ length: 12 }, (_, index) => installmentsLabel(index + 1))
+        );
         expect(screen.getAllByRole('textbox')).toHaveLength(2);
     });
 
     it('are only for what is paid at once: a credit or restaurant card has its own charge date', async () => {
         await open();
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        pickPayment('credit');
 
         expect(screen.queryByLabelText(en.expenses.form.installments)).toBeNull();
     });
@@ -672,7 +677,7 @@ describe('installments', () => {
         await open();
         typeAmount('15.01');
 
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         expect(partField(1, 3, DAYS[0]!).value).toBe('5.01');
         expect(partField(2, 3, DAYS[1]!).value).toBe('5.00');
@@ -683,7 +688,7 @@ describe('installments', () => {
     it('split again when the total changes', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
 
         typeAmount('30');
@@ -694,10 +699,10 @@ describe('installments', () => {
     it('split again when the number of payments changes', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
 
-        fireEvent.change(installments(), { target: { value: '2' } });
+        pickInstallments(2);
 
         expect(partField(1, 2, DAYS[0]!).value).toBe('7.50');
         expect(partField(2, 2, DAYS[1]!).value).toBe('7.50');
@@ -706,7 +711,7 @@ describe('installments', () => {
     it('keep what was typed when the total is only written another way', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '9' } });
 
         typeAmount('15.00');
@@ -717,7 +722,7 @@ describe('installments', () => {
     it('follow the day of the purchase', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '2' } });
+        pickInstallments(2);
 
         fireEvent.change(field(en.expenses.form.date), { target: { value: '2026-01-31' } });
 
@@ -728,7 +733,7 @@ describe('installments', () => {
     it('say what is left to assign, and do not save until the parts add up', async () => {
         const api = await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
 
@@ -743,7 +748,7 @@ describe('installments', () => {
     it('refuse parts that go over the total', async () => {
         const api = await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '6' } });
 
@@ -755,7 +760,7 @@ describe('installments', () => {
     it('refuse a part that is not an amount above zero', async () => {
         const api = await open();
         typeAmount('10');
-        fireEvent.change(installments(), { target: { value: '2' } });
+        pickInstallments(2);
 
         fireEvent.change(partField(1, 2, DAYS[0]!), { target: { value: '10' } });
         fireEvent.change(partField(2, 2, DAYS[1]!), { target: { value: '0' } });
@@ -769,7 +774,7 @@ describe('installments', () => {
     it('add up again once the parts are fixed', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
         expect(submit().disabled).toBe(true);
 
@@ -783,7 +788,7 @@ describe('installments', () => {
         const api = await open();
         typeAmount('15.01');
         typeText('Sofa');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         fireEvent.click(submit());
 
@@ -815,7 +820,7 @@ describe('installments', () => {
     it('are saved with the amounts the person set', async () => {
         const api = await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '5' } });
         fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '6' } });
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
@@ -829,9 +834,9 @@ describe('installments', () => {
     it('are left out when the expense is deferred after all', async () => {
         const api = await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        pickPayment('credit');
         fireEvent.click(submit());
 
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -846,19 +851,19 @@ describe('installments', () => {
     it('come back when the expense is paid at once again', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        pickInstallments(3);
+        pickPayment('credit');
 
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'direct' } });
+        pickPayment('direct');
 
-        expect(installments().value).toBe('3');
+        expect(chosenInstallments()).toBe(installmentsLabel(3));
         expect(partField(3, 3, DAYS[2]!).value).toBe('5.00');
     });
 
     it('start from an even split again for the next expense, whatever was typed in the last one', async () => {
         const api = await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         fireEvent.change(partField(1, 3, DAYS[0]!), { target: { value: '6' } });
         fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '5' } });
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
@@ -866,7 +871,7 @@ describe('installments', () => {
         await waitFor(() => expect(api.writes).toHaveLength(3));
 
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         expect(partField(1, 3, DAYS[0]!).value).toBe('5.00');
         expect(partField(3, 3, DAYS[2]!).value).toBe('5.00');
@@ -875,12 +880,12 @@ describe('installments', () => {
     it('go back to one payment after a plan is saved', async () => {
         await open();
         typeAmount('15');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         fireEvent.click(submit());
         await screen.findByRole('listitem');
 
-        expect(installments().value).toBe('1');
+        expect(chosenInstallments()).toBe(installmentsLabel(1));
         expect(field(en.expenses.form.amount).value).toBe('');
     });
 
@@ -945,7 +950,7 @@ describe('installments', () => {
         onlineManager.setOnline(false);
         typeAmount('15');
         typeText('Sofa');
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
 
         fireEvent.click(submit());
 
@@ -979,7 +984,7 @@ describe('custom categories', () => {
         const app = renderApp();
         await categoriesLoaded(app);
 
-        pickCategory(en.expenses.form.category, 'Gym');
+        pickOption(en.expenses.form.category, 'Gym');
         fillAndSubmit({ amount: '30', text: 'Monthly fee' });
 
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -991,11 +996,11 @@ describe('custom categories', () => {
         stubApi(api.handler);
         const app = renderApp();
         await categoriesLoaded(app);
-        pickCategory(en.expenses.form.category, 'Gym');
+        pickOption(en.expenses.form.category, 'Gym');
 
         app.queryClient.setQueryData(['categories'], []);
 
-        await waitFor(() => expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.other));
+        await waitFor(() => expect(chosenOption(en.expenses.form.category)).toBe(en.categories.other));
     });
 
     it('name the expenses filed under them in the list', async () => {
@@ -1061,7 +1066,7 @@ describe('category looks', () => {
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'coffee' } });
         expect(lookOf(picker())).toEqual({ icon: 'restaurant', color: 'vermillion' });
 
-        pickCategory(en.expenses.form.category, 'Gym');
+        pickOption(en.expenses.form.category, 'Gym');
         expect(lookOf(picker())).toEqual({ icon: 'fitness_center', color: 'blue' });
     });
 });
@@ -1229,7 +1234,7 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('Padel');
 
-        expect(chosenCategory(label)).toBe(en.categories.leisure);
+        expect(chosenOption(label)).toBe(en.categories.leisure);
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
@@ -1238,7 +1243,7 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('Padel Mercadona');
 
-        expect(chosenCategory(label)).toBe(en.categories.groceries);
+        expect(chosenOption(label)).toBe(en.categories.groceries);
     });
 
     it('can suggest a category of your own, which the keywords never do', async () => {
@@ -1246,7 +1251,7 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('crossfit monday');
 
-        expect(chosenCategory(label)).toBe('Gym');
+        expect(chosenOption(label)).toBe('Gym');
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
@@ -1255,7 +1260,7 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('crossfit');
 
-        expect(chosenCategory(label)).toBe(en.categories.other);
+        expect(chosenOption(label)).toBe(en.categories.other);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
@@ -1267,17 +1272,17 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('Padel');
 
-        expect(chosenCategory(label)).toBe(en.categories.other);
+        expect(chosenOption(label)).toBe(en.categories.other);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
     it('never replaces a category that was picked by hand', async () => {
         await open([expense({ text: 'Padel', categoryId: 'leisure' })]);
 
-        pickCategory(label, en.categories.health);
+        pickOption(label, en.categories.health);
         typeText('Padel');
 
-        expect(chosenCategory(label)).toBe(en.categories.health);
+        expect(chosenOption(label)).toBe(en.categories.health);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
@@ -1286,15 +1291,15 @@ describe('suggesting a category from your own expenses', () => {
         renderApp();
         await screen.findByText(en.expenses.list.empty);
         typeText('Padel');
-        expect(chosenCategory(label)).toBe(en.categories.other);
-        pickCategory(label, en.categories.leisure);
+        expect(chosenOption(label)).toBe(en.categories.other);
+        pickOption(label, en.categories.leisure);
         fireEvent.change(field(en.expenses.form.amount), { target: { value: '12' } });
         fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
         await screen.findByRole('listitem');
 
         typeText('Padel');
 
-        expect(chosenCategory(label)).toBe(en.categories.leisure);
+        expect(chosenOption(label)).toBe(en.categories.leisure);
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
@@ -1317,7 +1322,7 @@ describe('suggesting a category from your own expenses', () => {
 
         typeText('Padel');
 
-        expect(chosenCategory(label)).toBe(en.categories.health);
+        expect(chosenOption(label)).toBe(en.categories.health);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 });
@@ -1878,7 +1883,6 @@ describe('editing an expense', () => {
     const save = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
     const cancel = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.cancel }));
     const typeIn = (label: string, value: string) => fireEvent.change(field(label), { target: { value } });
-    const installments = () => field(en.expenses.form.installments) as HTMLSelectElement;
     const partField = (part: number, parts: number, day: string) =>
         field(t('expenses.form.part', { part, parts, date: shown(day) }));
 
@@ -1940,10 +1944,10 @@ describe('editing an expense', () => {
         expect(screen.queryByRole('button', { name: en.expenses.form.title })).toBeNull();
         expect(field(en.expenses.form.amount).value).toBe('9.00');
         expect(field(en.expenses.form.text).value).toBe('Cinema');
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.leisure);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.leisure);
         expect(field(en.expenses.form.date).value).toBe('2026-10-20');
-        expect(field(en.expenses.form.payment).value).toBe('direct');
-        expect(installments().value).toBe('1');
+        expect(chosenPayment()).toBe(en.expenses.payment.direct);
+        expect(chosenInstallments()).toBe(installmentsLabel(1));
         expect(screen.queryByRole('button', { name: en.expenses.form.submit })).toBeNull();
         expect(screen.getByRole('button', { name: en.expenses.form.save }).getAttribute('type')).toBe('submit');
         expect(screen.getByRole('button', { name: en.expenses.form.cancel }).getAttribute('type')).toBe('button');
@@ -2085,7 +2089,7 @@ describe('editing an expense', () => {
 
         typeIn(en.expenses.form.text, 'Mercadona');
 
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.leisure);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.leisure);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
         save();
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -2098,7 +2102,7 @@ describe('editing an expense', () => {
         await categoriesLoaded(app);
         edit('Monthly fee');
 
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.other);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.other);
         typeIn(en.expenses.form.amount, '35');
         save();
 
@@ -2110,7 +2114,7 @@ describe('editing an expense', () => {
         const { api } = await open([lunch]);
         edit('Lunch');
 
-        pickCategory(en.expenses.form.category, en.categories.health);
+        pickOption(en.expenses.form.category, en.categories.health);
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -2122,7 +2126,7 @@ describe('editing an expense', () => {
         const { api } = await open([shoes]);
         edit('Shoes');
 
-        expect(field(en.expenses.form.payment).value).toBe(payment);
+        expect(chosenPayment()).toBe(en.expenses.payment[payment]);
         expect(field(en.expenses.form.chargeDate).value).toBe('2026-11-30');
         typeIn(en.expenses.form.text, 'Boots');
         save();
@@ -2155,7 +2159,7 @@ describe('editing an expense', () => {
         const { api } = await open([dinner]);
         edit('Dinner');
 
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        pickPayment('credit');
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(1));
@@ -2174,7 +2178,7 @@ describe('editing an expense', () => {
         edit('Sofa');
 
         expect(field(en.expenses.form.amount).value).toBe('15.00');
-        expect(installments().value).toBe('3');
+        expect(chosenInstallments()).toBe(installmentsLabel(3));
         expect(partField(1, 3, DAYS[0]!).value).toBe('6.00');
         expect(partField(2, 3, DAYS[1]!).value).toBe('5.00');
         expect(partField(3, 3, DAYS[2]!).value).toBe('4.00');
@@ -2186,10 +2190,8 @@ describe('editing an expense', () => {
 
         edit('Sofa');
 
-        expect(installments().value).toBe('18');
-        expect([...installments().options].at(-1)!.textContent).toBe(
-            t('expenses.form.installmentsOption', { count: 18 })
-        );
+        expect(chosenInstallments()).toBe(installmentsLabel(18));
+        expect(optionNames(en.expenses.form.installments).at(-1)).toBe(installmentsLabel(18));
     });
 
     it('saves a plan with fewer payments, deleting the ones it no longer has', async () => {
@@ -2198,7 +2200,7 @@ describe('editing an expense', () => {
         const { api } = await open(parts);
         edit('Sofa');
 
-        fireEvent.change(installments(), { target: { value: '2' } });
+        pickInstallments(2);
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(3));
@@ -2216,7 +2218,7 @@ describe('editing an expense', () => {
         const { api } = await open(parts);
         edit('Sofa');
 
-        fireEvent.change(installments(), { target: { value: '3' } });
+        pickInstallments(3);
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(3));
@@ -2237,7 +2239,7 @@ describe('editing an expense', () => {
         const { api } = await open(parts);
         edit('Sofa');
 
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'credit' } });
+        pickPayment('credit');
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(3));
@@ -2260,7 +2262,7 @@ describe('editing an expense', () => {
         const { api } = await open(parts);
         edit('Sofa');
 
-        fireEvent.change(field(en.expenses.form.payment), { target: { value: 'voucher' } });
+        pickPayment('voucher');
         expect(field(en.expenses.form.personal).value).toBe('');
         typeIn(en.expenses.form.personal, '5');
         save();
@@ -2286,7 +2288,7 @@ describe('editing an expense', () => {
         const { api } = await open([lunch]);
         edit('Lunch');
 
-        fireEvent.change(installments(), { target: { value: '2' } });
+        pickInstallments(2);
         save();
 
         await waitFor(() => expect(api.writes).toHaveLength(2));
@@ -2474,9 +2476,9 @@ describe('duplicating an expense', () => {
 
         expect(field(en.expenses.form.amount).value).toBe('12.50');
         expect(field(en.expenses.form.text).value).toBe('Lunch');
-        expect(chosenCategory(en.expenses.form.category)).toBe(en.categories.leisure);
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories.leisure);
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
-        expect(field(en.expenses.form.payment).value).toBe('direct');
+        expect(chosenPayment()).toBe(en.expenses.payment.direct);
         expect(field(en.expenses.form.date).value).toBe(TODAY);
     });
 
@@ -2485,7 +2487,7 @@ describe('duplicating an expense', () => {
 
         duplicate('Shoes');
 
-        expect(field(en.expenses.form.payment).value).toBe('credit');
+        expect(chosenPayment()).toBe(en.expenses.payment.credit);
         expect(field(en.expenses.form.chargeDate).value).toBe(addMonths(TODAY, 1));
     });
 
@@ -2494,7 +2496,7 @@ describe('duplicating an expense', () => {
 
         duplicate('Dinner');
 
-        expect(field(en.expenses.form.payment).value).toBe('voucher');
+        expect(chosenPayment()).toBe(en.expenses.payment.voucher);
         expect(field(en.expenses.form.personal).value).toBe('20.00');
         expect(field(en.expenses.form.amount).value).toBe('40.00');
         expect(field(en.expenses.form.chargeDate).value).toBe(addMonths(TODAY, 1));
@@ -2506,7 +2508,7 @@ describe('duplicating an expense', () => {
         duplicate('Sofa');
 
         expect(field(en.expenses.form.amount).value).toBe('15.00');
-        expect((field(en.expenses.form.installments) as HTMLSelectElement).value).toBe('3');
+        expect(chosenInstallments()).toBe(installmentsLabel(3));
         expect(partField(1, 3, '2026-10-25').value).toBe('7.00');
         expect(partField(2, 3, '2026-11-25').value).toBe('5.00');
         expect(partField(3, 3, '2026-12-25').value).toBe('3.00');
@@ -3071,7 +3073,7 @@ describe('searching, filtering and grouping the list', () => {
             await open(list);
             openFilters();
 
-            pickCategory(f.category, en.categories.groceries);
+            pickOption(f.category, en.categories.groceries);
 
             expect(rowNames()).toEqual(['Weekly shop']);
             expect(filtersToggle(1)).toBeDefined();
@@ -3082,7 +3084,7 @@ describe('searching, filtering and grouping the list', () => {
             await open([expense({ text: 'Monthly fee', categoryId: crypto.randomUUID() }), cafe]);
             openFilters();
 
-            pickCategory(f.category, en.categories.other);
+            pickOption(f.category, en.categories.other);
 
             expect(rowNames()).toEqual(['Monthly fee']);
         });
@@ -3162,7 +3164,7 @@ describe('searching, filtering and grouping the list', () => {
             await open(list);
             openFilters();
 
-            pickCategory(f.category, en.categories.groceries);
+            pickOption(f.category, en.categories.groceries);
             fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
             expect(filtersToggle(2)).toBeDefined();
             expect(rowNames()).toEqual(['Weekly shop']);
@@ -3176,7 +3178,7 @@ describe('searching, filtering and grouping the list', () => {
             await open(list);
             pickGrouping(f.group.week);
             search('shop');
-            pickCategory(f.category, en.categories.groceries);
+            pickOption(f.category, en.categories.groceries);
             fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
             fireEvent.click(radio(en.expenses.payment.direct));
 
@@ -3185,7 +3187,7 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toHaveLength(4);
             expect(searchBox().value).toBe('');
             expect(filtersToggle(0)).toBeDefined();
-            expect(chosenCategory(f.category)).toBe(f.allCategories);
+            expect(chosenOption(f.category)).toBe(f.allCategories);
             expect((screen.getByLabelText(f.from) as HTMLInputElement).value).toBe('');
             expect(radio(f.paid.any).checked).toBe(true);
             expect(radio(f.group.week).checked).toBe(true);
@@ -3503,7 +3505,7 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(rowToggle('Sofa'));
             fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Sofa' }) }));
 
-            expect((field(en.expenses.form.installments) as HTMLSelectElement).value).toBe('3');
+            expect(chosenInstallments()).toBe(installmentsLabel(3));
             expect(field(t('expenses.form.part', { part: 3, parts: 3, date: shown(addMonths(TODAY, 2)) })).value).toBe(
                 '5.00'
             );
@@ -3537,7 +3539,7 @@ describe('searching, filtering and grouping the list', () => {
         it('is dropped by adding an expense, so the new row shows, and the grouping stays', async () => {
             const { api } = await open([cafe, shop]);
             pickGrouping(f.group.week);
-            pickCategory(f.category, en.categories.food);
+            pickOption(f.category, en.categories.food);
             search('cafe');
             expect(rowNames()).toEqual(['Café con leche']);
 
@@ -3548,7 +3550,7 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toHaveLength(3);
             expect(searchBox().value).toBe('');
             expect(filtersToggle(0)).toBeDefined();
-            expect(chosenCategory(f.category)).toBe(f.allCategories);
+            expect(chosenOption(f.category)).toBe(f.allCategories);
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
             expect(radio(f.group.week).checked).toBe(true);
             expect(localStorage.getItem('tarja:list-grouping')).toBe('week');
@@ -3584,7 +3586,7 @@ describe('searching, filtering and grouping the list', () => {
             const { app } = await open([cafe]);
             search('cafe');
             openFilters();
-            pickCategory(f.category, en.categories.food);
+            pickOption(f.category, en.categories.food);
 
             deleteExpense('Café con leche');
             await screen.findByText(en.expenses.list.empty);

@@ -14,14 +14,15 @@ interface NoticeProps {
 }
 
 // A message set apart by a thick left edge. The element that carries `role` holds only the text.
-function Notice(props: NoticeProps) {
+const Notice = (props: NoticeProps) => {
     const { tone = 'info', role, id, className, children } = props;
+    const noticeClsx = clsx('notice', `notice--${tone}`, className);
 
     return (
-        <p className={clsx('notice', `notice--${tone}`, className)} id={id} role={role}>
+        <p className={noticeClsx} id={id} role={role}>
             {children}
         </p>
     );
-}
+};
 
-export { Notice };
+export { Notice, type NoticeProps };

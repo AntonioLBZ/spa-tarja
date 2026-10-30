@@ -1,9 +1,9 @@
-.category-select {
+.select {
     position: relative;
 }
 
 /* The look of the other fields; only what a button needs to hold an icon and a name differs */
-.category-select__field {
+.select__field {
     align-items: center;
     background: var(--color-bg-secondary);
     display: flex;
@@ -14,7 +14,7 @@
     width: 100%;
 }
 
-.category-select__field::after {
+.select__field::after {
     block-size: 0.5rem;
     border-bottom: var(--size-px) solid currentcolor;
     border-right: var(--size-px) solid currentcolor;
@@ -25,23 +25,23 @@
     transition: transform var(--duration-base) var(--ease-standard);
 }
 
-.category-select__field[aria-expanded='true']::after {
+.select__field[aria-expanded='true']::after {
     transform: rotate(225deg);
 }
 
-.category-select__text {
+.select__text {
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
 /* The width of an icon, for the option that has none */
-.category-select__space {
+.select__space {
     block-size: 1.5rem;
     flex: none;
     inline-size: 1.5rem;
 }
 
-.category-select__list {
+.select__list {
     background: var(--color-bg-primary);
     border-color: var(--color-border);
     border-style: solid;
@@ -65,7 +65,7 @@
     }
 }
 
-.category-select__option {
+.select__option {
     align-items: center;
     border-left: var(--size-1) solid transparent;
     cursor: pointer;
@@ -75,10 +75,10 @@
     padding-inline: var(--size-3);
 }
 
-.category-select__option--active {
+.select__option--active {
     background: var(--color-bg-secondary);
 }
 
-.category-select__option--chosen {
+.select__option--chosen {
     border-left-color: var(--color-border);
 }

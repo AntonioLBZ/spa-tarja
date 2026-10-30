@@ -2,10 +2,15 @@ import clsx from 'clsx';
 
 import './brand.css';
 
-// The name as a logo. It isn't translated.
-function Brand(props: { size?: 'header' | 'hero' }) {
-    const { size = 'header' } = props;
-    return <span className={clsx('brand', `brand--${size}`)}>Tarja</span>;
+interface BrandProps {
+    size?: 'header' | 'hero';
 }
 
-export { Brand };
+const Brand = (props: BrandProps) => {
+    const { size = 'header' } = props;
+    const brandClsx = clsx('brand', `brand--${size}`);
+
+    return <span className={brandClsx}>Tarja</span>;
+};
+
+export { Brand, type BrandProps };

@@ -19,7 +19,7 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - `ChoiceGroup` and `StylePicker` are both a group of options drawn as boxes, and the option of `ChoiceGroup` looks like a `Button`.
 - The four `__actions` rows: two of them use `--size-2` between wrapped rows, and `DESIGN.md` says `--size-4`.
 - The two raw `<details>` that are not a `Disclosure`.
-- The update bar (`UpdatePrompt`) is a full-width bar with no notch and has no entry in `DESIGN.md`.
+- The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
 

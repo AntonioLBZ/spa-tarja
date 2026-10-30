@@ -1,37 +1,24 @@
-import { Field } from '@/components/field/field';
+import { Field as FieldComponent, type FieldProps } from '@/components/field/field';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<FieldProps> = {
     title: 'Components/Field',
-    component: Field,
+    component: FieldComponent,
     args: {
         label: 'Amount',
         children: (control) => <input type="text" inputMode="decimal" {...control} />,
     },
-} satisfies Meta<typeof Field>;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {};
-
-const WithHint: Story = { args: { hint: 'Use a dot or a comma for the cents.' } };
-
-const WithError: Story = { args: { error: 'The amount is not a number.' } };
-
-const Valid: Story = { args: { error: null } };
-
-const Select: Story = {
-    args: {
-        label: 'Payment',
-        children: (control) => (
-            <select {...control}>
-                <option>Cash</option>
-                <option>Card</option>
-            </select>
-        ),
+    argTypes: {
+        children: { control: false },
+        label: { control: 'text' },
+        hint: { control: 'text' },
+        error: { control: 'text' },
     },
 };
 
-export default meta;
-export { Default, Select, Valid, WithError, WithHint };
+export const Field = (args: FieldProps) => {
+    return <FieldComponent {...args} />;
+};
+
+export default Story;

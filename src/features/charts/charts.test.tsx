@@ -5,9 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
-import { categoryNames, chosenCategory, pickCategory } from '@/lib/test/category-select';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
 import { MAX_BUCKETS } from '@core/charts';
 import { addDays, daysBetween, fromDateString } from '@core/date';
@@ -426,7 +426,7 @@ describe('reading a column', () => {
         await open();
         fireEvent.click(slots()[24]!);
 
-        pickCategory(text.category, en.categories.food);
+        pickOption(text.category, en.categories.food);
 
         expect(readout().textContent).toBe(
             t('charts.readoutCategory', { label: 'Sun, Oct 25', category: en.categories.food, amount: '€3.00' })
@@ -650,7 +650,7 @@ describe('the stat row', () => {
     it('compares the same category on both sides', async () => {
         await open();
 
-        pickCategory(text.category, en.categories.food);
+        pickOption(text.category, en.categories.food);
 
         expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€15.50');
         expect(changeLine().textContent).toContain(percent(850 / 700));
@@ -717,7 +717,7 @@ describe('the stat row', () => {
     it('says when there is nothing to compare with, and which days it looked at', async () => {
         await open();
 
-        pickCategory(text.category, en.categories.leisure);
+        pickOption(text.category, en.categories.leisure);
 
         expect(changeLine().textContent).toBe(t('charts.noPreviousSoFar', { current: SO_FAR, period: DAYS_BEFORE }));
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
@@ -1036,8 +1036,8 @@ describe('the category filter', () => {
         const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
         await open(EXPENSES, { categories: [gym] });
 
-        expect(chosenCategory(text.category)).toBe(text.allCategories);
-        expect(categoryNames(text.category)).toEqual([
+        expect(chosenOption(text.category)).toBe(text.allCategories);
+        expect(optionNames(text.category)).toEqual([
             text.allCategories,
             ...DEFAULT_CATEGORY_IDS.map((id) => en.categories[id]),
             'Gym',
@@ -1047,7 +1047,7 @@ describe('the category filter', () => {
     it('narrows the bars and the total to one category', async () => {
         await open();
 
-        pickCategory(text.category, en.categories.food);
+        pickOption(text.category, en.categories.food);
 
         expect(rowOf('Oct 25').textContent).toContain('€3.00');
         expect(rowOf('Oct 24').textContent).toContain('€12.50');
@@ -1057,7 +1057,7 @@ describe('the category filter', () => {
     it('leaves the split by category alone', async () => {
         await open();
 
-        pickCategory(text.category, en.categories.food);
+        pickOption(text.category, en.categories.food);
 
         expect(breakdown()).toHaveLength(3);
     });

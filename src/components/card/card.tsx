@@ -21,21 +21,23 @@ interface CardListProps {
 }
 
 // A box with the notch and the padding of a row. What goes inside it, and how, is up to the call site.
-function Card(props: CardProps) {
+const Card = (props: CardProps) => {
     const { as: Tag = 'div', className, children } = props;
+    const cardClsx = clsx('card', className);
 
-    return <Tag className={clsx('card', className)}>{children}</Tag>;
-}
+    return <Tag className={cardClsx}>{children}</Tag>;
+};
 
 // Cards stacked one under another, `--size-2` apart
-function CardList(props: CardListProps) {
+const CardList = (props: CardListProps) => {
     const { as: Tag = 'ul', flush, label, className, children } = props;
+    const cardListClsx = clsx('card-list', { 'card-list--flush': flush }, className);
 
     return (
-        <Tag aria-label={label} className={clsx('card-list', flush && 'card-list--flush', className)}>
+        <Tag aria-label={label} className={cardListClsx}>
             {children}
         </Tag>
     );
-}
+};
 
-export { Card, CardList };
+export { Card, CardList, type CardListProps, type CardProps };

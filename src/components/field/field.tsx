@@ -26,16 +26,17 @@ interface FieldProps {
 }
 
 // A label, a control, and under it a hint and an error, tied together for assistive technology
-function Field(props: FieldProps) {
+const Field = (props: FieldProps) => {
     const { label, hint, error, describedBy, className, children } = props;
     const id = useId();
     const hintId = `${id}-hint`;
     const errorId = `${id}-error`;
 
     const ids = [hint ? hintId : null, error ? errorId : null, describedBy].filter(Boolean).join(' ');
+    const fieldClsx = clsx('field', className);
 
     return (
-        <div className={clsx('field', className)}>
+        <div className={fieldClsx}>
             <label htmlFor={id}>{label}</label>
             {children({
                 id,
@@ -54,7 +55,6 @@ function Field(props: FieldProps) {
             )}
         </div>
     );
-}
+};
 
-export { Field };
-export type { FieldControl };
+export { Field, type FieldControl, type FieldProps };

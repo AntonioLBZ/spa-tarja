@@ -34,18 +34,19 @@ interface DisclosurePanelProps {
 
 // The box under a row that comes in with a fade and a short shift. Alone, for what looks like an open disclosure
 // without being one.
-function DisclosurePanel(props: DisclosurePanelProps) {
+const DisclosurePanel = (props: DisclosurePanelProps) => {
     const { id, hidden, className, children } = props;
+    const panelClsx = clsx('disclosure__panel', className);
 
     return (
-        <div className={clsx('disclosure__panel', className)} hidden={hidden} id={id}>
+        <div className={panelClsx} hidden={hidden} id={id}>
             {children}
         </div>
     );
-}
+};
 
 // A toggle button and, under it, the panel it opens
-function Disclosure(props: DisclosureProps) {
+const Disclosure = (props: DisclosureProps) => {
     const {
         as: Tag = 'div',
         heading: Heading,
@@ -64,11 +65,11 @@ function Disclosure(props: DisclosureProps) {
     const [ownOpen, setOwnOpen] = useState(defaultOpen);
     const isOpen = open ?? ownOpen;
 
-    function handleToggle() {
+    const handleToggle = () => {
         const next = !isOpen;
         if (open === undefined) setOwnOpen(next);
         onOpenChange?.(next);
-    }
+    };
 
     const panelInPage = isOpen || keepMounted;
     const toggle = (
@@ -89,9 +90,10 @@ function Disclosure(props: DisclosureProps) {
             )}
         </button>
     );
+    const disclosureClsx = clsx('disclosure', className);
 
     return (
-        <Tag className={clsx('disclosure', className)}>
+        <Tag className={disclosureClsx}>
             {Heading ? <Heading className="disclosure__heading">{toggle}</Heading> : toggle}
             {panelInPage && (
                 <DisclosurePanel id={panelId} hidden={!isOpen}>
@@ -100,6 +102,6 @@ function Disclosure(props: DisclosureProps) {
             )}
         </Tag>
     );
-}
+};
 
-export { Disclosure, DisclosurePanel };
+export { Disclosure, DisclosurePanel, type DisclosurePanelProps, type DisclosureProps };

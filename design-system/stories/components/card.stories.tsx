@@ -1,55 +1,16 @@
-import { Card, CardList } from '@/components/card/card';
+import { Card as CardComponent, type CardProps } from '@/components/card/card';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<CardProps> = {
     title: 'Components/Card',
-    component: Card,
+    component: CardComponent,
     args: { children: 'A box with the notch' },
-} satisfies Meta<typeof Card>;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {};
-
-const List: Story = {
-    render: () => (
-        <CardList label="Groceries">
-            {['Supermarket', 'Bakery', 'Market'].map((name) => (
-                <Card as="li" key={name}>
-                    {name}
-                </Card>
-            ))}
-        </CardList>
-    ),
+    argTypes: { as: { control: false }, children: { control: 'text' } },
 };
 
-const Flush: Story = {
-    render: () => (
-        <CardList flush label="Groceries">
-            {['Supermarket', 'Bakery', 'Market'].map((name) => (
-                <Card as="li" key={name}>
-                    {name}
-                </Card>
-            ))}
-        </CardList>
-    ),
+export const Card = (args: CardProps) => {
+    return <CardComponent {...args} />;
 };
 
-const Definitions: Story = {
-    render: () => (
-        <CardList as="dl">
-            <Card>
-                <dt>Income</dt>
-                <dd>1.500,00 €</dd>
-            </Card>
-            <Card>
-                <dt>Spent</dt>
-                <dd>842,10 €</dd>
-            </Card>
-        </CardList>
-    ),
-};
-
-export default meta;
-export { Default, Definitions, Flush, List };
+export default Story;

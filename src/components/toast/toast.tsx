@@ -27,15 +27,25 @@ interface ShownToast extends ToastOptions {
     leaving: boolean;
 }
 
+interface ToastBoxProps {
+    toast: ShownToast;
+    onDismiss: () => void;
+}
+
+interface ToastProviderProps {
+    children: ReactNode;
+}
+
 const ToastContext = createContext<ToastApi | null>(null);
 
 // The toast that is showing, with its count of the time left: hovering it or keeping the focus inside holds the count
-function ToastBox(props: { toast: ShownToast; onDismiss: () => void }) {
+const ToastBox = (props: ToastBoxProps) => {
     const { toast, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
     const [focused, setFocused] = useState(false);
     const remaining = useRef(SHOW_FOR_MS);
     const counting = !hovered && !focused && !toast.leaving;
+    const toastClsx = clsx('toast', { 'toast--leaving': toast.leaving });
 
     useEffect(() => {
         if (!counting) return;
@@ -49,7 +59,7 @@ function ToastBox(props: { toast: ShownToast; onDismiss: () => void }) {
 
     return (
         <div
-            className={clsx('toast', toast.leaving && 'toast--leaving')}
+            className={toastClsx}
             onBlur={() => setFocused(false)}
             onFocus={() => setFocused(true)}
             onMouseEnter={() => setHovered(true)}
@@ -69,11 +79,11 @@ function ToastBox(props: { toast: ShownToast; onDismiss: () => void }) {
             )}
         </div>
     );
-}
+};
 
 // One toast at a time, above the routes so it survives a change of screen. Its `role="status"` region is always in
 // the page, after everything else, so a message that comes in is announced and the toast is the last tab stop.
-function ToastProvider(props: { children: ReactNode }) {
+const ToastProvider = (props: ToastProviderProps) => {
     const { children } = props;
     const [toast, setToast] = useState<ShownToast | null>(null);
     const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -102,9 +112,9 @@ function ToastProvider(props: { children: ReactNode }) {
     useEffect(() => {
         if (!open) return;
         // A control that uses Escape, like an open list, takes the key first
-        function closeOnEscape(event: KeyboardEvent) {
+        const closeOnEscape = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && !event.defaultPrevented) dismiss();
-        }
+        };
         document.addEventListener('keydown', closeOnEscape);
         return () => document.removeEventListener('keydown', closeOnEscape);
     }, [open, dismiss]);
@@ -119,13 +129,12 @@ function ToastProvider(props: { children: ReactNode }) {
             </div>
         </ToastContext>
     );
-}
+};
 
-function useToast(): ToastApi {
+const useToast = (): ToastApi => {
     const value = use(ToastContext);
     if (value === null) throw new Error('useToast needs a ToastProvider');
     return value;
-}
+};
 
-export { ToastProvider, useToast };
-export type { ToastOptions };
+export { ToastProvider, useToast, type ToastApi, type ToastOptions, type ToastProviderProps };

@@ -10,7 +10,7 @@ interface UpdatePromptProps {
 }
 
 // A bar fixed to the bottom edge that says a new version is ready, to apply now or leave for later
-function UpdatePrompt(props: UpdatePromptProps) {
+const UpdatePrompt = (props: UpdatePromptProps) => {
     const { message, labels, onApply, onDismiss } = props;
 
     return (
@@ -22,7 +22,6 @@ function UpdatePrompt(props: UpdatePromptProps) {
             <Button onClick={onDismiss}>{labels.dismiss}</Button>
         </div>
     );
-}
+};
 
-export { UpdatePrompt };
-export type { UpdatePromptProps };
+export { UpdatePrompt, type UpdatePromptProps };

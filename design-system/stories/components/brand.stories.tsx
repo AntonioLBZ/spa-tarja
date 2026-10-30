@@ -1,18 +1,16 @@
-import { Brand } from '@/components/brand/brand';
+import { Brand as BrandComponent, type BrandProps } from '@/components/brand/brand';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<BrandProps> = {
     title: 'Components/Brand',
-    component: Brand,
+    component: BrandComponent,
+    args: { size: 'header' },
     argTypes: { size: { control: 'inline-radio', options: ['header', 'hero'] } },
-} satisfies Meta<typeof Brand>;
+};
 
-type Story = StoryObj<typeof meta>;
+export const Brand = (args: BrandProps) => {
+    return <BrandComponent {...args} />;
+};
 
-const Header: Story = { args: { size: 'header' } };
-
-const Hero: Story = { args: { size: 'hero' } };
-
-export default meta;
-export { Header, Hero };
+export default Story;

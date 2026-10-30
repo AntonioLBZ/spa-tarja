@@ -2,8 +2,12 @@ import './icon.css';
 
 import { ICON_PATHS, type IconName } from './icon-paths';
 
+interface IconProps {
+    name: IconName;
+}
+
 // Decoration, never the only way to tell what something is: the name always comes with it
-function Icon(props: { name: IconName }) {
+const Icon = (props: IconProps) => {
     const { name } = props;
 
     return (
@@ -18,6 +22,6 @@ function Icon(props: { name: IconName }) {
             <path d={ICON_PATHS[name]} />
         </svg>
     );
-}
+};
 
-export { Icon };
+export { Icon, type IconProps };

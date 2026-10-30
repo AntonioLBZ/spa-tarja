@@ -1,32 +1,33 @@
-import { Disclosure } from '@/components/disclosure/disclosure';
+import { Disclosure as DisclosureComponent, type DisclosureProps } from '@/components/disclosure/disclosure';
+import { useArgs } from 'storybook/preview-api';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
-const meta = {
+const Story: Meta<DisclosureProps> = {
     title: 'Components/Disclosure',
-    component: Disclosure,
-    args: { summary: 'Filters', children: <p style={{ margin: 0 }}>What the panel holds.</p> },
-} satisfies Meta<typeof Disclosure>;
-
-type Story = StoryObj<typeof meta>;
-
-const Default: Story = {};
-
-const Open: Story = { args: { defaultOpen: true } };
-
-const Chevron: Story = { args: { chevron: true } };
-
-const AsHeading: Story = { args: { heading: 'h2', chevron: true, defaultOpen: true } };
-
-const Disabled: Story = { args: { disabled: true } };
-
-const KeepMounted: Story = {
+    component: DisclosureComponent,
     args: {
-        keepMounted: true,
-        summary: 'Keeps what was typed',
-        children: <input aria-label="Note" type="text" defaultValue="Still here after closing" />,
+        summary: 'Filters',
+        children: 'What the panel holds.',
+        open: false,
+        chevron: false,
+        disabled: false,
+        keepMounted: false,
+    },
+    argTypes: {
+        as: { control: false },
+        children: { control: 'text' },
+        defaultOpen: { control: false },
+        heading: { control: 'inline-radio', options: [undefined, 'h2', 'h3'] },
+        summary: { control: 'text' },
     },
 };
 
-export default meta;
-export { AsHeading, Chevron, Default, Disabled, KeepMounted, Open };
+// The state is kept in the args, so the `open` control follows what is clicked
+export const Disclosure = (args: DisclosureProps) => {
+    const [, updateArgs] = useArgs();
+
+    return <DisclosureComponent {...args} onOpenChange={(open) => updateArgs({ open })} />;
+};
+
+export default Story;
