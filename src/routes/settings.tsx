@@ -44,7 +44,9 @@ const Settings = () => {
             <section className="settings__section">
                 <h2 className="settings__heading">{t('categories.title')}</h2>
                 <p className="settings__hint">{t('categories.description')}</p>
-                <ButtonLink to="/categories">{t('categories.link')}</ButtonLink>
+                <ButtonLink block to="/categories">
+                    {t('categories.link')}
+                </ButtonLink>
             </section>
             <YourData />
             <Account />

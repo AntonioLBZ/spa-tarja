@@ -44,6 +44,12 @@ describe('Button', () => {
         expect(screen.getByRole('button', { name: 'Delete' }).className).toBe('button button--danger button--ghost');
     });
 
+    it('fills its row when it is a block', () => {
+        render(<Button block>Download</Button>);
+
+        expect(screen.getByRole('button', { name: 'Download' }).className).toBe('button button--block');
+    });
+
     it('draws a glyph in a box with even padding and is named by its label', () => {
         render(
             <Button glyph aria-label="Previous month">

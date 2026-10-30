@@ -4,9 +4,9 @@ import { useArgs } from 'storybook/preview-api';
 import type { Meta } from '@storybook/react-vite';
 
 const OPTIONS = [
-    { value: 'system', label: 'System' },
     { value: 'light', label: 'Light' },
     { value: 'dark', label: 'Dark' },
+    { value: 'system', label: 'System' },
 ];
 
 const Story: Meta<ChoiceGroupProps<string>> = {

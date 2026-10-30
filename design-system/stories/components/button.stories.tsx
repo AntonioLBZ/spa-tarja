@@ -12,6 +12,7 @@ const Story: Meta<ButtonProps> = {
         disabled: false,
         glyph: false,
         ghost: false,
+        block: false,
         pressed: false,
         onClick: fn(),
     },

@@ -13,6 +13,8 @@ type ButtonProps = ComponentPropsWithRef<'button'> & {
     variant?: ButtonVariant;
     // Text only, for an action inside another edge or on paper
     ghost?: boolean;
+    // As wide as its row, which gives its bottom edge the tail of the L
+    block?: boolean;
     pressed?: boolean;
 } & GlyphName;
 
@@ -21,6 +23,7 @@ const Button = (props: ButtonProps) => {
         variant = 'default',
         glyph,
         ghost,
+        block,
         pressed,
         className,
         type = 'button',
@@ -34,6 +37,7 @@ const Button = (props: ButtonProps) => {
             [`button--${variant}`]: variant !== 'default',
             'button--glyph': glyph,
             'button--ghost': ghost,
+            'button--block': block,
             'button--pressed': pressed,
         },
         className

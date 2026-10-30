@@ -42,6 +42,16 @@ describe('ButtonLink', () => {
         expect(link.className).toBe('button button--primary toolbar__link');
     });
 
+    it('fills its row when it is a block', async () => {
+        const link = await renderInRouter(
+            <ButtonLink to="/categories" block>
+                Categories
+            </ButtonLink>
+        );
+
+        expect(link.className).toBe('button button--block');
+    });
+
     it('draws a glyph in a box with even padding and is named by its label', async () => {
         const link = await renderInRouter(
             <ButtonLink to="/categories" glyph aria-label="Categories">

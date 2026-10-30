@@ -62,8 +62,12 @@ const YourData = () => {
             <h2 className="your-data__title">{t('title')}</h2>
             <p className="your-data__hint">{t('description')}</p>
             <div className="your-data__actions">
-                <Button onClick={downloadJson}>{t('json')}</Button>
-                <Button onClick={downloadCsv}>{t('csv')}</Button>
+                <Button block onClick={downloadJson}>
+                    {t('json')}
+                </Button>
+                <Button block onClick={downloadCsv}>
+                    {t('csv')}
+                </Button>
             </div>
         </section>
     );

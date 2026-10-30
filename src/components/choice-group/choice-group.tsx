@@ -1,5 +1,7 @@
 import clsx from 'clsx';
 
+import type { CSSProperties } from 'react';
+
 import './choice-group.css';
 
 interface ChoiceOption<Value extends string> {
@@ -19,11 +21,13 @@ interface ChoiceGroupProps<Value extends string> {
 const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const { legend, name, options, value, onChange } = props;
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
+    // In characters, since the font is monospace: a column has to hold the widest word whole
+    const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
 
     return (
         <fieldset className="choice-group">
             <legend className="choice-group__legend">{legend}</legend>
-            <div className="choice-group__options">
+            <div className="choice-group__options" style={{ '--choice-word': `${widestWord}ch` } as CSSProperties}>
                 {options.map((option) => (
                     <label key={option.value} className="choice-group__option">
                         <input

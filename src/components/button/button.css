@@ -42,3 +42,9 @@ a.button {
 .button--ghost:disabled {
     text-decoration: none;
 }
+
+/* The row gives the box its tail, so the text keeps the room it would lose to one */
+.button--block {
+    inline-size: 100%;
+    padding-inline-end: var(--size-2);
+}

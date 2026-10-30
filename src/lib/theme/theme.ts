@@ -1,6 +1,6 @@
 import { readDuration } from '@/lib/motion';
 
-const THEMES = ['system', 'light', 'dark'] as const;
+const THEMES = ['light', 'dark', 'system'] as const;
 
 type Theme = (typeof THEMES)[number];
 

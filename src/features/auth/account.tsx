@@ -43,7 +43,7 @@ const Account = () => {
                     {t('signOutFailed')}
                 </Notice>
             )}
-            <Button disabled={phase === 'signing-out'} onClick={handleSignOut}>
+            <Button block disabled={phase === 'signing-out'} onClick={handleSignOut}>
                 {phase === 'signing-out' ? t('signingOut') : t('signOut')}
             </Button>
         </section>

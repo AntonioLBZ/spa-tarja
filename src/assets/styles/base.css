@@ -44,6 +44,7 @@ select {
     min-width: var(--size-touch);
     padding-block: 0;
     padding-inline: var(--size-4) var(--size-12);
+    text-align: start;
     transition:
         background-color var(--duration-base) var(--ease-standard),
         border-color var(--duration-base) var(--ease-standard),

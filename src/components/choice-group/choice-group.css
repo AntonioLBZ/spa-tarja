@@ -11,26 +11,36 @@
     padding: 0;
 }
 
+/* One joined box: the thick left edge is the group's, and each option brings the cut under it. It clips the hairline
+   that the first option of every row pushes out of it */
 .choice-group__options {
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 0 var(--size-1);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-4);
+    overflow: hidden;
 }
 
+/* As many to a row as hold the widest word with their edge and room, and every row fills the line */
 .choice-group__option {
+    display: grid;
+    flex: 1 1 min(100%, calc(var(--choice-word) + var(--size-px) + var(--size-4) + var(--size-2)));
+    min-width: 0;
     position: relative;
 }
 
 .choice-group__text {
     align-items: center;
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    border-block-end: var(--size-1) solid var(--color-border);
+    border-inline-start: var(--size-px) solid var(--color-border-subtle);
     cursor: pointer;
     display: flex;
+    margin-inline-start: calc(-1 * var(--size-px));
     min-height: var(--size-touch);
-    padding-block: 0;
-    padding-inline: var(--size-4) var(--size-12);
+    overflow-wrap: anywhere;
+    padding-block: var(--size-1);
+    padding-inline: var(--size-4) var(--size-2);
     transition:
         background-color var(--duration-base) var(--ease-standard),
         color var(--duration-base) var(--ease-standard);
@@ -41,7 +51,13 @@
     color: var(--color-content-on-accent);
 }
 
+/* Inside the cell, since the group clips what is outside it, and in the text color on the one that is filled with the
+   same accent */
 .choice-group__input:focus-visible + .choice-group__text {
     outline: 0.125rem solid var(--color-border-focus);
-    outline-offset: 0.125rem;
+    outline-offset: -0.125rem;
+}
+
+.choice-group__input:checked:focus-visible + .choice-group__text {
+    outline-color: var(--color-content-on-accent);
 }

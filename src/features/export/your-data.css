@@ -1,6 +1,7 @@
 .your-data {
     display: grid;
     gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
     justify-items: start;
 }
 
@@ -14,8 +15,10 @@
     margin: 0;
 }
 
+/* Two equal columns while a label fits in each; when it doesn't, each takes a line of its own */
 .your-data__actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: var(--size-4);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    justify-self: stretch;
 }

@@ -106,7 +106,11 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         <Notice tone="quiet">{shown === 0 ? tList('noMatch') : t('showing', { shown, total })}</Notice>
                     )}
                 </div>
-                {filtering && <Button onClick={clear}>{t('clear')}</Button>}
+                {filtering && (
+                    <Button block onClick={clear}>
+                        {t('clear')}
+                    </Button>
+                )}
             </div>
         </div>
     );

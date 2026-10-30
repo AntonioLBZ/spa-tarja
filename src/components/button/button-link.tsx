@@ -8,15 +8,17 @@ import type { ComponentPropsWithRef, ReactElement } from 'react';
 interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
     variant?: ButtonVariant;
     glyph?: boolean;
+    block?: boolean;
 }
 
 const ButtonAnchor = (props: ButtonAnchorProps) => {
-    const { variant = 'default', glyph, className, ...rest } = props;
+    const { variant = 'default', glyph, block, className, ...rest } = props;
     const buttonClsx = clsx(
         'button',
         {
             [`button--${variant}`]: variant !== 'default',
             'button--glyph': glyph,
+            'button--block': block,
         },
         className
     );

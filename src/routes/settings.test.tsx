@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
@@ -63,6 +63,19 @@ describe('settings', () => {
     });
 
     describe('theme', () => {
+        it('lists light and dark first and system last, the one that follows the device', async () => {
+            renderApp({ path: '/settings' });
+            await radio(en.settings.theme.light);
+
+            const group = screen.getByRole('group', { name: en.settings.theme.title });
+
+            expect(
+                within(group)
+                    .getAllByRole('radio')
+                    .map((input) => (input as HTMLInputElement).value)
+            ).toEqual(['light', 'dark', 'system']);
+        });
+
         it('starts on the light theme', async () => {
             renderApp({ path: '/settings' });
 
