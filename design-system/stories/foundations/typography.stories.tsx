@@ -2,20 +2,18 @@ import { Brand } from '@/components/brand/brand';
 
 import { tokensWith } from './tokens';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 import './foundations.css';
 
 const SAMPLE = 'The quick brown fox jumps over the lazy dog 0123456789';
 
-const meta = {
+const Story: Meta = {
     title: 'Foundations/Typography',
-} satisfies Meta;
+};
 
-type Story = StoryObj<typeof meta>;
-
-const Scale: Story = {
-    render: () => (
+export const Scale = () => {
+    return (
         <div>
             {tokensWith('--font-size-')
                 .filter((token) => token.name !== '--font-size-logo')
@@ -30,11 +28,11 @@ const Scale: Story = {
                     </div>
                 ))}
         </div>
-    ),
+    );
 };
 
-const Weights: Story = {
-    render: () => (
+export const Weights = () => {
+    return (
         <div>
             {[400, 700].map((weight) => (
                 <div className="type-sample" key={weight}>
@@ -45,11 +43,11 @@ const Weights: Story = {
                 </div>
             ))}
         </div>
-    ),
+    );
 };
 
-const Logo: Story = {
-    render: () => (
+export const Logo = () => {
+    return (
         <div>
             <div className="type-sample">
                 <span className="type-sample__meta">--font-family-brand, in the header</span>
@@ -60,8 +58,7 @@ const Logo: Story = {
                 <Brand size="hero" />
             </div>
         </div>
-    ),
+    );
 };
 
-export default meta;
-export { Logo, Scale, Weights };
+export default Story;

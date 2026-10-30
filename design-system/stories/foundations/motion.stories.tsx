@@ -1,24 +1,27 @@
 import { Button } from '@/components/button/button';
+import clsx from 'clsx';
 import { useState, type CSSProperties } from 'react';
 
 import { tokensWith } from './tokens';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 import './foundations.css';
 
-function MotionGrid() {
+const Story: Meta = {
+    title: 'Foundations/Motion',
+};
+
+export const Durations = () => {
     const [moved, setMoved] = useState(false);
     const durations = tokensWith('--duration-');
     const eases = tokensWith('--ease-');
+    const gridClsx = clsx('motion-grid', { 'motion-grid--moved': moved });
 
     return (
         <div>
             <Button onClick={() => setMoved(!moved)}>Play</Button>
-            <div
-                className={moved ? 'motion-grid motion-grid--moved' : 'motion-grid'}
-                style={{ marginBlock: 'var(--size-4)' }}
-            >
+            <div className={gridClsx} style={{ marginBlock: 'var(--size-4)' }}>
                 <span />
                 {durations.map((duration) => (
                     <span className="motion-grid__head" key={duration.name}>
@@ -50,17 +53,6 @@ function MotionGrid() {
             </p>
         </div>
     );
-}
-
-const meta = {
-    title: 'Foundations/Motion',
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Durations: Story = {
-    render: () => <MotionGrid />,
 };
 
-export default meta;
-export { Durations };
+export default Story;

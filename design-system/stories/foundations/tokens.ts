@@ -13,15 +13,14 @@ const TOKENS: readonly Token[] = Array.from(ROOT_BLOCK.matchAll(/^\s*(--[\w-]+):
     return { name, value };
 });
 
-function tokensWith(prefix: string): Token[] {
+const tokensWith = (prefix: string): Token[] => {
     return TOKENS.filter((token) => token.name.startsWith(prefix));
-}
+};
 
 // What a `light-dark()` token holds for each theme, or null for a token that is not one
-function splitLightDark(value: string): { light: string; dark: string } | null {
+const splitLightDark = (value: string): { light: string; dark: string } | null => {
     const match = /^light-dark\((.+),\s*(.+)\)$/.exec(value);
     return match ? { light: match[1] ?? '', dark: match[2] ?? '' } : null;
-}
+};
 
-export { splitLightDark, tokensWith };
-export type { Token };
+export { splitLightDark, tokensWith, type Token };

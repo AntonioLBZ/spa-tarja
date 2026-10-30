@@ -1,17 +1,15 @@
 import { tokensWith } from './tokens';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 import './foundations.css';
 
-const meta = {
+const Story: Meta = {
     title: 'Foundations/Spacing',
-} satisfies Meta;
+};
 
-type Story = StoryObj<typeof meta>;
-
-const Scale: Story = {
-    render: () => (
+export const Scale = () => {
+    return (
         <div>
             {tokensWith('--size-').map((token) => (
                 <div className="spacing-row" key={token.name}>
@@ -21,8 +19,7 @@ const Scale: Story = {
                 </div>
             ))}
         </div>
-    ),
+    );
 };
 
-export default meta;
-export { Scale };
+export default Story;

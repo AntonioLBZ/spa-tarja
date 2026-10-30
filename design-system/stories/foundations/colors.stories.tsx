@@ -3,11 +3,15 @@ import { ACCENTS, DEFAULT_ACCENT } from '@/lib/accent';
 
 import { splitLightDark, tokensWith, type Token } from './tokens';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta } from '@storybook/react-vite';
 
 import './foundations.css';
 
-function Swatches(props: { tokens: Token[] }) {
+interface SwatchesProps {
+    tokens: Token[];
+}
+
+const Swatches = (props: SwatchesProps) => {
     const { tokens } = props;
 
     return (
@@ -26,9 +30,22 @@ function Swatches(props: { tokens: Token[] }) {
             })}
         </ul>
     );
-}
+};
 
-function AccentSamples() {
+const Story: Meta = {
+    title: 'Foundations/Colors',
+    parameters: { layout: 'padded' },
+};
+
+export const Semantic = () => {
+    return <Swatches tokens={tokensWith('--color-').filter((token) => !token.name.startsWith('--color-category-'))} />;
+};
+
+export const Category = () => {
+    return <Swatches tokens={tokensWith('--color-category-')} />;
+};
+
+export const Accents = () => {
     return (
         <div>
             {ACCENTS.map((accent) => (
@@ -46,28 +63,6 @@ function AccentSamples() {
             ))}
         </div>
     );
-}
-
-const meta = {
-    title: 'Foundations/Colors',
-    parameters: { layout: 'padded' },
-} satisfies Meta;
-
-type Story = StoryObj<typeof meta>;
-
-const Semantic: Story = {
-    render: () => (
-        <Swatches tokens={tokensWith('--color-').filter((token) => !token.name.startsWith('--color-category-'))} />
-    ),
 };
 
-const Category: Story = {
-    render: () => <Swatches tokens={tokensWith('--color-category-')} />,
-};
-
-const Accents: Story = {
-    render: () => <AccentSamples />,
-};
-
-export default meta;
-export { Accents, Category, Semantic };
+export default Story;
