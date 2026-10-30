@@ -1,5 +1,15 @@
 import clsx from 'clsx';
-import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+    createContext,
+    use,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type CSSProperties,
+    type ReactNode,
+} from 'react';
 
 import { Button } from '@/components/button/button';
 import { readDuration } from '@/lib/motion';
@@ -45,7 +55,7 @@ const ToastBox = (props: ToastBoxProps) => {
     const [focused, setFocused] = useState(false);
     const remaining = useRef(SHOW_FOR_MS);
     const counting = !hovered && !focused && !toast.leaving;
-    const toastClsx = clsx('toast', { 'toast--leaving': toast.leaving });
+    const toastClsx = clsx('toast', { 'toast--held': hovered || focused, 'toast--leaving': toast.leaving });
 
     useEffect(() => {
         if (!counting) return;
@@ -60,6 +70,7 @@ const ToastBox = (props: ToastBoxProps) => {
     return (
         <div
             className={toastClsx}
+            style={{ '--toast-duration': `${SHOW_FOR_MS}ms` } as CSSProperties}
             onBlur={() => setFocused(false)}
             onFocus={() => setFocused(true)}
             onMouseEnter={() => setHovered(true)}
@@ -68,6 +79,7 @@ const ToastBox = (props: ToastBoxProps) => {
             <p className="toast__message">{toast.message}</p>
             {toast.action && (
                 <Button
+                    ghost
                     disabled={toast.leaving}
                     onClick={() => {
                         toast.action?.onAction();

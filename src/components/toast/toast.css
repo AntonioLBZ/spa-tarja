@@ -10,13 +10,13 @@
     position: fixed;
 }
 
-/* A box with the notch, in with a fade and a short shift, and out the same way */
+/* A thick left edge, and a bar for the bottom one; in with a fade and a short shift, and out the same way */
 .toast {
     align-items: center;
     background: var(--color-bg-secondary);
     border-color: var(--color-border);
     border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    border-width: 0 0 0 var(--size-1);
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
@@ -24,6 +24,7 @@
     max-width: 40rem;
     padding: var(--size-2) var(--size-3);
     pointer-events: auto;
+    position: relative;
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
@@ -32,6 +33,36 @@
     @starting-style {
         opacity: 0;
         transform: translateY(var(--size-2));
+    }
+}
+
+/* The bottom edge is the time left: from the corner of the L it shrinks back toward it over the time the toast stays,
+   and holds with the count */
+.toast::after {
+    animation: toast-countdown var(--toast-duration) linear forwards;
+    background: var(--color-border);
+    block-size: var(--size-1);
+    content: '';
+    inset-block-end: 0;
+    inset-inline: calc(-1 * var(--size-1)) 0;
+    position: absolute;
+    transform-origin: left;
+}
+
+.toast--held::after {
+    animation-play-state: paused;
+}
+
+@keyframes toast-countdown {
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* The one animation that reduced motion turns off instead of zeroing: the bar stays full */
+@media (prefers-reduced-motion: reduce) {
+    .toast::after {
+        animation: none;
     }
 }
 
@@ -47,4 +78,9 @@
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+/* The action has no padding of its own at the sides, so under a message that wraps it lines up with the text */
+.toast .button {
+    padding-inline: 0;
 }

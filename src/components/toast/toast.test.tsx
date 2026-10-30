@@ -89,6 +89,46 @@ describe('Toast', () => {
         expect(action.classList.contains('button')).toBe(true);
     });
 
+    it('shows its action as a ghost, since the toast has its own edge', () => {
+        setup();
+
+        show();
+
+        expect(screen.getByRole('button', { name: 'Undo' }).classList.contains('button--ghost')).toBe(true);
+    });
+
+    it('tells the bar of its edge how long it stays', () => {
+        setup();
+
+        show();
+
+        expect((toast() as HTMLElement).style.getPropertyValue('--toast-duration')).toBe('8000ms');
+    });
+
+    it('is held while the pointer is over it, so the bar holds with the count', () => {
+        setup();
+        show();
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
+
+        fireEvent.mouseEnter(toast()!);
+        expect(toast()!.classList.contains('toast--held')).toBe(true);
+
+        fireEvent.mouseLeave(toast()!);
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
+    });
+
+    it('is held while the focus is inside it, so the bar holds with the count', () => {
+        setup();
+        show();
+        const action = screen.getByRole('button', { name: 'Undo' });
+
+        act(() => action.focus());
+        expect(toast()!.classList.contains('toast--held')).toBe(true);
+
+        act(() => action.blur());
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
+    });
+
     it('comes after the page in the document, so it is the last stop in the tab order', () => {
         setup();
 
