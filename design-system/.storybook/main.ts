@@ -5,6 +5,7 @@ const config: StorybookConfig = {
     stories: ['../stories/**/*.stories.tsx'],
     addons: ['@storybook/addon-a11y'],
     core: { disableTelemetry: true },
+    features: { sidebarOnboardingChecklist: false, menuOnboardingChecklist: false },
     typescript: { reactDocgen: 'react-docgen' },
 };
 
