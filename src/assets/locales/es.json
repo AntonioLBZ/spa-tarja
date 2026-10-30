@@ -92,7 +92,7 @@
             "weekOf": "Semana del {date}",
             "noMatch": "Ningún gasto coincide",
             "showMore": "Mostrar más",
-            "groupTotal": "Total"
+            "total": "Total"
         }
     },
     "categories": {

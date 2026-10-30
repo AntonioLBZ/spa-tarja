@@ -8,6 +8,8 @@ import { CUSTOM_CATEGORIES } from './fixtures';
 import type { Expense } from '@core/expense';
 import type { Meta } from '@storybook/react-vite';
 
+import '@/features/expenses/expense-list.css';
+
 const DAY = '2026-10-27';
 const PLAN_ID = '2a8f6a52-6d4a-4f0e-9d7b-3b8f5f5e3c11';
 
@@ -81,9 +83,11 @@ export const ExpenseRow = (args: ExpenseRowStoryProps) => {
     return (
         <AppData api={{ categories: [...CUSTOM_CATEGORIES] }}>
             {() => (
-                <CardList flush>
-                    <ExpenseRowComponent {...props} expenses={EXPENSES[kind]} isPlan={kind === 'installments'} />
-                </CardList>
+                <section className="expense-list__group">
+                    <CardList flush>
+                        <ExpenseRowComponent {...props} expenses={EXPENSES[kind]} isPlan={kind === 'installments'} />
+                    </CardList>
+                </section>
             )}
         </AppData>
     );

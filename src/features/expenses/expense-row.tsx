@@ -93,6 +93,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
         >
             <div className="expense-item__actions">
                 <Button
+                    ghost
                     aria-describedby={editable ? undefined : reasonId}
                     aria-label={t('editItem', { name })}
                     disabled={leaving || !editable}
@@ -101,6 +102,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                     {t('edit')}
                 </Button>
                 <Button
+                    ghost
                     aria-describedby={editable ? undefined : reasonId}
                     aria-label={t('duplicateItem', { name })}
                     disabled={leaving || !editable}
@@ -109,6 +111,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                     {t('duplicate')}
                 </Button>
                 <Button
+                    ghost
                     variant="danger"
                     aria-label={t('deleteItem', { name })}
                     disabled={leaving}

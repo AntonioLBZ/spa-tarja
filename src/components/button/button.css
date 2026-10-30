@@ -25,3 +25,20 @@ a.button {
 .button--glyph {
     padding-inline: var(--size-4);
 }
+
+/* No box, only the text underlined: for an action inside another edge or on paper */
+.button--ghost {
+    border-width: 0;
+    padding-inline: var(--size-2);
+    text-decoration: underline;
+    text-decoration-thickness: var(--size-px);
+    text-underline-offset: 0.25em;
+}
+
+.button--ghost:hover {
+    text-decoration-thickness: calc(2 * var(--size-px));
+}
+
+.button--ghost:disabled {
+    text-decoration: none;
+}

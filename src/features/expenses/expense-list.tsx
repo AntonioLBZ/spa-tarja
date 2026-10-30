@@ -151,13 +151,7 @@ const ExpenseList = () => {
 
             {groups.map((group) => (
                 <section className="expense-list__group" key={group.key}>
-                    <div className="expense-list__header">
-                        <h3 className={labelClsx}>{labelOfGroup(group)}</h3>
-                        <span className="expense-list__subtotal">
-                            <span className="visually-hidden">{t('groupTotal')}</span>{' '}
-                            {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
-                        </span>
-                    </div>
+                    <h3 className={labelClsx}>{labelOfGroup(group)}</h3>
                     <CardList flush>
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
@@ -183,6 +177,12 @@ const ExpenseList = () => {
                             );
                         })}
                     </CardList>
+                    <p className="expense-list__total">
+                        <span className="expense-list__total-label">{t('total')}</span>{' '}
+                        <span className="expense-list__subtotal">
+                            {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
+                        </span>
+                    </p>
                 </section>
             ))}
 

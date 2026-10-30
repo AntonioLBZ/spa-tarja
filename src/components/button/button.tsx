@@ -11,6 +11,8 @@ type GlyphName = { glyph: true; 'aria-label': string } | { glyph?: false };
 
 type ButtonProps = ComponentPropsWithRef<'button'> & {
     variant?: ButtonVariant;
+    // Text only, for an action inside another edge or on paper
+    ghost?: boolean;
     pressed?: boolean;
 } & GlyphName;
 
@@ -18,6 +20,7 @@ const Button = (props: ButtonProps) => {
     const {
         variant = 'default',
         glyph,
+        ghost,
         pressed,
         className,
         type = 'button',
@@ -30,6 +33,7 @@ const Button = (props: ButtonProps) => {
         {
             [`button--${variant}`]: variant !== 'default',
             'button--glyph': glyph,
+            'button--ghost': ghost,
             'button--pressed': pressed,
         },
         className

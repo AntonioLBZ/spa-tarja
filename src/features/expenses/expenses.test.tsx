@@ -2881,8 +2881,8 @@ describe('searching, filtering and grouping the list', () => {
     const subtotalOf = (label: string) =>
         screen
             .getByRole('heading', { level: 3, name: label })
-            .nextElementSibling?.textContent?.replace(en.expenses.list.groupTotal, '')
-            .trim();
+            .closest('section')
+            ?.querySelector('.expense-list__subtotal')?.textContent;
     const statusRegion = () => document.querySelector('.expense-list-controls [role="status"]');
     const clear = () => fireEvent.click(screen.getByRole('button', { name: f.clear }));
     const showing = (shownCount: number, total: number) =>
@@ -3696,13 +3696,15 @@ describe('searching, filtering and grouping the list', () => {
             expect(heading().className).not.toContain('expense-list__label--date');
         });
 
-        it('are followed by a subtotal that a screen reader hears as a total', async () => {
+        it('end with a line that says Total in visible text, under the rows', async () => {
             await open(list);
 
-            const subtotal = screen.getByRole('heading', { level: 3, name: longDay('2026-10-24') }).nextElementSibling!;
+            const group = screen.getByRole('heading', { level: 3, name: longDay('2026-10-24') }).closest('section')!;
+            const total = group.querySelector('.expense-list__total')!;
 
-            expect(subtotal.querySelector('.visually-hidden')?.textContent).toBe(en.expenses.list.groupTotal);
-            expect(subtotal.textContent).toBe(`${en.expenses.list.groupTotal} €48.00`);
+            expect(total.textContent).toBe(`${en.expenses.list.total} €48.00`);
+            expect(total.querySelector('.visually-hidden')).toBeNull();
+            expect(group.lastElementChild).toBe(total);
         });
     });
 

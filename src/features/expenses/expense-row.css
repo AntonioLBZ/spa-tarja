@@ -67,3 +67,34 @@
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
 }
+
+/* On paper the toggle has no notch, and the name is joined to the amount by a leader of dots, which gives way when
+   the name wraps */
+.expense-item .disclosure__toggle {
+    border-width: 0;
+    padding-inline: 0;
+}
+
+.expense-item__name::after {
+    color: var(--color-content-secondary);
+    content: var(--leader-dots) / '';
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+/* The actions belong to their row: close to it, with the room left under them before the next one */
+.expense-item.disclosure {
+    gap: 0;
+}
+
+.expense-item .disclosure__panel {
+    padding-block: 0 var(--size-3);
+    padding-inline-start: 0;
+}
+
+.expense-item__actions .button {
+    padding-inline: 0;
+    text-align: start;
+}

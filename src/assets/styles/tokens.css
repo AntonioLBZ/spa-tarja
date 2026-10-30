@@ -27,6 +27,9 @@
     /* The logo is sized apart from the text scale */
     --font-size-logo: 3rem;
 
+    /* The dots that join a name to an amount, one monospace character each; the box that holds them cuts them */
+    --leader-dots: '··································································································································';
+
     /* Motion: reduced-motion zeroes the durations in one place */
     --duration-fast: 120ms;
     --duration-base: 200ms;

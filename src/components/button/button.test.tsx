@@ -30,6 +30,20 @@ describe('Button', () => {
         expect(screen.getByRole('button', { name: 'Save' }).className).toBe(`button button--${variant}`);
     });
 
+    it('takes the ghost look, alone or with the danger variant', () => {
+        render(
+            <>
+                <Button ghost>Edit</Button>
+                <Button ghost variant="danger">
+                    Delete
+                </Button>
+            </>
+        );
+
+        expect(screen.getByRole('button', { name: 'Edit' }).className).toBe('button button--ghost');
+        expect(screen.getByRole('button', { name: 'Delete' }).className).toBe('button button--danger button--ghost');
+    });
+
     it('draws a glyph in a box with even padding and is named by its label', () => {
         render(
             <Button glyph aria-label="Previous month">

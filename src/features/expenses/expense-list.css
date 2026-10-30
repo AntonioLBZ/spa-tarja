@@ -1,6 +1,8 @@
+/* `minmax(0, 1fr)` here and on the groups keeps the leaders, which are as long as they can be, from widening the page */
 .expense-list {
     display: grid;
     gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
 }
 
 .expense-list__title {
@@ -8,33 +10,28 @@
     margin: 0;
 }
 
+/* A ticket: a sheet of paper with the label of the group, its rows and, at the foot, the total */
 .expense-list__group {
+    background: var(--color-bg-secondary);
+    border-block-end: var(--size-1) double var(--color-border);
     display: grid;
     gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--size-4) var(--size-4) var(--size-3);
 }
 
-/* The label of a group at one end of the hairline and what its rows add up to at the other */
-.expense-list__header {
-    align-items: center;
-    border-bottom: var(--size-px) solid var(--color-border);
-    color: var(--color-content-secondary);
-    display: flex;
-    font-size: var(--font-size-s);
-    gap: var(--size-3);
-    justify-content: space-between;
-    padding-bottom: var(--size-1);
-}
-
+/* The label of a group, centered in capitals over a dashed rule */
 .expense-list__label {
-    font-size: inherit;
+    border-block-end: var(--size-px) dashed var(--color-border);
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
     font-weight: 400;
+    letter-spacing: 0.1em;
     margin: 0;
     min-width: 0;
     overflow-wrap: anywhere;
-}
-
-/* Spanish writes the weekday and the month in lowercase. `::first-letter` needs a block, so a date is never a flex box */
-.expense-list__label--date::first-letter {
+    padding-block-end: var(--size-3);
+    text-align: center;
     text-transform: uppercase;
 }
 
@@ -42,6 +39,34 @@
     align-items: center;
     display: flex;
     gap: var(--size-2);
+    justify-content: center;
+}
+
+/* The foot: a dashed rule and the total. It stops short at the end by the width of the chevron of a row and its gap, so
+   the amounts line up */
+.expense-list__total {
+    border-block-start: var(--size-px) dashed var(--color-border);
+    color: var(--color-content-secondary);
+    display: flex;
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    gap: var(--size-2);
+    margin: 0;
+    padding-block-start: var(--size-3);
+    padding-inline-end: calc(1.5rem + var(--size-2));
+}
+
+/* The word and its leader of dots, which the box cuts where they meet the amount */
+.expense-list__total-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.expense-list__total-label::after {
+    content: ' ' var(--leader-dots) / '';
 }
 
 .expense-list__subtotal {
