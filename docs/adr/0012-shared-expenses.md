@@ -9,11 +9,11 @@
 
 ## Decision
 
-**Scope.** In: groups, expenses split between their members, balances, settling up, and splitting with one person without making a group. Still out: importing a backup and several currencies (a group has the app's currency). Still decided from [ADR-0001](0001-scope-of-the-app.md): export only, which now holds the groups too, and no PWA shortcuts. Left for later, on purpose: several people paying one expense, splits by shares or weights, recurring shared expenses ([ADR-0010](0010-edit-duplicate-and-delete-expenses.md)), receipts, comments, notifications of any kind ([ADR-0009](0009-budgets-only-warn.md) drew the same line), paying through the app, merging two members and deleting an account.
+**Scope.** In: groups, expenses split between their members, balances, settling up, and splitting with one person without making a group. Still out: importing a backup and several currencies (a group has the app's currency). Still decided from [ADR-0001](0001-scope-of-the-app.md): export only, which now holds the groups too, and no PWA shortcuts. Left for later, on purpose: several people paying one expense (the owner sees no use for it), splits by shares or weights, recurring shared expenses ([ADR-0010](0010-edit-duplicate-and-delete-expenses.md)), receipts, comments, notifications of any kind ([ADR-0009](0009-budgets-only-warn.md) drew the same line), paying through the app and merging anything but a dummy into a real member ([ADR-0014](0014-people-in-groups.md)).
 
 **Model.**
 
-- A group has **members**: signed-in users, or **placeholders**, names nobody has claimed yet ([ADR-0014](0014-usernames-and-invitations.md)). Its **entries**, expenses and settlements, belong to the group, not to a user. A user is in many groups and a group has many users. Personal expenses stay as they are ([ADR-0004](0004-data-conventions.md)).
+- A group has **members**: signed-in users, or **placeholders**, names nobody has claimed yet ([ADR-0014](0014-people-in-groups.md)). Its **entries**, expenses and settlements, belong to the group, not to a user. A user is in many groups and a group has many users. Personal expenses stay as they are ([ADR-0004](0004-data-conventions.md)).
 - An entry says who paid and how the amount is divided between members, in cents: equally by default, by percentage, by exact amounts, with the option to leave someone out.
 - A **friend** is a group of two with no name. Splitting with a person outside any group is an expense in that group: same engine, same screens, and it can't grow.
 - Roles are `owner` and `member`. Any member adds, edits and deletes entries and invites. Only the owner renames the group, removes others, switches the simplified debts and deletes it.
@@ -27,8 +27,8 @@
 ## Consequences
 
 - [ADR-0001](0001-scope-of-the-app.md) is superseded by this one. Its text stays as it was.
-- When a group leaves a device (left, deleted), its parts leave the totals of past months, so the app offers first to keep them as ordinary expenses of the person ([groups](../specs/groups.md)).
-- A custom category exists only for its creator; the other members see "Other" ([categories](../specs/categories.md)).
+- Deleting a group deletes no expense. A group that was deleted, or that a person left, becomes **closed**: read-only, and its expenses stay in each person's own expenses for as long as that person keeps it on, with a switch per group and per person, "Show in my expenses" ([groups](../specs/groups.md)).
+- A shared expense can only use the default categories, which every member has, so the set of defaults grows to cover trips, treats and the like ([categories](../specs/categories.md)). The rules of [ADR-0006](0006-categories.md) don't change: its list of defaults was a starting point.
 - With simplified debts off, a big group shows many small debts; on, a few payments that may name someone you shared nothing with. Each has its place, which is why it is a choice.
 - The maths (splitting, balances, simplifying) lives in `core/` and the server uses it too, to refuse leaving or deleting with a balance.
 - The rules are in [groups](../specs/groups.md), [shared expenses](../specs/shared-expenses.md), [balances](../specs/balances.md) and [when an expense counts](../specs/expense-counting.md). The offline rules are in [ADR-0013](0013-shared-entries-sync-through-an-outbox.md).

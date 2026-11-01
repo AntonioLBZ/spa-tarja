@@ -11,6 +11,7 @@ Each group keeps its own account. The decision is in [ADR-0012](../adr/0012-shar
 - **Suggestions.** The lines of the view in use (who owes whom, or the simplified payments) are the settlements the screen suggests. Taking one fills in who, whom and how much; all three can be changed.
 - **No color for debts.** Owing isn't an error, so the danger color isn't used; the words say it: "You owe", "owes you", "Settled" ([`DESIGN.md`](../../design-system/DESIGN.md#2-color-and-themes)).
 - **Across groups.** The Groups screen adds the balances of the caller in each group: what they are owed in all, and what they owe in all, each from the groups where it is positive or negative. A friend counts as a group.
+- **Merged, closed and deleted.** The id of a placeholder merged into a member is read as that member before anything is added ([groups](groups.md)), so a merge adds its balance to the target's. A closed group keeps the balances it had and offers no settle up. A member who deleted their account is a member with no name, shown as "Deleted user", whose balance the rest can still settle with a settlement ([authentication](authentication.md)).
 
 ## Screen
 
