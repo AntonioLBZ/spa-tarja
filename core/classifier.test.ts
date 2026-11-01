@@ -58,10 +58,19 @@ describe('default categories', () => {
         expect(DEFAULT_CATEGORY_IDS).toContain(FALLBACK_CATEGORY_ID);
     });
 
-    it('recognizes its own ids only', () => {
-        expect(isDefaultCategoryId('food')).toBe(true);
-        expect(isDefaultCategoryId('2f9c0c2e-0000-4000-8000-000000000000')).toBe(false);
-        expect(isDefaultCategoryId(42)).toBe(false);
+    it.each(DEFAULT_CATEGORY_IDS)('recognizes %s as a default one', (id) => {
+        expect(isDefaultCategoryId(id)).toBe(true);
+    });
+
+    it.each([
+        ['the id of a custom category', '2f9c0c2e-0000-4000-8000-000000000000'],
+        ['an empty id', ''],
+        ['a default id in other letters', 'Food'],
+        ['a default id with spaces around it', ' food '],
+        ['a number', 42],
+        ['null', null],
+    ])('recognizes nothing else, not %s', (_name, value) => {
+        expect(isDefaultCategoryId(value)).toBe(false);
     });
 });
 
