@@ -11,10 +11,14 @@ beforeEach(async () => {
     session = await signIn();
 });
 
-function put(body: unknown, as: TestSession = session) {
+function putRaw(body: string, as: TestSession = session) {
     const headers = new Headers(as.headers);
     headers.set('content-type', 'application/json');
-    return app.request('/api/profile', { method: 'PUT', headers, body: JSON.stringify(body) }, env);
+    return app.request('/api/profile', { method: 'PUT', headers, body }, env);
+}
+
+function put(body: unknown, as: TestSession = session) {
+    return putRaw(JSON.stringify(body), as);
 }
 
 async function read(as: TestSession = session) {
@@ -84,7 +88,17 @@ describe('PUT /api/profile', () => {
 
         expect(response.status).toBe(200);
         expect(await response.json()).toEqual({ nickname: null, name: 'Ana' });
+        expect(await read()).toEqual({ nickname: null, name: 'Ana' });
         expect(await rowsOf(session.userId)).toBe(0);
+    });
+
+    it('ignores any field but the nickname, so the name of the account can’t be changed this way', async () => {
+        const response = await put({ nickname: 'Anita', name: 'Mallory', email: 'mallory@example.com' });
+
+        expect(response.status).toBe(200);
+        expect(await read()).toEqual({ nickname: 'Anita', name: 'Ana' });
+        const user = await env.DB.prepare('SELECT name, email FROM "user" WHERE id = ?1').bind(session.userId).first();
+        expect(user).toEqual({ name: 'Ana', email: 'ana@example.com' });
     });
 
     it('answers the same to null when there was no nickname', async () => {
@@ -119,12 +133,31 @@ describe('PUT /api/profile', () => {
         ['a nickname of only spaces', { nickname: '   ' }],
         ['a nickname with nothing visible in it', { nickname: '\u200B\u2060' }],
         ['a nickname that is too long', { nickname: 'x'.repeat(NICKNAME_MAX_LENGTH + 1) }],
-        ['a nickname that is not a string', { nickname: 7 }],
+        ['a nickname that is a number', { nickname: 7 }],
+        ['a nickname that is a boolean', { nickname: true }],
+        ['a nickname that is a list', { nickname: ['Ana'] }],
+        ['a nickname that is an object', { nickname: { text: 'Ana' } }],
         ['no nickname at all', {}],
+        ['a body that is a bare string', 'Ana'],
+        ['a body that is null', null],
+        ['a body that is a list', [{ nickname: 'Ana' }]],
     ])('rejects %s and keeps the one there was', async (_, body) => {
         await put({ nickname: 'Anita' });
 
         const response = await put(body);
+
+        expect(response.status).toBe(400);
+        expect(await read()).toEqual({ nickname: 'Anita', name: 'Ana' });
+    });
+
+    it.each([
+        ['a body that is not JSON', 'nickname=Ana'],
+        ['a body cut short', '{"nickname": "Ana"'],
+        ['an empty body', ''],
+    ])('rejects %s and keeps the one there was', async (_, body) => {
+        await put({ nickname: 'Anita' });
+
+        const response = await putRaw(body);
 
         expect(response.status).toBe(400);
         expect(await read()).toEqual({ nickname: 'Anita', name: 'Ana' });
