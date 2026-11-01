@@ -117,6 +117,27 @@ describe('saving the nickname', () => {
         expect(field().value).toBe('');
     });
 
+    it('refuses a nickname with nothing visible in it, without sending it', async () => {
+        const { api } = await open();
+
+        save('​⁠');
+
+        expect((await screen.findByRole('alert')).textContent).toBe(text.invalid);
+        expect(field().getAttribute('aria-invalid')).toBe('true');
+        expect(api.profileBodies).toEqual([]);
+    });
+
+    it('stops complaining about an invisible nickname once something is typed again', async () => {
+        await open();
+        save('​');
+        await screen.findByRole('alert');
+
+        fireEvent.change(field(), { target: { value: 'Ana' } });
+
+        expect(screen.queryByRole('alert')).toBeNull();
+        expect(field().getAttribute('aria-invalid')).toBe('false');
+    });
+
     it('cannot be sent twice while it is on its way', async () => {
         const api = createFakeApi();
         let release: () => void = () => undefined;

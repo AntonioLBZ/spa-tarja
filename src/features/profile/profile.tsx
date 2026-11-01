@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
+import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
@@ -8,7 +9,7 @@ import { Notice } from '@/components/notice/notice';
 import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
 import { useOnline } from '@/lib/offline';
-import { NICKNAME_MAX_LENGTH } from '@core/profile';
+import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/profile';
 
 import { useProfileActions } from './use-profile-actions';
 
@@ -27,12 +28,14 @@ const Profile = () => {
     const stored = profile?.nickname ?? null;
     // What the person typed, over the stored nickname until it is saved, so an answer that comes late never replaces it
     const [draft, setDraft] = useState<string | null>(null);
+    const [invalid, setInvalid] = useState(false);
     const [failure, setFailure] = useState<Failure | null>(null);
     const [busy, setBusy] = useState(false);
     const value = draft ?? stored ?? '';
 
     const send = async (nickname: string | null, onFailure: Failure) => {
         const sent = draft;
+        setInvalid(false);
         setFailure(null);
         setBusy(true);
         try {
@@ -48,8 +51,13 @@ const Profile = () => {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        const typed = value.trim();
+        if (typed && !v.is(nicknameSchema, typed)) {
+            setInvalid(true);
+            return;
+        }
         // An empty field takes the nickname away
-        void send(value.trim() || null, 'saveFailed');
+        void send(typed || null, 'saveFailed');
     };
 
     return (
@@ -57,7 +65,11 @@ const Profile = () => {
             <h2 className="profile__title">{t('title')}</h2>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <form className="profile__form" onSubmit={handleSubmit}>
-                <Field label={t('label')} hint={t('hint', { name: profile?.name ?? user.name })}>
+                <Field
+                    label={t('label')}
+                    hint={t('hint', { name: profile?.name ?? user.name })}
+                    error={invalid ? t('invalid') : null}
+                >
                     {(control) => (
                         <div className="profile__row">
                             <input
@@ -68,7 +80,10 @@ const Profile = () => {
                                 maxLength={NICKNAME_MAX_LENGTH}
                                 type="text"
                                 value={value}
-                                onChange={(event) => setDraft(event.target.value)}
+                                onChange={(event) => {
+                                    setDraft(event.target.value);
+                                    setInvalid(false);
+                                }}
                             />
                             <Button disabled={!online || busy} type="submit">
                                 {t('save')}

@@ -161,6 +161,7 @@
             "save": "Guardar",
             "remove": "Quitar",
             "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
+            "invalid": "Tu apodo necesita al menos un carácter que se vea.",
             "saveFailed": "No se pudo guardar tu apodo. Inténtalo de nuevo.",
             "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
         },
