@@ -65,7 +65,7 @@
 .expense-item__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-2) var(--size-4);
+    gap: var(--size-4);
 }
 
 /* On paper the toggle has no notch, and the name is joined to the amount by a leader of dots, which gives way when
