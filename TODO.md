@@ -8,7 +8,7 @@ Items build on each other in the order they appear below. Delete an item when it
 - Retire the notice that the app moved once nobody opens the old address: `AppMoved` (`features/pwa`), `src/lib/address.ts` and its strings in the locales go, and `"workers_dev"` in `wrangler.jsonc` turns to `false` so the old address stops answering. `Dialog` stays.
 - **Review the shared expenses proposal** (pull request #1, branch `feat/shared-expenses`): ADR-0012 to ADR-0014 and the specs `groups`, `shared-expenses`, `balances`, `invitations` and `bottom-navigation` are written and `Proposed`. The owner answered (2026-11-01) and the specs follow: a group can be deleted or left only when settled; deleting a shared expense has Undo and no confirmation; simplified debts off by default; a settlement is at least one cent and may exceed the debt; turning off "Show in my expenses" takes the group out of the list and the totals; a person who left keeps the group read-only as it was the day they left, and a closed group can be archived; the payer of a shared expense may use a credit or restaurant card, and for the rest it is paid now; no several payers; invitations are links to be friends only, with a nickname your friends see and no lookup of people; groups hold dummies and friends, and adding a friend is immediate; deleting an account must be possible; the privacy notice must be written; the bottom bar is the first thing to build. Still open:
     1. **Review the default categories in a new conversation** (trips, treats and the like). Shared expenses use default categories only, so the set matters; nothing was added for now.
-    2. **The privacy notice**: the owner gives the name and the contact it carries and has it read by someone who can before the merge (item 30).
+    2. **The privacy notice** carries the contact of the portfolio (`docs/specs/settings.md`); the owner has it read by someone who can judge it before the merge (item 30).
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
@@ -92,7 +92,7 @@ The switch of the group and the simplified view of the balances ([balances](docs
 
 ### 30. The privacy notice
 
-The `Dialog` with the notice, in `en` and `es`, from the settings and from the sign-in screen ([settings](docs/specs/settings.md), [authentication](docs/specs/authentication.md)). It needs the name and the contact of the owner, and a read by someone who can judge it before the merge.
+The `Dialog` with the notice, in `en` and `es`, from the settings and from the sign-in screen ([settings](docs/specs/settings.md), [authentication](docs/specs/authentication.md)). It carries the contact of the owner, and needs a read by someone who can judge it before the merge.
 
 ### 31. Before the merge
 
