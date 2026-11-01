@@ -6,11 +6,9 @@ Items build on each other in the order they appear below. Delete an item when it
 
 - Check the layout on a real iOS Safari: safe areas, keyboard, install, the Undo toast, that the JSON and the CSV files download from the installed app, the Dot Matrix logo in the header and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches). Android Chrome, the installed app and the web, was seen by the owner and is right. The colors wait for a review with the owner, and so do the Dot Matrix logo and whether categories keep a color of their own ([DESIGN.md §8](design-system/DESIGN.md#8-open-questions)).
 - Retire the notice that the app moved once nobody opens the old address: `AppMoved` (`features/pwa`), `src/lib/address.ts` and its strings in the locales go, and `"workers_dev"` in `wrangler.jsonc` turns to `false` so the old address stops answering. `Dialog` stays.
-- **Review the shared expenses proposal** (pull request #1, branch `feat/shared-expenses`): ADR-0012 to ADR-0014 and the specs `groups`, `shared-expenses`, `balances`, `invitations` and `bottom-navigation` are written and `Proposed`. The owner answered (2026-11-01) and the specs follow: a group can be deleted or left only when settled; deleting a shared expense has Undo and no confirmation; simplified debts off by default; a settlement is at least one cent and may exceed the debt; turning off "Show in my expenses" takes the group out of the list and the totals; a person who left keeps the group read-only as it was the day they left, and a closed group can be archived; the payer of a shared expense may use a credit or restaurant card, and for the rest it is paid now; no several payers; deleting an account must be possible; the bottom bar is the first thing to build. Invitations are for being friends only, and groups hold dummies and friends. Still open:
+- **Review the shared expenses proposal** (pull request #1, branch `feat/shared-expenses`): ADR-0012 to ADR-0014 and the specs `groups`, `shared-expenses`, `balances`, `invitations` and `bottom-navigation` are written and `Proposed`. The owner answered (2026-11-01) and the specs follow: a group can be deleted or left only when settled; deleting a shared expense has Undo and no confirmation; simplified debts off by default; a settlement is at least one cent and may exceed the debt; turning off "Show in my expenses" takes the group out of the list and the totals; a person who left keeps the group read-only as it was the day they left, and a closed group can be archived; the payer of a shared expense may use a credit or restaurant card, and for the rest it is paid now; no several payers; invitations are links to be friends only, with a nickname your friends see and no lookup of people; groups hold dummies and friends, and adding a friend is immediate; deleting an account must be possible; the privacy notice must be written; the bottom bar is the first thing to build. Still open:
     1. **Review the default categories in a new conversation** (trips, treats and the like). Shared expenses use default categories only, so the set matters; nothing was added for now.
-    2. **The handle and the lookup** (the email as the default handle, exact match, never shown in a group) are pending a review together with the friends model.
-    3. **Adding a friend to a group is immediate**: the friend can't refuse and leaves once their balance is zero, and anybody in the group can write entries that split with them. Say if it should ask the friend first (it would bring back an invitation to a group).
-    4. **A privacy notice** (what is stored, why, who sees it, how to delete it) is needed once strangers can sign in; where it lives and its wording are the owner's.
+    2. **The privacy notice**: the owner gives the name and the contact it carries and has it read by someone who can before the merge (item 30).
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
@@ -52,9 +50,9 @@ A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/
 
 [Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, one navigation in the page at a time by a media query hook (the tests get the wide one), `Groups` in the header from 40 rem (the link leads to a placeholder screen until 24), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first.
 
-### 20. Username and profile
+### 20. Nickname
 
-Migration `0010`, `GET` and `PUT /profile`, `GET /people/lookup`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of 19.
+Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of 19.
 
 ### 21. The maths of shared expenses
 
@@ -78,7 +76,7 @@ The add form split into its head and its two tails, the people with `Checkbox`, 
 
 ### 26. Friends by invitation
 
-Migration `0012` for `friend_invitations`, the routes, the join page, the requests waiting in Groups, the invite buttons of a friend, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on lookups and tokens is worth a rule in Cloudflare.
+Migration `0012` for `friend_invitations`, the routes, the join page, the invite button of a friend, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on the join page is worth a rule in Cloudflare.
 
 ### 27. Shared expenses in your own lists
 
@@ -90,8 +88,12 @@ The switch of the group and the simplified view of the balances ([balances](docs
 
 ### 29. Delete the account
 
-`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. The privacy notice is the owner's.
+`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances.
 
-### 30. Before the merge
+### 30. The privacy notice
+
+The `Dialog` with the notice, in `en` and `es`, from the settings and from the sign-in screen ([settings](docs/specs/settings.md), [authentication](docs/specs/authentication.md)). It needs the name and the contact of the owner, and a read by someone who can judge it before the merge.
+
+### 31. Before the merge
 
 An accessibility and layout pass at 320 px in both languages and on a real phone, the open questions of `DESIGN.md` §8 that the work raised, a run of the migrations on a copy of the production schema, `main` merged into the branch, the ADRs from `Proposed` to `Accepted`, the paragraph about the branch removed from `repository-structure.md`, and the owner's go-ahead. Then the pull request is merged with a merge commit (`gh pr merge --merge`).
