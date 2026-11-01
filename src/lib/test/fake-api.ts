@@ -1,5 +1,10 @@
+import * as v from 'valibot';
+
 import { categoryNameKey, type Category } from '@core/category';
 import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
+import { profileInputSchema, type Profile } from '@core/profile';
+
+import { TEST_USER } from './fake-auth';
 
 import type { Handler } from './render-app';
 import type { Budget, BudgetLimitsInput } from '@core/budget';
@@ -11,6 +16,7 @@ interface FakeApiOptions {
     categories?: Category[];
     income?: Income[];
     budgets?: Budget[];
+    nickname?: string | null;
     // Most rows per page, whatever the client asks for
     pageSize?: number;
 }
@@ -39,6 +45,10 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
     const budgetRequests: string[] = [];
     const budgetBodies: unknown[] = [];
 
+    // The account is that of the test user, who is the one signed in
+    const profile: Profile = { nickname: options.nickname ?? null, name: TEST_USER.name };
+    const profileBodies: unknown[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
@@ -53,6 +63,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         incomeWriteStatus: null as number | null,
         // An HTTP status to answer every budget write with, or null to accept them
         budgetWriteStatus: null as number | null,
+        // An HTTP status to answer every profile write with, or null to accept them
+        profileWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
     };
@@ -153,6 +165,19 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             return Response.json({ budgets: saved });
         }
 
+        if (url.pathname === '/api/profile' && method === 'GET') return Response.json(profile);
+
+        if (url.pathname === '/api/profile' && method === 'PUT') {
+            const body: unknown = JSON.parse(String(init?.body));
+            profileBodies.push(body);
+            if (state.profileWriteStatus !== null) return new Response(null, { status: state.profileWriteStatus });
+
+            const parsed = v.safeParse(profileInputSchema, body);
+            if (!parsed.success) return Response.json({ error: 'invalid' }, { status: 400 });
+            profile.nickname = parsed.output.nickname;
+            return Response.json(profile);
+        }
+
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
@@ -181,6 +206,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgets,
         budgetRequests,
         budgetBodies,
+        profile,
+        profileBodies,
     };
 };
 

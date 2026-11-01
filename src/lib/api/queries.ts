@@ -4,6 +4,7 @@ import { BUDGETS_KEY, fetchBudgets } from './budgets';
 import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 import { INCOME_KEY, fetchIncome } from './income';
+import { PROFILE_KEY, fetchProfile } from './profile';
 
 const healthQuery = () => {
     return queryOptions({
@@ -31,4 +32,9 @@ const budgetsQuery = () => {
     return queryOptions({ queryKey: BUDGETS_KEY, queryFn: fetchBudgets });
 };
 
-export { budgetsQuery, categoriesQuery, healthQuery, incomeQuery };
+// The nickname, which needs a connection to change and is not kept offline
+const profileQuery = () => {
+    return queryOptions({ queryKey: PROFILE_KEY, queryFn: fetchProfile });
+};
+
+export { budgetsQuery, categoriesQuery, healthQuery, incomeQuery, profileQuery };
