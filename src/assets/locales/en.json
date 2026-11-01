@@ -14,6 +14,13 @@
             "message": "A new version is ready",
             "apply": "Update",
             "dismiss": "Later"
+        },
+        "moved": {
+            "title": "Tarja has moved",
+            "message": "The app now lives at {address}.",
+            "reinstall": "If you installed it on your device, please uninstall it and install it again from the new address.",
+            "open": "Go to {address}",
+            "stay": "Stay here for now"
         }
     },
     "expenses": {

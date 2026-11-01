@@ -1,0 +1,85 @@
+/* The notch, centered over the page. In with a fade and a short shift like a panel, and out the same way: `display` and
+   `overlay` wait for the transition, or the browser would drop it from the top layer at once */
+.dialog {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    color: var(--color-content-primary);
+    inline-size: calc(100% - var(--size-8));
+    margin: auto;
+    max-block-size: calc(100dvh - var(--size-8));
+    max-inline-size: 32rem;
+    opacity: 0;
+    overflow: auto;
+    padding: var(--size-4);
+    transform: translateY(var(--size-2));
+    transition:
+        display var(--duration-base) allow-discrete,
+        opacity var(--duration-base) var(--ease-exit),
+        overlay var(--duration-base) allow-discrete,
+        transform var(--duration-base) var(--ease-exit);
+}
+
+.dialog[open] {
+    opacity: 1;
+    transform: none;
+    transition:
+        display var(--duration-base) allow-discrete,
+        opacity var(--duration-base) var(--ease-enter),
+        overlay var(--duration-base) allow-discrete,
+        transform var(--duration-base) var(--ease-enter);
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(var(--size-2));
+    }
+}
+
+/* The page's own color over the page: it dims what is behind without a color of its own */
+.dialog::backdrop {
+    background: var(--color-bg-primary);
+    opacity: 0;
+    transition:
+        display var(--duration-base) allow-discrete,
+        opacity var(--duration-base) var(--ease-exit),
+        overlay var(--duration-base) allow-discrete;
+}
+
+.dialog[open]::backdrop {
+    opacity: 0.8;
+    transition:
+        display var(--duration-base) allow-discrete,
+        opacity var(--duration-base) var(--ease-enter),
+        overlay var(--duration-base) allow-discrete;
+
+    @starting-style {
+        opacity: 0;
+    }
+}
+
+.dialog__title {
+    font-size: var(--font-size-l);
+    margin: 0 0 var(--size-4);
+}
+
+.dialog__body {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.dialog__body > :where(p) {
+    margin: 0;
+}
+
+/* The actions are ghosts with no padding of their own at the sides, so they line up with the text above them */
+.dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+    margin-top: var(--size-4);
+}
+
+.dialog__actions .button {
+    padding-inline: 0;
+}

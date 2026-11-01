@@ -5,4 +5,13 @@ import { afterEach } from 'vitest';
 window.scrollTo = () => undefined;
 Element.prototype.scrollIntoView = () => undefined;
 
+// jsdom has no modal <dialog>: a test only needs it to open, to close and to say so
+HTMLDialogElement.prototype.showModal ??= function showModal() {
+    this.setAttribute('open', '');
+};
+HTMLDialogElement.prototype.close ??= function close() {
+    this.removeAttribute('open');
+    this.dispatchEvent(new Event('close'));
+};
+
 afterEach(cleanup);

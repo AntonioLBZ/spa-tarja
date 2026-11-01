@@ -5,6 +5,7 @@ Items build on each other in the order they appear below. Delete an item when it
 ## Needs the owner
 
 - Check the layout on a real iOS Safari: safe areas, keyboard, install, the Undo toast, that the JSON and the CSV files download from the installed app, the Dot Matrix logo in the header and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches). Android Chrome, the installed app and the web, was seen by the owner and is right. The colors wait for a review with the owner, and so do the Dot Matrix logo and whether categories keep a color of their own ([DESIGN.md §8](design-system/DESIGN.md#8-open-questions)).
+- Retire the notice that the app moved once nobody opens the old address: `AppMoved` (`features/pwa`), `src/lib/address.ts` and its strings in the locales go, and `"workers_dev"` in `wrangler.jsonc` turns to `false` so the old address stops answering. `Dialog` stays.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
@@ -19,6 +20,8 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch. The owner doesn't mind it as it is, but wants to see other options first.
 
 Besides that, go over the whole `/categories` screen with the owner: the form that adds a category, the rows that open, the edit panel with its "Color and icon" disclosure, and the built-in list.
+
+Also review how `:focus-visible` looks on every component: the ring of the buttons and links, of the fields, of the options of a `ChoiceGroup` and the one the first action of the `Dialog` shows as soon as it opens.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
 
