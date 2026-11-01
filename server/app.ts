@@ -7,6 +7,7 @@ import { budgetsRoutes } from './routes/budgets';
 import { categoriesRoutes } from './routes/categories';
 import { expensesRoutes } from './routes/expenses';
 import { incomeRoutes } from './routes/income';
+import { profileRoutes } from './routes/profile';
 
 import type { AppEnv } from '@server/env';
 
@@ -22,10 +23,12 @@ const app = new Hono<AppEnv>()
     .use('/categories/*', withUser)
     .use('/income/*', withUser)
     .use('/budgets/*', withUser)
+    .use('/profile/*', withUser)
     .route('/budgets', budgetsRoutes)
     .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes)
-    .route('/income', incomeRoutes);
+    .route('/income', incomeRoutes)
+    .route('/profile', profileRoutes);
 
 type AppType = typeof app;
 

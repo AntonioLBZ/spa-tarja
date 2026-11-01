@@ -13,6 +13,7 @@ beforeEach(async () => {
     await env.DB.prepare('DELETE FROM categories').run();
     await env.DB.prepare('DELETE FROM income').run();
     await env.DB.prepare('DELETE FROM budget').run();
+    await env.DB.prepare('DELETE FROM profile').run();
     for (const table of ['session', 'account', 'verification', 'user']) {
         await env.DB.prepare(`DELETE FROM "${table}"`).run();
     }
