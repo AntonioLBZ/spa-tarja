@@ -49,7 +49,7 @@ Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0
 
 ### 22. Groups on the server
 
-Migration `0011`, the routes for groups, friends, members (a dummy, a friend, in place of a dummy), entries, the merge, the ownership and the switches, and the checks: membership on every call, the limits, `404` to a stranger, the read cut of a member who left, `409 closed`, leave and delete refused with a balance, default categories only. A merge is refused into a placeholder, into itself and of a member who is a user, with tests: `core` reads a chain or a loop of merges defensively, but the server never stores one. `signIn(email)` for the tests of several users ([groups](docs/specs/groups.md)).
+Migration `0011`, the routes for groups, friends, members (a dummy, a friend, in place of a dummy), entries, the merge, the ownership and the switches, and the checks: membership on every call, the limits, `404` to a stranger, the read cut of a member who left, `409 closed`, leave and delete refused with a balance, default categories only. A merge is refused into a placeholder, into itself and of a member who is a user, with tests: `core` reads a chain or a loop of merges defensively, but the server never stores one. `signIn(email)` for the tests of several users ([groups](docs/specs/groups.md)). Done in two passes: part A is everything but the entries, with its task plan in `docs/superpowers/plans/2026-11-01-groups-server.md`, deleted at its end.
 
 ### 23. Groups on the device
 
