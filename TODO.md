@@ -45,11 +45,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, and 20, the nickname, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 21. The maths of shared expenses
-
-In `core/`, pure and tested on their rules: the entry schema, `split` (equally, by percent, by amount, someone out), `balance` (credits and debits, who owes whom, merged members read as their target), `simplify`, and `shared-expense` (the rows of your part, with the payer's card, and the switch Show in my expenses). The tests state the invariants: shares add up to the amount, balances add up to zero, simplified payments settle every balance, a settlement of more than the debt turns it round, a merge moves a balance and nothing else, and a restaurant card row of a payer counts as the same expense of one person alone ([shared expenses](docs/specs/shared-expenses.md), [balances](docs/specs/balances.md), [when an expense counts](docs/specs/expense-counting.md)). Task plan: `docs/superpowers/plans/2026-11-01-shared-maths.md`, deleted with this item.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, and 21, the maths, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 22. Groups on the server
 
@@ -77,7 +73,7 @@ The shared rows in the list, the summary, the charts, the budgets and their warn
 
 ### 28. Simplified debts
 
-The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is in 21 and the column in 22.
+The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`) and the column comes in 22.
 
 ### 29. Delete the account
 
