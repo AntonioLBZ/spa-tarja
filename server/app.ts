@@ -6,6 +6,7 @@ import { withUser } from '@server/user';
 import { budgetsRoutes } from './routes/budgets';
 import { categoriesRoutes } from './routes/categories';
 import { expensesRoutes } from './routes/expenses';
+import { groupsRoutes } from './routes/groups';
 import { incomeRoutes } from './routes/income';
 import { profileRoutes } from './routes/profile';
 
@@ -24,9 +25,11 @@ const app = new Hono<AppEnv>()
     .use('/income/*', withUser)
     .use('/budgets/*', withUser)
     .use('/profile/*', withUser)
+    .use('/groups/*', withUser)
     .route('/budgets', budgetsRoutes)
     .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes)
+    .route('/groups', groupsRoutes)
     .route('/income', incomeRoutes)
     .route('/profile', profileRoutes);
 

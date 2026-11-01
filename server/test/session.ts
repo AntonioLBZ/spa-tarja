@@ -14,10 +14,10 @@ interface TestSession {
 }
 
 // A user and a session saved straight into the database, through the same secret and tables the app reads
-const signIn = async (email = 'ana@example.com'): Promise<TestSession> => {
+const signIn = async (email = 'ana@example.com', name = 'Ana'): Promise<TestSession> => {
     const auth = betterAuth({ ...authOptions(env, ORIGIN), plugins: [testUtils()] });
     const { test } = await auth.$context;
-    const user = await test.saveUser(test.createUser({ email, name: 'Ana' }));
+    const user = await test.saveUser(test.createUser({ email, name }));
     const { headers } = await test.login({ userId: user.id });
     return { userId: user.id, headers };
 };
