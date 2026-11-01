@@ -13,9 +13,8 @@
     view-transition-name: header;
 }
 
-/* Expenses, the logo and the other screens. The side columns grow alike while there is room, which keeps
-   the logo in the middle; on a narrow phone the wider side keeps its width and the logo moves off the middle instead
-   of anything overflowing */
+/* Expenses, the logo and the other screens, from 40 rem up. The side columns grow alike while there is room, which
+   keeps the logo in the middle. */
 .root__nav {
     align-items: center;
     column-gap: var(--size-2);
@@ -23,17 +22,11 @@
     grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
 }
 
+/* Far enough apart not to read as one phrase */
 .root__group {
     display: flex;
-    gap: var(--size-2);
+    gap: var(--size-4);
     justify-self: end;
-}
-
-/* Summary and Settings stop reading as one phrase once there is room */
-@media (width >= 40rem) {
-    .root__group {
-        gap: var(--size-4);
-    }
 }
 
 .root__brand,
