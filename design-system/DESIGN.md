@@ -71,16 +71,16 @@ The user picks the accent from a fixed list, as in `spa-anicalendar`: `data-acce
 
 Every category has a color and an icon (see Icons). The color only helps to find a category at a glance: the icon and the name always come with it, so no meaning depends on color alone.
 
-| Key          | Light     | Dark      | Default category     |
-| ------------ | --------- | --------- | -------------------- |
-| `vermillion` | `#d55e00` | `#d55e00` | Food, Gifts          |
-| `green`      | `#009e73` | `#009e73` | Groceries, Pets      |
-| `purple`     | `#c86ea0` | `#cc79a7` | Leisure, Shopping    |
-| `blue`       | `#0072b2` | `#0072b2` | Bills, Subscriptions |
-| `orange`     | `#b87f00` | `#e69f00` | Housing, Treats      |
-| `sky`        | `#1c93d7` | `#56b4e9` | Transport, Travel    |
-| `yellow`     | `#978e0c` | `#f0e442` | Health, Education    |
-| `gray`       | `#767676` | `#767676` | Other                |
+| Key          | Light     | Dark      | Default category |
+| ------------ | --------- | --------- | ---------------- |
+| `vermillion` | `#d55e00` | `#d55e00` | Food             |
+| `green`      | `#009e73` | `#009e73` | Groceries        |
+| `purple`     | `#c86ea0` | `#cc79a7` | Leisure          |
+| `blue`       | `#0072b2` | `#0072b2` | Bills            |
+| `orange`     | `#b87f00` | `#e69f00` | Housing          |
+| `sky`        | `#1c93d7` | `#56b4e9` | Transport        |
+| `yellow`     | `#978e0c` | `#f0e442` | Health           |
+| `gray`       | `#767676` | `#767676` | Other            |
 
 - Seven of them are the Okabe-Ito set, designed for color-vision deficiency; gray is for "Other". Each tone is adjusted per theme to reach 3:1 against both surfaces (3.08:1 at worst in light, 3.55:1 in dark), the WCAG minimum for graphics.
 - Tokens are `--color-category-<key>`, defined with `light-dark()`. The database stores the key, never the value, so retuning a tone is a CSS change.
@@ -147,7 +147,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - **Material Symbols, Sharp style** (Apache 2.0): square ends and corners, like the rest of the identity. Weight 400, 24 px grid, shown at `1.5rem`.
 - Only the icons in use are copied into the repo as inline SVG (a few hundred bytes each), with the license notice. No icon font and no package at runtime.
 - Icons are decorative (`aria-hidden`): the name always comes with them. They take `currentColor`, or the color of their category.
-- The default categories use `restaurant`, `shopping_cart`, `sports_esports`, `receipt_long`, `home`, `directions_bus`, `medical_services` and `more_horiz`, and the seven proposed with the shared expenses `flight`, `shopping_bag`, `redeem`, `bakery_dining`, `subscriptions`, `pets` and `school` ([categories](../docs/specs/categories.md)). A custom category with no pick uses `category`.
+- The default categories use `restaurant`, `shopping_cart`, `sports_esports`, `receipt_long`, `home`, `directions_bus`, `medical_services` and `more_horiz`. A custom category with no pick uses `category`.
 - The icons a custom category can choose from (Material Symbols names), grouped here only for reading: `restaurant`, `local_cafe`, `local_bar`, `fastfood`, `bakery_dining`; `shopping_cart`, `shopping_bag`, `storefront`, `checkroom`, `redeem`; `sports_esports`, `movie`, `music_note`, `sports_soccer`, `fitness_center`, `theater_comedy`, `beach_access`; `directions_bus`, `directions_car`, `local_gas_station`, `train`, `flight`, `two_wheeler`; `home`, `bolt`, `water_drop`, `wifi`, `receipt_long`, `build`, `bed`; `medical_services`, `local_pharmacy`, `spa`; `pets`, `school`, `child_care`, `work`; `savings`, `payments`, `credit_card`, `account_balance`, `subscriptions`; `volunteer_activism`, `more_horiz`, `category`. The stored value is the name; the picker shows them in this order.
 - The interface has icons of its own, kept out of that list: `expand_more`, the chevron of a disclosure (`UI_ICONS` in `src/components/icon/icon-paths.ts`); `check`, the mark of a `Checkbox`; and, for the shared expenses, `groups` and `person` (a group and a friend in the lists and in the `Select` of the form) and `bar_chart` and `settings` (two of the tabs of the bottom bar, the other two using `receipt_long` and `groups`). It is the "can be pressed" icon, and it ends every row that opens a panel, the expenses and the person's own categories. It is not a pencil: a pencil would promise Edit, which is only one of the actions in the panel. A category can't take it, and neither the picker nor the server accepts it. `Icon` draws both kinds. `close` is the only one drawn by CSS instead of `Icon`: a mask of the × of the search field (`expense-list-controls.css`).
 

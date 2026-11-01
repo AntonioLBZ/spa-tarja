@@ -6,18 +6,11 @@ Items build on each other in the order they appear below. Delete an item when it
 
 - Check the layout on a real iOS Safari: safe areas, keyboard, install, the Undo toast, that the JSON and the CSV files download from the installed app, the Dot Matrix logo in the header and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches). Android Chrome, the installed app and the web, was seen by the owner and is right. The colors wait for a review with the owner, and so do the Dot Matrix logo and whether categories keep a color of their own ([DESIGN.md §8](design-system/DESIGN.md#8-open-questions)).
 - Retire the notice that the app moved once nobody opens the old address: `AppMoved` (`features/pwa`), `src/lib/address.ts` and its strings in the locales go, and `"workers_dev"` in `wrangler.jsonc` turns to `false` so the old address stops answering. `Dialog` stays.
-- **Review the shared expenses proposal** (pull request #1, branch `feat/shared-expenses`): ADR-0012 to ADR-0014 and the specs `groups`, `shared-expenses`, `balances`, `invitations` and `bottom-navigation` are written and `Proposed`; no code is written before the owner approves. Already answered by the owner (2026-11-01) and in the specs: a link can be for nobody in particular and a dummy can be merged into a real member, only that; shared expenses use default categories only, so the defaults grow; deleting a group deletes no expense and each person chooses per group whether it shows in their expenses; no several payers; deleting an account must be possible. Where the owner didn't say, the proposal picked this, and each can be changed:
-    1. A group is deleted, and a member leaves, only while every balance involved is zero (settling up is always possible between any two members). A group of placeholders and its owner can be deleted at any time.
-    2. Deleting a shared expense asks nothing and has Undo, like ADR-0010 (it deletes for every member).
-    3. Simplified debts are off by default and a setting of the group, switched by the owner.
-    4. A settlement is any amount of at least one cent, more than the debt included, which turns the debt round. This is the reading of "not 0 or negative" as the amount of the settlement.
-    5. The new default categories: travel, shopping, gifts, treats, subscriptions, pets and education, with the icons, colors and keyword moves of `docs/specs/categories.md` (netflix and the like move from leisure to subscriptions, hotels and flights to travel). Confirm or change the list.
-    6. Turning off "Show in my expenses" takes the group out of the list and of the summary, the charts and the budgets, not only out of the list.
-    7. A person who leaves a group keeps seeing it as it was the day they left, read-only, and never what it spends afterwards.
-    8. The default handle is the email, found only by an exact match, and never shown in a group; a username replaces it.
-    9. A shared expense is paid at once (no credit card, restaurant card or installments).
-    10. Below 40 rem the navigation is a bottom bar of four tabs; from 40 rem the header holds the four words.
-    11. Deleting an account leaves the shared entries for the others, under "Deleted user", and passes a group to the member who is a user and joined first. A privacy notice (what is stored, why, who sees it, how to delete it) is needed once strangers can sign in; where it lives and its wording are the owner's.
+- **Review the shared expenses proposal** (pull request #1, branch `feat/shared-expenses`): ADR-0012 to ADR-0014 and the specs `groups`, `shared-expenses`, `balances`, `invitations` and `bottom-navigation` are written and `Proposed`. The owner answered (2026-11-01) and the specs follow: a group can be deleted or left only when settled; deleting a shared expense has Undo and no confirmation; simplified debts off by default; a settlement is at least one cent and may exceed the debt; turning off "Show in my expenses" takes the group out of the list and the totals; a person who left keeps the group read-only as it was the day they left, and a closed group can be archived; the payer of a shared expense may use a credit or restaurant card, and for the rest it is paid now; no several payers; deleting an account must be possible; the bottom bar is the first thing to build. Invitations are for being friends only, and groups hold dummies and friends. Still open:
+    1. **Review the default categories in a new conversation** (trips, treats and the like). Shared expenses use default categories only, so the set matters; nothing was added for now.
+    2. **The handle and the lookup** (the email as the default handle, exact match, never shown in a group) are pending a review together with the friends model.
+    3. **Adding a friend to a group is immediate**: the friend can't refuse and leaves once their balance is zero, and anybody in the group can write entries that split with them. Say if it should ask the friend first (it would bring back an invitation to a group).
+    4. **A privacy notice** (what is stored, why, who sees it, how to delete it) is needed once strangers can sign in; where it lives and its wording are the owner's.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
@@ -53,56 +46,52 @@ The repo side:
 
 ## Shared expenses
 
-A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). Nothing below starts before the owner approves the specs in the pull request. Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
+A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The owner said to start with 19. Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 19. Bottom navigation
 
-[Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, `Groups` in the header from 40 rem (the link leads to a placeholder screen until 25), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first.
+[Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, one navigation in the page at a time by a media query hook (the tests get the wide one), `Groups` in the header from 40 rem (the link leads to a placeholder screen until 24), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first.
 
-### 20. More default categories
+### 20. Username and profile
 
-The seven new defaults of [categories](docs/specs/categories.md): ids, the names in `en` and `es`, icons, colors in the palette table of `DESIGN.md`, the keywords moved or added, and the tests of the classifier and of the history suggestion. No migration. Independent of the rest, but the form of 26 needs it.
+Migration `0010`, `GET` and `PUT /profile`, `GET /people/lookup`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of 19.
 
-### 21. Username and profile
+### 21. The maths of shared expenses
 
-Migration `0010`, `GET` and `PUT /profile`, `GET /people/lookup`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of 19 and 20.
+In `core/`, pure and tested on their rules: the entry schema, `split` (equally, by percent, by amount, someone out), `balance` (credits and debits, who owes whom, merged members read as their target), `simplify`, and `shared-expense` (the rows of your part, with the payer's card, and the switch Show in my expenses). The tests state the invariants: shares add up to the amount, balances add up to zero, simplified payments settle every balance, a settlement of more than the debt turns it round, a merge moves a balance and nothing else, and a restaurant card row of a payer counts as the same expense of one person alone ([shared expenses](docs/specs/shared-expenses.md), [balances](docs/specs/balances.md), [when an expense counts](docs/specs/expense-counting.md)).
 
-### 22. The maths of shared expenses
+### 22. Groups on the server
 
-In `core/`, pure and tested on their rules: the entry schema, `split` (equally, by percent, by amount, someone out), `balance` (credits and debits, who owes whom, merged members read as their target), `simplify`, and `shared-expense` (the rows of your part, with the switch Show in my expenses). The tests state the invariants: shares add up to the amount, balances add up to zero, simplified payments settle every balance, a settlement of more than the debt turns it round, a merge moves a balance and nothing else ([shared expenses](docs/specs/shared-expenses.md), [balances](docs/specs/balances.md)).
+Migration `0011`, the routes for groups, friends, members (a dummy, a friend, in place of a dummy), entries, the merge, the ownership and the switches, and the checks: membership on every call, the limits, `404` to a stranger, the read cut of a member who left, `409 closed`, leave and delete refused with a balance, default categories only. `signIn(email)` for the tests of several users ([groups](docs/specs/groups.md)).
 
-### 23. Groups on the server
+### 23. Groups on the device
 
-Migration `0011`, the routes for groups, members, entries, the merge, the ownership and the switch, and the checks: membership on every call, the limits, `404` to a stranger, the read cut of a member who left, `409 closed`, leave and delete refused with a balance, default categories only. `signIn(email)` for the tests of several users ([groups](docs/specs/groups.md)).
+The `groups` and `group-entries` queries in the persisted cache, the second outbox, the sync per group, `createFakeApi` with groups, and closed and archived groups ([offline sync](docs/specs/offline-sync.md)). Tested offline and with a dropped connection.
 
-### 24. Groups on the device
+### 24. The screens of groups and friends
 
-The `groups` and `group-entries` queries in the persisted cache, the second outbox, the sync per group, `createFakeApi` with groups, and closed groups ([offline sync](docs/specs/offline-sync.md)). Tested offline and with a dropped connection.
+Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new or in place of a dummy), the merge, leave and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
 
-### 25. The screens of groups and friends
+### 25. Sharing an expense
 
-Groups, closed groups, a group, its settings, the people, the merge, leave and delete, the switch Show in my expenses, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
+The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid, only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` and its story come with it.
 
-### 26. Sharing an expense
+### 26. Friends by invitation
 
-The add form split into its head and its two tails, the people with `Checkbox`, the three modes, only default categories, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md)). `Checkbox` and its story come with it.
+Migration `0012` for `friend_invitations`, the routes, the join page, the requests waiting in Groups, the invite buttons of a friend, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on lookups and tokens is worth a rule in Cloudflare.
 
-### 27. Invitations
+### 27. Shared expenses in your own lists
 
-Migration `0012` for `shared_invitations`, the three kinds of invitation, the routes, the join page, the invitations waiting in Groups, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on lookups and tokens is worth a rule in Cloudflare.
+The shared rows in the list, the summary, the charts, the budgets and their warnings, the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)).
 
-### 28. Shared expenses in your own lists
+### 28. Simplified debts
 
-The shared rows in the list, the summary, the charts, the budgets and their warnings, the history suggestion and the exports ([expense list](docs/specs/expense-list.md), [when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)).
+The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is in 21 and the column in 22.
 
-### 29. Simplified debts
-
-The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is in 22 and the column in 23.
-
-### 30. Delete the account
+### 29. Delete the account
 
 `DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. The privacy notice is the owner's.
 
-### 31. Before the merge
+### 30. Before the merge
 
 An accessibility and layout pass at 320 px in both languages and on a real phone, the open questions of `DESIGN.md` §8 that the work raised, a run of the migrations on a copy of the production schema, `main` merged into the branch, the ADRs from `Proposed` to `Accepted`, the paragraph about the branch removed from `repository-structure.md`, and the owner's go-ahead. Then the pull request is merged with a merge commit (`gh pr merge --merge`).
