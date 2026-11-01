@@ -5,6 +5,7 @@ const DEPTHS: Record<string, number> = {
     '/': 0,
     '/settings': 1,
     '/summary': 1,
+    '/groups': 1,
     '/categories': 2,
     '/charts': 2,
     '/budgets': 2,
@@ -14,11 +15,12 @@ const routeDepth = (pathname: string): number => {
     return DEPTHS[pathname] ?? 0;
 };
 
-type NavSection = '/' | '/summary' | '/settings';
+type NavSection = '/' | '/groups' | '/summary' | '/settings';
 
 // The header word a screen falls under, which carries the underline: a deeper screen falls under the one it is reached
 // from
 const SECTIONS: Record<string, NavSection> = {
+    '/groups': '/groups',
     '/summary': '/summary',
     '/charts': '/summary',
     '/budgets': '/summary',

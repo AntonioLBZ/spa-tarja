@@ -78,6 +78,10 @@ const RootHeader = () => {
                     <Brand />
                 </Link>
                 <div className="root__group">
+                    <Link className="root__link" to="/groups" aria-current={current('/groups')}>
+                        {t('groups')}
+                        {underline('/groups')}
+                    </Link>
                     <Link className="root__link" to="/summary" aria-current={current('/summary')}>
                         {t('summary')}
                         {underline('/summary')}

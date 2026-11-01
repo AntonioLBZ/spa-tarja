@@ -19,6 +19,7 @@ describe('routeDepth', () => {
         expect(routeDepth('/')).toBe(0);
         expect(routeDepth('/settings')).toBe(1);
         expect(routeDepth('/summary')).toBe(1);
+        expect(routeDepth('/groups')).toBe(1);
         expect(routeDepth('/categories')).toBe(2);
         expect(routeDepth('/charts')).toBe(2);
         expect(routeDepth('/budgets')).toBe(2);
@@ -32,6 +33,7 @@ describe('routeDepth', () => {
 describe('navSection', () => {
     it('gives each screen of the header its own section and a deeper screen the one it is reached from', () => {
         expect(navSection('/')).toBe('/');
+        expect(navSection('/groups')).toBe('/groups');
         expect(navSection('/summary')).toBe('/summary');
         expect(navSection('/charts')).toBe('/summary');
         expect(navSection('/budgets')).toBe('/summary');
@@ -50,6 +52,7 @@ describe('slideTypes', () => {
         expect(between('/settings', '/categories')).toEqual(['forward']);
         expect(between('/', '/categories')).toEqual(['forward']);
         expect(between('/', '/summary')).toEqual(['forward']);
+        expect(between('/', '/groups')).toEqual(['forward']);
         expect(between('/summary', '/charts')).toEqual(['forward']);
         expect(between('/summary', '/budgets')).toEqual(['forward']);
     });
@@ -66,6 +69,8 @@ describe('slideTypes', () => {
     it('stays level between two screens at the same depth', () => {
         expect(between('/summary', '/settings')).toEqual(['level']);
         expect(between('/settings', '/summary')).toEqual(['level']);
+        expect(between('/groups', '/summary')).toEqual(['level']);
+        expect(between('/settings', '/groups')).toEqual(['level']);
         expect(between('/charts', '/categories')).toEqual(['level']);
         expect(between('/categories', '/charts')).toEqual(['level']);
         expect(between('/charts', '/budgets')).toEqual(['level']);

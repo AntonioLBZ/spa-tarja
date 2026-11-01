@@ -48,7 +48,7 @@ describe('header', () => {
         await screen.findByRole('navigation');
     }
 
-    it('puts Expenses first, then the logo, then Summary and Settings', async () => {
+    it('puts Expenses first, then the logo, then Groups, Summary and Settings', async () => {
         await home();
 
         const nav = within(screen.getByRole('banner')).getByRole('navigation');
@@ -56,7 +56,7 @@ describe('header', () => {
             within(nav)
                 .getAllByRole('link')
                 .map((item) => item.textContent)
-        ).toEqual([en.nav.expenses, 'Tarja', en.nav.summary, en.nav.settings]);
+        ).toEqual([en.nav.expenses, 'Tarja', en.nav.groups, en.nav.summary, en.nav.settings]);
         expect(link(en.nav.expenses).getAttribute('href')).toBe('/');
         expect(link('Tarja').getAttribute('href')).toBe('/');
     });
@@ -138,6 +138,24 @@ describe('header', () => {
         expect(underlined()).toEqual([en.nav.settings]);
     });
 
+    it('opens Groups from its word, underlines only it and marks it as current', async () => {
+        await home();
+
+        fireEvent.click(link(en.nav.groups));
+
+        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
+        expect(screen.getByText(en.groups.soon)).toBeDefined();
+        expect(underlined()).toEqual([en.nav.groups]);
+        expect(link(en.nav.groups).getAttribute('aria-current')).toBe('page');
+    });
+
+    it('opens the Groups screen straight from its address', async () => {
+        await home('/groups');
+
+        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
+        expect(underlined()).toEqual([en.nav.groups]);
+    });
+
     it.each([
         ['/charts', en.nav.summary, en.charts.title],
         ['/budgets', en.nav.summary, en.budgets.title],
@@ -151,7 +169,7 @@ describe('header', () => {
         expect(link(en.nav.expenses).hasAttribute('aria-current')).toBe(false);
     });
 
-    it.each(['/', '/summary', '/settings', '/charts', '/budgets', '/categories'])(
+    it.each(['/', '/groups', '/summary', '/settings', '/charts', '/budgets', '/categories'])(
         'never underlines the logo, on %s or on the way home from it',
         async (path) => {
             await home(path);

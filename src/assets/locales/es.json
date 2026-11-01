@@ -120,6 +120,8 @@
     },
     "nav": {
         "expenses": "Gastos",
+        "groups": "Grupos",
+        "label": "Principal",
         "settings": "Ajustes",
         "summary": "Resumen"
     },
@@ -271,6 +273,10 @@
         "volunteer_activism": "Donaciones",
         "more_horiz": "Más",
         "category": "Categoría"
+    },
+    "groups": {
+        "title": "Grupos",
+        "soon": "Los grupos llegan pronto."
     },
     "summary": {
         "title": "Resumen",
