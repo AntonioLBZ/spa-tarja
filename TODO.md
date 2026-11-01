@@ -81,7 +81,7 @@ The switch of the group and the simplified view of the balances ([balances](docs
 
 ### 29. Delete the account
 
-`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances.
+`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. A user deleted while their session cache is still valid (up to 5 minutes) must get `401` from the profile routes, with a test: today `PUT /api/profile` answers `500` on the foreign key and `readProfile` throws a plain error.
 
 ### 30. The privacy notice
 
