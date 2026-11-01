@@ -137,6 +137,27 @@ describe('saving the nickname', () => {
         expect(api.profileBodies).toHaveLength(1);
     });
 
+    it('keeps what is typed while the save is on its way', async () => {
+        const api = createFakeApi();
+        let release: () => void = () => undefined;
+        const held = new Promise<void>((resolve) => (release = resolve));
+        stubApi(async (url, init) => {
+            if (init?.method === 'PUT') await held;
+            return api.handler(url, init);
+        });
+        renderApp({ path: '/settings' });
+        await screen.findByRole('heading', { name: text.title });
+        save('Ana');
+
+        fireEvent.change(field(), { target: { value: 'Ana B' } });
+        release();
+
+        await waitFor(() => expect(api.profile.nickname).toBe('Ana'));
+        await waitFor(() => expect(button(text.save).disabled).toBe(false));
+        expect(field().value).toBe('Ana B');
+        expect(api.profileBodies).toEqual([{ nickname: 'Ana' }]);
+    });
+
     it('says so when the server could not save it, and keeps what was typed', async () => {
         const { api } = await open();
         api.state.profileWriteStatus = 503;

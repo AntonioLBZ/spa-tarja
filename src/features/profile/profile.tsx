@@ -32,11 +32,13 @@ const Profile = () => {
     const value = draft ?? stored ?? '';
 
     const send = async (nickname: string | null, onFailure: Failure) => {
+        const sent = draft;
         setFailure(null);
         setBusy(true);
         try {
             await save(nickname);
-            setDraft(null);
+            // What was typed while it was on its way stays
+            setDraft((current) => (current === sent ? null : current));
         } catch {
             setFailure(onFailure);
         } finally {
