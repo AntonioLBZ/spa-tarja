@@ -44,15 +44,11 @@ The repo side:
 
 ## Shared expenses
 
-A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The owner said to start with 19. Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 19. Bottom navigation
-
-[Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, one navigation in the page at a time by a media query hook (the tests get the wide one), `Groups` in the header from 40 rem (the link leads to a placeholder screen until 24), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first. Task plan: `docs/superpowers/plans/2026-11-01-bottom-navigation.md`, deleted with this item.
+A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, is done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 20. Nickname
 
-Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of 19.
+Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of the bottom navigation.
 
 ### 21. The maths of shared expenses
 
