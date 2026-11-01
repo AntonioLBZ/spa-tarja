@@ -1,0 +1,51 @@
+# Shared expenses
+
+An entry of a group is an expense split between its members, or a settlement ([balances](balances.md)). The decisions are in [ADR-0012](../adr/0012-shared-expenses.md) and [ADR-0013](../adr/0013-shared-entries-sync-through-an-outbox.md).
+
+## Rules
+
+- **The entry.** `id` (a UUID made on the client), `kind` (`expense` or `settlement`), `text` (up to 200 characters), `categoryId` (an expense only), `amountCents` (1 to `MAX_AMOUNT_CENTS`), `currency` (the group's), `date` (`YYYY-MM-DD`), `paidBy` (a member id), `split` (`equal`, `percent` or `exact`), `shares` (a list of `{ memberId, cents }`), `createdAt`, `updatedAt` and `deletedAt`. The server adds `createdBy` and `updatedBy` (user ids, from the session, never from the client) and `seq`. The shape is validated in `core/` by one schema the client and the server share, with these checks: the shares name each member once, each has at least one cent, they add up to `amountCents` exactly, and a settlement has no category, has a single share and is not paid to oneself.
+- **Who paid** is one member who hasn't left; the person who is logging it by default, but anybody can record that another member paid. Several payers are left for later; they would be a new nullable column that overrides `paidBy`.
+- **Splitting** is done on the device, in cents, in `core/split.ts`, and what it works out is stored as `shares`; the mode is stored only so the form opens as it was left.
+    - **Equally** among the members who are in (everybody, at the start): each gets the amount divided, and the remainder goes one cent at a time to the first ones in the order the group lists its members (when they were added, then by id), as the first payments of a plan do ([ADR-0004](../adr/0004-data-conventions.md)).
+    - **By percent**: each member who is in takes a percentage with up to two decimals, 0 to 100, which must add up to 100. A part is the amount times the percentage, rounded down; the cents that are left go one at a time to the biggest fractions, and on a tie to the first in the group's order. A member at 0 is left out.
+    - **By amount**: each member who is in takes an exact amount. The form shows what is still unassigned and refuses to save until it is zero, and refuses a part that goes over the total, like the installments.
+    - **Leaving someone out** is unchecking them: their share is zero and they aren't in the list of shares. At least one member has to be in. The payer can be left out (paying for the others).
+    - Changing the mode keeps who is in. Going to amounts starts from the equal split in cents, and going to percentages from the equal split rounded to two decimals. The percentages are not stored: reopening an entry of that mode shows each share over the amount, to two decimals, and an entry saved without touching its fields keeps its cents.
+- **No other payment.** A shared expense has no payment method, no charge date, no installments and no part of one's own ([ADR-0012](../adr/0012-shared-expenses.md)): it is on the day it was made.
+- **The category** is a default category or one of the person's own, suggested from the text as for any expense ([categories](categories.md)). Another member who doesn't have that custom category sees "Other". The server checks only the shape of the id.
+- **Writing.** `PUT /groups/:groupId/entries/:id` is idempotent and creates or updates the entry. It applies when the caller is a member and the `updatedAt` is strictly newer than the stored one; otherwise it answers with the entry it kept. It is refused with `404` (not a member, or no such group), `409 id-taken` (the id belongs to another group), or `422` (`unknown-member`, or `member-left` for a member who left and wasn't already in the stored entry; `currency-mismatch`; the shares don't add up). A `400` is a bad shape. The outbox treats `400`, `403`, `404`, `409` and `422` as permanent ([offline sync](offline-sync.md)). There is no `DELETE`: deleting is the same `PUT` with `deletedAt`.
+- **Reading.** `GET /groups/:groupId/entries?after=<seq>&limit=` pages through the changes after a cursor, tombstones included, and answers the new cursor, as for the expenses. `seq` is the group's own counter, taken inside the upsert (`MAX(seq) + 1` for that group), and the pair `(group_id, seq)` is unique. A member who joins reads the history from cursor 0.
+- **Editing and deleting** are open to every member and use the later-than rule of [expenses](expenses.md): an edit, a delete and an Undo take an `updatedAt` later than the version they replace. The row says "Added by Ana" or "Edited by Ana" when the last writer isn't the person looking. Deleting asks nothing and can be taken back for a few seconds with Undo ([ADR-0010](../adr/0010-edit-duplicate-and-delete-expenses.md)); the toast says whose group it was ("Deleted <name> from <group>"). A shared expense can't be moved to another group: it is duplicated there and deleted here.
+- **Duplicate** opens the form as a new shared expense in the same group, with the same payer, mode and members who are in, the day today. A settlement is not duplicated.
+- **In your own expenses** (the owner's request: what is added in a group is listed in yours). `core/shared-expense.ts` turns the entries of the groups on the device into rows with the shape of an expense of one payment: the text, the category, the day, and **your part as the amount**. Entries that are deleted, settlements, and expenses where your part is zero give no row. The row carries what a personal one doesn't (the group, the total, who paid, whether it is waiting to sync), and its `id` is the entry's. Everything that adds up reads these rows through the helpers of `core/counting.ts` without a change, so they appear in the list, the summary, the charts, the budgets, the suggestion from the history and the exports ([expense list](expense-list.md), [when an expense counts](expense-counting.md)). The entry is the only copy: nothing is written to the person's own expenses, and a row that leaves the group leaves the lists.
+- **Your member.** Your part is looked up through your member id in each group, which `GET /groups` gives as `me`.
+
+## Screen
+
+### The form
+
+The add form is the one at home ([expenses](expenses.md)), and it is also the one that heads a group. It is split in two so the shared part doesn't turn into conditions scattered through it: the **head** (description, amount, category, day) is common, and then comes the **tail** of the choice below it.
+
+- A `ChoiceGroup` under the head, "For", with **Just me** and **Shared**. At home it starts on Just me, which is what the tail of today is (the payment, the charge date, your part, the installments). In a group it starts on Shared and is hidden: the group is already chosen.
+- **Shared** shows, in this order, `--size-4` apart:
+    - **With**, a `Select` of the groups and the friends, each with its icon (`groups`, `person`), and a last option "New person…" that asks for a name and makes a friend on the spot. It starts on the one used last, remembered on the device (`tarja:shared-with`), and on the only one when there is one. Without any, the field is a hint and the "New person…" form. "New person…" needs a connection ([offline sync](offline-sync.md)); offline it is off with a hint, and the groups and friends the device holds work.
+    - **Paid by**, a `Select` of the members who haven't left, starting on you.
+    - **Split**, a `ChoiceGroup`: Equally, Percent, Amounts.
+    - **The people**: a row for each member who hasn't left, with a `Checkbox` and the name, and at the end the share: in Equally the amount, in plain text; in Percent a percentage field; in Amounts an amount field. A member who is out shows nothing at the end. Under the rows, a line that says what is missing: "€4.00 unassigned", "€1.50 over", "2.5 % left", or nothing when it adds up.
+- **Add** (or **Save** when editing) is off until the amount is valid, at least one member is in and the shares add up. A group of one other person is the usual case and takes the same fields.
+- The description and the amount stay where they are; switching For keeps them, and keeps what was typed in the other tail while the form is open. Adding an expense puts For back to its start.
+- Edit, Duplicate and Delete from the list, or from the ledger of a group, work as for any expense ([expenses](expenses.md)): the form opens at home, or in the group when it is there, with For on Shared and With fixed to that group; the heading reads "Edit the expense" or "Duplicate the expense". Edit is off for an entry waiting for a connection that never reached the device (it can't be: the entry is local the moment it is saved).
+- A budget warning can come when an expense is added or duplicated, for your part ([budgets](budgets.md)).
+
+### The ledger
+
+The entries of a group on the screen of the group, newest first by day, on `Sheet`s as the expenses are ([the ticket](../../design-system/DESIGN.md#3-shape)), with the total of the day's expenses at the foot. A row is a `Disclosure`:
+
+- An **expense**: the badge of its category, the name (the text, else the category), the total as the amount, and in the details who paid ("Paid by Ana", "You paid") and your part ("Your part €25.00", or "Not in this one" when you are out). Edited by someone else, or not synced yet, it says so.
+- A **settlement**: "Ana paid Bruno", "You paid Ana", "Ana paid you", with the amount, and no category.
+- The panel holds Edit, Duplicate (not for a settlement) and Delete as ghost buttons `--size-4` apart. Show more adds 100 rows at a time.
+
+### In your expenses
+
+- A shared row in the list ([expense list](expense-list.md)) shows your part as the amount, like a restaurant card shows yours, and says in the details the group (or the person, for a friend), who paid and the total when it isn't your part: "Trip to Lisbon · Ana paid €100.00". Its panel holds the same three buttons and they act on the entry of the group.

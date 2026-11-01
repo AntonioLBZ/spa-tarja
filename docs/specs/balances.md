@@ -1,0 +1,22 @@
+# Balances and settling up
+
+Each group keeps its own account. The decision is in [ADR-0012](../adr/0012-shared-expenses.md); the entries it is made from are in [shared expenses](shared-expenses.md).
+
+## Rules
+
+- **Balance** (`core/balance.ts`, pure). For every entry that isn't deleted, the member who paid is credited the whole amount and every member with a share is debited that share; a settlement is worked out the same way. A member's balance is credits minus debits, in cents: positive is owed to them, negative is what they owe. A group's balances add up to zero. Everything is computed on the device from the entries it holds, the unsynced ones on top, so it works offline; the server runs the same code to refuse leaving or deleting a group with a balance ([groups](groups.md)).
+- **Who owes whom** (the default). For every entry, each member with a share, other than the one who paid, owes the payer that share. For each pair, what A owes B less what B owes A, the settlements included, is the debt between them: A owes B when it is positive, B owes A when negative, and a pair at zero isn't listed. A member's lines add up to their balance.
+- **Simplified debts** (`core/simplify.ts`, pure), when the owner switches it on for the group: the same balances turned into payments by taking the member who owes most and the one who is owed most, paying the smaller of the two amounts, and repeating until all are zero; a tie goes to the first in the group's order, so every device gets the same payments. It makes at most one payment fewer than the members with a balance. Entries are not changed, and switching it off shows the pairs again.
+- **A settlement** is an entry of kind `settlement` ([shared expenses](shared-expenses.md)): `paidBy` is the member who paid and the only share is the one who received. Its amount is at least one cent (zero and negative are refused) and may be more than the debt, which leaves the debt the other way round: if Ana owes Bruno €30 and pays him €50, Bruno owes Ana €20. Any member can record it between any two members who haven't left, so a group can always be settled.
+- **Suggestions.** The lines of the view in use (who owes whom, or the simplified payments) are the settlements the screen suggests. Taking one fills in who, whom and how much; all three can be changed.
+- **No color for debts.** Owing isn't an error, so the danger color isn't used; the words say it: "You owe", "owes you", "Settled" ([`DESIGN.md`](../../design-system/DESIGN.md#2-color-and-themes)).
+- **Across groups.** The Groups screen adds the balances of the caller in each group: what they are owed in all, and what they owe in all, each from the groups where it is positive or negative. A friend counts as a group.
+
+## Screen
+
+On the screen of a group ([groups](groups.md)), under the title:
+
+- **The balance in words**: "You are owed €35.00", "You owe €12.50" or "All settled", as a `Notice`.
+- **Balances**, a `Sheet` with a line for each debt of the view in use, the ones that involve you first, in words: "You owe Ana €20.00", "Bruno owes you €8.00", "Bruno owes Ana €5.00". Each line has Settle up as a ghost button. When the group is simplified, a quiet `Notice` above says the debts are simplified and that they may name someone you didn't share with. Under the lines, a closed `Disclosure`, "Everyone's balance", lists each member with their balance in words; a member who has left shows "(left)".
+- **Settle up**, a button as wide as the column that opens a `Disclosure` form with: From and To (a `Select` of the members who haven't left, starting on you and on the one you owe most), the amount (a `Field`, with the debt as a hint when there is one), the day (today) and Save. From and To can't be the same. A hint under the amount says what follows: "After this, Bruno owes you €20.00" or "After this, you're settled". The main button is off while the amount is zero or not a number. It saves through the outbox, so it works offline, and the settlement appears in the ledger as "You paid Bruno".
+- The edit screen of the group has the switch for simplified debts: a `Checkbox`, "Simplify debts", with the hint "Shows the fewest payments that settle the group. It doesn't change any expense." Only the owner can change it, and it needs a connection ([offline sync](offline-sync.md)).

@@ -1,6 +1,6 @@
 # ADR-0001: Scope: what is left out, and export only
 
-- Status: Accepted
+- Status: Superseded by ADR-0012
 - Date: 2026-10-25
 
 ## Context

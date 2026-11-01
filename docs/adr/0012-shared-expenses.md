@@ -1,0 +1,42 @@
+# ADR-0012: Shared expenses: a group is a ledger its members share
+
+- Status: Proposed
+- Date: 2026-11-01
+
+## Context
+
+[ADR-0001](0001-scope-of-the-app.md) left shared expenses out and kept the idea in `TODO.md`, warning that every row belongs to one user and that it would change the model. The owner now wants it: split an expense with other people, keep an account per group of who owes whom, settle up, and split with someone who doesn't use the app.
+
+## Decision
+
+**Scope.** In: groups, expenses split between their members, balances, settling up, and splitting with one person without making a group. Still out: importing a backup and several currencies (a group has the app's currency). Still decided from [ADR-0001](0001-scope-of-the-app.md): export only, which now holds the groups too, and no PWA shortcuts. Left for later, on purpose: several people paying one expense, splits by shares or weights, recurring shared expenses ([ADR-0010](0010-edit-duplicate-and-delete-expenses.md)), receipts, comments, notifications of any kind ([ADR-0009](0009-budgets-only-warn.md) drew the same line), paying through the app, merging two members and deleting an account.
+
+**Model.**
+
+- A group has **members**: signed-in users, or **placeholders**, names nobody has claimed yet ([ADR-0014](0014-usernames-and-invitations.md)). Its **entries**, expenses and settlements, belong to the group, not to a user. A user is in many groups and a group has many users. Personal expenses stay as they are ([ADR-0004](0004-data-conventions.md)).
+- An entry says who paid and how the amount is divided between members, in cents: equally by default, by percentage, by exact amounts, with the option to leave someone out.
+- A **friend** is a group of two with no name. Splitting with a person outside any group is an expense in that group: same engine, same screens, and it can't grow.
+- Roles are `owner` and `member`. Any member adds, edits and deletes entries and invites. Only the owner renames the group, removes others, switches the simplified debts and deletes it.
+- A member row is never deleted; leaving sets `left_at` and the entries keep naming them. Leaving, removing and deleting need the balances involved to be zero. Settling up is always possible between any two members, so nobody is stuck.
+- A member sees the whole history of the group, also from before they joined.
+
+**What counts.** Your part of a shared expense counts as spent on the day it was made, whoever paid, as the part you keep of a restaurant card does ([ADR-0007](0007-what-counts-in-a-month.md)). A settlement counts for nobody: not spent, not income. Your part is derived on the device from the entries and never stored as a personal row; it enters the lists as an expense of one payment, so the summary, the charts and the budgets count it through the same helpers. A shared expense is paid at once: no credit card, restaurant card or installments for now.
+
+**Debts.** A member's balance is what they paid plus the settlements they made, minus their parts; a group's balances add up to zero and are worked out, never stored. A group shows by default who owes whom, pair by pair. The owner can switch **simplified debts** on: the same balances as the fewest payments, a way to read them, never a rewrite of entries. It is a setting of the group, so every member reads the same payments, and it is off by default. A settlement is an entry: any member records that one member paid another at least one cent, possibly more than the debt, which turns the debt the other way round.
+
+## Consequences
+
+- [ADR-0001](0001-scope-of-the-app.md) is superseded by this one. Its text stays as it was.
+- When a group leaves a device (left, deleted), its parts leave the totals of past months, so the app offers first to keep them as ordinary expenses of the person ([groups](../specs/groups.md)).
+- A custom category exists only for its creator; the other members see "Other" ([categories](../specs/categories.md)).
+- With simplified debts off, a big group shows many small debts; on, a few payments that may name someone you shared nothing with. Each has its place, which is why it is a choice.
+- The maths (splitting, balances, simplifying) lives in `core/` and the server uses it too, to refuse leaving or deleting with a balance.
+- The rules are in [groups](../specs/groups.md), [shared expenses](../specs/shared-expenses.md), [balances](../specs/balances.md) and [when an expense counts](../specs/expense-counting.md). The offline rules are in [ADR-0013](0013-shared-entries-sync-through-an-outbox.md).
+
+## Alternatives considered
+
+- **A personal expense row per participant**: other users' rows would be written by someone else, which the access rule forbids, and an edit would fan out to every row.
+- **Group fields on `expenses`**: a row with several owners; every query by `user_id` would change.
+- **Friends as their own concept** with their own tables and balance: two engines to keep equal.
+- **A cash view** (what each person paid): a dinner would weigh a whole month on whoever paid, and every settlement would count as income or as spent.
+- **Always simplified debts**, or a switch per device: a debt may name someone you never shared with, and two members would be told different payments for one group.

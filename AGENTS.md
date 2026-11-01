@@ -6,8 +6,8 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 
 - **`docs/` is the source of truth for decisions and behavior**: read what your task touches, not all of it. This file only distills the rules that are easy to break. If a decision or a behavior changes, update its document first, then this file.
 - **`docs/adr/` holds the decisions, one each. They are the owner's: don't revisit them silently.** An accepted ADR is never edited to say something else: a decision that changes is a new ADR that supersedes the old one (`docs/adr/README.md` has the format). Read the ones your task touches:
-    - `0001-scope-of-the-app.md`: out of scope (importing a backup, shared expenses, several currencies); export only, no import; no PWA shortcuts.
-    - `0002-solo-project-deployed-from-main.md`: no feature branches or pull requests; a push to `main` that passes CI is deployed, migrations first. One exception while it lasts: ADR-0012.
+    - `0001-scope-of-the-app.md` (superseded by ADR-0012): out of scope (importing a backup, shared expenses, several currencies); export only, no import; no PWA shortcuts.
+    - `0002-solo-project-deployed-from-main.md`: no feature branches or pull requests; a push to `main` that passes CI is deployed, migrations first. One exception while it lasts: the shared expenses branch (`docs/specs/repository-structure.md`).
     - `0003-spa-on-one-worker-on-free-tiers.md`: a SPA on one Cloudflare Worker with static assets, a Hono API and D1; free tiers only; not SSR, not Next.js, not Pages.
     - `0004-data-conventions.md`: SQL by hand, no ORM; migrations go before the code, so add, never rename or drop; dates are `YYYY-MM-DD` text; money is integer cents plus a currency code.
     - `0005-offline-first-with-an-outbox.md`: client UUIDs, idempotent `PUT`, soft deletes, the outbox, last write wins, the `seq` cursor.
@@ -17,13 +17,17 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
     - `0009-budgets-only-warn.md`: a limit warns inside the app and never blocks.
     - `0010-edit-duplicate-and-delete-expenses.md`: no confirmation on Delete (Undo instead); Edit and Duplicate replace a half typed expense; no recurring expenses.
     - `0011-design-system-in-storybook.md`: Storybook in the workspace folder `design-system/`, local only; no story or Storybook dependency in `src/`.
-    - `0012-shared-expenses-develop-on-a-branch.md` (proposed): the shared expenses work is on `feat/shared-expenses` with one draft pull request, merged once with a merge commit (never squash or rebase); `main` is merged into the branch, never the reverse; CI checks the pull request and only a push to `main` releases.
+    - `0012-shared-expenses.md` (proposed): groups are ledgers shared by members (users or placeholders), a friend is a group of two, your part is what counts and settlements count for nobody, debts are shown pair by pair with simplifying as a group switch; supersedes ADR-0001.
+    - `0013-shared-entries-sync-through-an-outbox.md` (proposed): shared entries use a second outbox with a per-group `seq`; making and changing groups, members, invitations and the username need a connection.
+    - `0014-usernames-and-invitations.md` (proposed): optional unique username (the email by default), exact lookup, invitation links that claim a member, placeholders for people without the app.
 - **`docs/specs/` says how things behave**, one file per topic. Read the ones you touch:
     - `repository-structure.md`: the layout, the import rules, how a release goes out and the dependency policy (what is held back and why).
     - `data-model.md`: the schema, ids, timestamps, `seq` and indexes.
     - `expense-counting.md`: what counts in a month (deferred payments, restaurant card, installments, income).
     - `expense-list.md` and `expenses.md`: the list (search, filters, groups) and adding, editing, duplicating and deleting an expense.
     - `budgets.md`, `charts.md`, `summary.md`, `categories.md`, `settings.md` and `header.md`: the rules and the screen of each.
+    - `groups.md`, `shared-expenses.md`, `balances.md` and `invitations.md`: groups and friends, the split and the ledger, who owes whom and settling up, usernames and invitations (proposed, with the ADRs above).
+    - `bottom-navigation.md`: the tab bar on phones.
     - `export.md`: the JSON and the CSV files.
     - `offline-sync.md`: the outbox, the sync and the conflicts.
     - `authentication.md`: Better Auth, sessions and the local data of each user.
