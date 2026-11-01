@@ -18,6 +18,14 @@ import { memberIdOf, seededRandom, type Random } from './test/random';
 
 const CASES = 2000;
 
+const BAD_AMOUNTS = [
+    ['a negative amount', -100],
+    ['a fraction of a cent', 1000.5],
+    ['an amount over the maximum', MAX_AMOUNT_CENTS + 1],
+    ['an amount past the safe integers', Number.MAX_SAFE_INTEGER + 1],
+    ['not a number', Number.NaN],
+] as const;
+
 function sumOf(shares: readonly { cents: number }[]): number {
     return shares.reduce((sum, share) => sum + share.cents, 0);
 }
@@ -97,8 +105,12 @@ describe('splitEqually', () => {
         ]);
     });
 
-    it('gives nothing to nobody', () => {
-        expect(splitEqually(1000, [])).toEqual([]);
+    it('is none when nobody is in', () => {
+        expect(splitEqually(1000, [])).toBeNull();
+    });
+
+    it.each(BAD_AMOUNTS)('is none for %s', (_name, amountCents) => {
+        expect(splitEqually(amountCents, ['ana', 'bruno'])).toBeNull();
     });
 
     it('adds up to the amount, a cent at most between two parts, the bigger ones first', () => {
@@ -109,8 +121,9 @@ describe('splitEqually', () => {
 
             const shares = splitEqually(amountCents, memberIds);
 
-            expectValidShares(amountCents, shares, memberIds, seed);
-            const cents = memberIds.map((id) => shares.find((share) => share.memberId === id)?.cents ?? 0);
+            expect(shares, `seed ${seed}`).not.toBeNull();
+            expectValidShares(amountCents, shares ?? [], memberIds, seed);
+            const cents = memberIds.map((id) => shares?.find((share) => share.memberId === id)?.cents ?? 0);
             expect(Math.max(...cents) - Math.min(...cents), `seed ${seed}`).toBeLessThanOrEqual(1);
             expect(cents, `seed ${seed}`).toEqual(cents.toSorted((a, b) => b - a));
             expect(splitEqually(amountCents, memberIds), `seed ${seed}`).toEqual(shares);
@@ -182,6 +195,15 @@ describe('splitByPercent', () => {
         expect(splitByPercent(1000, percents)).toBeNull();
     });
 
+    it.each(BAD_AMOUNTS)('is none for %s', (_name, amountCents) => {
+        const halves = [
+            { memberId: 'ana', basisPoints: 5000 },
+            { memberId: 'bruno', basisPoints: 5000 },
+        ];
+
+        expect(splitByPercent(amountCents, halves)).toBeNull();
+    });
+
     it('adds up to the amount, each part within a cent of its exact percentage', () => {
         for (let seed = 1; seed <= CASES; seed++) {
             const random = seededRandom(seed);
@@ -228,6 +250,10 @@ describe('splitExactly', () => {
         const parts = cents.map((part, index) => ({ memberId: memberIdOf(index), cents: part }));
 
         expect(splitExactly(1000, parts)).toBeNull();
+    });
+
+    it.each(BAD_AMOUNTS)('is none for %s, even when a part is all of it', (_name, amountCents) => {
+        expect(splitExactly(amountCents, [{ memberId: 'ana', cents: amountCents }])).toBeNull();
     });
 
     it('adds up to the amount and keeps every part that is something', () => {

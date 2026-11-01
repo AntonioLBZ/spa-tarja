@@ -15,7 +15,7 @@ interface RandomGroup {
 
 const randomSplit = (random: Random, amountCents: number, memberIds: readonly string[]): [SplitMode, Share[]] => {
     const split = random.pick(SPLIT_MODES);
-    if (split === 'equal') return [split, splitEqually(amountCents, memberIds)];
+    if (split === 'equal') return [split, splitEqually(amountCents, memberIds) ?? []];
     if (split === 'percent') {
         const basisPoints = random.parts(HUNDRED_PERCENT, memberIds.length);
         const percents = memberIds.map((memberId, index) => ({ memberId, basisPoints: basisPoints[index]! }));

@@ -1,4 +1,5 @@
 import { planBalance, splitEvenly } from './installments';
+import { MAX_AMOUNT_CENTS } from './money';
 
 import type { Share } from './shared-entry';
 
@@ -37,19 +38,26 @@ const sharesOf = (memberIds: readonly string[], cents: readonly number[]): Share
         .filter((share) => share.cents > 0);
 };
 
+// Whole cents an entry can hold, which also keeps the percent maths below the largest safe integer
+const isAmount = (cents: number): boolean => {
+    return Number.isInteger(cents) && cents >= 0 && cents <= MAX_AMOUNT_CENTS;
+};
+
 const isPercent = (basisPoints: number): boolean => {
     return Number.isInteger(basisPoints) && basisPoints >= 0 && basisPoints <= HUNDRED_PERCENT;
 };
 
-// Equally among the members who are in, in the group's order: the cents left go one at a time to the first ones
-const splitEqually = (amountCents: number, memberIds: readonly string[]): Share[] => {
+// Equally among the members who are in, in the group's order: the cents left go one at a time to the first ones. None
+// when nobody is in. Every split is none for an amount that isn't whole cents from 0 to the maximum.
+const splitEqually = (amountCents: number, memberIds: readonly string[]): Share[] | null => {
+    if (!isAmount(amountCents) || memberIds.length === 0) return null;
     return sharesOf(memberIds, splitEvenly(amountCents, memberIds.length));
 };
 
 // By the percentage of each member, in the group's order. None unless each is 0 to 100 % and they add up to 100 %.
 const splitByPercent = (amountCents: number, percents: readonly MemberPercent[]): Share[] | null => {
     const basisPoints = percents.map((percent) => percent.basisPoints);
-    if (!basisPoints.every(isPercent) || sumOf(basisPoints) !== HUNDRED_PERCENT) return null;
+    if (!isAmount(amountCents) || !basisPoints.every(isPercent) || sumOf(basisPoints) !== HUNDRED_PERCENT) return null;
     return sharesOf(
         percents.map((percent) => percent.memberId),
         largestRemainder(amountCents, basisPoints, HUNDRED_PERCENT)
@@ -59,7 +67,7 @@ const splitByPercent = (amountCents: number, percents: readonly MemberPercent[])
 // By the amount typed for each member. None unless each is whole cents, none negative, and they add up to the amount.
 const splitExactly = (amountCents: number, parts: readonly Share[]): Share[] | null => {
     const valid = parts.every((part) => Number.isInteger(part.cents) && part.cents >= 0);
-    if (!valid || unassignedCents(amountCents, parts) !== 0) return null;
+    if (!isAmount(amountCents) || !valid || unassignedCents(amountCents, parts) !== 0) return null;
     return parts.filter((part) => part.cents > 0);
 };
 
