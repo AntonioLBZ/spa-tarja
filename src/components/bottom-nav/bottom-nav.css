@@ -6,7 +6,23 @@
     inset-inline: 0;
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     position: fixed;
+    transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-standard);
     view-transition-name: bottom-nav;
+}
+
+/* Out of the way while a field has the focus, so the keyboard doesn't leave it floating. Hidden for good once it is
+   out, so Tab can't land on it. */
+:root:has(input:not([type='checkbox'], [type='radio']):focus, textarea:focus, [role='combobox']:focus) .bottom-nav {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100%);
+    transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-standard),
+        visibility 0s var(--duration-base);
+    visibility: hidden;
 }
 
 .bottom-nav__list {

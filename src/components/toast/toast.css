@@ -12,6 +12,12 @@
     position: fixed;
 }
 
+/* Above the tab bar of a phone, not over it */
+:root:has(.bottom-nav) .toast-region {
+    bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    padding-bottom: var(--size-4);
+}
+
 /* A thick left edge, and a bar for the bottom one; in with a fade and a short shift, and out the same way */
 .toast {
     align-items: center;

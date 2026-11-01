@@ -1,9 +1,10 @@
-import { fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { stubViewport } from '@/lib/test/viewport';
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -205,5 +206,139 @@ describe('header', () => {
         } finally {
             window.removeEventListener('click', keepOnPage);
         }
+    });
+});
+
+describe('bottom navigation', () => {
+    const TABS = [en.nav.expenses, en.nav.groups, en.nav.summary, en.nav.settings];
+
+    function tab(name: string) {
+        return within(screen.getByRole('navigation', { name: en.nav.label })).getByRole('link', { name });
+    }
+
+    function formToggle() {
+        return screen.getByRole('button', { name: en.expenses.form.title });
+    }
+
+    function formOpen() {
+        return formToggle().getAttribute('aria-expanded') === 'true';
+    }
+
+    async function phone(path = '/') {
+        const viewport = stubViewport(false);
+        stubApi(createFakeApi().handler);
+        renderApp({ path });
+        await screen.findByRole('navigation');
+        return viewport;
+    }
+
+    it('has one navigation, the bar, and only the logo in the header', async () => {
+        await phone();
+
+        expect(screen.getAllByRole('navigation')).toHaveLength(1);
+        const links = within(screen.getByRole('navigation')).getAllByRole('link');
+        expect(links.map((item) => item.textContent)).toEqual(TABS);
+        expect(links.map((item) => item.getAttribute('href'))).toEqual(['/', '/groups', '/summary', '/settings']);
+        const header = within(screen.getByRole('banner'));
+        expect(header.getAllByRole('link').map((item) => item.textContent)).toEqual(['Tarja']);
+        expect(document.querySelectorAll('.root__underline')).toHaveLength(0);
+    });
+
+    it('collapses the add form from Expenses and opens it from the logo, keeping what was typed', async () => {
+        await phone();
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+        fireEvent.change(screen.getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
+        expect(formOpen()).toBe(true);
+
+        fireEvent.click(tab(en.nav.expenses));
+        expect(formOpen()).toBe(false);
+
+        fireEvent.click(within(screen.getByRole('banner')).getByRole('link', { name: 'Tarja' }));
+        expect(formOpen()).toBe(true);
+        expect((screen.getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
+    });
+
+    it.each([
+        ['/', en.nav.expenses],
+        ['/groups', en.nav.groups],
+        ['/summary', en.nav.summary],
+        ['/settings', en.nav.settings],
+        ['/charts', en.nav.summary],
+        ['/budgets', en.nav.summary],
+        ['/categories', en.nav.settings],
+        ['/nowhere', en.nav.expenses],
+    ])('marks only the tab %s is reached from', async (path, name) => {
+        await phone(path);
+
+        const marked = within(screen.getByRole('navigation'))
+            .getAllByRole('link')
+            .filter((item) => item.getAttribute('aria-current') === 'page')
+            .map((item) => item.textContent);
+        expect(marked).toEqual([name]);
+    });
+
+    it('moves to another tab and goes back to Expenses', async () => {
+        await phone();
+
+        fireEvent.click(tab(en.nav.groups));
+        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
+        expect(tab(en.nav.groups).getAttribute('aria-current')).toBe('page');
+
+        fireEvent.click(tab(en.nav.expenses));
+        expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+        expect(tab(en.nav.expenses).getAttribute('aria-current')).toBe('page');
+    });
+
+    it('scrolls to the top when the current tab is pressed, without leaving the screen', async () => {
+        await phone('/summary');
+        await screen.findByRole('heading', { name: en.summary.title });
+        const scrollTo = vi.spyOn(window, 'scrollTo');
+
+        fireEvent.click(tab(en.nav.summary));
+
+        expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+        expect(screen.getByRole('heading', { name: en.summary.title })).toBeDefined();
+    });
+
+    it('leaves the scroll alone on a tab that is not the current one', async () => {
+        await phone('/summary');
+        await screen.findByRole('heading', { name: en.summary.title });
+        const scrollTo = vi.spyOn(window, 'scrollTo');
+
+        fireEvent.click(tab(en.nav.settings));
+        await screen.findByRole('heading', { name: en.settings.title });
+
+        expect(scrollTo).not.toHaveBeenCalledWith({ top: 0 });
+    });
+
+    it.each([
+        ['without a media query to ask', undefined],
+        ['that answers the media query', stubViewport],
+    ])('draws no bar on a wide screen %s', async (_, stub) => {
+        stub?.(true);
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByRole('navigation');
+
+        expect(document.querySelector('.bottom-nav')).toBeNull();
+        expect(within(screen.getByRole('banner')).getAllByRole('link')).toHaveLength(5);
+    });
+
+    it('swaps the bar for the header words when the screen widens, keeping what was typed', async () => {
+        const viewport = await phone();
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+        fireEvent.change(screen.getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
+
+        act(() => viewport.setWide(true));
+
+        expect(document.querySelector('.bottom-nav')).toBeNull();
+        const words = within(screen.getByRole('banner')).getAllByRole('link');
+        expect(words.map((item) => item.textContent)).toEqual([en.nav.expenses, 'Tarja', ...TABS.slice(1)]);
+        expect((screen.getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
+
+        act(() => viewport.setWide(false));
+
+        expect(screen.getAllByRole('navigation')).toHaveLength(1);
+        expect(document.querySelector('.bottom-nav')).not.toBeNull();
     });
 });
