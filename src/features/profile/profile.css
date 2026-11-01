@@ -1,0 +1,27 @@
+.profile {
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.profile__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.profile__form {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.profile__row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+.profile__input {
+    flex: 1 1 12rem;
+    min-width: 0;
+}

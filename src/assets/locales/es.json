@@ -154,6 +154,16 @@
             "violet": "Violeta",
             "pink": "Rosa"
         },
+        "profile": {
+            "title": "Perfil",
+            "label": "Apodo",
+            "hint": "Tus amigos ven este nombre. No tiene por qué ser único. Mientras no pongas uno, ven el nombre de tu cuenta de Google, {name}.",
+            "save": "Guardar",
+            "remove": "Quitar",
+            "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
+            "saveFailed": "No se pudo guardar tu apodo. Inténtalo de nuevo.",
+            "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
+        },
         "categories": {
             "title": "Categorías",
             "description": "Crea tus propias categorías para clasificar tus gastos y elige su color e icono.",

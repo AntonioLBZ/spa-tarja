@@ -16,6 +16,6 @@ The decision is in [ADR-0014](../adr/0014-people-in-groups.md). Everything here 
 
 ## Screen
 
-- **Settings → Profile** (a section after the language and the theme): a `Field` for the nickname with the hint "Your friends see this name. It doesn't have to be unique. Until you set one, they see the name of your Google account.", Save and, once there is one, Remove. Offline the field and its buttons are off with a notice.
+- **Settings → Profile** (a section after the language, the theme and the app color): a `Field` for the nickname with the hint "Your friends see this name. It doesn't have to be unique. Until you set one, they see the name of your Google account, <name>.", the `name` of `GET /profile`, Save and, once there is one, Remove. Saving the field empty removes it too. Offline the field and its buttons are off with a notice.
 - **Invite**, in the edit screen of a friend whose other side is a dummy: a ghost button "Copy invitation link" (or the share sheet of the phone where there is one, `navigator.share`). Under it the open invitation is listed ("Open link, until 15 Nov" with Copy link and Revoke) or, when it was declined, "Declined" with the button to make another. The form of Add a friend ends with the same button once the friend is made.
 - **`/join/$token`** (depth 1): a sheet that says "<Name> wants to be your friend" and Accept and Decline. Accepting opens the friend. An invitation that is gone says so in a `Notice` with a link to Groups.

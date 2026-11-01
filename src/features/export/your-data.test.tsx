@@ -103,7 +103,12 @@ describe('your data in the settings', () => {
         await open();
 
         const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-        expect(headings).toEqual([en.settings.categories.title, en.settings.data.title, en.settings.account.title]);
+        expect(headings).toEqual([
+            en.settings.profile.title,
+            en.settings.categories.title,
+            en.settings.data.title,
+            en.settings.account.title,
+        ]);
         expect(screen.getByText(en.settings.data.description)).toBeDefined();
         expect(screen.getByRole('button', { name: en.settings.data.json }).getAttribute('type')).toBe('button');
         expect(screen.getByRole('button', { name: en.settings.data.csv }).getAttribute('type')).toBe('button');
