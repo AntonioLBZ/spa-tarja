@@ -29,7 +29,7 @@ a.button {
 /* No box, only the text underlined: for an action inside another edge or on paper */
 .button--ghost {
     border-width: 0;
-    padding-inline: var(--size-2);
+    padding-inline: 0;
     text-decoration: underline;
     text-decoration-thickness: var(--size-px);
     text-underline-offset: 0.25em;

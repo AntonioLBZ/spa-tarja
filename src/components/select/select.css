@@ -79,6 +79,12 @@
     background: var(--color-bg-secondary);
 }
 
+/* The ring of the row the arrow keys are on: inside it and past the thick edge of the chosen one */
+.select__option--keys {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-inset);
+}
+
 .select__option--chosen {
     border-left-color: var(--color-border);
 }

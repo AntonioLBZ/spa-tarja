@@ -14,14 +14,10 @@ El owner pedirá cambios en diferentes componentes llegado el momento, ir de la 
 
 Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con diferentes size o variants.
 
-The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What writing them showed, all of it left as it is until the owner says:
+The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What is left of this item, with the owner. Done on 2026-11-01: the update toast, the swatch pickers, the rings of `ChoiceGroup`, `Select` and `Dialog`, the ghost buttons, the hints and the categories screen on sheets.
 
-- `StylePicker` still draws each swatch as a box of its own, while `ChoiceGroup` is now one joined box. The owner leans to making it match `ChoiceGroup`.
-- The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch. The owner doesn't mind it as it is, but wants to see other options first.
-
-Besides that, go over the whole `/categories` screen with the owner: the form that adds a category, the rows that open, the edit panel with its "Color and icon" disclosure, and the built-in list.
-
-Also review how `:focus-visible` looks on every component: the ring of the buttons and links, of the fields, of the options of a `ChoiceGroup` and the one the first action of the `Dialog` shows as soon as it opens.
+- **The same component, another variant.** Not answered yet: the row of actions copied in `category-row`, `expense-row`, `expense-form` and `dialog` (a component or leave it), and the titles and hints repeated in eight CSS files (`:where(h1)` and `:where(h2)` in `base.css`, or leave them).
+- **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
 

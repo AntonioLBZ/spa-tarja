@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { createRef } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Disclosure, DisclosurePanel } from './disclosure';
+import { Disclosure } from './disclosure';
 
 const toggle = () => screen.getByRole('button', { name: 'Details' });
 
@@ -247,29 +247,5 @@ describe('Disclosure', () => {
         );
 
         expect(container.firstElementChild!.className).toBe('disclosure expense-item');
-    });
-});
-
-describe('DisclosurePanel', () => {
-    it('is the panel of a disclosure without the toggle', () => {
-        render(<DisclosurePanel>Inside</DisclosurePanel>);
-
-        const panel = screen.getByText('Inside');
-        expect(panel.tagName).toBe('DIV');
-        expect(panel.classList.contains('disclosure__panel')).toBe(true);
-        expect(panel.hasAttribute('hidden')).toBe(false);
-        expect(panel.hasAttribute('id')).toBe(false);
-    });
-
-    it('takes an id, a hidden state and the class of the call site', () => {
-        render(
-            <DisclosurePanel id="panel" hidden className="extra">
-                Inside
-            </DisclosurePanel>
-        );
-
-        const panel = document.getElementById('panel')!;
-        expect(panel.hasAttribute('hidden')).toBe(true);
-        expect(panel.className).toBe('disclosure__panel extra');
     });
 });

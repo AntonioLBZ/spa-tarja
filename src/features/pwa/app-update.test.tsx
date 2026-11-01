@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { ToastProvider } from '@/components/toast/toast';
 import { LocaleProvider } from '@/lib/i18n';
 
 import { AppUpdate } from './app-update';
@@ -20,12 +21,18 @@ vi.mock('virtual:pwa-register/react', () => ({
     }),
 }));
 
-function renderUpdate() {
-    return render(
+function Update() {
+    return (
         <LocaleProvider>
-            <AppUpdate />
+            <ToastProvider>
+                <AppUpdate />
+            </ToastProvider>
         </LocaleProvider>
     );
+}
+
+function renderUpdate() {
+    return render(<Update />);
 }
 
 afterEach(() => {
@@ -34,17 +41,17 @@ afterEach(() => {
 });
 
 describe('AppUpdate', () => {
-    it('renders nothing while no new version is waiting', () => {
+    it('shows nothing while no new version is waiting', () => {
         renderUpdate();
 
         expect(screen.queryByText(en.pwa.update.message)).toBeNull();
     });
 
-    it('offers the update once a new version is waiting and applies it on request', () => {
+    it('pins the offer once a new version is waiting and applies it on request', () => {
         registration.needRefresh = true;
         renderUpdate();
 
-        expect(screen.getByText(en.pwa.update.message)).toBeDefined();
+        expect(screen.getByRole('status').textContent).toContain(en.pwa.update.message);
         fireEvent.click(screen.getByRole('button', { name: en.pwa.update.apply }));
 
         expect(registration.updateServiceWorker).toHaveBeenCalledWith(true);
@@ -58,5 +65,17 @@ describe('AppUpdate', () => {
 
         expect(registration.setNeedRefresh).toHaveBeenCalledWith(false);
         expect(registration.updateServiceWorker).not.toHaveBeenCalled();
+        expect(screen.queryByText(en.pwa.update.message)).toBeNull();
+    });
+
+    it('takes the offer away when no new version is waiting any more', () => {
+        registration.needRefresh = true;
+        const { rerender } = renderUpdate();
+        expect(screen.getByText(en.pwa.update.message)).toBeDefined();
+
+        registration.needRefresh = false;
+        rerender(<Update />);
+
+        expect(screen.queryByText(en.pwa.update.message)).toBeNull();
     });
 });

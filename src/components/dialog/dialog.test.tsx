@@ -46,6 +46,16 @@ describe('Dialog', () => {
         expect(showModal).toHaveBeenCalledTimes(1);
     });
 
+    it('takes the focus itself when it opens, so no action shows a ring nobody asked for', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} actions={<button type="button">Go</button>}>
+                Body
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByRole('dialog'));
+    });
+
     it('closes when the page stops asking for it, and opens again when it asks again', () => {
         const { rerender } = render(
             <Dialog open title="Moved" onClose={vi.fn()}>

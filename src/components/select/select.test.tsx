@@ -555,3 +555,45 @@ describe('typing a name', () => {
         expect(onChange).not.toHaveBeenCalled();
     });
 });
+
+describe('the ring on the row the keys are on', () => {
+    const ring = 'select__option--keys';
+
+    it('is on the row the arrow keys moved to', () => {
+        render(<Harness />);
+
+        key('ArrowDown');
+        key('ArrowDown');
+
+        expect(activeOption()!.classList.contains(ring)).toBe(true);
+    });
+
+    it('is not there when the pointer opened the list', () => {
+        render(<Harness />);
+
+        open();
+
+        expect(activeOption()!.classList.contains(ring)).toBe(false);
+    });
+
+    it('goes when the pointer takes over the row, which keeps its tint', () => {
+        render(<Harness />);
+        key('ArrowDown');
+
+        fireEvent.mouseEnter(options()[2]!);
+
+        expect(options()[2]!.classList.contains('select__option--active')).toBe(true);
+        expect(options()[2]!.classList.contains(ring)).toBe(false);
+        expect(list().querySelector(`.${ring}`)).toBeNull();
+    });
+
+    it('comes back with the next key', () => {
+        render(<Harness />);
+        open();
+        fireEvent.mouseEnter(options()[3]!);
+
+        key('ArrowUp');
+
+        expect(activeOption()!.classList.contains(ring)).toBe(true);
+    });
+});

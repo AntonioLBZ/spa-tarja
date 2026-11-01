@@ -22,12 +22,15 @@ const Dialog = (props: DialogProps) => {
     useEffect(() => {
         const dialog = ref.current;
         if (!dialog) return;
-        if (open && !dialog.open) dialog.showModal();
-        else if (!open && dialog.open) dialog.close();
+        if (open && !dialog.open) {
+            dialog.showModal();
+            // Not its first action: nobody chose it, and the ring on it would say so
+            dialog.focus();
+        } else if (!open && dialog.open) dialog.close();
     }, [open]);
 
     return (
-        <dialog ref={ref} aria-labelledby={titleId} className="dialog" onClose={onClose}>
+        <dialog ref={ref} aria-labelledby={titleId} className="dialog" tabIndex={-1} onClose={onClose}>
             <h2 className="dialog__title" id={titleId}>
                 {title}
             </h2>

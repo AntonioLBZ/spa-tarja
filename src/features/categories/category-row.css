@@ -3,15 +3,6 @@
     overflow-wrap: anywhere;
 }
 
-.category-row__form {
-    display: grid;
-    gap: var(--size-2);
-}
-
-.category-row__input {
-    min-width: 0;
-}
-
 .category-row__actions {
     display: flex;
     flex-wrap: wrap;

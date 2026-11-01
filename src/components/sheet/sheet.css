@@ -1,0 +1,41 @@
+/* The surface tone, closed by a double rule. `minmax(0, 1fr)` keeps what is as long as it can be, like the leaders of
+   an expense, from widening the page */
+.sheet {
+    background: var(--color-bg-secondary);
+    border-block-end: var(--size-1) double var(--color-border);
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--size-4) var(--size-4) var(--size-3);
+}
+
+/* Centered in capitals over a dashed rule */
+.sheet__label {
+    border-block-end: var(--size-px) dashed var(--color-border);
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    padding-block-end: var(--size-3);
+    text-align: center;
+    text-transform: uppercase;
+}
+
+/* A row that opens, on paper: no notch on its toggle, and what it opens right under it, with the room left under that
+   before the next row */
+.sheet .disclosure {
+    gap: 0;
+}
+
+.sheet .disclosure__toggle {
+    border-width: 0;
+    padding-inline: 0;
+}
+
+.sheet .disclosure__panel {
+    padding-block: 0 var(--size-3);
+    padding-inline-start: 0;
+}

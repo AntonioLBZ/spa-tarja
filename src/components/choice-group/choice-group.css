@@ -30,6 +30,12 @@
     position: relative;
 }
 
+/* A swatch: a cell that holds what it is given, as narrow as a touch target, in the same joined box. The words of a
+   label play no part in its width */
+.choice-group--swatch .choice-group__option {
+    flex: 1 1 var(--size-touch);
+}
+
 .choice-group__text {
     align-items: center;
     border-block-end: var(--size-1) solid var(--color-border);
@@ -46,6 +52,11 @@
         color var(--duration-base) var(--ease-standard);
 }
 
+.choice-group--swatch .choice-group__text {
+    justify-content: center;
+    padding-inline: 0;
+}
+
 .choice-group__input:checked + .choice-group__text {
     background: var(--color-bg-accent);
     color: var(--color-content-on-accent);
@@ -60,4 +71,9 @@
 
 .choice-group__input:checked:focus-visible + .choice-group__text {
     outline-color: var(--color-content-on-accent);
+}
+
+/* What is inside a checked cell, an icon in a color of its own, takes the text color on the accent */
+.choice-group--swatch .choice-group__input:checked + .choice-group__text * {
+    color: inherit;
 }

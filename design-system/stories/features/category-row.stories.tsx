@@ -1,41 +1,37 @@
-import { Card, CardList } from '@/components/card/card';
+import { CardList } from '@/components/card/card';
+import { Sheet } from '@/components/sheet/sheet';
 import { CategoryRow as CategoryRowComponent, type CategoryRowProps } from '@/features/categories/category-row';
 import { fn } from 'storybook/test';
 
 import type { Meta } from '@storybook/react-vite';
 
-const pause = () => new Promise<null>((resolve) => setTimeout(() => resolve(null), 400));
+const pause = () => new Promise<boolean>((resolve) => setTimeout(() => resolve(true), 400));
 
-interface CategoryRowStoryProps extends Omit<CategoryRowProps, 'isTaken'> {
-    // The name another category already has, which the row refuses
-    taken: string;
-}
-
-const Story: Meta<CategoryRowStoryProps> = {
+const Story: Meta<CategoryRowProps> = {
     title: 'Features/CategoryRow',
     args: {
         category: { id: 'custom-pets', name: 'Pets', color: 'orange', icon: 'pets' },
         disabled: false,
         fallbackLabel: 'Other',
-        taken: 'Cats',
-        onSave: fn(pause),
-        onDelete: fn(() => pause().then(() => true)),
+        onEdit: fn(),
+        onDelete: fn(pause),
     },
     argTypes: {
         fallbackLabel: { control: 'text' },
-        onSave: { control: false },
+        onEdit: { control: false },
         onDelete: { control: false },
+        toggleRef: { control: false },
     },
 };
 
-export const CategoryRow = (args: CategoryRowStoryProps) => {
-    const { taken, ...props } = args;
-
+// A row on its sheet, as the categories screen has it
+export const CategoryRow = (args: CategoryRowProps) => {
     return (
-        <CardList>
-            <CategoryRowComponent {...props} isTaken={(name) => name === taken} />
-            <Card as="li">A row that is not a category, for comparison</Card>
-        </CardList>
+        <Sheet label="Yours">
+            <CardList flush>
+                <CategoryRowComponent {...args} />
+            </CardList>
+        </Sheet>
     );
 };
 

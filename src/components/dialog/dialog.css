@@ -58,6 +58,11 @@
     }
 }
 
+/* It takes the focus when it opens, so a screen reader starts from its title, and it is not something to press: no ring */
+.dialog:focus {
+    outline: none;
+}
+
 .dialog__title {
     font-size: var(--font-size-l);
     margin: 0 0 var(--size-4);
@@ -72,14 +77,10 @@
     margin: 0;
 }
 
-/* The actions are ghosts with no padding of their own at the sides, so they line up with the text above them */
+/* The actions are ghosts, which line up with the text above them */
 .dialog__actions {
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-4);
     margin-top: var(--size-4);
-}
-
-.dialog__actions .button {
-    padding-inline: 0;
 }

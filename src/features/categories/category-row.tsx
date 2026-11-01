@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
-import { Disclosure, DisclosurePanel } from '@/components/disclosure/disclosure';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
-import { CATEGORY_NAME_MAX_LENGTH, type Category } from '@core/category';
 
 import { CategoryBadge } from './category-badge';
-import { StylePicker } from './style-picker';
 
-import type { CategoryStyle } from '@core/category-style';
+import type { Category } from '@core/category';
 
 import './category-row.css';
 
@@ -17,118 +15,53 @@ interface CategoryRowProps {
     category: Category;
     // Nothing can change without a connection
     disabled: boolean;
-    // Whether another category, or a built-in one, already has this name
-    isTaken: (name: string, exceptId: string) => boolean;
-    // Resolves to a message key when the change didn't go through
-    onSave: (changes: { name: string } & CategoryStyle) => Promise<'nameTaken' | 'saveFailed' | null>;
-    onDelete: () => Promise<boolean>;
     fallbackLabel: string;
+    // Loads the category into the form that adds one
+    onEdit: () => void;
+    onDelete: () => Promise<boolean>;
+    toggleRef?: Ref<HTMLButtonElement>;
 }
 
-// A category the person made. Pressing it opens a panel under it: Edit and Delete, and what each of them needs.
+// A category the person made, on a sheet. Pressing it opens Edit and Delete under it; Delete asks first.
 const CategoryRow = (props: CategoryRowProps) => {
-    const { category, disabled, isTaken, onSave, onDelete, fallbackLabel } = props;
+    const { category, disabled, fallbackLabel, onEdit, onDelete, toggleRef } = props;
     const t = useTranslations('categoryManager');
     const [expanded, setExpanded] = useState(false);
-    const [mode, setMode] = useState<'view' | 'edit' | 'delete'>('view');
-    const [draft, setDraft] = useState(category.name);
-    const [look, setLook] = useState<CategoryStyle>(category);
-    const [error, setError] = useState<'nameTaken' | 'saveFailed' | 'deleteFailed' | null>(null);
+    const [asking, setAsking] = useState(false);
+    const [failed, setFailed] = useState(false);
     const [busy, setBusy] = useState(false);
-    const [opener, setOpener] = useState<'edit' | 'delete'>('edit');
 
-    // Switching modes replaces the button that was pressed, so the focus is handed on by hand: into the new mode,
-    // and back to the button that opened it when the mode closes
-    const focusTarget = useRef<HTMLElement | null>(null);
-    const shownMode = useRef(mode);
-    const setFocusTarget = useCallback((element: HTMLElement | null) => {
-        focusTarget.current = element;
-    }, []);
+    // Switching to the question replaces the button that was pressed, so the focus is handed on by hand: into the
+    // question, and back to Delete when it closes
+    const deleteButton = useRef<HTMLButtonElement>(null);
+    const cancelButton = useRef<HTMLButtonElement>(null);
+    const wasAsking = useRef(false);
     useEffect(() => {
-        if (shownMode.current !== mode) focusTarget.current?.focus();
-        shownMode.current = mode;
-    }, [mode]);
+        if (asking) cancelButton.current?.focus();
+        else if (wasAsking.current) deleteButton.current?.focus();
+        wasAsking.current = asking;
+    }, [asking]);
 
-    const begin = (next: 'edit' | 'delete') => {
-        setOpener(next);
-        setDraft(category.name);
-        setLook({ color: category.color, icon: category.icon });
-        setMode(next);
+    const handleOpenChange = (open: boolean) => {
+        setExpanded(open);
+        if (!open) {
+            setAsking(false);
+            setFailed(false);
+        }
     };
 
-    const close = () => {
-        setMode('view');
-        setError(null);
-    };
-
-    const handleSave = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const name = draft.trim();
-        if (!name) return;
-        if (isTaken(name, category.id)) {
-            setError('nameTaken');
-            return;
-        }
-        setBusy(true);
-        setError(null);
-        const failure = await onSave({ name, ...look });
-        setBusy(false);
-        if (failure) {
-            setError(failure);
-            return;
-        }
-        close();
+    const handleEdit = () => {
         setExpanded(false);
+        onEdit();
     };
 
     const handleDelete = async () => {
         setBusy(true);
-        setError(null);
+        setFailed(false);
         const deleted = await onDelete();
         setBusy(false);
-        if (!deleted) setError('deleteFailed');
+        if (!deleted) setFailed(true);
     };
-
-    const message = error && (
-        <Notice tone="danger" role="alert">
-            {t(error)}
-        </Notice>
-    );
-
-    if (mode === 'edit') {
-        return (
-            <li>
-                <form className="category-row__form" onSubmit={(event) => void handleSave(event)}>
-                    <input
-                        ref={setFocusTarget}
-                        className="category-row__input"
-                        aria-label={t('renameInput')}
-                        autoComplete="off"
-                        maxLength={CATEGORY_NAME_MAX_LENGTH}
-                        required
-                        type="text"
-                        value={draft}
-                        onChange={(event) => {
-                            setDraft(event.target.value);
-                            setError(null);
-                        }}
-                    />
-                    <DisclosurePanel>
-                        <Disclosure className="category-row__look" summary={t('look.summary')} chevron>
-                            <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
-                        </Disclosure>
-                        <div className="category-row__actions">
-                            <Button disabled={disabled || busy} type="submit">
-                                {t('save')}
-                            </Button>
-                            <Button onClick={close}>{t('cancel')}</Button>
-                        </div>
-                        {message}
-                    </DisclosurePanel>
-                </form>
-            </li>
-        );
-    }
 
     return (
         <Disclosure
@@ -141,15 +74,17 @@ const CategoryRow = (props: CategoryRowProps) => {
                 </>
             }
             open={expanded}
-            onOpenChange={setExpanded}
+            toggleRef={toggleRef}
+            onOpenChange={handleOpenChange}
         >
-            {mode === 'delete' ? (
+            {asking ? (
                 <>
                     <p className="category-row__question">
                         {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
                     </p>
                     <div className="category-row__actions">
                         <Button
+                            ghost
                             variant="danger"
                             aria-label={t('deleteItem', { name: category.name })}
                             disabled={disabled || busy}
@@ -157,28 +92,33 @@ const CategoryRow = (props: CategoryRowProps) => {
                         >
                             {t('delete')}
                         </Button>
-                        <Button ref={setFocusTarget} onClick={close}>
+                        <Button ghost ref={cancelButton} onClick={() => setAsking(false)}>
                             {t('cancel')}
                         </Button>
                     </div>
-                    {message}
+                    {failed && (
+                        <Notice tone="danger" role="alert">
+                            {t('deleteFailed')}
+                        </Notice>
+                    )}
                 </>
             ) : (
                 <div className="category-row__actions">
                     <Button
-                        ref={opener === 'edit' ? setFocusTarget : undefined}
+                        ghost
                         aria-label={t('editItem', { name: category.name })}
                         disabled={disabled}
-                        onClick={() => begin('edit')}
+                        onClick={handleEdit}
                     >
                         {t('edit')}
                     </Button>
                     <Button
-                        ref={opener === 'delete' ? setFocusTarget : undefined}
+                        ghost
+                        ref={deleteButton}
                         variant="danger"
                         aria-label={t('deleteItem', { name: category.name })}
                         disabled={disabled}
-                        onClick={() => begin('delete')}
+                        onClick={() => setAsking(true)}
                     >
                         {t('delete')}
                     </Button>

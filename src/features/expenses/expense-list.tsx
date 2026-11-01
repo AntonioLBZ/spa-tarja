@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
+import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -119,7 +120,7 @@ const ExpenseList = () => {
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
     if (!hasData && !isError && !isWaitingForNetwork) return null;
 
-    const labelClsx = clsx('expense-list__label', {
+    const labelClsx = clsx({
         'expense-list__label--category': grouping === 'category',
         'expense-list__label--date': grouping !== 'category',
     });
@@ -150,8 +151,7 @@ const ExpenseList = () => {
             )}
 
             {groups.map((group) => (
-                <section className="expense-list__group" key={group.key}>
-                    <h3 className={labelClsx}>{labelOfGroup(group)}</h3>
+                <Sheet key={group.key} label={labelOfGroup(group)} level="h3" labelClassName={labelClsx}>
                     <CardList flush>
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
@@ -183,7 +183,7 @@ const ExpenseList = () => {
                             {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
                         </span>
                     </p>
-                </section>
+                </Sheet>
             ))}
 
             {list.hiddenRows > 0 && (

@@ -1,6 +1,6 @@
-import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
+import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/category-style';
 
 import { CategoryBadge } from './category-badge';
@@ -20,52 +20,36 @@ const StylePicker = (props: StylePickerProps) => {
     const t = useTranslations('categoryManager.look');
     const tColor = useTranslations('categoryColors');
     const tIcon = useTranslations('categoryIcons');
-    const inputClsx = clsx('visually-hidden', 'style-picker__input');
+
+    const colors = CATEGORY_COLORS.map((color) => ({
+        value: color,
+        label: tColor(color),
+        content: <CategoryBadge style={{ color, icon: value.icon }} />,
+    }));
+    const icons = CATEGORY_ICONS.map((icon) => ({
+        value: icon,
+        label: tIcon(icon),
+        content: <CategoryBadge style={{ color: value.color, icon }} />,
+    }));
 
     return (
         <div className="style-picker">
-            <fieldset className="style-picker__group">
-                <legend className="style-picker__legend">{t('color')}</legend>
-                <div className="style-picker__options">
-                    {CATEGORY_COLORS.map((color) => (
-                        <label className="style-picker__option" key={color} title={tColor(color)}>
-                            <input
-                                className={inputClsx}
-                                aria-label={tColor(color)}
-                                checked={value.color === color}
-                                name={`${name}-color`}
-                                type="radio"
-                                value={color}
-                                onChange={() => onChange({ ...value, color })}
-                            />
-                            <span className="style-picker__swatch">
-                                <CategoryBadge style={{ color, icon: value.icon }} />
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </fieldset>
-            <fieldset className="style-picker__group">
-                <legend className="style-picker__legend">{t('icon')}</legend>
-                <div className="style-picker__options">
-                    {CATEGORY_ICONS.map((icon) => (
-                        <label className="style-picker__option" key={icon} title={tIcon(icon)}>
-                            <input
-                                className={inputClsx}
-                                aria-label={tIcon(icon)}
-                                checked={value.icon === icon}
-                                name={`${name}-icon`}
-                                type="radio"
-                                value={icon}
-                                onChange={() => onChange({ ...value, icon })}
-                            />
-                            <span className="style-picker__swatch">
-                                <CategoryBadge style={{ color: value.color, icon }} />
-                            </span>
-                        </label>
-                    ))}
-                </div>
-            </fieldset>
+            <ChoiceGroup
+                swatch
+                legend={t('color')}
+                name={`${name}-color`}
+                options={colors}
+                value={value.color}
+                onChange={(color) => onChange({ ...value, color })}
+            />
+            <ChoiceGroup
+                swatch
+                legend={t('icon')}
+                name={`${name}-icon`}
+                options={icons}
+                value={value.icon}
+                onChange={(icon) => onChange({ ...value, icon })}
+            />
         </div>
     );
 };

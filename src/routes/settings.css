@@ -22,5 +22,6 @@
 
 .settings__hint {
     color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
     margin: 0;
 }

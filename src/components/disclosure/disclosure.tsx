@@ -32,8 +32,7 @@ interface DisclosurePanelProps {
     children: ReactNode;
 }
 
-// The box under a row that comes in with a fade and a short shift. Alone, for what looks like an open disclosure
-// without being one.
+// The box under a row that comes in with a fade and a short shift
 const DisclosurePanel = (props: DisclosurePanelProps) => {
     const { id, hidden, className, children } = props;
     const panelClsx = clsx('disclosure__panel', className);
@@ -104,4 +103,4 @@ const Disclosure = (props: DisclosureProps) => {
     );
 };
 
-export { Disclosure, DisclosurePanel, type DisclosurePanelProps, type DisclosureProps };
+export { Disclosure, type DisclosureProps };

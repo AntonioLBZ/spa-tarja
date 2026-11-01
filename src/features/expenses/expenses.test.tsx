@@ -1991,18 +1991,16 @@ describe('editing an expense', () => {
     it('moves the row to the day it now has, with the focus still on it', async () => {
         const coffee = expense({ text: 'Coffee', date: '2026-10-20' });
         await open([lunch, coffee]);
-        expect(document.querySelectorAll('.expense-list__group')).toHaveLength(2);
+        expect(document.querySelectorAll('.sheet')).toHaveLength(2);
         edit('Lunch');
 
         typeIn(en.expenses.form.date, '2026-10-20');
         save();
 
-        await waitFor(() => expect(document.querySelectorAll('.expense-list__group')).toHaveLength(1));
-        const group = rowToggle('Lunch').closest('.expense-list__group')!;
+        await waitFor(() => expect(document.querySelectorAll('.sheet')).toHaveLength(1));
+        const group = rowToggle('Lunch').closest('.sheet')!;
         const day = new Intl.DateTimeFormat('en', { weekday: 'long', day: 'numeric', month: 'long' });
-        expect(group.querySelector('.expense-list__label')!.textContent).toBe(
-            day.format(new Date('2026-10-20T12:00:00'))
-        );
+        expect(group.querySelector('.sheet__label')!.textContent).toBe(day.format(new Date('2026-10-20T12:00:00')));
         expect(within(group as HTMLElement).getByText('Coffee')).toBeDefined();
         expect(document.activeElement).toBe(rowToggle('Lunch'));
         expect(field(en.expenses.form.text).value).toBe('');

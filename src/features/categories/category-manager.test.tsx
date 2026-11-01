@@ -49,6 +49,7 @@ async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
 }
 
 afterEach(() => {
+    document.documentElement.style.removeProperty('--duration-base');
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();
 });
@@ -71,6 +72,25 @@ describe('listing', () => {
         for (const name of Object.values(en.categories)) expect(screen.getByText(name)).toBeDefined();
         expect(screen.queryByRole('button', { name: named(text.editItem, en.categories.food) })).toBeNull();
         expect(screen.queryByRole('button', { name: named(text.deleteItem, en.categories.food) })).toBeNull();
+    });
+
+    it('puts the person’s own categories and the built-in ones each on a sheet with its label', async () => {
+        await open({ categories: [gym] });
+        await screen.findByText('Gym');
+
+        const own = screen.getByRole('heading', { level: 2, name: text.custom.title }).closest('.sheet')!;
+        const builtIn = screen.getByRole('heading', { level: 2, name: text.builtIn.title }).closest('.sheet')!;
+        expect(own.contains(toggle('Gym'))).toBe(true);
+        expect(own.contains(screen.getByText(en.categories.food))).toBe(false);
+        expect(builtIn.contains(screen.getByText(en.categories.food))).toBe(true);
+    });
+
+    it('has no sheet for the person’s own categories while there are none', async () => {
+        await open();
+        await screen.findByText(text.custom.empty);
+
+        expect(screen.queryByRole('heading', { name: text.custom.title })).toBeNull();
+        expect(screen.getByRole('heading', { name: text.builtIn.title })).toBeDefined();
     });
 
     it('shows the look of every category, the built-in ones and the person’s own', async () => {
@@ -383,70 +403,92 @@ describe('editing', () => {
     }
 
     function nameField() {
-        return screen.getByLabelText(text.renameInput) as HTMLInputElement;
+        return screen.getByLabelText(text.editLabel) as HTMLInputElement;
     }
 
-    it('starts from the current name', async () => {
+    it('loads the category into the form that adds, which then says it edits', async () => {
         await startRename();
 
         expect(nameField().value).toBe('Gym');
+        expect(button(text.save)).toBeDefined();
+        expect(screen.queryByRole('button', { name: text.add.submit })).toBeNull();
+        expect(screen.queryByLabelText(text.add.label)).toBeNull();
     });
 
-    it('moves the focus into the field, and back to the button when cancelled', async () => {
-        await startRename();
-        expect(document.activeElement).toBe(nameField());
-
-        fireEvent.click(button(text.cancel));
-
-        expect(document.activeElement).toBe(button(named(text.editItem, 'Gym')));
-    });
-
-    it('turns the name into a field in the row, with the picker and the buttons under it', async () => {
+    it('shows the look of the category beside its name, and Cancel under the form', async () => {
         await startRename();
 
-        const item = nameField().closest('li')!;
-        const picker = item.querySelector('.category-row__look')!;
-        const save = button(text.save);
-        const cancel = button(text.cancel);
+        const form = nameField().closest('form')!;
+        const badge = form.querySelector('.category-badge')!;
+        expect(badge.className).toContain('category-badge--blue');
+        expect(badge.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('fitness_center');
         const after = (first: Node, second: Node) =>
             Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
-        expect(after(nameField(), picker)).toBe(true);
-        expect(after(picker, save)).toBe(true);
-        expect(after(save, cancel)).toBe(true);
-        expect(picker.closest('.disclosure__panel')).not.toBeNull();
-        expect(nameField().closest('.disclosure__panel')).toBeNull();
-        expect(within(item).queryByRole('button', { name: 'Gym' })).toBeNull();
+        expect(after(nameField(), toggle(text.look.summary))).toBe(true);
+        expect(after(toggle(text.look.summary), button(text.cancel))).toBe(true);
+        expect(button(text.cancel).classList.contains('button--ghost')).toBe(true);
     });
 
     it('keeps the picker behind its summary, as it was', async () => {
         await startRename();
 
-        const item = nameField().closest('li')!;
-
-        expect(within(item).getByRole('button', { name: text.look.summary }).getAttribute('aria-expanded')).toBe(
-            'false'
-        );
-        expect(within(item).queryByRole('radio')).toBeNull();
+        expect(toggle(text.look.summary).getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('radio')).toBeNull();
     });
 
-    it('closes the panel once saved', async () => {
+    it('closes the row that was pressed, since the form now holds the category', async () => {
+        await startRename();
+
+        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('button', { name: named(text.editItem, 'Gym') })).toBeNull();
+    });
+
+    it('brings the form into view and puts the focus on its field', async () => {
+        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
+
+        await startRename();
+
+        expect(document.activeElement).toBe(nameField());
+        expect(scroll.mock.contexts.at(-1)).toBe(nameField().closest('form'));
+        expect(scroll).toHaveBeenLastCalledWith({ behavior: 'instant', block: 'start' });
+        scroll.mockRestore();
+    });
+
+    it('scrolls smoothly to the form while there is motion', async () => {
+        document.documentElement.style.setProperty('--duration-base', '200ms');
+        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
+
+        await startRename();
+
+        expect(scroll).toHaveBeenLastCalledWith({ behavior: 'smooth', block: 'start' });
+        scroll.mockRestore();
+        document.documentElement.style.removeProperty('--duration-base');
+    });
+
+    it('goes back to adding once saved, with the focus on the row that was edited', async () => {
         await startRename();
 
         fireEvent.change(nameField(), { target: { value: 'Fitness' } });
         fireEvent.click(button(text.save));
 
         await screen.findByText('Fitness');
+        await waitFor(() => expect(newNameField().value).toBe(''));
+        expect(button(text.add.submit)).toBeDefined();
         expect(toggle('Fitness').getAttribute('aria-expanded')).toBe('false');
-        expect(screen.queryByRole('button', { name: named(text.editItem, 'Fitness') })).toBeNull();
+        expect(document.activeElement).toBe(toggle('Fitness'));
     });
 
-    it('keeps the panel open when cancelled, with Edit and Delete again', async () => {
-        await startRename();
+    it('goes back to adding when cancelled, with the focus on the row and the category as it was', async () => {
+        const api = await startRename();
 
+        fireEvent.change(nameField(), { target: { value: 'Fitness' } });
         fireEvent.click(button(text.cancel));
 
-        expect(toggle('Gym').getAttribute('aria-expanded')).toBe('true');
-        expect(button(named(text.editItem, 'Gym'))).toBeDefined();
+        expect(screen.getByText('Gym')).toBeDefined();
+        expect(newNameField().value).toBe('');
+        expect(screen.queryByLabelText(text.editLabel)).toBeNull();
+        expect(document.activeElement).toBe(toggle('Gym'));
+        expect(api.categoryRequests).toEqual([]);
     });
 
     it('saves the new name', async () => {
@@ -457,7 +499,7 @@ describe('editing', () => {
 
         expect(await screen.findByText('Fitness')).toBeDefined();
         expect(api.categories).toEqual([{ ...gym, name: 'Fitness' }]);
-        expect(screen.queryByLabelText(text.renameInput)).toBeNull();
+        expect(screen.queryByLabelText(text.editLabel)).toBeNull();
         expect(screen.queryByText('Gym')).toBeNull();
     });
 
@@ -471,31 +513,23 @@ describe('editing', () => {
         expect(api.categories).toEqual([{ ...gym, name: 'gym' }]);
     });
 
-    function rowRadio(name: string) {
-        return within(nameField().closest('li')!).getByRole('radio', { name }) as HTMLInputElement;
-    }
-
-    function revealLook() {
-        fireEvent.click(within(nameField().closest('li')!).getByRole('button', { name: text.look.summary }));
-    }
-
     it('starts from the current color and icon', async () => {
         await startRename();
-        revealLook();
+        reveal(text.look.summary);
 
-        expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
-        expect(rowRadio(en.categoryIcons.fitness_center).checked).toBe(true);
+        expect(radio(en.categoryColors.blue).checked).toBe(true);
+        expect(radio(en.categoryIcons.fitness_center).checked).toBe(true);
     });
 
     it('saves a new color and icon with the name', async () => {
         const api = await startRename();
 
-        revealLook();
-        fireEvent.click(rowRadio(en.categoryColors.green));
-        fireEvent.click(rowRadio(en.categoryIcons.spa));
+        reveal(text.look.summary);
+        fireEvent.click(radio(en.categoryColors.green));
+        fireEvent.click(radio(en.categoryIcons.spa));
         fireEvent.click(button(text.save));
 
-        await waitFor(() => expect(screen.queryByLabelText(text.renameInput)).toBeNull());
+        await waitFor(() => expect(screen.queryByLabelText(text.editLabel)).toBeNull());
         expect(api.categories).toEqual([{ id: gym.id, name: 'Gym', color: 'green', icon: 'spa' }]);
         const row = screen.getByText('Gym').closest('li')!;
         expect(row.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('spa');
@@ -505,24 +539,14 @@ describe('editing', () => {
     it('drops a color and icon change when cancelled', async () => {
         const api = await startRename();
 
-        revealLook();
-        fireEvent.click(rowRadio(en.categoryColors.green));
+        reveal(text.look.summary);
+        fireEvent.click(radio(en.categoryColors.green));
         fireEvent.click(button(text.cancel));
+        reveal('Gym');
         fireEvent.click(button(named(text.editItem, 'Gym')));
-        revealLook();
+        reveal(text.look.summary);
 
-        expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
-        expect(api.categoryRequests).toEqual([]);
-    });
-
-    it('goes back untouched when cancelled', async () => {
-        const api = await startRename();
-
-        fireEvent.change(nameField(), { target: { value: 'Fitness' } });
-        fireEvent.click(button(text.cancel));
-
-        expect(screen.getByText('Gym')).toBeDefined();
-        expect(screen.queryByLabelText(text.renameInput)).toBeNull();
+        expect(radio(en.categoryColors.blue).checked).toBe(true);
         expect(api.categoryRequests).toEqual([]);
     });
 
@@ -539,7 +563,7 @@ describe('editing', () => {
         expect(api.categoryRequests).toEqual([]);
     });
 
-    it('says so when saving fails, and stays open', async () => {
+    it('says so when saving fails, and keeps editing', async () => {
         const api = await startRename();
         api.state.categoryWriteStatus = 500;
 

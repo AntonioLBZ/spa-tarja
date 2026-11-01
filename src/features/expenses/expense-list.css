@@ -10,31 +10,6 @@
     margin: 0;
 }
 
-/* A ticket: a sheet of paper with the label of the group, its rows and, at the foot, the total */
-.expense-list__group {
-    background: var(--color-bg-secondary);
-    border-block-end: var(--size-1) double var(--color-border);
-    display: grid;
-    gap: var(--size-2);
-    grid-template-columns: minmax(0, 1fr);
-    padding: var(--size-4) var(--size-4) var(--size-3);
-}
-
-/* The label of a group, centered in capitals over a dashed rule */
-.expense-list__label {
-    border-block-end: var(--size-px) dashed var(--color-border);
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    font-weight: 400;
-    letter-spacing: 0.1em;
-    margin: 0;
-    min-width: 0;
-    overflow-wrap: anywhere;
-    padding-block-end: var(--size-3);
-    text-align: center;
-    text-transform: uppercase;
-}
-
 .expense-list__label--category {
     align-items: center;
     display: flex;

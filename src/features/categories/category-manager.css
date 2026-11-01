@@ -9,7 +9,7 @@
     margin: 0;
 }
 
-.category-manager__add {
+.category-manager__form {
     display: grid;
     gap: var(--size-1);
 }
@@ -25,15 +25,14 @@
     min-width: 0;
 }
 
+.category-manager__cancel {
+    justify-self: start;
+}
+
 .category-manager__section {
     display: grid;
     gap: var(--size-2);
     grid-template-columns: minmax(0, 1fr);
-}
-
-.category-manager__heading {
-    font-size: var(--font-size-m);
-    margin: 0;
 }
 
 .category-manager__hint {
@@ -42,8 +41,10 @@
     margin: 0;
 }
 
+/* A built-in category on its sheet: nothing to open, so no notch and no chevron, as tall as a row that does open */
 .category-manager__built-in {
     align-items: center;
     display: flex;
     gap: var(--size-2);
+    min-height: var(--size-touch);
 }

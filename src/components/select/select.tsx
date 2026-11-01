@@ -37,6 +37,8 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
     const typedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(0);
+    // Whether the arrow keys, and not the pointer, put the active option where it is
+    const [byKeys, setByKeys] = useState(false);
 
     const chosenIndex = Math.max(
         0,
@@ -99,6 +101,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
 
     const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
         const last = options.length - 1;
+        setByKeys(true);
         switch (event.key) {
             case 'ArrowDown':
                 event.preventDefault();
@@ -162,7 +165,11 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                 aria-invalid={invalid}
                 role="combobox"
                 type="button"
-                onClick={() => (open ? setOpen(false) : show())}
+                onClick={() => {
+                    setByKeys(false);
+                    if (open) setOpen(false);
+                    else show();
+                }}
                 onKeyDown={handleKeyDown}
                 // A Space pressed on a button clicks it when it is released, which would close what it just opened
                 onKeyUp={(event) => {
@@ -183,6 +190,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                     {options.map((option, index) => {
                         const optionClsx = clsx('select__option', {
                             'select__option--active': index === active,
+                            'select__option--keys': index === active && byKeys,
                             'select__option--chosen': index === chosenIndex,
                         });
 
@@ -194,7 +202,10 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                                 aria-selected={index === chosenIndex}
                                 role="option"
                                 onClick={() => choose(index)}
-                                onMouseEnter={() => setActive(index)}
+                                onMouseEnter={() => {
+                                    setActive(index);
+                                    setByKeys(false);
+                                }}
                             >
                                 {content(option)}
                             </li>

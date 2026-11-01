@@ -205,7 +205,7 @@
         },
         "edit": "Edit",
         "editItem": "Edit {name}",
-        "renameInput": "Category name",
+        "editLabel": "Edit category",
         "save": "Save",
         "cancel": "Cancel",
         "delete": "Delete",

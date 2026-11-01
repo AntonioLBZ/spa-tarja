@@ -364,3 +364,162 @@ describe('Toast', () => {
         quiet.mockRestore();
     });
 });
+
+function PinHarness(props: { onUpdate?: () => void; onLater?: () => void }) {
+    const { onUpdate = () => undefined, onLater = () => undefined } = props;
+    const toast = useToast();
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() =>
+                    toast.pin({
+                        message: 'A new version is ready',
+                        actions: [
+                            { label: 'Update', onAction: onUpdate },
+                            { label: 'Later', onAction: onLater },
+                        ],
+                    })
+                }
+            >
+                Pin
+            </button>
+            <button
+                type="button"
+                onClick={() =>
+                    toast.pin({ message: 'Another version', actions: [{ label: 'Go', onAction: onUpdate }] })
+                }
+            >
+                Pin another
+            </button>
+            <button type="button" onClick={toast.unpin}>
+                Unpin
+            </button>
+            <button type="button" onClick={() => toast.show({ message: 'Deleted Lunch' })}>
+                Show
+            </button>
+        </>
+    );
+}
+
+function setupPin(props: { onUpdate?: () => void; onLater?: () => void } = {}) {
+    render(
+        <ToastProvider>
+            <PinHarness {...props} />
+        </ToastProvider>
+    );
+}
+
+function pinned() {
+    return screen.queryByText('A new version is ready')?.closest('.toast') ?? null;
+}
+
+describe('a pinned Toast', () => {
+    it('holds its message and one ghost action for each of its answers', () => {
+        setupPin();
+
+        show('Pin');
+
+        const region = screen.getByRole('status');
+        expect(region.textContent).toContain('A new version is ready');
+        for (const name of ['Update', 'Later']) {
+            const action = screen.getByRole('button', { name });
+            expect(region.contains(action)).toBe(true);
+            expect(action.classList.contains('button--ghost')).toBe(true);
+        }
+    });
+
+    it('has no bar and no count: it stays until it is answered', () => {
+        setupPin();
+
+        show('Pin');
+
+        expect(pinned()!.classList.contains('toast--pinned')).toBe(true);
+        elapse(10 * 60_000);
+        expect(pinned()).not.toBeNull();
+    });
+
+    it('goes with the action that answers it, after running it', () => {
+        const onLater = vi.fn();
+        setupPin({ onLater });
+        show('Pin');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Later' }));
+
+        expect(onLater).toHaveBeenCalledTimes(1);
+        expect(pinned()).toBeNull();
+    });
+
+    it('goes when it is taken away', () => {
+        setupPin();
+        show('Pin');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Unpin' }));
+
+        expect(pinned()).toBeNull();
+    });
+
+    it('is not closed by Escape', () => {
+        setupPin();
+        show('Pin');
+
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+
+        expect(pinned()).not.toBeNull();
+    });
+
+    it('sits above the toast that goes away by itself, which does not replace it', () => {
+        setupPin();
+        show('Pin');
+
+        show('Show');
+
+        const region = screen.getByRole('status');
+        const boxes = Array.from(region.querySelectorAll('.toast'));
+        expect(boxes.map((box) => box.querySelector('p')!.textContent)).toEqual([
+            'A new version is ready',
+            'Deleted Lunch',
+        ]);
+        elapse(8_000);
+        expect(screen.queryByText('Deleted Lunch')).toBeNull();
+        expect(pinned()).not.toBeNull();
+    });
+
+    it('is not replaced by a toast that comes after it, and replaces only another pinned one', () => {
+        setupPin();
+        show('Pin');
+        show('Show');
+        expect(pinned()).not.toBeNull();
+
+        show('Pin another');
+
+        expect(pinned()).toBeNull();
+        expect(screen.getByText('Another version')).toBeDefined();
+        expect(screen.getAllByRole('button', { name: 'Go' })).toHaveLength(1);
+    });
+
+    it('keeps its box when it is pinned again with the same kind of content, so it does not come in twice', () => {
+        setupPin();
+        show('Pin');
+        const box = pinned();
+
+        show('Pin');
+
+        expect(pinned()).toBe(box);
+    });
+
+    it('fades out before it goes, for as long as the transitions last', () => {
+        root.style.setProperty('--duration-base', '200ms');
+        setupPin();
+        show('Pin');
+
+        show('Unpin');
+
+        expect(pinned()!.classList.contains('toast--leaving')).toBe(true);
+        elapse(199);
+        expect(pinned()).not.toBeNull();
+        elapse(1);
+        expect(pinned()).toBeNull();
+    });
+});
