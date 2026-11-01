@@ -45,11 +45,7 @@ The repo side:
 
 ## Shared expenses
 
-A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, is done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 20. Nickname
-
-Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of the bottom navigation. Task plan: `docs/superpowers/plans/2026-11-01-nickname.md`, deleted with this item.
+A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, and 20, the nickname, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 21. The maths of shared expenses
 
