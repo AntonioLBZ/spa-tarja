@@ -49,7 +49,7 @@ A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/
 
 ### 20. Nickname
 
-Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of the bottom navigation.
+Migration `0010`, `GET` and `PUT /profile`, the Profile section of the settings ([invitations](docs/specs/invitations.md)). Independent of the bottom navigation. Task plan: `docs/superpowers/plans/2026-11-01-nickname.md`, deleted with this item.
 
 ### 21. The maths of shared expenses
 
