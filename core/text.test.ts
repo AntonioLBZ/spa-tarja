@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { normalizeText, searchWords } from './text';
+import { isVisibleText, normalizeText, searchWords } from './text';
 
 describe('normalizeText', () => {
     it('lowercases and strips the accents', () => {
@@ -28,4 +28,17 @@ describe('searchWords', () => {
     it('is empty for a blank query', () => {
         expect(searchWords('   ')).toEqual([]);
     });
+});
+
+describe('isVisibleText', () => {
+    it.each(['Ana', ' a ', '\u{1F469}\u200D\u{1F4BB}', 'An\u00ADa', '.'])('sees something in %j', (text) => {
+        expect(isVisibleText(text)).toBe(true);
+    });
+
+    it.each(['', '   ', '\u200B\u2060', '\uFEFF', '\u200E\u200F', '\u3164', '\uFE0F', '\u200B \u00AD'])(
+        'sees nothing in %j',
+        (text) => {
+            expect(isVisibleText(text)).toBe(false);
+        }
+    );
 });

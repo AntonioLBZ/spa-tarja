@@ -1,16 +1,15 @@
 import * as v from 'valibot';
 
+import { isVisibleText } from './text';
+
 // In UTF-16 code units, as a string's length counts them, so an emoji takes two
 const NICKNAME_MAX_LENGTH = 30;
-
-// A character that leaves a mark: not a space, a control, or a format or other ignorable character (zero-width ones)
-const VISIBLE = /[^\s\p{Z}\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}]/u;
 
 const nicknameSchema = v.pipe(
     v.string(),
     v.trim(),
     v.maxLength(NICKNAME_MAX_LENGTH),
-    v.check((nickname) => VISIBLE.test(nickname), 'Nothing visible')
+    v.check(isVisibleText, 'Nothing visible')
 );
 
 // Null takes the nickname away

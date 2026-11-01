@@ -1,0 +1,153 @@
+import * as v from 'valibot';
+
+import { isVisibleText } from './text';
+
+import type { SharedMember } from './shared-member';
+
+// Per user, counting only the groups that aren't closed for them
+const MAX_OPEN_GROUPS = 30;
+
+const MAX_FRIENDS = 100;
+
+// Counting only the members who haven't left
+const MAX_GROUP_MEMBERS = 30;
+
+const SHARED_NAME_MAX_LENGTH = 40;
+
+const groupIdSchema = v.pipe(v.string(), v.uuid());
+
+const memberIdSchema = v.pipe(v.string(), v.uuid());
+
+// The name of a group, or the one a group gives a person
+const sharedNameSchema = v.pipe(
+    v.string(),
+    v.trim(),
+    v.minLength(1),
+    v.maxLength(SHARED_NAME_MAX_LENGTH),
+    v.check(isVisibleText, 'Nothing visible')
+);
+
+const currencySchema = v.pipe(v.string(), v.regex(/^[A-Z]{3}$/));
+
+// The maker is named by the server, after their nickname or their account
+const makerSchema = v.object({ id: memberIdSchema });
+
+const placeholderSchema = v.object({ id: memberIdSchema, name: sharedNameSchema });
+
+// A group and its first people: the maker, who owns it, and the others as dummies. A friend is the maker and one dummy.
+const newGroupSchema = v.pipe(
+    v.variant('kind', [
+        v.object({
+            kind: v.literal('group'),
+            name: sharedNameSchema,
+            currency: currencySchema,
+            me: makerSchema,
+            others: v.pipe(v.array(placeholderSchema), v.maxLength(MAX_GROUP_MEMBERS - 1)),
+        }),
+        v.object({
+            kind: v.literal('direct'),
+            name: v.optional(v.null(), null),
+            currency: currencySchema,
+            me: makerSchema,
+            others: v.pipe(v.array(placeholderSchema), v.length(1)),
+        }),
+    ]),
+    v.check(({ me, others }) => {
+        const ids = [me.id, ...others.map((other) => other.id)];
+        return new Set(ids).size === ids.length;
+    }, 'A member is there twice')
+);
+
+// What the owner changes of a group that exists; a friend has no name to change
+const groupChangeSchema = v.object({
+    kind: v.optional(v.never()),
+    name: v.optional(sharedNameSchema),
+    simplifyDebts: v.optional(v.boolean()),
+});
+
+// A body with a kind makes the group, and is read as a change when the group is there already
+const groupWriteSchema = v.union([newGroupSchema, groupChangeSchema]);
+
+// A dummy by name, or a new name for a member; or one of the caller's friends who is a real person, the friend group
+// named by its id, as a new member or in place of a dummy
+const memberWriteSchema = v.union([
+    v.object({ friend: groupIdSchema, replaces: v.optional(memberIdSchema) }),
+    v.object({ friend: v.optional(v.never()), name: sharedNameSchema }),
+]);
+
+const mergeSchema = v.object({ into: memberIdSchema });
+
+const ownerSchema = v.object({ memberId: memberIdSchema });
+
+// The caller's own switches for a group
+const mySwitchesSchema = v.object({
+    showInExpenses: v.optional(v.boolean()),
+    archived: v.optional(v.boolean()),
+});
+
+// A `group` has a name and any number of members; a `direct` one is a friend, two members and no name
+type GroupKind = NewGroup['kind'];
+
+type MemberRole = 'owner' | 'member';
+
+// Why a group is read-only for a person: it was deleted, or they left it
+type GroupClosed = 'deleted' | 'left';
+
+type NewGroup = v.InferOutput<typeof newGroupSchema>;
+
+type GroupChange = v.InferOutput<typeof groupChangeSchema>;
+
+type MemberWrite = v.InferOutput<typeof memberWriteSchema>;
+
+type MySwitches = v.InferOutput<typeof mySwitchesSchema>;
+
+// A member as a group tells it: never the user behind it. An empty name is a person who deleted their account.
+interface GroupMember extends SharedMember {
+    name: string;
+    role: MemberRole;
+    // A person, now or before they deleted their account; a dummy until then
+    claimed: boolean;
+    leftAt: number | null;
+}
+
+// A group or a friend as one of its members sees it
+interface SharedGroup {
+    id: string;
+    kind: GroupKind;
+    name: string | null;
+    currency: string;
+    simplifyDebts: boolean;
+    closed: GroupClosed | null;
+    archived: boolean;
+    // The caller's member
+    me: string;
+    showInExpenses: boolean;
+    // In the group's order, those who left included
+    members: GroupMember[];
+}
+
+export {
+    MAX_FRIENDS,
+    MAX_GROUP_MEMBERS,
+    MAX_OPEN_GROUPS,
+    SHARED_NAME_MAX_LENGTH,
+    groupChangeSchema,
+    groupIdSchema,
+    groupWriteSchema,
+    memberIdSchema,
+    memberWriteSchema,
+    mergeSchema,
+    mySwitchesSchema,
+    newGroupSchema,
+    ownerSchema,
+    sharedNameSchema,
+    type GroupChange,
+    type GroupClosed,
+    type GroupKind,
+    type GroupMember,
+    type MemberRole,
+    type MemberWrite,
+    type MySwitches,
+    type NewGroup,
+    type SharedGroup,
+};
