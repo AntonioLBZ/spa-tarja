@@ -178,6 +178,28 @@ describe('sharedExpenseRows', () => {
         ]);
     });
 
+    it('reads a chain of merges, which the server never makes, as its end', () => {
+        const chain = ledger(
+            [
+                dinner('first', { first: 2000, second: 1000, bruno: 3000 }, 'credit'),
+                { ...dinner('second', { bruno: 900 }), id: 'taxi' },
+            ],
+            {
+                me: 'carla',
+                members: [...members, { id: 'first', mergedInto: 'second' }, { id: 'second', mergedInto: 'carla' }],
+            }
+        );
+
+        expect(sharedExpenseRows([chain])).toMatchObject([
+            {
+                id: 'dinner',
+                amountCents: 3000,
+                payment: 'credit',
+                shared: { groupId: 'lisbon', paidBy: 'carla', totalCents: 6000 },
+            },
+        ]);
+    });
+
     it('says who paid through a merge', () => {
         const merged = ledger([dinner('dummy', thirds)], {
             members: [...members, { id: 'dummy', mergedInto: 'bruno' }],

@@ -19,10 +19,10 @@ const liveEntries = (entries: readonly SharedEntry[]): SharedEntry[] => {
     return entries.filter((entry) => entry.deletedAt === null);
 };
 
-// Whom the balances are about, in the group's order: every member that isn't merged, those who left included, then any
-// id the entries name that the members don't
+// Whom the balances are about, in the group's order: every member that ids are read as, those who left included, then
+// any id the entries name that the members don't
 const ledgerOrder = (entries: readonly SharedEntry[], members: readonly SharedMember[]): string[] => {
-    const order = members.filter((member) => member.mergedInto === null).map((member) => member.id);
+    const order = members.map((member) => member.id).filter((id) => canonicalMember(members, id) === id);
     const known = new Set(order);
     for (const entry of entries) {
         for (const id of [entry.paidBy, ...entry.shares.map((share) => share.memberId)]) {

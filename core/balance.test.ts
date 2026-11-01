@@ -3,10 +3,9 @@ import { describe, expect, it } from 'vitest';
 
 import { memberBalances, pairwiseDebts, type Debt, type MemberBalance } from './balance';
 import { sharedEntryInputSchema, type SharedEntry } from './shared-entry';
+import { canonicalMember, type SharedMember } from './shared-member';
 import { seededRandom } from './test/random';
 import { mergeMember, randomGroup } from './test/random-group';
-
-import type { SharedMember } from './shared-member';
 
 const GROUPS = 500;
 
@@ -219,6 +218,81 @@ describe('pairwiseDebts', () => {
             { memberId: 'bruno', cents: -600 },
             { memberId: 'carla', cents: 0 },
         ]);
+    });
+});
+
+describe('on merges the server never makes', () => {
+    it('reads a chain of merges as its end, listing only that member', () => {
+        const chain = [...members, { id: 'first', mergedInto: 'second' }, { id: 'second', mergedInto: 'carla' }];
+        const entries = [
+            expense('dinner', 'ana', { ana: 1000, first: 1000 }),
+            expense('taxi', 'second', { bruno: 500 }),
+        ];
+
+        expect(memberBalances(entries, chain)).toEqual([
+            { memberId: 'ana', cents: 1000 },
+            { memberId: 'bruno', cents: -500 },
+            { memberId: 'carla', cents: -500 },
+        ]);
+        expect(pairwiseDebts(entries, chain)).toEqual([
+            { from: 'carla', to: 'ana', cents: 1000 },
+            { from: 'bruno', to: 'carla', cents: 500 },
+        ]);
+    });
+
+    it('lists a member merged into itself in its place', () => {
+        const selfMerged = [members[0]!, { id: 'self', mergedInto: 'self' }, members[1]!];
+        const entries = [expense('dinner', 'self', { bruno: 700 })];
+
+        expect(memberBalances(entries, selfMerged)).toEqual([
+            { memberId: 'ana', cents: 0 },
+            { memberId: 'self', cents: 700 },
+            { memberId: 'bruno', cents: -700 },
+        ]);
+    });
+
+    it('reads a loop of merges as one member, whose balances still add up to zero', () => {
+        const loop = [...members, { id: 'x', mergedInto: 'y' }, { id: 'y', mergedInto: 'x' }];
+        const entries = [expense('dinner', 'y', { x: 400, ana: 600 }), settlement('pay', 'ana', 'x', 600)];
+
+        expect(memberBalances(entries, loop)).toEqual([
+            { memberId: 'ana', cents: 0 },
+            { memberId: 'bruno', cents: 0 },
+            { memberId: 'carla', cents: 0 },
+            { memberId: 'x', cents: 0 },
+        ]);
+        expect(pairwiseDebts(entries, loop)).toEqual([]);
+    });
+
+    it('lists only the members ids are read as, once each, adding up to zero, whatever the merges', () => {
+        for (let seed = 1; seed <= GROUPS; seed++) {
+            const random = seededRandom(seed);
+            const group = randomGroup(random);
+            const ids = group.members.map((member) => member.id);
+            const people = group.members.map((member) => ({
+                ...member,
+                mergedInto: random.chance(0.4) ? random.pick(ids) : null,
+            }));
+
+            const balances = memberBalances(group.entries, people);
+            const debts = pairwiseDebts(group.entries, people);
+
+            const listed = balances.map((balance) => balance.memberId);
+            expect(new Set(listed).size, `seed ${seed}`).toBe(listed.length);
+            expect(
+                listed.every((id) => canonicalMember(people, id) === id),
+                `seed ${seed}`
+            ).toBe(true);
+            expect(
+                balances.reduce((sum, balance) => sum + balance.cents, 0),
+                `seed ${seed}`
+            ).toBe(0);
+            for (const { memberId, cents } of balances) expect(linesOf(debts, memberId), `seed ${seed}`).toBe(cents);
+            expect(
+                debts.every((debt) => listed.includes(debt.from) && listed.includes(debt.to)),
+                `seed ${seed}`
+            ).toBe(true);
+        }
     });
 });
 
