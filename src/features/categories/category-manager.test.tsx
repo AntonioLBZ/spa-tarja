@@ -174,11 +174,21 @@ describe('adding', () => {
         ]);
     });
 
+    it('keeps the color and the icon behind their summary', async () => {
+        await open();
+        await screen.findByText(text.custom.empty);
+
+        expect(toggle(text.look.summary).getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('radio')).toBeNull();
+    });
+
     it('offers a color and an icon, starting from the next color and the generic icon', async () => {
         await open();
         await screen.findByText(text.custom.empty);
 
-        expect(screen.getByText(text.look.summary)).toBeDefined();
+        reveal(text.look.summary);
+
+        expect(toggle(text.look.summary).getAttribute('aria-expanded')).toBe('true');
         expect(radio(en.categoryColors.vermillion).checked).toBe(true);
         expect(radio(en.categoryIcons.category).checked).toBe(true);
     });
@@ -187,6 +197,7 @@ describe('adding', () => {
         const api = await open();
         await screen.findByText(text.custom.empty);
 
+        reveal(text.look.summary);
         fireEvent.click(radio(en.categoryColors.purple));
         fireEvent.click(radio(en.categoryIcons.pets));
         add('Pets');
@@ -198,6 +209,7 @@ describe('adding', () => {
     it('goes back to the next free color for the following category', async () => {
         await open();
         await screen.findByText(text.custom.empty);
+        reveal(text.look.summary);
         fireEvent.click(radio(en.categoryColors.purple));
         add('Pets');
         await screen.findByText('Pets');
@@ -409,10 +421,12 @@ describe('editing', () => {
     it('keeps the picker behind its summary, as it was', async () => {
         await startRename();
 
-        const picker = nameField().closest('li')!.querySelector('details')!;
+        const item = nameField().closest('li')!;
 
-        expect(picker.open).toBe(false);
-        expect(within(picker).getByText(text.look.summary)).toBeDefined();
+        expect(within(item).getByRole('button', { name: text.look.summary }).getAttribute('aria-expanded')).toBe(
+            'false'
+        );
+        expect(within(item).queryByRole('radio')).toBeNull();
     });
 
     it('closes the panel once saved', async () => {
@@ -461,8 +475,13 @@ describe('editing', () => {
         return within(nameField().closest('li')!).getByRole('radio', { name }) as HTMLInputElement;
     }
 
+    function revealLook() {
+        fireEvent.click(within(nameField().closest('li')!).getByRole('button', { name: text.look.summary }));
+    }
+
     it('starts from the current color and icon', async () => {
         await startRename();
+        revealLook();
 
         expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
         expect(rowRadio(en.categoryIcons.fitness_center).checked).toBe(true);
@@ -471,6 +490,7 @@ describe('editing', () => {
     it('saves a new color and icon with the name', async () => {
         const api = await startRename();
 
+        revealLook();
         fireEvent.click(rowRadio(en.categoryColors.green));
         fireEvent.click(rowRadio(en.categoryIcons.spa));
         fireEvent.click(button(text.save));
@@ -485,9 +505,11 @@ describe('editing', () => {
     it('drops a color and icon change when cancelled', async () => {
         const api = await startRename();
 
+        revealLook();
         fireEvent.click(rowRadio(en.categoryColors.green));
         fireEvent.click(button(text.cancel));
         fireEvent.click(button(named(text.editItem, 'Gym')));
+        revealLook();
 
         expect(rowRadio(en.categoryColors.blue).checked).toBe(true);
         expect(api.categoryRequests).toEqual([]);

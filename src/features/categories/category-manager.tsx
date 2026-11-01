@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Card, CardList } from '@/components/card/card';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { ApiError, categoriesQuery } from '@/lib/api';
@@ -110,10 +111,9 @@ const CategoryManager = () => {
                         </div>
                     )}
                 </Field>
-                <details className="category-manager__look">
-                    <summary>{t('look.summary')}</summary>
+                <Disclosure summary={t('look.summary')} chevron>
                     <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
-                </details>
+                </Disclosure>
             </form>
 
             <section className="category-manager__section">

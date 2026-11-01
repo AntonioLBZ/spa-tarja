@@ -114,10 +114,9 @@ const CategoryRow = (props: CategoryRowProps) => {
                         }}
                     />
                     <DisclosurePanel>
-                        <details className="category-row__look">
-                            <summary>{t('look.summary')}</summary>
+                        <Disclosure className="category-row__look" summary={t('look.summary')} chevron>
                             <StylePicker name={`${category.id}-look`} value={look} onChange={setLook} />
-                        </details>
+                        </Disclosure>
                         <div className="category-row__actions">
                             <Button disabled={disabled || busy} type="submit">
                                 {t('save')}
