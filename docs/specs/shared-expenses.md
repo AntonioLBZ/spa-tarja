@@ -35,7 +35,7 @@ The add form is the one at home ([expenses](expenses.md)), and it is also the on
     - **The people**: a row for each member who hasn't left, with a `Checkbox` and the name, and at the end the share: in Equally the amount, in plain text; in Percent a percentage field; in Amounts an amount field. A member who is out shows nothing at the end. Under the rows, a line that says what is missing: "€4.00 unassigned", "€1.50 over", "2.5 % left", or nothing when it adds up.
 - **Add** (or **Save** when editing) is off until the amount is valid, at least one member is in and the shares add up. A group of one other person is the usual case and takes the same fields.
 - The description and the amount stay where they are; switching For keeps them, and keeps what was typed in the other tail while the form is open. Adding an expense puts For back to its start.
-- Edit, Duplicate and Delete from the list, or from the ledger of a group, work as for any expense ([expenses](expenses.md)): the form opens at home, or in the group when it is there, with For on Shared and With fixed to that group; the heading reads "Edit the expense" or "Duplicate the expense". Edit is off for an entry waiting for a connection that never reached the device (it can't be: the entry is local the moment it is saved).
+- Edit, Duplicate and Delete from the list, or from the ledger of a group, work as for any expense ([expenses](expenses.md)): the form opens at home, or in the group when it is there, with For on Shared and With fixed to that group; the heading reads "Edit the expense" or "Duplicate the expense".
 - A budget warning can come when an expense is added or duplicated, for your part ([budgets](budgets.md)).
 
 ### The ledger
