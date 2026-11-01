@@ -48,7 +48,7 @@ A Splitwise-like function on the branch `feat/shared-expenses` ([ADR-0012](docs/
 
 ### 19. Bottom navigation
 
-[Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, one navigation in the page at a time by a media query hook (the tests get the wide one), `Groups` in the header from 40 rem (the link leads to a placeholder screen until 24), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first.
+[Bottom navigation](docs/specs/bottom-navigation.md) and the header on phones: `BottomNav` and its story, one navigation in the page at a time by a media query hook (the tests get the wide one), `Groups` in the header from 40 rem (the link leads to a placeholder screen until 24), the route depths and sections, the toast above the bar, the bar hidden while a field has the focus. Independent of the rest, so it can be reviewed on a phone first. Task plan: `docs/superpowers/plans/2026-11-01-bottom-navigation.md`, deleted with this item.
 
 ### 20. Nickname
 
