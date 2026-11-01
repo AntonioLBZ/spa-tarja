@@ -41,8 +41,8 @@
 
 /* The box would clip the ring of the plot, so the ring goes around the box */
 .spending-chart__scroller:has(.spending-chart__plot:focus-visible) {
-    outline: 0.125rem solid var(--color-border-focus);
-    outline-offset: 0.125rem;
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
 }
 
 /* A column is never narrower than a pixel */

@@ -88,6 +88,6 @@ body {
 }
 
 :focus-visible {
-    outline: 0.125rem solid var(--color-border-focus);
-    outline-offset: 0.125rem;
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
 }

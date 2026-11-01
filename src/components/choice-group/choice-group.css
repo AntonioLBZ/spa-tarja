@@ -51,11 +51,11 @@
     color: var(--color-content-on-accent);
 }
 
-/* Inside the cell, since the group clips what is outside it, and in the text color on the one that is filled with the
-   same accent */
+/* Inside the cell, since the group clips what is outside it, and clear of the cut under it so the ring never covers
+   it; in the text color on the one that is filled with the same accent */
 .choice-group__input:focus-visible + .choice-group__text {
-    outline: 0.125rem solid var(--color-border-focus);
-    outline-offset: -0.125rem;
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-inset);
 }
 
 .choice-group__input:checked:focus-visible + .choice-group__text {

@@ -38,6 +38,12 @@
     --ease-enter: cubic-bezier(0, 0, 0, 1);
     --ease-exit: cubic-bezier(0.3, 0, 1, 1);
 
+    /* The focus ring: how thick it is, how far it stands from the box and, where a parent clips it, how far inside the
+       box it is drawn: past the 4 px edge of the notch and the ring's own width */
+    --focus-width: 0.125rem;
+    --focus-offset: 0.125rem;
+    --focus-inset: calc(-1 * (var(--size-1) + var(--focus-width)));
+
     /* Flat colors, one set of semantic tokens resolved per theme */
     --color-bg-primary: light-dark(#fff, #000);
     --color-bg-secondary: light-dark(#f4f4f4, #141414);
