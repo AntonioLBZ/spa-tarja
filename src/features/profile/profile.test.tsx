@@ -120,7 +120,7 @@ describe('saving the nickname', () => {
     it('refuses a nickname with nothing visible in it, without sending it', async () => {
         const { api } = await open();
 
-        save('​⁠');
+        save('\u200B\u2060');
 
         expect((await screen.findByRole('alert')).textContent).toBe(text.invalid);
         expect(field().getAttribute('aria-invalid')).toBe('true');
@@ -129,7 +129,7 @@ describe('saving the nickname', () => {
 
     it('stops complaining about an invisible nickname once something is typed again', async () => {
         await open();
-        save('​');
+        save('\u200B');
         await screen.findByRole('alert');
 
         fireEvent.change(field(), { target: { value: 'Ana' } });

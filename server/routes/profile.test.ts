@@ -117,7 +117,7 @@ describe('PUT /api/profile', () => {
     it.each([
         ['an empty nickname', { nickname: '' }],
         ['a nickname of only spaces', { nickname: '   ' }],
-        ['a nickname with nothing visible in it', { nickname: '​⁠' }],
+        ['a nickname with nothing visible in it', { nickname: '\u200B\u2060' }],
         ['a nickname that is too long', { nickname: 'x'.repeat(NICKNAME_MAX_LENGTH + 1) }],
         ['a nickname that is not a string', { nickname: 7 }],
         ['no nickname at all', {}],

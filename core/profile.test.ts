@@ -36,21 +36,23 @@ describe('profileInputSchema', () => {
     });
 
     it.each([
-        ['zero-width spaces', '​​'],
-        ['a word joiner', '⁠'],
-        ['a byte order mark', '﻿'],
-        ['zero-width joiners and non-joiners', '‌‍'],
-        ['direction marks', '‎‏'],
-        ['a soft hyphen', '­'],
-        ['a Hangul filler', 'ㅤ'],
-        ['a variation selector', '️'],
-        ['invisible characters around a space', '​ ⁠'],
+        ['zero-width spaces', '\u200B\u200B'],
+        ['a word joiner', '\u2060'],
+        ['a byte order mark', '\uFEFF'],
+        ['zero-width joiners and non-joiners', '\u200C\u200D'],
+        ['direction marks', '\u200E\u200F'],
+        ['a soft hyphen', '\u00AD'],
+        ['a Hangul filler', '\u3164'],
+        ['a variation selector', '\uFE0F'],
+        ['invisible characters around a space', '\u200B \u2060'],
     ])('rejects a nickname with nothing visible in it: %s', (_, nickname) => {
         expect(v.safeParse(profileInputSchema, { nickname }).success).toBe(false);
     });
 
     it('keeps a nickname whose invisible characters sit among visible ones', () => {
-        expect(v.parse(profileInputSchema, { nickname: '👩‍💻 Ana' })).toEqual({ nickname: '👩‍💻 Ana' });
-        expect(v.parse(profileInputSchema, { nickname: 'An­a' })).toEqual({ nickname: 'An­a' });
+        expect(v.parse(profileInputSchema, { nickname: '\u{1F469}\u200D\u{1F4BB} Ana' })).toEqual({
+            nickname: '\u{1F469}\u200D\u{1F4BB} Ana',
+        });
+        expect(v.parse(profileInputSchema, { nickname: 'An\u00ADa' })).toEqual({ nickname: 'An\u00ADa' });
     });
 });
