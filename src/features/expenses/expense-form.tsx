@@ -36,8 +36,8 @@ interface ExpenseFormProps {
     copying?: readonly Expense[] | null;
     // After an edit or a copy is saved or cancelled
     onDone?: () => void;
-    // Called once a new expense is saved, not an edit
-    onAdded?: () => void;
+    // Called once a new expense is saved, not an edit, with the day it was made
+    onAdded?: (day: string) => void;
 }
 
 // What the person typed in the parts, valid only for the total and the count it was typed for
@@ -227,7 +227,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 return;
             }
             warn(expenses);
-            onAdded?.();
+            onAdded?.(date);
             if (copying) {
                 onDone?.();
                 return;

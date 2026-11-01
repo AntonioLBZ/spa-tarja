@@ -5,11 +5,13 @@ import {
     NO_FILTERS,
     activeFilterCount,
     buildList,
+    filtersAfterAdding,
     groupItems,
     hasFilters,
     isListGrouping,
     limitRows,
     listItems,
+    openingFilters,
     type ListContext,
     type ListFilters,
     type ListGrouping,
@@ -591,6 +593,81 @@ describe('activeFilterCount and hasFilters', () => {
         expect(hasFilters(filters({ query: 'lunch' }))).toBe(true);
         expect(hasFilters(filters({ query: '  ..  ' }))).toBe(false);
         expect(hasFilters(filters({ paidWith: 'voucher' }))).toBe(true);
+    });
+});
+
+describe('openingFilters', () => {
+    it('start on the first of the month, with no end and nothing else on', () => {
+        expect(openingFilters('2026-10-24')).toEqual({ ...NO_FILTERS, from: '2026-10-01' });
+        expect(openingFilters('2026-11-01')).toEqual({ ...NO_FILTERS, from: '2026-11-01' });
+    });
+
+    it('are not a filter in use for the count nor for hasFilters', () => {
+        const opening = openingFilters('2026-10-24');
+
+        expect(activeFilterCount(opening, opening)).toBe(0);
+        expect(hasFilters(opening, opening)).toBe(false);
+    });
+
+    it('count again as soon as the dates are not those', () => {
+        const opening = openingFilters('2026-10-24');
+
+        expect(activeFilterCount({ ...opening, from: '2026-09-01' }, opening)).toBe(1);
+        expect(activeFilterCount({ ...opening, to: '2026-10-31' }, opening)).toBe(1);
+        expect(activeFilterCount({ ...opening, from: '', to: '2026-10-31' }, opening)).toBe(1);
+        expect(hasFilters({ ...opening, from: '2026-09-01' }, opening)).toBe(true);
+    });
+
+    it('leave the dates out of the count when both are empty, as nothing narrows the list', () => {
+        const opening = openingFilters('2026-10-24');
+
+        expect(activeFilterCount(NO_FILTERS, opening)).toBe(0);
+        expect(hasFilters(NO_FILTERS, opening)).toBe(false);
+    });
+
+    it('still count the other filters and the search', () => {
+        const opening = openingFilters('2026-10-24');
+
+        expect(activeFilterCount({ ...opening, categoryId: 'food', paidWith: 'credit' }, opening)).toBe(2);
+        expect(hasFilters({ ...opening, query: 'lunch' }, opening)).toBe(true);
+    });
+});
+
+describe('filtersAfterAdding', () => {
+    it.each(['2026-10-01', '2026-10-12', '2026-10-24', '2026-10-30'])(
+        'go back to the opening range for %s, a day of the current month',
+        (day) => {
+            expect(filtersAfterAdding(day, '2026-10-24')).toEqual(openingFilters('2026-10-24'));
+        }
+    );
+
+    it('take the whole month of a day in an earlier month', () => {
+        expect(filtersAfterAdding('2026-09-30', '2026-10-24')).toEqual({
+            ...NO_FILTERS,
+            from: '2026-09-01',
+            to: '2026-09-30',
+        });
+        expect(filtersAfterAdding('2025-02-10', '2026-10-24')).toEqual({
+            ...NO_FILTERS,
+            from: '2025-02-01',
+            to: '2025-02-28',
+        });
+    });
+
+    it('take the whole month of a day in a later month', () => {
+        expect(filtersAfterAdding('2026-12-05', '2026-10-24')).toEqual({
+            ...NO_FILTERS,
+            from: '2026-12-01',
+            to: '2026-12-31',
+        });
+    });
+
+    it('leave the search, the category and how it was paid cleared', () => {
+        const after = filtersAfterAdding('2026-09-30', '2026-10-24');
+
+        expect(after.query).toBe('');
+        expect(after.categoryId).toBe('');
+        expect(after.paidWith).toBe('any');
     });
 });
 

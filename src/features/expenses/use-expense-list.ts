@@ -3,7 +3,18 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { readDuration } from '@/lib/motion';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { NO_FILTERS, groupItems, hasFilters, limitRows, listItems, shownExpense } from '@core/expense-list';
+import { toDateString } from '@core/date';
+import {
+    NO_FILTERS,
+    activeFilterCount,
+    filtersAfterAdding,
+    groupItems,
+    hasFilters,
+    limitRows,
+    listItems,
+    openingFilters,
+    shownExpense,
+} from '@core/expense-list';
 
 import { useAddForm } from './add-form-state';
 import { readStoredGrouping, storeGrouping } from './list-grouping';
@@ -22,7 +33,9 @@ const useExpenseList = () => {
     const { options, labelOf } = useCategoryOptions();
     const { added } = useAddForm();
 
-    const [filters, setFilters] = useState<ListFilters>(NO_FILTERS);
+    // What the list opened on, which does not count as a filter in use
+    const [opening] = useState(() => openingFilters(toDateString(new Date())));
+    const [filters, setFilters] = useState<ListFilters>(opening);
     const [grouping, setGrouping] = useState<ListGrouping>(readStoredGrouping);
     const [limit, setLimit] = useState(PAGE_SIZE);
 
@@ -61,11 +74,16 @@ const useExpenseList = () => {
     const spansYears =
         grouping !== 'category' && groups.length > 0 && groups[0]!.key.slice(0, 4) !== groups.at(-1)!.key.slice(0, 4);
 
-    // A filter must never hide a new expense: adding one, or running out of expenses, drops them all
+    // A filter must never hide a new expense: running out of expenses drops them all, and adding one drops all but the
+    // dates, which take the month of the new expense when it falls outside the ones the list opens on
     const [seenAdded, setSeenAdded] = useState(added);
-    if (added !== seenAdded || (hasData && items.length === 0 && filters !== NO_FILTERS)) {
-        setSeenAdded(added);
+    if (hasData && items.length === 0 && filters !== NO_FILTERS) {
         setFilters(NO_FILTERS);
+        setLimit(PAGE_SIZE);
+    }
+    if (added !== seenAdded) {
+        setSeenAdded(added);
+        if (added) setFilters(filtersAfterAdding(added.day, toDateString(new Date())));
         setLimit(PAGE_SIZE);
     }
 
@@ -117,7 +135,8 @@ const useExpenseList = () => {
         total: items.length,
         spansYears,
         filters,
-        filtering: hasFilters(applied),
+        filtering: hasFilters(applied, opening),
+        filterCount: activeFilterCount(filters, opening),
         grouping,
         leaving,
         pendingIds,

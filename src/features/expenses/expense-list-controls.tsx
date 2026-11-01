@@ -10,7 +10,7 @@ import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { LIST_GROUPINGS, PAID_WITH, activeFilterCount } from '@core/expense-list';
+import { LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
 
 import type { ListFilters, ListGrouping } from '@core/expense-list';
 
@@ -24,6 +24,8 @@ interface ExpenseListControlsProps {
     total: number;
     // Whether the search or any filter narrows the list
     filtering: boolean;
+    // How many of the filters of the panel are in use
+    filterCount: number;
     onFiltersChange: (patch: Partial<ListFilters>) => void;
     onGroupingChange: (grouping: ListGrouping) => void;
     onClear: () => void;
@@ -32,7 +34,8 @@ interface ExpenseListControlsProps {
 // The search field and, under a toggle, the grouping and the filters of the expense list; while anything narrows the
 // list, a line that says how much of it is left
 const ExpenseListControls = (props: ExpenseListControlsProps) => {
-    const { filters, grouping, shown, total, filtering, onFiltersChange, onGroupingChange, onClear } = props;
+    const { filters, grouping, shown, total, filtering, filterCount, onFiltersChange, onGroupingChange, onClear } =
+        props;
     const t = useTranslations('expenses.filters');
     const tList = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
@@ -62,7 +65,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 )}
             </Field>
 
-            <Disclosure summary={t('toggle', { count: activeFilterCount(filters) })} chevron>
+            <Disclosure summary={t('toggle', { count: filterCount })} chevron>
                 <ChoiceGroup
                     legend={t('groupBy')}
                     name="list-grouping"

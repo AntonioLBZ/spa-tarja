@@ -1,6 +1,8 @@
 import { bucketStart } from './charts';
 import { countedCents, paymentOf } from './counting';
+import { endOfMonth } from './date';
 import { collapsePlans, planTotal, type ListItem } from './installments';
+import { monthOf } from './month';
 import { normalizeText, searchWords } from './text';
 
 import type { Expense, Payment } from './expense';
@@ -30,6 +32,18 @@ interface ListFilters {
 }
 
 const NO_FILTERS: ListFilters = { query: '', categoryId: '', from: '', to: '', paidWith: 'any' };
+
+// What the list opens on: this month, and anything dated later
+const openingFilters = (today: string): ListFilters => {
+    return { ...NO_FILTERS, from: `${monthOf(today)}-01` };
+};
+
+// What the list holds once an expense of the given day is added: the opening range, or the whole month of that day
+// when it is in another month, so the new expense is in the list
+const filtersAfterAdding = (day: string, today: string): ListFilters => {
+    if (monthOf(day) === monthOf(today)) return openingFilters(today);
+    return { ...NO_FILTERS, from: `${monthOf(day)}-01`, to: endOfMonth(day) };
+};
 
 interface ListContext {
     // The category an expense files under: its own, or the fallback when that category no longer exists
@@ -161,16 +175,17 @@ const limitRows = (groups: readonly ListGroup[], max: number): ListGroup[] => {
     return limited;
 };
 
-// How many of the filters of the panel are in use: the category, the dates and how it was paid, one each
-const activeFilterCount = (filters: ListFilters): number => {
-    return [filters.categoryId !== '', filters.from !== '' || filters.to !== '', filters.paidWith !== 'any'].filter(
-        Boolean
-    ).length;
+// How many of the filters of the panel are in use: the category, the dates and how it was paid, one each. The dates are
+// left out when they are the range the list opened with, or when both are empty.
+const activeFilterCount = (filters: ListFilters, opening: ListFilters = NO_FILTERS): number => {
+    const { from, to } = filters;
+    const datesInUse = (from !== '' || to !== '') && (from !== opening.from || to !== opening.to);
+    return [filters.categoryId !== '', datesInUse, filters.paidWith !== 'any'].filter(Boolean).length;
 };
 
 // Whether the search or any filter narrows the list
-const hasFilters = (filters: ListFilters): boolean => {
-    return searchWords(filters.query).length > 0 || activeFilterCount(filters) > 0;
+const hasFilters = (filters: ListFilters, opening: ListFilters = NO_FILTERS): boolean => {
+    return searchWords(filters.query).length > 0 || activeFilterCount(filters, opening) > 0;
 };
 
 export {
@@ -180,11 +195,13 @@ export {
     PAID_WITH,
     activeFilterCount,
     buildList,
+    filtersAfterAdding,
     groupItems,
     hasFilters,
     isListGrouping,
     limitRows,
     listItems,
+    openingFilters,
     shownExpense,
     type ListContext,
     type ListFilters,

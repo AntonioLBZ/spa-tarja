@@ -1,6 +1,6 @@
 import { QueryClient, dehydrate, onlineManager } from '@tanstack/react-query';
 import { screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { EXPENSES_KEY } from '@/lib/api';
@@ -43,9 +43,15 @@ async function leaveCopy(storage: ReturnType<typeof createMemoryStorage>, user: 
     });
 }
 
+beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 25, 12));
+});
+
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
+    vi.useRealTimers();
     vi.unstubAllGlobals();
 });
 

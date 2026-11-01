@@ -27,9 +27,10 @@ interface AddFormState {
     // The expense whose row should take the focus, until the list has given it
     refocus: string | null;
     clearRefocus: () => void;
-    // How many expenses the form has added; the list watches it to drop the filters that would hide the new one
-    added: number;
-    noteAdded: () => void;
+    // The last expense the form has added, a new object each time; the list watches it to drop the filters that would
+    // hide the new one
+    added: { day: string } | null;
+    noteAdded: (day: string) => void;
     // The header's Expenses: the form collapsed, adding
     collapse: () => void;
     // The logo: the form open, adding
@@ -52,7 +53,7 @@ const AddFormProvider = (props: AddFormProviderProps) => {
     const [copying, setCopying] = useState<Copy | null>(null);
     const copies = useRef(0);
     const [refocus, setRefocus] = useState<string | null>(null);
-    const [added, setAdded] = useState(0);
+    const [added, setAdded] = useState<{ day: string } | null>(null);
 
     const value = useMemo(() => {
         const endEdit = (options: { refocus?: boolean } = {}) => {
@@ -85,7 +86,7 @@ const AddFormProvider = (props: AddFormProviderProps) => {
             refocus,
             clearRefocus: () => setRefocus(null),
             added,
-            noteAdded: () => setAdded((count) => count + 1),
+            noteAdded: (day: string) => setAdded({ day }),
             collapse: () => {
                 endEdit();
                 endCopy();

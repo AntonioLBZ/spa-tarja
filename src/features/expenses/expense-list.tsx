@@ -144,6 +144,7 @@ const ExpenseList = () => {
                     shown={list.shown}
                     total={list.total}
                     filtering={list.filtering}
+                    filterCount={list.filterCount}
                     onFiltersChange={list.changeFilters}
                     onGroupingChange={list.changeGrouping}
                     onClear={list.clearFilters}

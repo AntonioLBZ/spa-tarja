@@ -2407,8 +2407,8 @@ describe('duplicating an expense', () => {
                 text: 'Sofa',
                 categoryId: 'housing',
                 amountCents,
-                date: '2026-09-01',
-                chargeDate: addMonths('2026-09-01', index),
+                date: '2026-10-01',
+                chargeDate: addMonths('2026-10-01', index),
                 plan: { id: plan, part: index + 1, parts: amounts.length },
             })
         );
@@ -2856,6 +2856,19 @@ describe('searching, filtering and grouping the list', () => {
         return { api, app };
     }
 
+    // With every date, as the list was before it opened on this month
+    async function openAll(expenses: Expense[], first = expenses[0]!.text) {
+        const api = createFakeApi({ expenses });
+        stubApi(api.handler);
+        const app = renderApp();
+        await screen.findByRole('searchbox', { name: f.search });
+        fireEvent.click(filtersToggle());
+        fireEvent.change(screen.getByLabelText(f.from), { target: { value: '' } });
+        fireEvent.click(filtersToggle());
+        await screen.findByText(first);
+        return { api, app };
+    }
+
     const searchBox = () => screen.getByRole('searchbox', { name: f.search }) as HTMLInputElement;
     const search = (value: string) => fireEvent.change(searchBox(), { target: { value } });
     const filtersToggle = (count?: number) =>
@@ -2909,10 +2922,10 @@ describe('searching, filtering and grouping the list', () => {
             await open(list);
 
             expect(searchBox().type).toBe('search');
-            expect(filtersToggle().getAttribute('aria-expanded')).toBe('false');
+            expect(filtersToggle(0).getAttribute('aria-expanded')).toBe('false');
             expect(screen.queryByRole('radio')).toBeNull();
             expect(screen.queryByLabelText(f.from)).toBeNull();
-            expect(showing(4, 4)).toBeNull();
+            expect(showing(3, 4)).toBeNull();
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
         });
 
@@ -2931,7 +2944,7 @@ describe('searching, filtering and grouping the list', () => {
                     .map((one) => one.getAttribute('value'))
             ).toEqual(['day', 'week', 'month', 'category', 'any', 'direct', 'credit', 'voucher', 'plan']);
             expect(within(panel).getByRole('combobox', { name: f.category }).textContent).toBe(f.allCategories);
-            expect((within(panel).getByLabelText(f.from) as HTMLInputElement).value).toBe('');
+            expect((within(panel).getByLabelText(f.from) as HTMLInputElement).value).toBe('2026-10-01');
             expect((within(panel).getByLabelText(f.to) as HTMLInputElement).value).toBe('');
             expect(within(panel).getByRole('group', { name: f.paidWith })).toBeDefined();
             expect(radio(f.group.day).checked).toBe(true);
@@ -3040,7 +3053,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('does not narrow the list for a blank search', async () => {
-            await open(list);
+            await openAll(list);
 
             search('   ');
 
@@ -3163,7 +3176,7 @@ describe('searching, filtering and grouping the list', () => {
             openFilters();
 
             pickOption(f.category, en.categories.groceries);
-            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
+            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-10' } });
             expect(filtersToggle(2)).toBeDefined();
             expect(rowNames()).toEqual(['Weekly shop']);
 
@@ -3202,13 +3215,152 @@ describe('searching, filtering and grouping the list', () => {
 
             await screen.findByText('Cinema');
             expect(searchBox().value).toBe('');
+            expect(rowNames()).toHaveLength(3);
+        });
+    });
+
+    describe('the dates', () => {
+        const dates = () => {
+            openFilters();
+            return [
+                (screen.getByLabelText(f.from) as HTMLInputElement).value,
+                (screen.getByLabelText(f.to) as HTMLInputElement).value,
+            ];
+        };
+
+        const changeDate = (label: string, value: string) => {
+            openFilters();
+            fireEvent.change(screen.getByLabelText(label), { target: { value } });
+        };
+
+        const addOn = async (text: string, day?: string) => {
+            if (day) fireEvent.change(field(en.expenses.form.date), { target: { value: day } });
+            fillAndSubmit({ amount: '3', text });
+            await screen.findByText(text);
+        };
+
+        it('open on the first of this month with no end, which is not a filter in use', async () => {
+            await open(list);
+
+            expect(rowNames()).toEqual(['Weekly shop', 'Café con leche', 'Cinema']);
+            expect(showing(3, 4)).toBeNull();
+            expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
+            expect(filtersToggle(0)).toBeDefined();
+            expect(dates()).toEqual(['2026-10-01', '']);
+        });
+
+        it('keep an expense of a later day of this month, as there is no end', async () => {
+            await open([...list, expense({ text: 'Concert', date: '2026-10-30' })]);
+
+            expect(rowNames()).toContain('Concert');
+        });
+
+        it('count as a filter in use once they are not those the list opened on', async () => {
+            await open(list);
+
+            changeDate(f.from, '2026-09-01');
+
             expect(rowNames()).toHaveLength(4);
+            expect(filtersToggle(1)).toBeDefined();
+            expect(showing(4, 4)).not.toBeNull();
+
+            changeDate(f.from, '2026-10-01');
+
+            expect(filtersToggle(0)).toBeDefined();
+            expect(showing(3, 4)).toBeNull();
+        });
+
+        it('count as one filter for an end alone, whichever it is', async () => {
+            await open(list);
+
+            changeDate(f.to, '2026-10-20');
+
+            expect(rowNames()).toEqual(['Cinema']);
+            expect(filtersToggle(1)).toBeDefined();
+        });
+
+        it('are not a filter in use when both are empty, as nothing narrows the list', async () => {
+            await open(list);
+
+            changeDate(f.from, '');
+
+            expect(rowNames()).toHaveLength(4);
+            expect(filtersToggle(0)).toBeDefined();
+            expect(showing(4, 4)).toBeNull();
+            expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
+        });
+
+        it('are emptied by Clear, which shows every expense', async () => {
+            await open(list);
+            changeDate(f.from, '2026-10-20');
+            expect(rowNames()).toHaveLength(2);
+
+            clear();
+
+            expect(rowNames()).toHaveLength(4);
+            expect(filtersToggle(0)).toBeDefined();
+            expect(dates()).toEqual(['', '']);
+            expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
+        });
+
+        it('go back to the first of this month when an expense of this month is added', async () => {
+            await open(list);
+            changeDate(f.from, '2026-10-20');
+
+            await addOn('Tea', '2026-10-12');
+
+            expect(dates()).toEqual(['2026-10-01', '']);
+            expect(rowNames()).toContain('Tea');
+            expect(filtersToggle(0)).toBeDefined();
+        });
+
+        it('go back to it too for an expense added to a later day of this month', async () => {
+            await open(list);
+            changeDate(f.from, '2026-10-20');
+
+            await addOn('Tea', '2026-10-30');
+
+            expect(dates()).toEqual(['2026-10-01', '']);
+            expect(rowNames()).toContain('Tea');
+        });
+
+        it('move to the whole month of an expense added to an earlier one', async () => {
+            await open(list);
+
+            await addOn('Tea', '2026-08-15');
+
+            expect(dates()).toEqual(['2026-08-01', '2026-08-31']);
+            expect(rowNames()).toEqual(['Tea']);
+            expect(filtersToggle(1)).toBeDefined();
+        });
+
+        it('move to the whole month of an expense added to a later one', async () => {
+            await open(list);
+
+            await addOn('Tea', '2026-12-05');
+
+            expect(dates()).toEqual(['2026-12-01', '2026-12-31']);
+            expect(rowNames()).toEqual(['Tea']);
+        });
+
+        it('are as they were on opening once the screen is left and come back to', async () => {
+            await open(list);
+            changeDate(f.from, '');
+            expect(rowNames()).toHaveLength(4);
+
+            fireEvent.click(screen.getByRole('link', { name: en.nav.summary }));
+            await screen.findByRole('heading', { name: en.summary.title });
+            fireEvent.click(screen.getByRole('link', { name: en.nav.expenses }));
+
+            await screen.findByText('Cinema');
+            expect(rowNames()).toEqual(['Weekly shop', 'Café con leche', 'Cinema']);
+            expect(dates()).toEqual(['2026-10-01', '']);
         });
     });
 
     describe('the groups', () => {
         it('are days to start with, newest first, each with what its rows add up to', async () => {
-            await open(list);
+            await openAll(list);
 
             expect(groupHeadings()).toEqual([longDay('2026-10-24'), longDay('2026-10-19'), longDay('2026-09-30')]);
             expect(subtotalOf(longDay('2026-10-24'))).toBe('€48.00');
@@ -3256,7 +3408,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('are weeks from Monday, called after that Monday', async () => {
-            await open(list);
+            await openAll(list);
 
             pickGrouping(f.group.week);
 
@@ -3269,7 +3421,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('are months, called by their name', async () => {
-            await open(list);
+            await openAll(list);
 
             pickGrouping(f.group.month);
 
@@ -3278,7 +3430,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('add the year to the label when they go over a New Year', async () => {
-            await open([
+            await openAll([
                 expense({ text: 'January', date: '2026-01-02' }),
                 expense({ text: 'December', date: '2025-12-30' }),
             ]);
@@ -3294,7 +3446,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('are categories, the biggest subtotal first, each with its icon and name', async () => {
-            await open(list);
+            await openAll(list);
 
             pickGrouping(f.group.category);
 
@@ -3362,7 +3514,7 @@ describe('searching, filtering and grouping the list', () => {
             renderApp();
             await screen.findByText('Cinema');
 
-            expect(groupHeadings()).toEqual(['October', 'September']);
+            expect(groupHeadings()).toEqual(['October']);
             fireEvent.click(filtersToggle());
             expect(radio(f.group.month).checked).toBe(true);
         });
@@ -3370,7 +3522,7 @@ describe('searching, filtering and grouping the list', () => {
         it('falls back to days for something nobody saved', async () => {
             localStorage.setItem('tarja:list-grouping', 'year');
 
-            await open(list);
+            await openAll(list);
 
             expect(groupHeadings()).toHaveLength(3);
             expect(groupHeadings()[0]).toBe(longDay('2026-10-24'));
@@ -3391,7 +3543,7 @@ describe('searching, filtering and grouping the list', () => {
                 if (key === 'tarja:list-grouping') throw new Error('blocked');
                 setItem.call(this, key, value);
             });
-            await open(list);
+            await openAll(list);
 
             pickGrouping(f.group.month);
 
