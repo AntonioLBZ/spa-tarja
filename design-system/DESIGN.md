@@ -133,7 +133,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 - Stack: `'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace`.
 - Form controls inherit the page font and its 16 px size.
 - **Type scale**: a standard modular scale, minor third (×1.2) from a 1 rem base. `--font-size-s` is 0.833 rem (secondary text), `--font-size-m` 1 rem (body and form controls), `--font-size-l` 1.2 rem (page titles) and `--font-size-xl` 1.44 rem (the sign-in title). The logo is sized apart (`--font-size-logo`). Form controls never go below `--font-size-m`, so iOS doesn't zoom. Hierarchy also uses weight (700) and case, never a size outside the scale.
-- **The logo**: the name _Tarja_ is set in the regular weight of Dot Matrix (Svein Kåre Gunnarson, Dionaea Fonts), whose readme says "the fonts are freeware". The bold came first; the owner asked to try the regular one, so the weight is pending a look on a real device (thin at `--font-size-l` in the header, better large, `--font-size-logo`, 3 rem, on the sign-in screen). Only the letters of the name ship, as a woff2 subset of about 1.5 KB; the original TTFs aren't in the repo, and `src/assets/fonts/NOTICE.md` credits the author and records how the subset was made. It is for the name only, never for text: a dot matrix face doesn't read small. Its terms say nothing about redistribution, so the subset stays limited to those letters. The `Brand` component sets it.
+- **The logo**: the name _Tarja_ is set in the regular weight of Dot Matrix (Svein Kåre Gunnarson, Dionaea Fonts), whose readme says "the fonts are freeware". The bold came first; the owner asked to try the regular one, so the weight was seen on Android, where it reads well, and is still to see on iOS (thin at `--font-size-l` in the header, better large, `--font-size-logo`, 3 rem, on the sign-in screen). Only the letters of the name ship, as a woff2 subset of about 1.5 KB; the original TTFs aren't in the repo, and `src/assets/fonts/NOTICE.md` credits the author and records how the subset was made. It is for the name only, never for text: a dot matrix face doesn't read small. Its terms say nothing about redistribution, so the subset stays limited to those letters. The `Brand` component sets it.
 
 ### Icons
 
@@ -185,4 +185,5 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 
 Add here what comes up, and ask the owner before settling it.
 
-Nothing is open for now.
+- **Category colors.** The owner is thinking of dropping them, so that a category takes the accent instead of a color of its own. Not decided: the palette in §2 stays as it is. The colors as a whole wait for a review with the owner, among them the amber accent next to the orange and yellow category icons.
+- **The Dot Matrix logo.** It reads well on Android, but the owner is not sure the face fits the identity: it recalls the Nothing phone brand.

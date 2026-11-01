@@ -4,9 +4,8 @@ Items build on each other in the order they appear below. Delete an item when it
 
 ## Needs the owner
 
-- Check the layout on a real iOS Safari and Android Chrome (safe areas, keyboard, install, the Undo toast and that the JSON and the CSV files download from the installed app), and the visual identity there: the Dot Matrix logo in the header, the amber accent (one of those the user can pick) next to the orange and yellow category icons, and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches).
-- Decide whether the app gets locales beyond `en` and `es`; the owner's `spa-anicalendar` also ships `fr` and `de`.
-- Decide the domain. `tarja.dev` is available (checked on 2026-10-25) but costs money, which clashes with [free tiers only](docs/adr/0003-spa-on-one-worker-on-free-tiers.md); `tarja.app` and `tarja.com` are taken. `workers.dev` is in use, and a custom domain would mean updating the Google redirect URIs ([ADR-0008](docs/adr/0008-google-login-with-better-auth.md)).
+- Check the layout on a real iOS Safari: safe areas, keyboard, install, the Undo toast, that the JSON and the CSV files download from the installed app, the Dot Matrix logo in the header and the slide between screens (a browser without view transitions, like iOS Safari before 18, just switches). Android Chrome, the installed app and the web, was seen by the owner and is right. The colors wait for a review with the owner, and so do the Dot Matrix logo and whether categories keep a color of their own ([DESIGN.md §8](design-system/DESIGN.md#8-open-questions)).
+- Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
 
@@ -16,10 +15,10 @@ Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con dif
 
 The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What writing them showed, all of it left as it is until the owner says:
 
-- `StylePicker` still draws each swatch as a box of its own, while `ChoiceGroup` is now one joined box.
-- The four `__actions` rows: two of them use `--size-2` between wrapped rows, and `DESIGN.md` says `--size-4`.
-- The two raw `<details>` that are not a `Disclosure`.
-- The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch.
+- `StylePicker` still draws each swatch as a box of its own, while `ChoiceGroup` is now one joined box. The owner leans to making it match `ChoiceGroup`.
+- The update bar (`UpdatePrompt`, in `features/pwa`) is a full-width bar with no notch. The owner doesn't mind it as it is, but wants to see other options first.
+
+Besides that, go over the whole `/categories` screen with the owner: the form that adds a category, the rows that open, the edit panel with its "Color and icon" disclosure, and the built-in list.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
 
