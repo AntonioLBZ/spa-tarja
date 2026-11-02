@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { readGroup } from '@server/db/groups';
-import { makeGroup } from '@server/test/groups';
+import { makeGroup, memberNamed } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
 import type { SharedGroup } from '@core/shared-group';
@@ -61,5 +61,54 @@ describe('readGroup', () => {
         for (let made = 0; made < 20; made++) await makeGroup(ana, ['Bruno', 'Carla']);
 
         expect(await rowsToRead(group)).toBeLessThan(alone * 2);
+    });
+});
+
+describe('the tables of groups', () => {
+    async function refused(query: string, ...values: unknown[]) {
+        await expect(
+            env.DB.prepare(query)
+                .bind(...values)
+                .run()
+        ).rejects.toThrow(/constraint failed/i);
+    }
+
+    it('hold only the kinds of group and the roles there are', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+
+        await refused(`UPDATE shared_groups SET kind = 'club' WHERE id = ?1`, group.id);
+        await refused(`UPDATE shared_members SET role = 'admin' WHERE id = ?1`, memberNamed(group, 'Bruno'));
+    });
+
+    it('hold one owner per group', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+
+        await refused(`UPDATE shared_members SET role = 'owner' WHERE id = ?1`, memberNamed(group, 'Bruno'));
+    });
+
+    it('hold no user in a member that was never claimed', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
+
+        await refused(
+            `UPDATE shared_members SET user_id = ?2 WHERE id = ?1`,
+            memberNamed(group, 'Bruno'),
+            bruno.userId
+        );
+    });
+
+    it.each([
+        ['shared_groups', 'created_by'],
+        ['shared_members', 'created_by'],
+        ['shared_entries', 'created_by'],
+        ['shared_entries', 'updated_by'],
+    ])('find the rows of a user in %s.%s through an index, as deleting the account does', async (table, column) => {
+        const { results } = await env.DB.prepare(`EXPLAIN QUERY PLAN SELECT 1 FROM ${table} WHERE ${column} = ?1`)
+            .bind(ana.userId)
+            .all<{ detail: string }>();
+
+        expect(results.map((row) => row.detail).join(' ')).toMatch(
+            new RegExp(`USING (COVERING )?INDEX \\w+ \\(${column}=\\?\\)`)
+        );
     });
 });
