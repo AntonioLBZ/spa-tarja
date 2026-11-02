@@ -8,6 +8,7 @@ import { categoriesRoutes } from './routes/categories';
 import { expensesRoutes } from './routes/expenses';
 import { groupsRoutes } from './routes/groups';
 import { incomeRoutes } from './routes/income';
+import { membersRoutes } from './routes/members';
 import { profileRoutes } from './routes/profile';
 
 import type { AppEnv } from '@server/env';
@@ -30,6 +31,7 @@ const app = new Hono<AppEnv>()
     .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes)
     .route('/groups', groupsRoutes)
+    .route('/groups', membersRoutes)
     .route('/income', incomeRoutes)
     .route('/profile', profileRoutes);
 

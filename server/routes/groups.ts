@@ -51,4 +51,4 @@ const groupsRoutes = new Hono<AppEnv>()
         return c.json(await readSharedGroup(db, userId, groupId), 200);
     });
 
-export { groupsRoutes };
+export { NOT_FOUND, groupsRoutes };

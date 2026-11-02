@@ -1,4 +1,4 @@
-import { insertPerson, insertPlaceholder } from '@server/db/members';
+import { insertPerson, insertPlaceholder, isUniqueViolation } from '@server/db/members';
 
 import type { GroupClosed, GroupKind, GroupMember, MemberRole, NewGroup, SharedGroup } from '@core/shared-group';
 
@@ -187,8 +187,7 @@ const createGroup = async (
         ]);
         return 'created';
     } catch (error) {
-        // The ids are the only unique columns a new group and its dummies have
-        if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) return 'id-taken';
+        if (isUniqueViolation(error)) return 'id-taken';
         throw error;
     }
 };
