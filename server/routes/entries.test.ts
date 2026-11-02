@@ -429,6 +429,13 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await seqsOf(group.id)).toEqual([]);
     });
 
+    it('answers unknown-category before currency-mismatch', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const body = dinner(group.me, { [brunoId]: 3000 }, { categoryId: 'trips', currency: 'USD' });
+
+        expect(await error(await putEntry(ana, group.id, crypto.randomUUID(), body), 400)).toBe('unknown-category');
+    });
+
     it('answers 422 currency-mismatch for a currency other than the group’s', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
 
@@ -593,6 +600,26 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await entryOf(renamed)).toMatchObject({ shares: [{ memberId: brunoId, cents: 3000 }] });
     });
 
+    it('answers 409 id-taken before closed and before any check of the content', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const closed = await makeGroup(ana, ['Dani']);
+        const id = crypto.randomUUID();
+        await entryOf(await putEntry(ana, group.id, id, dinner(group.me, { [brunoId]: 3000 })));
+        await groupOf(await send(ana, 'DELETE', `/groups/${closed.id}`));
+        const open = await makeGroup(ana, ['Dani']);
+        const dani = memberNamed(open, 'Dani');
+
+        const writes = [
+            putEntry(ana, closed.id, id, dinner(closed.me, { [memberNamed(closed, 'Dani')]: 3000 })),
+            putEntry(ana, open.id, id, dinner(open.me, { [dani]: 3000 }, { categoryId: 'trips', currency: 'USD' })),
+            putEntry(ana, open.id, id, dinner(crypto.randomUUID(), { [dani]: 3000 })),
+            putEntry(ana, open.id, id, dinner(open.me, { [dani]: 3000 }, { updatedAt: Number.MAX_SAFE_INTEGER })),
+            putEntry(ana, open.id, id, settlement(dani, open.me, 3000)),
+        ];
+
+        for (const response of await Promise.all(writes)) expect(await error(response, 409)).toBe('id-taken');
+    });
+
     it('answers 409 id-taken for an entry of another group, tells nothing of it and leaves it as it was', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const other = await makeGroup(ana, ['Dani']);
@@ -739,6 +766,17 @@ describe('GET /api/groups/:groupId/entries', () => {
         expect(await changes(bruno, group.id)).toEqual({ entries: [own], cursor: 2, hasMore: false });
     });
 
+    it('gives a member who left before anything was written nothing of what came after, read or sent again', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        await groupOf(await removeMember(bruno, group, brunoId));
+        const id = crypto.randomUUID();
+        const body = dinner(group.me, { [group.me]: 3000 });
+        await entryOf(await putEntry(ana, group.id, id, body));
+
+        expect(await changes(bruno, group.id)).toEqual({ entries: [], cursor: 0, hasMore: false });
+        expect(await error(await putEntry(bruno, group.id, id, body), 409)).toBe('closed');
+    });
+
     it('lets the members of a deleted group read all of it', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const entries = [
@@ -751,6 +789,31 @@ describe('GET /api/groups/:groupId/entries', () => {
         for (const as of [ana, bruno]) {
             expect(await changes(as, group.id)).toEqual({ entries, cursor: 2, hasMore: false });
         }
+    });
+
+    it('names nobody as the writer once their account is deleted', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const id = crypto.randomUUID();
+        await entryOf(await putEntry(bruno, group.id, id, dinner(brunoId, { [group.me]: 3000 })));
+
+        await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(bruno.userId).run();
+
+        expect((await changes(ana, group.id)).entries).toMatchObject([{ id, createdBy: null, updatedBy: null }]);
+    });
+
+    it('answers 200 entries a page unless asked otherwise', async () => {
+        const { group } = await tripWithBruno();
+        await Promise.all(
+            Array.from({ length: 201 }, () => seedEntry(group.id, { paidBy: group.me, shares: { [group.me]: 100 } }))
+        );
+
+        const first = await changes(ana, group.id);
+        const second = await changes(ana, group.id, `?after=${first.cursor}`);
+
+        expect(first).toMatchObject({ cursor: 200, hasMore: true });
+        expect(first.entries).toHaveLength(200);
+        expect(second).toMatchObject({ cursor: 201, hasMore: false });
+        expect(second.entries).toHaveLength(1);
     });
 
     it('never answers a user id or an email', async () => {
