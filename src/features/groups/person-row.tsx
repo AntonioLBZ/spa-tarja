@@ -21,6 +21,8 @@ interface PersonRowProps {
     cents: number | null;
     // Nothing can change without a connection
     disabled: boolean;
+    // The row is about to leave the list
+    onRemoved: () => void;
 }
 
 // What the open panel shows: the actions, or one of them asking for more
@@ -29,7 +31,7 @@ type Step = 'actions' | 'renaming' | 'removing';
 // A member on the sheet of the people: the name first, then who they are and their balance. It opens with what the
 // person may do to them; a row with nothing to do doesn't open.
 const PersonRow = (props: PersonRowProps) => {
-    const { group, member, cents, disabled } = props;
+    const { group, member, cents, disabled, onRemoved } = props;
     const t = useTranslations('groups');
     const failureWords = useFailureWords();
     const words = useGroupWords(group);
@@ -80,12 +82,14 @@ const PersonRow = (props: PersonRowProps) => {
         if (!open) goTo('actions');
     };
 
-    const run = async (action: () => Promise<unknown>) => {
+    // What follows an action that went through: back to the actions after a rename, and out of the list after a remove,
+    // which hands the focus on before the row leaves
+    const run = async (action: () => Promise<unknown>, done: () => void) => {
         setFailure(null);
         setBusy(true);
         try {
             await action();
-            setStep('actions');
+            done();
         } catch (error) {
             setFailure(failureOf(error));
         } finally {
@@ -100,7 +104,10 @@ const PersonRow = (props: PersonRowProps) => {
             setInvalid(true);
             return;
         }
-        void run(() => savePerson(group.id, member.id, parsed.output));
+        void run(
+            () => savePerson(group.id, member.id, parsed.output),
+            () => setStep('actions')
+        );
     };
 
     const summary = (
@@ -188,7 +195,7 @@ const PersonRow = (props: PersonRowProps) => {
                                 variant="danger"
                                 aria-label={t('people.removeItem', { name })}
                                 disabled={disabled || busy}
-                                onClick={() => void run(() => removeMember(group.id, member.id))}
+                                onClick={() => void run(() => removeMember(group.id, member.id), onRemoved)}
                             >
                                 {t('people.remove')}
                             </Button>

@@ -186,6 +186,9 @@ describe('removing', () => {
 
         await waitFor(() => expect(memberOf(cris.id)?.leftAt).not.toBeNull());
         await waitFor(() => expect(rows()).toHaveLength(2));
+        await waitFor(() =>
+            expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: text.title }))
+        );
     });
 
     it('gives the focus back to Remove when the question is cancelled', async () => {

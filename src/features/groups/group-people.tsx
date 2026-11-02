@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -39,10 +39,12 @@ const GroupPeople = (props: GroupPeopleProps) => {
         [entries, group.members]
     );
     const people = group.members.filter((member) => member.leftAt === null);
+    // Where the focus goes when the row that had it is removed
+    const heading = useRef<HTMLHeadingElement>(null);
 
     return (
         <section className="group-people">
-            <Sheet label={t('title')}>
+            <Sheet label={t('title')} labelRef={heading}>
                 <CardList flush>
                     {people.map((member) => (
                         <PersonRow
@@ -51,6 +53,7 @@ const GroupPeople = (props: GroupPeopleProps) => {
                             member={member}
                             cents={hasData ? (balances.get(member.id) ?? 0) : null}
                             disabled={disabled}
+                            onRemoved={() => heading.current?.focus()}
                         />
                     ))}
                 </CardList>

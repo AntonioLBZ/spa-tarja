@@ -68,12 +68,12 @@ const GroupTotals = (props: GroupTotalsProps) => {
     const owe = balances.filter((cents) => cents < 0).reduce((sum, cents) => sum - cents, 0);
     const amount = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
 
-    if (owed === 0 && owe === 0) return <Notice>{t('allSettled')}</Notice>;
+    if (owed === 0 && owe === 0) return <Notice role="status">{t('allSettled')}</Notice>;
 
     return (
         <div className="groups__totals">
-            {owed > 0 && <Notice>{t('owed', { amount: amount(owed) })}</Notice>}
-            {owe > 0 && <Notice>{t('owe', { amount: amount(owe) })}</Notice>}
+            {owed > 0 && <Notice role="status">{t('owed', { amount: amount(owed) })}</Notice>}
+            {owe > 0 && <Notice role="status">{t('owe', { amount: amount(owe) })}</Notice>}
         </div>
     );
 };

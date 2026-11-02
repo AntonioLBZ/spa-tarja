@@ -91,12 +91,20 @@ describe('the totals', () => {
             screen.getByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.notice' })
         ).toBeDefined();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
+        expect(
+            within(screen.getByRole('main'))
+                .getAllByRole('status')
+                .map((notice) => notice.textContent)
+        ).toEqual([
+            t('groups.balance.owed', { amount: euros(2800) }),
+            t('groups.balance.owe', { amount: euros(1250) }),
+        ]);
     });
 
     it('say all is settled when nobody owes anything', async () => {
         open([sampleGroup()]);
 
-        expect(await screen.findByText(text.balance.allSettled)).toBeDefined();
+        expect((await screen.findByText(text.balance.allSettled)).getAttribute('role')).toBe('status');
     });
 
     it('say nothing until every open group has its expenses on the device', async () => {
