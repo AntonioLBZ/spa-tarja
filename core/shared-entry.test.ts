@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
 import { MAX_AMOUNT_CENTS } from './money';
-import { sharedEntryInputSchema } from './shared-entry';
+import { entryIdSchema, sharedEntryInputSchema } from './shared-entry';
 
 const ANA = '6a1f4c2e-8b3d-4e5f-9a7b-1c2d3e4f5a6b';
 const BRUNO = '7b2e5d3f-9c4e-4f6a-8b8c-2d3e4f5a6b7c';
@@ -161,12 +161,20 @@ describe('sharedEntryInputSchema', () => {
             ['a currency that is not a code', { currency: 'euro' }],
             ['a day that does not exist', { date: '2026-02-30' }],
             ['an unknown kind', { kind: 'refund' }],
+            ['a moment it was made past the safe integers', { createdAt: 1e300 }],
+            ['a moment it was written past the safe integers', { updatedAt: Number.MAX_SAFE_INTEGER + 2 }],
+            ['a moment it was deleted past the safe integers', { deletedAt: 1e20 }],
+            ['a moment as text', { updatedAt: '1' }],
         ])('rejects %s', (_name, overrides) => {
             expect(parse(dinner, overrides).success).toBe(false);
         });
 
         it('takes any category id of the right shape, leaving the default ones to be checked apart', () => {
             expect(parse(dinner, { categoryId: crypto.randomUUID() }).success).toBe(true);
+        });
+
+        it('takes the largest safe integer as a moment', () => {
+            expect(parse(dinner, { updatedAt: Number.MAX_SAFE_INTEGER }).success).toBe(true);
         });
     });
 
@@ -220,5 +228,17 @@ describe('sharedEntryInputSchema', () => {
         ])('rejects %s', (_name, overrides) => {
             expect(parse(payment, overrides).success).toBe(false);
         });
+    });
+});
+
+describe('entryIdSchema', () => {
+    it('reads an id in lower case, so two spellings of it are one entry', () => {
+        const id = crypto.randomUUID();
+
+        expect(v.parse(entryIdSchema, id.toUpperCase())).toBe(id);
+    });
+
+    it.each([['not-a-uuid'], [''], [42]])('refuses %j', (id) => {
+        expect(v.safeParse(entryIdSchema, id).success).toBe(false);
     });
 });

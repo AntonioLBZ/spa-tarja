@@ -8,9 +8,13 @@ import { memberIdSchema } from './shared-group';
 // How an expense was split; only the shares are stored, the mode only reopens the form as it was left
 const SPLIT_MODES = ['equal', 'percent', 'exact'] as const;
 
-const timestamp = v.pipe(v.number(), v.integer(), v.minValue(0));
+// Stored exactly: a larger integer would be kept as a real
+const timestamp = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 
 const calendarDate = v.pipe(v.string(), v.check(isCalendarDate, 'Not a calendar day'));
+
+// In lower case, so that two spellings of one id are the same entry
+const entryIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());
 
 // What a member owes of an entry; a member who is out of it has no share at all
 const shareSchema = v.object({
@@ -105,4 +109,17 @@ type SharedEntryInput = v.InferOutput<typeof sharedEntryInputSchema>;
 
 type SharedEntry = SharedEntryInput & { id: string };
 
-export { SPLIT_MODES, sharedEntryInputSchema, type Share, type SharedEntry, type SharedEntryInput, type SplitMode };
+// An entry as a group keeps it: who made it and who wrote it last, as their members in the group, none once that person
+// deleted their account
+type LedgerEntry = SharedEntry & { createdBy: string | null; updatedBy: string | null };
+
+export {
+    SPLIT_MODES,
+    entryIdSchema,
+    sharedEntryInputSchema,
+    type LedgerEntry,
+    type Share,
+    type SharedEntry,
+    type SharedEntryInput,
+    type SplitMode,
+};
