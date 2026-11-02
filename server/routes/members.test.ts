@@ -99,6 +99,16 @@ describe('PUT /api/groups/:groupId/members/:memberId, a dummy', () => {
         expect(again.members).toHaveLength(2);
     });
 
+    it('reads the ids of the path in upper case as the same group and member', async () => {
+        const group = await makeGroup(ana);
+        const id = crypto.randomUUID();
+        await putMember(ana, group.id, id, { name: 'Dani' });
+
+        const again = await groupOf(await putMember(ana, group.id.toUpperCase(), id.toUpperCase(), { name: 'Dani' }));
+
+        expect(again.members.map((candidate) => candidate.id)).toEqual([group.me, id]);
+    });
+
     it(`adds nobody past ${MAX_GROUP_MEMBERS} members`, async () => {
         const full = await makeGroup(
             ana,

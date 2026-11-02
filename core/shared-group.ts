@@ -18,9 +18,10 @@ const SHARED_NAME_MAX_LENGTH = 40;
 // What a group calls a person whose account has no name it can show
 const UNNAMED_PERSON = '?';
 
-const groupIdSchema = v.pipe(v.string(), v.uuid());
+// In lower case, so that two spellings of one id are the same id wherever ids are compared
+const groupIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());
 
-const memberIdSchema = v.pipe(v.string(), v.uuid());
+const memberIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());
 
 // The name of a group, or the one a group gives a person
 const sharedNameSchema = v.pipe(

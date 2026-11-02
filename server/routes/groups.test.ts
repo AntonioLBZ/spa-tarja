@@ -199,6 +199,19 @@ describe('PUT /api/groups/:id, a new group', () => {
         expect(await rows('shared_members', id)).toBe(3);
     });
 
+    it('reads an id in upper case as the same group', async () => {
+        const id = crypto.randomUUID();
+        const body = trip();
+        const first = await groupOf(await put(ana, id, body));
+
+        const again = await groupOf(await put(ana, id.toUpperCase(), body));
+        const renamed = await groupOf(await put(ana, id.toUpperCase(), { name: 'Flat' }));
+
+        expect(again).toEqual(first);
+        expect(renamed).toEqual({ ...first, name: 'Flat' });
+        expect(await listGroups(ana)).toEqual([renamed]);
+    });
+
     it('answers 409 id-taken for the id of a group of somebody else, and leaves it as it was', async () => {
         const theirs = await makeGroup(bruno, ['Carla'], 'Flat');
 

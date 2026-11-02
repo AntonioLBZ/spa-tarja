@@ -44,6 +44,19 @@ function parse(entry: Record<string, unknown>, overrides: Record<string, unknown
 }
 
 describe('sharedEntryInputSchema', () => {
+    it('reads the ids of members in lower case, and refuses one member under two spellings', () => {
+        const upper = parse(dinner, { paidBy: ANA.toUpperCase() });
+        const twice = parse(dinner, {
+            shares: [
+                { memberId: BRUNO, cents: 1500 },
+                { memberId: BRUNO.toUpperCase(), cents: 1500 },
+            ],
+        });
+
+        expect(upper.output).toMatchObject({ paidBy: ANA });
+        expect(twice.success).toBe(false);
+    });
+
     describe('an expense', () => {
         it('is paid now and has no charge date when it says nothing about them', () => {
             const result = parse(dinner);

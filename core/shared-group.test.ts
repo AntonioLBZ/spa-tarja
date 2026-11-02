@@ -111,6 +111,30 @@ describe('newGroupSchema', () => {
     });
 });
 
+describe('the ids of groups and people', () => {
+    it('are read in lower case, so that two spellings of one id are the same id', () => {
+        const result = v.parse(newGroupSchema, {
+            ...trip,
+            me: { id: ANA.toUpperCase() },
+            others: [{ id: BRUNO.toUpperCase(), name: 'Bruno' }],
+        });
+
+        expect(result).toMatchObject({ me: { id: ANA }, others: [{ id: BRUNO }] });
+        expect(v.parse(memberWriteSchema, { friend: FRIEND.toUpperCase(), replaces: BRUNO.toUpperCase() })).toEqual({
+            friend: FRIEND,
+            replaces: BRUNO,
+        });
+        expect(v.parse(mergeSchema, { into: ANA.toUpperCase() })).toEqual({ into: ANA });
+        expect(v.parse(ownerSchema, { memberId: ANA.toUpperCase() })).toEqual({ memberId: ANA });
+    });
+
+    it('refuse one member under two spellings', () => {
+        const twice = { ...trip, others: [{ id: ANA.toUpperCase(), name: 'Ana' }] };
+
+        expect(v.safeParse(newGroupSchema, twice).success).toBe(false);
+    });
+});
+
 describe('the names of groups and people', () => {
     it('take the most characters there can be, counted after trimming', () => {
         const name = 'x'.repeat(SHARED_NAME_MAX_LENGTH);
