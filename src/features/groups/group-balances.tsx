@@ -54,6 +54,7 @@ const GroupBalances = (props: GroupBalancesProps) => {
                                 {onSettle && present(debt.from) && present(debt.to) && (
                                     <Button
                                         ghost
+                                        className="group-balances__settle"
                                         aria-label={t('settle.lineItem', { debt: sentence })}
                                         onClick={() => onSettle(debt)}
                                     >
