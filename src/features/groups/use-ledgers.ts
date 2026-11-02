@@ -89,4 +89,33 @@ const useLedgers = () => {
     return { ledgers, pendingIds };
 };
 
-export { useGroups, useLedgers, type Ledger };
+// One group with its entries, for a screen of that group alone: synced like each one of useLedgers, and undefined while
+// the device doesn't hold the group
+const useLedger = (groupId: string): Ledger | undefined => {
+    const outbox = useGroupOutbox();
+    const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
+    const { groups } = useGroups();
+    const group = groups.find((item) => item.id === groupId);
+    const query = useQuery({
+        ...groupEntriesQuery(outbox, groupId),
+        enabled: group !== undefined,
+        refetchInterval: pending.some((write) => write.groupId === groupId) ? RETRY_EVERY_MS : false,
+    });
+    const entries = query.data?.entries;
+    const { isError } = query;
+    const isWaitingForNetwork = query.fetchStatus === 'paused';
+
+    return useMemo(() => {
+        if (!group) return undefined;
+        const mine = pending.filter((write) => write.groupId === group.id);
+        return {
+            group,
+            entries: withPending(entries ?? [], mine, group.me),
+            hasData: entries !== undefined,
+            isError,
+            isWaitingForNetwork,
+        };
+    }, [group, entries, pending, isError, isWaitingForNetwork]);
+};
+
+export { useGroups, useLedger, useLedgers, type Ledger };

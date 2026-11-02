@@ -233,6 +233,29 @@ describe('a group', () => {
     });
 });
 
+describe('the sync of a group', () => {
+    it('asks the server for the expenses of that group only', async () => {
+        const lisbon = groupOf([ana, bea], ana, { name: 'Lisbon' });
+        const porto = groupOf([ana, bea], ana, { name: 'Porto' });
+        const rome = groupOf([ana, bea], ana, { name: 'Rome' });
+        const { api } = open(
+            [lisbon, porto, rome],
+            [
+                expense(lisbon, ana, [
+                    [ana, 2000],
+                    [bea, 2000],
+                ]),
+            ]
+        );
+
+        await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
+
+        expect(api.requests.filter((request) => request.includes('/entries'))).toEqual([
+            expect.stringContaining(`/api/groups/${lisbon.id}/entries`),
+        ]);
+    });
+});
+
 describe('a closed group', () => {
     it.each([
         ['deleted', 'group', text.group.closed.deleted],

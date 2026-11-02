@@ -9,7 +9,7 @@ import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
 
-import { useLedgers } from './use-ledgers';
+import { useLedger, useLedgers } from './use-ledgers';
 
 import type { AuthUser } from '@/lib/auth';
 
@@ -145,5 +145,57 @@ describe('useLedgers', () => {
         expect(result.current.outbox.getState().pending).toEqual([]);
         expect(api.requests.filter((request) => request.startsWith('PUT'))).toEqual([]);
         expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([entry]);
+    });
+});
+
+describe('useLedger', () => {
+    function renderLedger(groupId: string) {
+        return renderAppHook(() => ({ ledger: useLedger(groupId), outbox: useGroupOutbox() }));
+    }
+
+    it('reads one group and its entries, and asks for no other', async () => {
+        const other = sampleGroup({ name: 'Porto' });
+        const dinner = sampleEntry(group);
+        const api = createFakeApi({ groups: [group, other], entries: [dinner] });
+        stubApi(api.handler);
+
+        const { result } = renderLedger(group.id);
+
+        await waitFor(() => expect(result.current.ledger?.hasData).toBe(true));
+        expect(result.current.ledger!.group).toEqual(group);
+        expect(result.current.ledger!.entries.map((entry) => entry.id)).toEqual([dinner.id]);
+        expect(api.requests.filter((request) => request.includes('/entries'))).toEqual([
+            expect.stringContaining(`GET /api/groups/${group.id}/entries`),
+        ]);
+    });
+
+    it('is nothing, and asks for nothing, for a group the device does not hold', async () => {
+        const api = createFakeApi({ groups: [group] });
+        stubApi(api.handler);
+
+        const { result } = renderLedger(crypto.randomUUID());
+
+        await waitFor(() => expect(api.requests).toContain('GET /api/groups'));
+        expect(result.current.ledger).toBeUndefined();
+        expect(api.requests.filter((request) => request.includes('/entries'))).toEqual([]);
+    });
+
+    it('tries a waiting write again every 30 s, with no other trigger', async () => {
+        const api = createFakeApi({ groups: [group] });
+        stubApi(api.handler);
+        const { result } = renderLedger(group.id);
+        await waitFor(() => expect(result.current.ledger?.hasData).toBe(true));
+        api.state.entryRefusal = { status: 503 };
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+
+        await act(() => result.current.outbox.put(sampleEntry(group)));
+        expect(api.entryAttempts).toHaveLength(0);
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+        await vi.waitFor(() => expect(api.entryAttempts).toHaveLength(1));
+        api.state.entryRefusal = null;
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+        await vi.waitFor(() => expect(result.current.outbox.getState().pending).toEqual([]));
+        expect(result.current.ledger!.entries).toHaveLength(1);
     });
 });

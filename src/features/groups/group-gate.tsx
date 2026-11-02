@@ -3,7 +3,7 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
 
-import { useGroups, useLedgers, type Ledger } from './use-ledgers';
+import { useGroups, useLedger, type Ledger } from './use-ledgers';
 
 import type { ReactNode } from 'react';
 
@@ -21,9 +21,8 @@ const GroupGate = (props: GroupGateProps) => {
     const { groupId, children } = props;
     const t = useTranslations('groups.group');
     const { hasData, isError, isWaitingForNetwork } = useGroups();
-    const { ledgers } = useLedgers();
     // Ids are read in lower case wherever they are compared
-    const ledger = ledgers.find((item) => item.group.id === groupId.toLowerCase());
+    const ledger = useLedger(groupId.toLowerCase());
 
     if (ledger) return children(ledger);
     if (!hasData && !isError && !isWaitingForNetwork) return null;
