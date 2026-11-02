@@ -28,6 +28,8 @@ interface FakeGroupsOptions {
     // The groups and friends as the test user sees them
     groups?: SharedGroup[];
     entries?: SeededEntry[];
+    // Most rows per page, whatever the client asks for
+    pageSize?: number;
 }
 
 interface FakeGroupsState {
@@ -195,7 +197,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
 
     const readEntries = (group: SharedGroup, url: URL): Response => {
         const after = Number(url.searchParams.get('after') ?? 0);
-        const limit = Number(url.searchParams.get('limit') ?? 200);
+        const limit = Math.min(Number(url.searchParams.get('limit') ?? 200), options.pageSize ?? 200);
         const until = leftSeq.get(group.id) ?? Infinity;
         const changes = rows
             .filter((row) => row.groupId === group.id && row.seq > after && row.seq <= until)
@@ -243,7 +245,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
                 .map((row) => row.entry),
         cursorOf,
         // Another member writes an entry, from their own device
-        serverWriteEntry: (groupId: string, entry: SharedEntry, by: string) =>
+        serverWriteEntry: ({ groupId, ...entry }: SeededEntry, by: string) =>
             storeEntry(groupId, { ...entry, createdBy: by, updatedBy: by }),
     };
 };

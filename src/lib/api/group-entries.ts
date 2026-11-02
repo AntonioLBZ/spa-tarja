@@ -30,9 +30,9 @@ const fetchEntryChanges = async (groupId: string, after: number): Promise<EntryC
     return response.json();
 };
 
-// Creates or updates by id, so sending it twice is harmless. A refusal carries its reason in `code`.
-const putEntry = async (groupId: string, entry: SharedEntry): Promise<LedgerEntry> => {
-    const { id, ...body } = entry;
+// Creates or updates by id in its group, so sending it twice is harmless. A refusal carries its reason in `code`.
+const putEntry = async (entry: SharedEntry & { groupId: string }): Promise<LedgerEntry> => {
+    const { groupId, id, ...body } = entry;
     const response = await api.api.groups[':groupId'].entries[':id'].$put({ param: { groupId, id }, json: body });
     if (!response.ok) throw await toApiError(response);
     return response.json();

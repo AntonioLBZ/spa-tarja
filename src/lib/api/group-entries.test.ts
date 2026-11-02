@@ -32,19 +32,19 @@ describe('putEntry', () => {
     it('sends the entry under its id and answers it with who wrote it', async () => {
         const api = createFakeApi({ groups: [group] });
         stubApi(api.handler);
-        const { groupId, ...entry } = sampleEntry(group);
+        const entry = sampleEntry(group);
 
-        const kept = await putEntry(groupId, entry);
+        const kept = await putEntry(entry);
 
-        expect(kept).toEqual({ ...entry, createdBy: group.me, updatedBy: group.me });
+        expect(kept).toEqual(api.entriesOf(group.id)[0]);
+        expect(kept).toMatchObject({ id: entry.id, text: entry.text, createdBy: group.me, updatedBy: group.me });
         expect(api.requests).toEqual([`PUT /api/groups/${group.id}/entries/${entry.id}`]);
     });
 
     it('throws the reason the server gives', async () => {
         const api = createFakeApi({ groups: [{ ...group, closed: 'deleted' }] });
         stubApi(api.handler);
-        const { groupId, ...entry } = sampleEntry(group);
 
-        await expect(putEntry(groupId, entry)).rejects.toMatchObject({ status: 409, code: 'closed' });
+        await expect(putEntry(sampleEntry(group))).rejects.toMatchObject({ status: 409, code: 'closed' });
     });
 });

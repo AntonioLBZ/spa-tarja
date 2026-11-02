@@ -18,8 +18,6 @@ interface FakeApiOptions extends FakeGroupsOptions {
     income?: Income[];
     budgets?: Budget[];
     nickname?: string | null;
-    // Most rows per page, whatever the client asks for
-    pageSize?: number;
 }
 
 // An in-memory stand-in for the Worker's routes; anything it doesn't know answers 404
