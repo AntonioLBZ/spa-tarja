@@ -39,4 +39,4 @@ const expensesRoutes = new Hono<AppEnv>()
         }
     );
 
-export { expensesRoutes };
+export { DEFAULT_PAGE_SIZE, changesQuery, expensesRoutes };

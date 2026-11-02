@@ -158,4 +158,30 @@ const upsertEntry = async (
     return row ? toLedgerEntry(row) : null;
 };
 
-export { listLiveEntries, readEntry, upsertEntry, type StoredEntry };
+interface EntryChanges {
+    entries: LedgerEntry[];
+    cursor: number;
+    hasMore: boolean;
+}
+
+// What the group wrote after `cursor`, oldest first, tombstones included, up to `until` for a member who left
+const listEntryChanges = async (
+    db: D1Database,
+    groupId: string,
+    page: { after: number; limit: number; until: number | null }
+): Promise<EntryChanges> => {
+    const { results } = await db
+        .prepare(
+            `SELECT ${LEDGER_COLUMNS} FROM shared_entries
+             WHERE group_id = ?1 AND seq > ?2 AND (?4 IS NULL OR seq <= ?4)
+             ORDER BY seq LIMIT ?3`
+        )
+        .bind(groupId, page.after, page.limit + 1, page.until)
+        .all<LedgerRow>();
+
+    const hasMore = results.length > page.limit;
+    const rows = hasMore ? results.slice(0, page.limit) : results;
+    return { entries: rows.map(toLedgerEntry), cursor: rows.at(-1)?.seq ?? page.after, hasMore };
+};
+
+export { listEntryChanges, listLiveEntries, readEntry, upsertEntry, type EntryChanges, type StoredEntry };

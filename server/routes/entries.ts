@@ -6,13 +6,16 @@ import { isDefaultCategoryId } from '@core/categories';
 import { entryIdSchema, sharedEntryInputSchema } from '@core/shared-entry';
 import { groupIdSchema } from '@core/shared-group';
 import { canonicalMember } from '@core/shared-member';
-import { readEntry, upsertEntry, type StoredEntry } from '@server/db/entries';
+import { listEntryChanges, readEntry, upsertEntry, type StoredEntry } from '@server/db/entries';
 import { closedFor, readGroup, type GroupState } from '@server/db/groups';
 
+import { DEFAULT_PAGE_SIZE, changesQuery } from './expenses';
 import { CLOSED, NOT_FOUND } from './groups';
 
 import type { LedgerEntry, SharedEntryInput } from '@core/shared-entry';
 import type { AppEnv } from '@server/env';
+
+const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
 
 const entryParam = sValidator('param', v.object({ groupId: groupIdSchema, id: entryIdSchema }));
 
@@ -47,11 +50,16 @@ const keptEntry = (state: GroupState, kept: StoredEntry | null, updatedAt: numbe
     return reads && kept.entry.updatedAt === updatedAt ? kept.entry : null;
 };
 
-const entriesRoutes = new Hono<AppEnv>().put(
-    '/:groupId/entries/:id',
-    entryParam,
-    sValidator('json', sharedEntryInputSchema),
-    async (c) => {
+const entriesRoutes = new Hono<AppEnv>()
+    // A member who left reads the group only up to its cursor the moment they left
+    .get('/:groupId/entries', groupParam, sValidator('query', changesQuery), async (c) => {
+        const { groupId } = c.req.valid('param');
+        const { after = 0, limit = DEFAULT_PAGE_SIZE } = c.req.valid('query');
+        const state = await readGroup(c.env.DB, c.var.userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+        return c.json(await listEntryChanges(c.env.DB, groupId, { after, limit, until: state.me.leftSeq }), 200);
+    })
+    .put('/:groupId/entries/:id', entryParam, sValidator('json', sharedEntryInputSchema), async (c) => {
         const db = c.env.DB;
         const userId = c.var.userId;
         const { groupId, id } = c.req.valid('param');
@@ -81,7 +89,6 @@ const entriesRoutes = new Hono<AppEnv>().put(
         if (!now) return c.json(NOT_FOUND, 404);
         if (kept && kept.groupId !== groupId) return c.json(ID_TAKEN, 409);
         return answerKept(now, kept);
-    }
-);
+    });
 
 export { entriesRoutes };

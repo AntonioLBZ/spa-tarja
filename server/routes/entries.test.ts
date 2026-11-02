@@ -93,6 +93,16 @@ function removeMember(as: TestSession, group: SharedGroup, memberId: string) {
     return send(as, 'DELETE', `/groups/${group.id}/members/${memberId}`);
 }
 
+function list(as: TestSession, groupId: string, query = '') {
+    return send(as, 'GET', `/groups/${groupId}/entries${query}`);
+}
+
+async function changes(as: TestSession, groupId: string, query = '') {
+    const response = await list(as, groupId, query);
+    expect(response.status).toBe(200);
+    return (await response.json()) as { entries: LedgerEntry[]; cursor: number; hasMore: boolean };
+}
+
 describe('PUT /api/groups/:groupId/entries/:id', () => {
     it('creates the entry and answers it, with whoever made it and wrote it last as their member', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
@@ -436,6 +446,172 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
     });
 });
 
+describe('GET /api/groups/:groupId/entries', () => {
+    it('starts empty with a zero cursor', async () => {
+        const { group } = await tripWithBruno();
+
+        expect(await changes(bruno, group.id)).toEqual({ entries: [], cursor: 0, hasMore: false });
+    });
+
+    it('answers every member the entries as they were written, oldest first, with the cursor of the last', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const first = await entryOf(
+            await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [brunoId]: 3000 }))
+        );
+        const second = await entryOf(
+            await putEntry(bruno, group.id, crypto.randomUUID(), settlement(brunoId, group.me, 3000))
+        );
+
+        for (const as of [ana, bruno]) {
+            expect(await changes(as, group.id)).toEqual({ entries: [first, second], cursor: 2, hasMore: false });
+        }
+    });
+
+    it('pages through the changes with the cursor', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const ids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
+        for (const id of ids) await entryOf(await putEntry(ana, group.id, id, dinner(group.me, { [brunoId]: 3000 })));
+
+        const first = await changes(bruno, group.id, '?limit=2');
+        const second = await changes(bruno, group.id, `?limit=2&after=${first.cursor}`);
+
+        expect(first.entries.map((entry) => entry.id)).toEqual(ids.slice(0, 2));
+        expect(first.hasMore).toBe(true);
+        expect(second.entries.map((entry) => entry.id)).toEqual(ids.slice(2));
+        expect(second.hasMore).toBe(false);
+        expect(await changes(bruno, group.id, `?after=${second.cursor}`)).toEqual({
+            entries: [],
+            cursor: second.cursor,
+            hasMore: false,
+        });
+    });
+
+    it('moves an edit past the cursor, and a delete as a tombstone', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const id = crypto.randomUUID();
+        const body = dinner(group.me, { [brunoId]: 3000 });
+        await entryOf(await putEntry(ana, group.id, id, body));
+        const { cursor } = await changes(bruno, group.id);
+
+        await entryOf(await putEntry(ana, group.id, id, { ...body, text: 'Tapas', updatedAt: 2_000 }));
+        const edited = await changes(bruno, group.id, `?after=${cursor}`);
+        await entryOf(await putEntry(ana, group.id, id, { ...body, updatedAt: 3_000, deletedAt: 3_000 }));
+        const deleted = await changes(bruno, group.id, `?after=${edited.cursor}`);
+
+        expect(edited.entries).toMatchObject([{ id, text: 'Tapas', deletedAt: null }]);
+        expect(deleted.entries).toMatchObject([{ id, deletedAt: 3_000 }]);
+        expect(deleted.cursor).toBeGreaterThan(edited.cursor);
+        expect((await changes(bruno, group.id)).entries).toMatchObject([{ id, deletedAt: 3_000 }]);
+    });
+
+    it('answers only the entries of that group, also to a member of two', async () => {
+        const first = await tripWithBruno();
+        const second = await tripWithBruno();
+        const ids = [];
+        for (const { group, bruno: brunoId } of [first, second]) {
+            const id = crypto.randomUUID();
+            await entryOf(await putEntry(ana, group.id, id, dinner(group.me, { [brunoId]: 3000 })));
+            ids.push(id);
+        }
+
+        expect((await changes(bruno, first.group.id)).entries.map((entry) => entry.id)).toEqual([ids[0]]);
+        expect((await changes(bruno, second.group.id)).entries.map((entry) => entry.id)).toEqual([ids[1]]);
+    });
+
+    it('pages out writes made at the same moment once each, by a cursor of each group', async () => {
+        const first = await tripWithBruno();
+        const second = await tripWithBruno();
+        const written = await Promise.all(
+            Array.from({ length: 10 }, async (_, index) => {
+                const { group, bruno: brunoId } = index < 6 ? first : second;
+                const id = crypto.randomUUID();
+                const as = index % 2 === 0 ? ana : bruno;
+                await entryOf(await putEntry(as, group.id, id, dinner(group.me, { [brunoId]: 3000 })));
+                return { groupId: group.id, id };
+            })
+        );
+
+        for (const { group } of [first, second]) {
+            const cursors = [];
+            const ids = [];
+            let page = await changes(ana, group.id, '?limit=1');
+            while (page.entries.length > 0) {
+                cursors.push(page.cursor);
+                ids.push(...page.entries.map((entry) => entry.id));
+                page = await changes(ana, group.id, `?limit=1&after=${page.cursor}`);
+            }
+            const mine = written.filter((entry) => entry.groupId === group.id).map((entry) => entry.id);
+            expect(cursors).toEqual(mine.map((_, index) => index + 1));
+            expect(ids.toSorted()).toEqual(mine.toSorted());
+        }
+    });
+
+    it('lets a member who left read only up to the moment they left, never an entry edited after', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const edited = crypto.randomUUID();
+        const body = dinner(group.me, { [group.me]: 3000 });
+        await entryOf(await putEntry(ana, group.id, edited, body));
+        const own = await entryOf(
+            await putEntry(bruno, group.id, crypto.randomUUID(), dinner(brunoId, { [brunoId]: 3000 }))
+        );
+        await groupOf(await removeMember(bruno, group, brunoId));
+
+        await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [group.me]: 1000 })));
+        await entryOf(await putEntry(ana, group.id, edited, { ...body, text: 'After', updatedAt: 2_000 }));
+
+        expect(await changes(bruno, group.id)).toEqual({ entries: [own], cursor: 2, hasMore: false });
+        expect(await changes(bruno, group.id, '?after=2')).toEqual({ entries: [], cursor: 2, hasMore: false });
+        expect((await changes(ana, group.id)).entries).toHaveLength(3);
+
+        await groupOf(await send(ana, 'DELETE', `/groups/${group.id}`));
+
+        expect(await changes(bruno, group.id)).toEqual({ entries: [own], cursor: 2, hasMore: false });
+    });
+
+    it('lets the members of a deleted group read all of it', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const entries = [
+            await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [group.me]: 3000 }))),
+            await entryOf(await putEntry(bruno, group.id, crypto.randomUUID(), dinner(brunoId, { [brunoId]: 3000 }))),
+        ];
+
+        await groupOf(await send(ana, 'DELETE', `/groups/${group.id}`));
+
+        for (const as of [ana, bruno]) {
+            expect(await changes(as, group.id)).toEqual({ entries, cursor: 2, hasMore: false });
+        }
+    });
+
+    it('never answers a user id or an email', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [brunoId]: 3000 })));
+        await entryOf(await putEntry(bruno, group.id, crypto.randomUUID(), settlement(brunoId, group.me, 3000)));
+
+        const text = await (await list(ana, group.id)).text();
+
+        for (const secret of [ana.userId, bruno.userId, 'ana@example.com', 'bruno@example.com']) {
+            expect(text).not.toContain(secret);
+        }
+    });
+
+    it.each([
+        ['?after=-1'],
+        ['?after=abc'],
+        ['?after=99999999999999999999'],
+        ['?limit=0'],
+        ['?limit=501'],
+        ['?limit=1.5'],
+    ])('answers 400 for %s', async (query) => {
+        const { group } = await tripWithBruno();
+
+        expect((await list(ana, group.id, query)).status).toBe(400);
+    });
+
+    it('answers 400 for a group id that is not a UUID', async () => {
+        expect((await list(ana, 'trip')).status).toBe(400);
+    });
+});
+
 describe('writes at the same moment', () => {
     it('land the same write once, and answer each the entry', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
@@ -558,6 +734,18 @@ describe('a closed group', () => {
 });
 
 describe('a stranger', () => {
+    it('gets the same 404 for the entries of a group of somebody else as for one that does not exist', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [brunoId]: 3000 })));
+
+        for (const query of ['', '?after=0&limit=10']) {
+            const theirs = await list(carla, group.id, query);
+            const missing = await list(carla, crypto.randomUUID(), query);
+            expect(theirs.status).toBe(404);
+            expect(await theirs.text()).toBe(await missing.text());
+        }
+    });
+
     it('gets the same 404 for a group of somebody else as for one that does not exist, and writes nothing', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const id = crypto.randomUUID();
@@ -577,7 +765,7 @@ describe('a stranger', () => {
         expect(await seqsOf(group.id)).toEqual([1]);
     });
 
-    it('gets 401 without a session', async () => {
+    it('gets 401 without a session, to a read and to a write', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const init = {
             method: 'PUT',
@@ -585,6 +773,7 @@ describe('a stranger', () => {
             body: JSON.stringify(dinner(group.me, { [brunoId]: 3000 })),
         };
 
+        expect((await app.request(`/api/groups/${group.id}/entries`, {}, env)).status).toBe(401);
         expect((await app.request(`/api/groups/${group.id}/entries/${crypto.randomUUID()}`, init, env)).status).toBe(
             401
         );
