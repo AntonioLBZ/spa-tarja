@@ -50,18 +50,32 @@ interface GroupState {
     me: StoredMember;
 }
 
-// The groups the user has a member in, closed ones too, and one of them when `?2` names it
+const GROUP_COLUMNS = 'id, kind, name, currency, simplify_debts, deleted_at';
+
+const MEMBERS_WITH_NICKNAMES = `
+    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.claimed_at, m.left_at, m.archived_at,
+        m.merged_into, m.show_in_expenses
+    FROM shared_members m LEFT JOIN profile ON profile.user_id = m.user_id`;
+
+// Every group the user has a member in, closed ones too
 const GROUPS = `
-    SELECT id, kind, name, currency, simplify_debts, deleted_at
-    FROM shared_groups
-    WHERE id IN (SELECT group_id FROM shared_members WHERE user_id = ?1) AND (?2 IS NULL OR id = ?2)
+    SELECT ${GROUP_COLUMNS} FROM shared_groups
+    WHERE id IN (SELECT group_id FROM shared_members WHERE user_id = ?1)
     ORDER BY created_at, id`;
 
 const MEMBERS = `
-    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.claimed_at, m.left_at, m.archived_at,
-        m.merged_into, m.show_in_expenses
-    FROM shared_members m LEFT JOIN profile ON profile.user_id = m.user_id
-    WHERE m.group_id IN (SELECT group_id FROM shared_members WHERE user_id = ?1) AND (?2 IS NULL OR m.group_id = ?2)
+    ${MEMBERS_WITH_NICKNAMES}
+    WHERE m.group_id IN (SELECT group_id FROM shared_members WHERE user_id = ?1)
+    ORDER BY m.created_at, m.id`;
+
+// One group, through the user's member in it, so that reading it touches no other group
+const IN_GROUP = 'EXISTS (SELECT 1 FROM shared_members WHERE group_id = ?2 AND user_id = ?1)';
+
+const GROUP = `SELECT ${GROUP_COLUMNS} FROM shared_groups WHERE id = ?2 AND ${IN_GROUP}`;
+
+const MEMBERS_OF_GROUP = `
+    ${MEMBERS_WITH_NICKNAMES}
+    WHERE m.group_id = ?2 AND ${IN_GROUP}
     ORDER BY m.created_at, m.id`;
 
 const toMember = (row: MemberRow): StoredMember => {
@@ -79,13 +93,8 @@ const toMember = (row: MemberRow): StoredMember => {
     };
 };
 
-const loadGroups = async (db: D1Database, userId: string, groupId: string | null): Promise<GroupState[]> => {
-    const [groups, members] = await Promise.all([
-        db.prepare(GROUPS).bind(userId, groupId).all<GroupRow>(),
-        db.prepare(MEMBERS).bind(userId, groupId).all<MemberRow>(),
-    ]);
-
-    return groups.results.flatMap((row) => {
+const toStates = (userId: string, groups: GroupRow[], members: MemberRow[]): GroupState[] => {
+    return groups.flatMap((row) => {
         const group = {
             id: row.id,
             kind: row.kind,
@@ -94,7 +103,7 @@ const loadGroups = async (db: D1Database, userId: string, groupId: string | null
             simplifyDebts: row.simplify_debts === 1,
             deletedAt: row.deleted_at,
         };
-        const ofGroup = members.results.filter((member) => member.group_id === row.id).map(toMember);
+        const ofGroup = members.filter((member) => member.group_id === row.id).map(toMember);
         const me = ofGroup.find((member) => member.userId === userId);
         return me ? [{ group, members: ofGroup, me }] : [];
     });
@@ -102,7 +111,11 @@ const loadGroups = async (db: D1Database, userId: string, groupId: string | null
 
 // The group as the caller finds it, or null when they have never been in it
 const readGroup = async (db: D1Database, userId: string, groupId: string): Promise<GroupState | null> => {
-    const [state] = await loadGroups(db, userId, groupId);
+    const [groups, members] = await Promise.all([
+        db.prepare(GROUP).bind(userId, groupId).all<GroupRow>(),
+        db.prepare(MEMBERS_OF_GROUP).bind(userId, groupId).all<MemberRow>(),
+    ]);
+    const [state] = toStates(userId, groups.results, members.results);
     return state ?? null;
 };
 
@@ -143,7 +156,11 @@ const toSharedGroup = (state: GroupState): SharedGroup => {
 };
 
 const listGroups = async (db: D1Database, userId: string): Promise<SharedGroup[]> => {
-    return (await loadGroups(db, userId, null)).map(toSharedGroup);
+    const [groups, members] = await Promise.all([
+        db.prepare(GROUPS).bind(userId).all<GroupRow>(),
+        db.prepare(MEMBERS).bind(userId).all<MemberRow>(),
+    ]);
+    return toStates(userId, groups.results, members.results).map(toSharedGroup);
 };
 
 // The group as a write leaves it, for a caller who is in it
