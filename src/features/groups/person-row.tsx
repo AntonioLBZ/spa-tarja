@@ -9,6 +9,7 @@ import { Notice } from '@/components/notice/notice';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type SharedGroup } from '@core/shared-group';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
+import { isOwner } from './is-owner';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 
@@ -45,10 +46,9 @@ const PersonRow = (props: PersonRowProps) => {
 
     const name = words.nameOf(member.id);
     const isMe = member.id === group.me;
-    const owner = group.members.some((item) => item.id === group.me && item.role === 'owner');
     // The owner renames anybody and a user themselves; the owner removes anybody else
-    const canRename = owner || isMe;
-    const canRemove = owner && !isMe;
+    const canRename = isOwner(group) || isMe;
+    const canRemove = isOwner(group) && !isMe;
     const tags = [
         isMe && t('people.you'),
         member.role === 'owner' && t('people.owner'),

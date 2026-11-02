@@ -12,6 +12,7 @@ import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { GroupGate } from './group-gate';
 import { GroupPeople } from './group-people';
+import { isOwner } from './is-owner';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 
@@ -47,8 +48,6 @@ const SettingsView = (props: SettingsViewProps) => {
     const t = useTranslations('groups');
     const online = useOnline();
     const words = useGroupWords(group);
-    // The screen only hides what the person can't do; the server decides on every call
-    const owner = group.members.some((member) => member.id === group.me && member.role === 'owner');
     const open = group.closed === null;
 
     return (
@@ -56,7 +55,7 @@ const SettingsView = (props: SettingsViewProps) => {
             <h1 className="group-settings__title">{t('edit.title', { name: words.title })}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <PersonalSwitches group={group} disabled={!online} />
-            {open && owner && group.kind === 'group' && <GroupName group={group} disabled={!online} />}
+            {open && group.kind === 'group' && isOwner(group) && <GroupName group={group} disabled={!online} />}
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
         </section>
     );
