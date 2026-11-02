@@ -63,7 +63,7 @@ The `groups` and `group-entries` queries in the persisted cache, the second outb
 
 ### 24. The screens of groups and friends
 
-Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new or in place of a dummy), the merge, leave and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
+Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new, or in place of a dummy for the owner), the merge, leave and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
 
 ### 25. Sharing an expense
 

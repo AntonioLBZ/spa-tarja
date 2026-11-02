@@ -340,6 +340,19 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend in place of a dum
         expect((await listGroups(bruno)).map((candidate) => candidate.id)).toEqual([friend.id]);
     });
 
+    it('lets nobody but the owner add a friend in place of a dummy, and any member add them as someone new', async () => {
+        const { group } = await tripWithBruno(['Carla']);
+        const dummy = memberNamed(group, 'Carla');
+        const friend = await befriend(bruno, carla);
+
+        const replacing = await putMember(bruno, group.id, crypto.randomUUID(), { friend: friend.id, replaces: dummy });
+        const added = await addFriend(bruno, group.id, friend.id);
+
+        expect(await error(replacing, 403)).toBe('not-owner');
+        expect(member(added.group, dummy)).toMatchObject({ leftAt: null, mergedInto: null });
+        expect(member(added.group, added.id)?.name).toBe('Carla Ruiz');
+    });
+
     it('refuses to replace a member who is a user', async () => {
         const group = await makeGroup(ana);
         const friend = await befriend(ana, bruno);

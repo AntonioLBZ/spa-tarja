@@ -71,6 +71,8 @@ const membersRoutes = new Hono<AppEnv>()
         if (input.replaces === undefined) {
             if (openMembers(state) >= MAX_GROUP_MEMBERS) return c.json({ error: 'too-many-members' }, 409);
         } else {
+            // In place of a dummy is a merge, which only the owner makes
+            if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             const dummy = state.members.find((member) => member.id === input.replaces);
             if (!dummy) return c.json({ error: 'unknown-member' }, 422);
             if (dummy.leftAt !== null) return c.json({ error: 'member-left' }, 422);
