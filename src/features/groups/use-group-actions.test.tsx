@@ -1,8 +1,8 @@
-import { onlineManager } from '@tanstack/react-query';
+import { onlineManager, useQueryClient } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError } from '@/lib/api';
+import { ApiError, GROUPS_KEY } from '@/lib/api';
 import { useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
@@ -25,6 +25,7 @@ async function setup(groups: SharedGroup[], options: Parameters<typeof createFak
     stubApi(api.handler);
     const rendered = renderAppHook(() => ({
         actions: useGroupActions(),
+        client: useQueryClient(),
         groups: useGroups().groups,
         ledgers: useLedgers().ledgers,
         outbox: useGroupOutbox(),
@@ -184,6 +185,29 @@ describe('changing a group', () => {
             { id: dummy, name: 'Old Ana', mergedInto: group.me },
             { id: cris, name: friend.members[1]!.name, claimed: true, leftAt: expect.any(Number) },
         ]);
+    });
+
+    it('keeps a change over a read of the groups that started before it and answers after it', async () => {
+        const group = sampleGroup();
+        const app = await setup([group]);
+        let release: () => void = () => undefined;
+        const late = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        stubApi(async (url, init) => {
+            const response = await app.api.handler(url, init);
+            if (url.pathname === '/api/groups' && (init?.method ?? 'GET') === 'GET') await late;
+            return response;
+        });
+        const reading = app.result.current.client.refetchQueries({ queryKey: GROUPS_KEY });
+        await waitFor(() => expect(app.api.requests.at(-1)).toBe('GET /api/groups'));
+
+        await act(() => app.result.current.actions.change(group.id, { name: 'Porto' }));
+        release();
+        await reading;
+
+        const kept = app.result.current.client.getQueryData<SharedGroup[]>(GROUPS_KEY);
+        expect(kept?.find((item) => item.id === group.id)?.name).toBe('Porto');
     });
 
     it('closes a group the person deletes, and keeps it', async () => {

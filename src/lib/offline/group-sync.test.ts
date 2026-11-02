@@ -104,6 +104,23 @@ describe('pushing the entries of a group', () => {
         expect(cached()?.entries.map((entry) => entry.updatedBy)).toEqual([group.me, group.me, group.me]);
     });
 
+    it('keeps a sent entry on the device when the pull after it fails', async () => {
+        const [stored, entry] = [sampleEntry(group), sampleEntry(group)];
+        const { api, cached, ids, outbox, sync } = setup({ entries: [stored] });
+        await sync();
+        stubApi((url, init) => {
+            if (url.pathname.endsWith('/entries') && (init?.method ?? 'GET') === 'GET')
+                throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        await outbox.put(entry);
+
+        await expect(sync()).rejects.toThrow('Failed to fetch');
+
+        expect(outbox.getState().pending).toEqual([]);
+        expect(ids(cached()!.entries)).toEqual([stored.id, entry.id]);
+    });
+
     it('keeps a sent entry on the device when the pull after it fails, in a group never pulled before', async () => {
         const entry = sampleEntry(group);
         const { api, cached, ids, outbox, sync } = setup();

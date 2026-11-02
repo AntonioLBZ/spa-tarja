@@ -50,6 +50,7 @@ function renderLedgers(options: Parameters<typeof renderAppHook>[1] = {}) {
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
+    vi.useRealTimers();
     vi.unstubAllGlobals();
 });
 
@@ -105,6 +106,39 @@ describe('useLedgers', () => {
 
         expect(result.current.ledgers[0]!.entries).toMatchObject([{ id: entry.id, text: 'Mine', updatedBy: group.me }]);
         expect(result.current.pendingIds.has(entry.id)).toBe(true);
+    });
+
+    it('keeps who made an entry when the person edits it and the edit waits to be sent', async () => {
+        const made = sampleEntry(group, { paidBy: bea });
+        stubApi(createFakeApi({ groups: [group], entries: [{ ...made, createdBy: bea, updatedBy: bea }] }).handler);
+        const { result } = renderLedgers();
+        await waitFor(() => expect(result.current.ledgers[0]?.hasData).toBe(true));
+        onlineManager.setOnline(false);
+
+        await act(() => result.current.outbox.put({ ...made, text: 'Edited by me', updatedAt: 2 }));
+
+        expect(result.current.ledgers[0]!.entries).toMatchObject([
+            { id: made.id, text: 'Edited by me', createdBy: bea, updatedBy: group.me },
+        ]);
+    });
+
+    it('tries a waiting write again every 30 s, with no other trigger', async () => {
+        const api = createFakeApi({ groups: [group] });
+        stubApi(api.handler);
+        const { result } = renderLedgers();
+        await waitFor(() => expect(result.current.ledgers[0]?.hasData).toBe(true));
+        api.state.entryRefusal = { status: 503 };
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+
+        await act(() => result.current.outbox.put(sampleEntry(group)));
+        expect(api.entryAttempts).toHaveLength(0);
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+        await vi.waitFor(() => expect(api.entryAttempts).toHaveLength(1));
+        api.state.entryRefusal = null;
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+        await vi.waitFor(() => expect(result.current.outbox.getState().pending).toEqual([]));
+        expect(api.entryAttempts).toHaveLength(2);
     });
 
     it('shows a new entry waiting to be sent as made by the person', async () => {
