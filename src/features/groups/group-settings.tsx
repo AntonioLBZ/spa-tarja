@@ -11,6 +11,7 @@ import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { GroupGate } from './group-gate';
+import { GroupPeople } from './group-people';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 
@@ -41,7 +42,8 @@ const GroupSettings = (props: GroupSettingsProps) => {
 };
 
 const SettingsView = (props: SettingsViewProps) => {
-    const { group } = props.ledger;
+    const { ledger } = props;
+    const { group } = ledger;
     const t = useTranslations('groups');
     const online = useOnline();
     const words = useGroupWords(group);
@@ -55,6 +57,7 @@ const SettingsView = (props: SettingsViewProps) => {
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <PersonalSwitches group={group} disabled={!online} />
             {open && owner && group.kind === 'group' && <GroupName group={group} disabled={!online} />}
+            {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
         </section>
     );
 };

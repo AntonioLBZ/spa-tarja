@@ -369,6 +369,24 @@
             "unarchive": "Recuperar",
             "name": "Nombre",
             "save": "Guardar"
+        },
+        "people": {
+            "title": "Personas",
+            "you": "Tú",
+            "owner": "Admin",
+            "notJoined": "Sin unirse",
+            "rename": "Cambiar nombre",
+            "renameItem": "Cambiar el nombre de {name}",
+            "newName": "Nuevo nombre",
+            "save": "Guardar nombre",
+            "cancel": "Cancelar",
+            "remove": "Quitar",
+            "removeItem": "Quitar a {name}",
+            "removeConfirm": "¿Quitar a {name} del grupo? Sigue en los gastos que ya se repartieron.",
+            "unsettled": "El saldo de {name} no está a cero. Primero hay que saldar cuentas.",
+            "add": "Añadir a una persona",
+            "addHint": "Por su nombre. No necesita la app.",
+            "addSubmit": "Añadir"
         }
     },
     "summary": {

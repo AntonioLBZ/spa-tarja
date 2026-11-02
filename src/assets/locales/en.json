@@ -369,6 +369,24 @@
             "unarchive": "Bring back",
             "name": "Name",
             "save": "Save"
+        },
+        "people": {
+            "title": "People",
+            "you": "You",
+            "owner": "Owner",
+            "notJoined": "Not joined",
+            "rename": "Rename",
+            "renameItem": "Rename {name}",
+            "newName": "New name",
+            "save": "Save name",
+            "cancel": "Cancel",
+            "remove": "Remove",
+            "removeItem": "Remove {name}",
+            "removeConfirm": "Remove {name} from the group? They stay in the expenses already shared.",
+            "unsettled": "{name}'s balance isn't zero. Settle up first.",
+            "add": "Add a person",
+            "addHint": "By name. They don't need the app.",
+            "addSubmit": "Add"
         }
     },
     "summary": {

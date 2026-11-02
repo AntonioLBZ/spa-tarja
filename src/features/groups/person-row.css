@@ -1,0 +1,42 @@
+/* What the toggle shows: the name, and under it who they are and their balance */
+.person-row__body {
+    display: grid;
+    flex: 1;
+    gap: var(--size-1);
+    min-width: 0;
+    padding-block: var(--size-2);
+}
+
+/* A row with nothing to open, as tall as one that does */
+.person-row {
+    align-items: center;
+    display: flex;
+    min-height: var(--size-touch);
+}
+
+.person-row__name {
+    overflow-wrap: anywhere;
+}
+
+.person-row__detail {
+    color: var(--color-content-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--font-size-s);
+    gap: 0 var(--size-3);
+}
+
+.person-row__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+.person-row__form {
+    display: grid;
+    gap: var(--size-2);
+}
+
+.person-row__question {
+    margin: 0;
+}
