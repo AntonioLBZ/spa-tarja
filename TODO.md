@@ -59,11 +59,11 @@ Part B, the entries ([shared expenses](docs/specs/shared-expenses.md), [offline 
 
 ### 23. Groups on the device
 
-The `groups` and `group-entries` queries in the persisted cache, the second outbox, the sync per group, `createFakeApi` with groups, and closed and archived groups ([offline sync](docs/specs/offline-sync.md)). Tested offline and with a dropped connection.
+The `groups` and `group-entries` queries in the persisted cache, the second outbox, the sync per group, `createFakeApi` with groups, and closed and archived groups ([offline sync](docs/specs/offline-sync.md)). Tested offline and with a dropped connection. The push of a group's outbox and the pull of its changes that leaving waits for: a person who left never reads a later edit.
 
 ### 24. The screens of groups and friends
 
-Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new, or in place of a dummy for the owner), the merge, leave and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
+Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new, or in place of a dummy for the owner), the merge, leave (only once the group's outbox is pushed and its changes pulled, else it says why) and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
 
 ### 25. Sharing an expense
 
