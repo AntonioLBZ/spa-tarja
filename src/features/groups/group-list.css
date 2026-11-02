@@ -1,0 +1,28 @@
+/* A row on paper that leads to another screen: no notch, the text color, as tall as a touch at least */
+.group-row {
+    align-items: center;
+    color: var(--color-content-primary);
+    display: flex;
+    gap: var(--size-2);
+    min-height: var(--size-touch);
+    text-decoration: none;
+}
+
+.group-row__body {
+    display: grid;
+    flex: 1;
+    gap: var(--size-1);
+    min-width: 0;
+}
+
+.group-row__name {
+    overflow-wrap: anywhere;
+}
+
+.group-row__detail {
+    color: var(--color-content-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--font-size-s);
+    gap: 0 var(--size-3);
+}

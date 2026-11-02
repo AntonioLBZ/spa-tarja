@@ -18,12 +18,6 @@ interface GroupViewProps {
     ledger: Ledger;
 }
 
-// Why a closed group is read-only, in words
-const closedNotice = ({ group }: Ledger) => {
-    if (group.closed === 'left') return 'left';
-    return group.kind === 'direct' ? 'deletedFriend' : 'deleted';
-};
-
 // A group or a friend, from the copy on the device: what the person is owed or owes, and who owes whom
 const GroupScreen = (props: GroupScreenProps) => {
     const { groupId } = props;
@@ -62,7 +56,7 @@ const GroupView = (props: GroupViewProps) => {
                 </>
             )}
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('entriesFailed')}</Notice>}
-            {group.closed !== null && <Notice tone="quiet">{t(`closed.${closedNotice(ledger)}`)}</Notice>}
+            {words.closed && <Notice tone="quiet">{t(`closed.${words.closed}`)}</Notice>}
         </section>
     );
 };

@@ -10,6 +10,8 @@ import { memberNames } from './member-names';
 import type { Debt } from '@core/balance';
 import type { SharedGroup } from '@core/shared-group';
 
+type ClosedReason = 'deleted' | 'deletedFriend' | 'left';
+
 // How the screens name a group, its people and their debts, in words: owing isn't an error, so it has no color
 const useGroupWords = (group: SharedGroup) => {
     const t = useTranslations('groups');
@@ -50,13 +52,29 @@ const useGroupWords = (group: SharedGroup) => {
             return t('balance.memberSettled', { name });
         };
 
+        // The balance of a row of the list: a friend who owes the person is named
+        const row = (cents: number) => {
+            if (cents > 0 && group.kind === 'direct') return t('debts.owesYou', { name: title, amount: amount(cents) });
+            return cents === 0 ? t('row.settled') : mine(cents);
+        };
+
         const debt = ({ from, to, cents }: Debt) => {
             if (from === group.me) return t('debts.youOwe', { name: nameOf(to), amount: amount(cents) });
             if (to === group.me) return t('debts.owesYou', { name: nameOf(from), amount: amount(cents) });
             return t('debts.owes', { from: nameOf(from), to: nameOf(to), amount: amount(cents) });
         };
 
-        return { title, nameOf, mine, sentence, debt };
+        // Why a closed group is read-only: the copy of each says it its own way
+        const closed: ClosedReason | null =
+            group.closed === null
+                ? null
+                : group.closed === 'left'
+                  ? 'left'
+                  : group.kind === 'direct'
+                    ? 'deletedFriend'
+                    : 'deleted';
+
+        return { title, closed, nameOf, mine, row, sentence, debt };
     }, [group, locale, t]);
 };
 

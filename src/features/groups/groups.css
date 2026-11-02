@@ -8,3 +8,8 @@
     font-size: var(--font-size-l);
     margin: 0;
 }
+
+.groups__totals {
+    display: grid;
+    gap: var(--size-2);
+}

@@ -287,7 +287,6 @@
     },
     "groups": {
         "title": "Groups",
-        "soon": "Groups are coming soon.",
         "names": {
             "deleted": "Deleted user",
             "numbered": "{name} ({number})",
@@ -321,6 +320,44 @@
                 "deletedFriend": "This friend was removed. What you shared stays as it was.",
                 "left": "You left this group. It stays as it was the day you left."
             }
+        },
+        "offline": "You're offline. Connect to make or change a group.",
+        "empty": "You have no groups or friends yet.",
+        "lists": {
+            "groups": "Groups",
+            "friends": "Friends",
+            "closed": "Closed groups",
+            "archived": "Archived"
+        },
+        "row": {
+            "settled": "Settled",
+            "deleted": "Deleted",
+            "deletedFriend": "No longer a friend",
+            "left": "You left",
+            "shown": "In your expenses",
+            "hidden": "Not in your expenses"
+        },
+        "new": {
+            "title": "New group",
+            "name": "Name",
+            "person": "Add a person",
+            "personHint": "By name, one at a time. They don't need the app.",
+            "add": "Add",
+            "people": "People to add",
+            "remove": "Remove",
+            "removeItem": "Remove {name}",
+            "submit": "Make the group"
+        },
+        "nameInvalid": "Write a name with at least one character that shows.",
+        "failure": {
+            "offline": "You're offline. Connect and try again.",
+            "readOnly": "This group is closed, so nothing in it can change.",
+            "unsynced": "Some of your changes to this group haven't been sent yet. Connect and try again.",
+            "unsettled": "This person's balance isn't zero. Settle up first.",
+            "notOwner": "Only the owner of the group can do that.",
+            "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
+            "tooManyMembers": "This group has {max} people, the most it can have.",
+            "failed": "Couldn't save the change. Try again."
         }
     },
     "summary": {

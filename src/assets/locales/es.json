@@ -287,7 +287,6 @@
     },
     "groups": {
         "title": "Grupos",
-        "soon": "Los grupos llegan pronto.",
         "names": {
             "deleted": "Cuenta eliminada",
             "numbered": "{name} ({number})",
@@ -321,6 +320,44 @@
                 "deletedFriend": "Esta persona ya no está entre tus amigos. Lo que compartíais se queda como estaba.",
                 "left": "Saliste de este grupo. Se queda como estaba el día que saliste."
             }
+        },
+        "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo.",
+        "empty": "Aún no tienes grupos ni amigos.",
+        "lists": {
+            "groups": "Grupos",
+            "friends": "Amigos",
+            "closed": "Grupos cerrados",
+            "archived": "Archivados"
+        },
+        "row": {
+            "settled": "Sin deudas",
+            "deleted": "Eliminado",
+            "deletedFriend": "Ya no está entre tus amigos",
+            "left": "Saliste",
+            "shown": "En tus gastos",
+            "hidden": "Fuera de tus gastos"
+        },
+        "new": {
+            "title": "Nuevo grupo",
+            "name": "Nombre",
+            "person": "Añadir a una persona",
+            "personHint": "Por su nombre, de una en una. No necesita la app.",
+            "add": "Añadir",
+            "people": "Personas que añadir",
+            "remove": "Quitar",
+            "removeItem": "Quitar a {name}",
+            "submit": "Crear el grupo"
+        },
+        "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",
+        "failure": {
+            "offline": "Estás sin conexión. Conéctate e inténtalo de nuevo.",
+            "readOnly": "Este grupo está cerrado, así que no se puede cambiar nada.",
+            "unsynced": "Algunos cambios tuyos en este grupo aún no se han enviado. Conéctate e inténtalo de nuevo.",
+            "unsettled": "El saldo de esta persona no está a cero. Primero hay que saldar cuentas.",
+            "notOwner": "Solo quien administra el grupo puede hacer eso.",
+            "tooManyGroups": "Estás en {max} grupos abiertos, el máximo. Sal de alguno o elimínalo primero.",
+            "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
+            "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
         }
     },
     "summary": {

@@ -144,8 +144,8 @@ describe('header', () => {
 
         fireEvent.click(link(en.nav.groups));
 
-        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
-        expect(screen.getByText(en.groups.soon)).toBeDefined();
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
+        expect(await screen.findByText(en.groups.empty)).toBeDefined();
         expect(underlined()).toEqual([en.nav.groups]);
         expect(link(en.nav.groups).getAttribute('aria-current')).toBe('page');
     });
@@ -153,7 +153,7 @@ describe('header', () => {
     it('opens the Groups screen straight from its address', async () => {
         await home('/groups');
 
-        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
         expect(underlined()).toEqual([en.nav.groups]);
     });
 
@@ -281,7 +281,7 @@ describe('bottom navigation', () => {
         await phone();
 
         fireEvent.click(tab(en.nav.groups));
-        expect(await screen.findByRole('heading', { name: en.groups.title })).toBeDefined();
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
         expect(tab(en.nav.groups).getAttribute('aria-current')).toBe('page');
 
         fireEvent.click(tab(en.nav.expenses));
