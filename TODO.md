@@ -45,17 +45,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, and 21, the maths, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 22. Groups on the server
-
-Part A is done: migration `0011` (`shared_groups`, `shared_members`, and `shared_entries` with its unique `(group_id, seq)`), the body schemas in `core/shared-group.ts`, and every route of [groups](docs/specs/groups.md) but the entries, with their checks and their tests through `signIn(email, name)` (`server/routes/groups.ts` and `members.ts`). The balance checks read the live entries with `listLiveEntries` (`server/db/entries.ts`), and the tests write entries straight into the table with `seedEntry` (`server/test/groups.ts`).
-
-Part B, the entries ([shared expenses](docs/specs/shared-expenses.md), [offline sync](docs/specs/offline-sync.md)):
-
-- `PUT /groups/:groupId/entries/:id`, validated by `sharedEntryInputSchema`: idempotent, applied only when `updatedAt` is strictly newer (otherwise it answers the stored entry), `seq` taken as `MAX(seq) + 1` of the group inside the upsert, `createdBy` and `updatedBy` from the session, a delete being the same `PUT` with `deletedAt`. Refused with `404` (not a member, the same answer as for no group), `409 id-taken` (the id of an entry of another group), `409 closed` (deleted, or the caller left), `400 unknown-category` (only default categories, `isDefaultCategoryId`), `422 unknown-member`, `422 member-left` (a member who left and wasn't in the stored entry, a merged placeholder read as its target) and `422 currency-mismatch`.
-- `GET /groups/:groupId/entries?after=&limit=`: the changes after the cursor, tombstones included, with the new cursor, cut at `left_seq` for a member who left (the members of a deleted group read all of it).
-- Tests for several users: a stranger never reads or writes an entry, every refusal above, last write wins, the cut of a member who left, and that the route writes what `seedEntry` writes. Watch that an entry edited after a member left moves past their `left_seq`: they keep the version their device holds, and never read it if their device hadn't pulled it before they left.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, and 22, the groups on the server, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 23. Groups on the device
 
@@ -79,7 +69,7 @@ The shared rows in the list, the summary, the charts, the budgets and their warn
 
 ### 28. Simplified debts
 
-The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`) and the column comes in 22.
+The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`), and so are the column and its change through `PUT /groups/:id` on the server.
 
 ### 29. Delete the account
 
