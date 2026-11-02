@@ -5,13 +5,14 @@ import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-st
 import { profileInputSchema, type Profile } from '@core/profile';
 
 import { TEST_USER } from './fake-auth';
+import { createFakeGroups, type FakeGroupsOptions, type Refusal } from './fake-groups';
 
 import type { Handler } from './render-app';
 import type { Budget, BudgetLimitsInput } from '@core/budget';
 import type { Expense } from '@core/expense';
 import type { Income, IncomeInput } from '@core/income';
 
-interface FakeApiOptions {
+interface FakeApiOptions extends FakeGroupsOptions {
     expenses?: Expense[];
     categories?: Category[];
     income?: Income[];
@@ -67,11 +68,33 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         profileWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
+        // Answers every change of a group or of its people with it, or null to accept them
+        groupRefusal: null as Refusal | null,
+        // Answers every write of an entry of a group with it, or null to accept them
+        entryRefusal: null as Refusal | null,
+        // An entry of a group lands, and then the connection drops before its answer arrives
+        loseEntryAnswers: false,
     };
 
-    const handler: Handler = (url, init) => {
+    const fakeGroups = createFakeGroups(options, state, profile);
+
+    // While a test holds it, every request waits for the function it hands back to be called
+    let gate: Promise<void> | null = null;
+    const hold = () => {
+        let release: () => void = () => undefined;
+        gate = new Promise((resolve) => {
+            release = resolve;
+        });
+        return () => {
+            gate = null;
+            release();
+        };
+    };
+
+    const handler: Handler = async (url, init) => {
         const method = init?.method ?? 'GET';
         requests.push(`${method} ${url.pathname}${url.search}`);
+        if (gate) await gate;
 
         if (state.offline) throw new TypeError('Failed to fetch');
 
@@ -90,6 +113,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
                 hasMore: changes.length > page.length,
             });
         }
+
+        if (url.pathname.startsWith('/api/groups')) return fakeGroups.handle(url, method, init);
 
         if (url.pathname === '/api/categories' && method === 'GET') return Response.json({ categories });
 
@@ -208,6 +233,14 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgetBodies,
         profile,
         profileBodies,
+        hold,
+        groups: fakeGroups.groups,
+        groupRequests: fakeGroups.groupRequests,
+        entryAttempts: fakeGroups.entryAttempts,
+        entryWrites: fakeGroups.entryWrites,
+        entriesOf: fakeGroups.entriesOf,
+        cursorOf: fakeGroups.cursorOf,
+        serverWriteEntry: fakeGroups.serverWriteEntry,
     };
 };
 
