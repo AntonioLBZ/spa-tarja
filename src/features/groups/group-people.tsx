@@ -39,7 +39,7 @@ const GroupPeople = (props: GroupPeopleProps) => {
         [entries, group.members]
     );
     const people = group.members.filter((member) => member.leftAt === null);
-    // Where the focus goes when the row that had it is removed
+    // Where the focus goes when the row that had it leaves, or stops opening
     const heading = useRef<HTMLHeadingElement>(null);
 
     return (
@@ -53,7 +53,7 @@ const GroupPeople = (props: GroupPeopleProps) => {
                             member={member}
                             cents={hasData ? (balances.get(member.id) ?? 0) : null}
                             disabled={disabled}
-                            onRemoved={() => heading.current?.focus()}
+                            onGone={() => heading.current?.focus()}
                         />
                     ))}
                 </CardList>

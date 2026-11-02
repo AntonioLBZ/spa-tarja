@@ -30,6 +30,10 @@ describe('failureOf', () => {
         ['unsettled', 'unsettled'],
         ['not-owner', 'notOwner'],
         ['owner', 'ownerLeaves'],
+        ['unknown-member', 'memberGone'],
+        ['member-left', 'memberGone'],
+        ['not-a-user', 'notAUser'],
+        ['not-placeholder', 'notPlaceholder'],
         ['too-many-groups', 'tooManyGroups'],
         ['too-many-members', 'tooManyMembers'],
     ] as const)('reads the refusal of the server %s', (code, failure) => {
@@ -44,12 +48,20 @@ describe('failureOf', () => {
 });
 
 describe('useFailureWords', () => {
-    it.each(['offline', 'readOnly', 'unsynced', 'unsettled', 'notOwner', 'ownerLeaves', 'failed'] as const)(
-        'words %s',
-        (failure) => {
-            expect(words(failure)).toBe(text[failure]);
-        }
-    );
+    it.each([
+        'offline',
+        'readOnly',
+        'unsynced',
+        'unsettled',
+        'notOwner',
+        'ownerLeaves',
+        'memberGone',
+        'notAUser',
+        'notPlaceholder',
+        'failed',
+    ] as const)('words %s', (failure) => {
+        expect(words(failure)).toBe(text[failure]);
+    });
 
     it('says the limits it is about', () => {
         expect(words('tooManyGroups')).toBe(text.tooManyGroups.replace('{max}', String(MAX_OPEN_GROUPS)));

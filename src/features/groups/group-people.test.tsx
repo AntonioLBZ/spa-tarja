@@ -288,6 +288,138 @@ describe('adding a person', () => {
     });
 });
 
+describe('merging', () => {
+    it('lets the owner merge a dummy into a member who uses the app, after saying it cannot be undone', async () => {
+        const { memberOf } = await edit(trip());
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+
+        expect(screen.getByText(t('groups.people.mergeQuestion', { name: 'Cris' }))).toBeDefined();
+        expect(document.activeElement).toBe(screen.getByRole('combobox', { name: text.mergeInto }));
+        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.you, 'Bea']);
+        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
+
+        await waitFor(() => expect(memberOf(cris.id)?.mergedInto).toBe(bea.id));
+        await waitFor(() => expect(rows()).toHaveLength(2));
+        await waitFor(() =>
+            expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: text.title }))
+        );
+    });
+
+    it('goes back to the actions on Cancel, with the focus on Merge and nothing sent', async () => {
+        const { api } = await edit(trip());
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        fireEvent.click(button(text.cancel));
+
+        expect(screen.queryByText(t('groups.people.mergeQuestion', { name: 'Cris' }))).toBeNull();
+        expect(document.activeElement).toBe(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        expect(api.groupRequests).toEqual([]);
+    });
+
+    it('is not offered on a member who uses the app', async () => {
+        await edit(trip());
+
+        fireEvent.click(row('Bea'));
+
+        expect(screen.queryByRole('button', { name: t('groups.people.mergeItem', { name: 'Bea' }) })).toBeNull();
+    });
+
+    it('is not offered to a member who is not the owner, for whom a dummy has nothing to open', async () => {
+        await edit(trip(bea));
+
+        expect(within(sheet()).queryByRole('button', { name: /^Cris/ })).toBeNull();
+    });
+
+    it.each([
+        ['not-placeholder', en.groups.failure.notPlaceholder],
+        ['member-left', en.groups.failure.memberGone],
+        ['not-a-user', en.groups.failure.notAUser],
+    ])('says in words why the server refused it (%s)', async (error, words) => {
+        const { api } = await edit(trip());
+        api.state.groupRefusal = { status: 409, error };
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
+
+        expect((await screen.findByRole('alert')).textContent).toBe(words);
+        expect(rows()).toHaveLength(3);
+    });
+});
+
+describe('making someone owner', () => {
+    it('asks with the focus on Cancel, then hands the group over and the row says so', async () => {
+        const { api } = await edit(trip());
+
+        fireEvent.click(row('Bea'));
+        fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+
+        expect(screen.getByText(t('groups.people.makeOwnerQuestion', { name: 'Bea' }))).toBeDefined();
+        expect(document.activeElement).toBe(button(text.cancel));
+
+        fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+
+        await waitFor(() =>
+            expect(api.groups[0]!.members.map((member) => member.role)).toEqual(['member', 'owner', 'member', 'member'])
+        );
+        await waitFor(() =>
+            expect(rows()[1]).toBe(
+                `Bea${text.owner}${t('groups.balance.memberOwes', { name: 'Bea', amount: euros(1000) })}`
+            )
+        );
+        expect(rows()[0]).toBe(`Ana${text.you}${t('groups.balance.owed', { amount: euros(1000) })}`);
+        expect(within(sheet()).queryByRole('button', { name: /^Bea/ })).toBeNull();
+        await waitFor(() =>
+            expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: text.title }))
+        );
+    });
+
+    it('gives the focus back to Make owner when the question is cancelled', async () => {
+        const { api } = await edit(trip());
+
+        fireEvent.click(row('Bea'));
+        fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+        fireEvent.click(button(text.cancel));
+
+        expect(document.activeElement).toBe(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+        expect(api.groupRequests).toEqual([]);
+    });
+
+    it('is not offered on a dummy nor on yourself', async () => {
+        await edit(trip());
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(row('Ana'));
+
+        expect(screen.queryByRole('button', { name: t('groups.people.makeOwnerItem', { name: 'Cris' }) })).toBeNull();
+        expect(screen.queryByRole('button', { name: t('groups.people.makeOwnerItem', { name: 'Ana' }) })).toBeNull();
+    });
+
+    it('is not offered to a member who is not the owner', async () => {
+        await edit(trip(bea));
+
+        fireEvent.click(row('Bea'));
+
+        expect(screen.queryByRole('button', { name: /^Make owner/ })).toBeNull();
+    });
+
+    it('says in words why the server refused it', async () => {
+        const { api } = await edit(trip());
+        api.state.groupRefusal = { status: 422, error: 'member-left' };
+
+        fireEvent.click(row('Bea'));
+        fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+        fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.memberGone);
+    });
+});
+
 describe('without a connection', () => {
     it('turns adding and the actions of every person off', async () => {
         await edit(trip());
@@ -299,7 +431,10 @@ describe('without a connection', () => {
         expect(button(text.addSubmit).disabled).toBe(true);
         fireEvent.click(row('Bea'));
         expect(button(t('groups.people.renameItem', { name: 'Bea' })).disabled).toBe(true);
+        expect(button(t('groups.people.makeOwnerItem', { name: 'Bea' })).disabled).toBe(true);
         expect(button(t('groups.people.removeItem', { name: 'Bea' })).disabled).toBe(true);
+        fireEvent.click(row('Cris'));
+        expect(button(t('groups.people.mergeItem', { name: 'Cris' })).disabled).toBe(true);
     });
 });
 
@@ -309,14 +444,17 @@ describe('in Spanish', () => {
         const group = trip();
         stubApi(createFakeApi({ groups: [group] }).handler);
         renderApp({ path: `/groups/${group.id}/edit` });
-        const people = await screen.findByRole('heading', { level: 2, name: es.groups.people.title });
+        const people = (await screen.findByRole('heading', { level: 2, name: es.groups.people.title })).closest(
+            'section'
+        )!;
 
-        fireEvent.click(within(people.closest('section')!).getByRole('button', { name: /^Bea/ }));
+        fireEvent.click(within(people).getByRole('button', { name: /^Bea/ }));
+        fireEvent.click(within(people).getByRole('button', { name: /^Cris/ }));
 
-        const actions = within(people.closest('section')!)
+        const actions = within(people)
             .getAllByRole('button')
             .filter((action) => action.hasAttribute('aria-label'));
-        expect(actions).toHaveLength(2);
+        expect(actions).toHaveLength(6);
         for (const action of actions) {
             expect(action.getAttribute('aria-label')!.toLowerCase()).toContain(action.textContent!.toLowerCase());
         }

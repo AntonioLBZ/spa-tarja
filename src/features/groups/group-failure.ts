@@ -14,6 +14,9 @@ type GroupFailure =
     | 'unsettled'
     | 'notOwner'
     | 'ownerLeaves'
+    | 'memberGone'
+    | 'notAUser'
+    | 'notPlaceholder'
     | 'tooManyGroups'
     | 'tooManyMembers'
     | 'failed';
@@ -23,6 +26,10 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     unsettled: 'unsettled',
     'not-owner': 'notOwner',
     owner: 'ownerLeaves',
+    'unknown-member': 'memberGone',
+    'member-left': 'memberGone',
+    'not-a-user': 'notAUser',
+    'not-placeholder': 'notPlaceholder',
     'too-many-groups': 'tooManyGroups',
     'too-many-members': 'tooManyMembers',
 };
