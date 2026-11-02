@@ -45,19 +45,15 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, and 22, the groups on the server, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 23. Groups on the device
-
-The `groups` and `group-entries` queries in the persisted cache, the second outbox, the sync per group, `createFakeApi` with groups, and closed and archived groups ([offline sync](docs/specs/offline-sync.md)). Tested offline and with a dropped connection. The push of a group's outbox and the pull of its changes that leaving waits for: a person who left never reads a later edit.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, and 23, the groups on the device, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 24. The screens of groups and friends
 
-Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new, or in place of a dummy for the owner), the merge, leave (only once the group's outbox is pushed and its changes pulled, else it says why) and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)).
+Groups, closed and archived groups, a group, its settings, the people and adding a dummy or a friend (new, or in place of a dummy for the owner), the merge, leave (only once the group's outbox is pushed and its changes pulled, else it says why) and delete, the switches Show in my expenses and Archive, the balances and the settle up form, with their stories and copy in `en` and `es` ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)). The data is ready in `src/features/groups` (`useGroups`, `useLedgers`, `useGroupActions`, whose refusals on the device are a `LocalRefusal` with `offline`, `read-only` or `unsynced`). `GET /groups` carries no day a group was deleted, which the notice of a closed group names ("deleted on 12 Nov"): add it to the answer, or word the notice without it.
 
 ### 25. Sharing an expense
 
-The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` and its story come with it.
+The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` and its story come with it. Entries are written with `useEntryActions`; the outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device.
 
 ### 26. Friends by invitation
 
