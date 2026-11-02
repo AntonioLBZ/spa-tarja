@@ -199,7 +199,7 @@ const createGroup = async (
     try {
         await db.batch([
             db.prepare(INSERT_GROUP).bind(groupId, input.kind, input.name, input.currency, maker.userId, now),
-            insertPerson(db, member(input.me.id, 0), maker, 'owner'),
+            insertPerson(db, member(input.me.id, 0), maker, 'owner', null),
             ...input.others.map((other, index) => insertPlaceholder(db, member(other.id, index + 1), other.name)),
         ]);
         return 'created';

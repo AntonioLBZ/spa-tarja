@@ -52,7 +52,9 @@ const groupsRoutes = new Hono<AppEnv>()
                 input.kind === 'group' ? [MAX_OPEN_GROUPS, 'too-many-groups'] : [MAX_FRIENDS, 'too-many-friends'];
             if ((await countOpenGroups(db, userId, input.kind)) >= limit) return c.json({ error }, 409);
             const maker = { userId, name: personName(await readProfile(db, userId)) };
-            if ((await createGroup(db, maker, groupId, input)) === 'id-taken') {
+            // The same write sent at the same moment may have made it first
+            const made = await createGroup(db, maker, groupId, input);
+            if (made === 'id-taken' && !(await readGroup(db, userId, groupId))) {
                 return c.json({ error: 'id-taken' }, 409);
             }
             return c.json(await readSharedGroup(db, userId, groupId), 200);

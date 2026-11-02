@@ -4,7 +4,6 @@ import * as v from 'valibot';
 
 import { memberBalances } from '@core/balance';
 import {
-    MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
     groupIdSchema,
     memberIdSchema,
@@ -13,7 +12,7 @@ import {
     personName,
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
-import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
+import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup } from '@server/db/groups';
 import { addFriend, addPlaceholder, findFriend, leaveGroup, mergeMember, renameMember } from '@server/db/members';
 import { readProfile } from '@server/db/profile';
 
@@ -22,11 +21,6 @@ import { CLOSED, NOT_FOUND } from './groups';
 import type { AppEnv } from '@server/env';
 
 const memberParam = sValidator('param', v.object({ groupId: groupIdSchema, memberId: memberIdSchema }));
-
-// Those who count toward the limit of a group
-const openMembers = ({ members }: GroupState): number => {
-    return members.filter((member) => member.leftAt === null).length;
-};
 
 const membersRoutes = new Hono<AppEnv>()
     .put('/:groupId/members/:memberId', memberParam, sValidator('json', memberWriteSchema), async (c) => {
@@ -50,8 +44,14 @@ const membersRoutes = new Hono<AppEnv>()
                 return answer();
             }
             if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
-            if (openMembers(state) >= MAX_GROUP_MEMBERS) return c.json({ error: 'too-many-members' }, 409);
-            if ((await addPlaceholder(db, added, input.name)) === 'id-taken') return c.json({ error: 'id-taken' }, 409);
+            const result = await addPlaceholder(db, added, input.name);
+            if (result === 'full') return c.json({ error: 'too-many-members' }, 409);
+            // The same write sent at the same moment may have added it first
+            if (result === 'id-taken') {
+                const now = await readGroup(db, userId, groupId);
+                const landed = now?.members.find((member) => member.id === memberId);
+                if (landed?.name !== input.name) return c.json({ error: 'id-taken' }, 409);
+            }
             return answer();
         }
 
@@ -70,9 +70,7 @@ const membersRoutes = new Hono<AppEnv>()
             return c.json({ error: 'already-member' }, 409);
         }
 
-        if (input.replaces === undefined) {
-            if (openMembers(state) >= MAX_GROUP_MEMBERS) return c.json({ error: 'too-many-members' }, 409);
-        } else {
+        if (input.replaces !== undefined) {
             // In place of a dummy is a merge, which only the owner makes
             if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             const dummy = state.members.find((member) => member.id === input.replaces);
@@ -85,8 +83,14 @@ const membersRoutes = new Hono<AppEnv>()
         }
 
         const person = { userId: friendUser, name: personName(await readProfile(db, friendUser)) };
-        if ((await addFriend(db, added, person, input.replaces ?? null)) === 'id-taken') {
-            return c.json({ error: 'id-taken' }, 409);
+        const result = await addFriend(db, added, person, input.replaces ?? null);
+        if (result === 'full') return c.json({ error: 'too-many-members' }, 409);
+        if (result === 'id-taken') {
+            // The same write sent at the same moment may have added them first
+            const now = await readGroup(db, userId, groupId);
+            if (now?.members.find((member) => member.id === memberId)?.userId === friendUser) return answer();
+            const already = now?.members.some((member) => member.userId === friendUser);
+            return c.json({ error: already ? 'already-member' : 'id-taken' }, 409);
         }
         return answer();
     })

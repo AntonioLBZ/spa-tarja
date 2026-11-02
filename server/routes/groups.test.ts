@@ -186,6 +186,19 @@ describe('PUT /api/groups/:id, a new group', () => {
         expect(await rows('shared_members', id)).toBe(3);
     });
 
+    it('answers the same to the same make sent several times at once, and makes it once', async () => {
+        const id = crypto.randomUUID();
+        const body = trip();
+
+        const responses = await Promise.all([put(ana, id, body), put(ana, id, body), put(ana, id, body)]);
+
+        const groups = await Promise.all(responses.map(groupOf));
+        expect(groups[1]).toEqual(groups[0]);
+        expect(groups[2]).toEqual(groups[0]);
+        expect(await rows('shared_groups', id)).toBe(1);
+        expect(await rows('shared_members', id)).toBe(3);
+    });
+
     it('answers 409 id-taken for the id of a group of somebody else, and leaves it as it was', async () => {
         const theirs = await makeGroup(bruno, ['Carla'], 'Flat');
 

@@ -565,6 +565,44 @@ describe('POST /api/groups/:groupId/members/:memberId/merge', () => {
     });
 });
 
+describe('writes at the same moment', () => {
+    it('add the same dummy once, and answer each the group', async () => {
+        const group = await makeGroup(ana);
+        const id = crypto.randomUUID();
+
+        const responses = await Promise.all([1, 2, 3].map(() => putMember(ana, group.id, id, { name: 'Dani' })));
+
+        for (const response of responses) expect((await groupOf(response)).members).toHaveLength(2);
+    });
+
+    it('add the same friend once, and answer each the group', async () => {
+        const group = await makeGroup(ana);
+        const friend = await befriend(ana, bruno);
+        const id = crypto.randomUUID();
+
+        const responses = await Promise.all([1, 2, 3].map(() => putMember(ana, group.id, id, { friend: friend.id })));
+
+        for (const response of responses) expect((await groupOf(response)).members).toHaveLength(2);
+    });
+
+    it(`never take a group past ${MAX_GROUP_MEMBERS} members`, async () => {
+        const dummies = Array.from({ length: MAX_GROUP_MEMBERS - 2 }, (_, index) => `Dummy ${index}`);
+        const group = await makeGroup(ana, dummies);
+
+        const responses = await Promise.all(
+            Array.from({ length: 6 }, (_, index) =>
+                putMember(ana, group.id, crypto.randomUUID(), { name: `Someone ${index}` })
+            )
+        );
+
+        expect(responses.filter((response) => response.status === 200)).toHaveLength(1);
+        for (const response of responses.filter((candidate) => candidate.status !== 200)) {
+            expect(await error(response, 409)).toBe('too-many-members');
+        }
+        expect((await groupOfAna(group.id)).members).toHaveLength(MAX_GROUP_MEMBERS);
+    });
+});
+
 describe('a member who left', () => {
     it('can write nothing more to the group', async () => {
         const { group, bruno: brunoId } = await tripWithBruno(['Carla']);
