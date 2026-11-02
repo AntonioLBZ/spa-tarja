@@ -44,6 +44,14 @@ function put(as: TestSession, id: string, body: unknown) {
     return send(as, 'PUT', `/groups/${id}`, body);
 }
 
+function handOver(as: TestSession, id: string, memberId: string) {
+    return send(as, 'POST', `/groups/${id}/owner`, { memberId });
+}
+
+function switches(as: TestSession, id: string, body: unknown) {
+    return send(as, 'PUT', `/groups/${id}/me`, body);
+}
+
 function remove(as: TestSession, id: string) {
     return send(as, 'DELETE', `/groups/${id}`);
 }
@@ -398,6 +406,100 @@ describe('DELETE /api/groups/:id', () => {
     });
 });
 
+describe('POST /api/groups/:id/owner', () => {
+    it('hands the group over to a member who is a user, who then does what the owner does', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+
+        const after = await groupOf(await handOver(ana, group.id, brunoId));
+
+        expect(after.members.map((member) => member.role)).toEqual(['member', 'owner']);
+        expect((await groupOf(await put(bruno, group.id, { name: 'Flat' }))).name).toBe('Flat');
+        expect(await (await put(ana, group.id, { name: 'Trip' })).json()).toEqual({ error: 'not-owner' });
+        expect((await groupOf(await send(ana, 'DELETE', `/groups/${group.id}/members/${group.me}`))).closed).toBe(
+            'left'
+        );
+    });
+
+    it('answers the group when it is sent again', async () => {
+        const group = await sharedWithBruno();
+        const first = await groupOf(await handOver(ana, group.id, memberNamed(group, 'Bruno')));
+
+        expect(await groupOf(await handOver(bruno, group.id, memberNamed(group, 'Bruno')))).toEqual({
+            ...first,
+            me: memberNamed(group, 'Bruno'),
+        });
+    });
+
+    it('hands it over to nobody but a member who is a user and hasn’t left', async () => {
+        const group = await makeGroup(ana, ['Bruno', 'Carla']);
+        await claim(memberNamed(group, 'Bruno'), bruno);
+        await groupOf(await send(bruno, 'DELETE', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`));
+
+        const toDummy = await handOver(ana, group.id, memberNamed(group, 'Carla'));
+        const toLeft = await handOver(ana, group.id, memberNamed(group, 'Bruno'));
+        const toNobody = await handOver(ana, group.id, crypto.randomUUID());
+
+        expect([toDummy.status, await toDummy.json()]).toEqual([409, { error: 'not-a-user' }]);
+        expect([toLeft.status, await toLeft.json()]).toEqual([422, { error: 'member-left' }]);
+        expect([toNobody.status, await toNobody.json()]).toEqual([422, { error: 'unknown-member' }]);
+        expect((await listGroups(ana))[0]?.members[0]?.role).toBe('owner');
+    });
+
+    it('lets nobody but the owner hand the group over', async () => {
+        const group = await sharedWithBruno();
+
+        const response = await handOver(bruno, group.id, memberNamed(group, 'Bruno'));
+
+        expect([response.status, await response.json()]).toEqual([403, { error: 'not-owner' }]);
+    });
+
+    it('has nothing to hand over in a friend', async () => {
+        const friend = await befriend(ana, bruno);
+
+        const response = await handOver(ana, friend.id, friend.b);
+
+        expect([response.status, await response.json()]).toEqual([409, { error: 'direct' }]);
+    });
+});
+
+describe('PUT /api/groups/:id/me', () => {
+    it('switches whether the group is in the caller’s expenses, and nobody else’s', async () => {
+        const group = await sharedWithBruno();
+
+        const off = await groupOf(await switches(ana, group.id, { showInExpenses: false }));
+
+        expect(off).toEqual({ ...group, showInExpenses: false, members: off.members });
+        expect((await listGroups(bruno))[0]?.showInExpenses).toBe(true);
+        expect((await groupOf(await switches(ana, group.id, { showInExpenses: true }))).showInExpenses).toBe(true);
+    });
+
+    it('archives only a closed group, and brings it back', async () => {
+        const group = await makeGroup(ana);
+
+        const open = await switches(ana, group.id, { archived: true });
+        const notArchived = await groupOf(await switches(ana, group.id, { archived: false }));
+        await groupOf(await remove(ana, group.id));
+        const archived = await groupOf(await switches(ana, group.id, { archived: true }));
+        const back = await groupOf(await switches(ana, group.id, { archived: false }));
+
+        expect([open.status, await open.json()]).toEqual([409, { error: 'not-closed' }]);
+        expect(notArchived.archived).toBe(false);
+        expect(archived).toMatchObject({ closed: 'deleted', archived: true });
+        expect(back).toMatchObject({ closed: 'deleted', archived: false });
+    });
+
+    it('lets a member who left archive the group and take it out of their expenses', async () => {
+        const group = await sharedWithBruno();
+        await groupOf(await send(bruno, 'DELETE', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`));
+
+        const after = await groupOf(await switches(bruno, group.id, { archived: true, showInExpenses: false }));
+
+        expect(after).toMatchObject({ closed: 'left', archived: true, showInExpenses: false });
+        expect((await listGroups(ana))[0]).toMatchObject({ archived: false, showInExpenses: true });
+    });
+});
+
 describe('a closed group', () => {
     it('takes no write once it is deleted', async () => {
         const group = await sharedWithBruno();
@@ -414,6 +516,8 @@ describe('a closed group', () => {
             send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { friend: friend.id }),
             send(ana, 'DELETE', `/groups/${group.id}/members/${carlaId}`),
             send(bruno, 'DELETE', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`),
+            send(ana, 'POST', `/groups/${group.id}/members/${carlaId}/merge`, { into: memberNamed(group, 'Bruno') }),
+            handOver(ana, group.id, memberNamed(group, 'Bruno')),
         ];
 
         for (const response of await Promise.all(writes)) {
@@ -457,6 +561,14 @@ describe('a stranger', () => {
         expect(theirs.status).toBe(404);
         expect(missing.status).toBe(404);
         expect(await theirs.text()).toBe(await missing.text());
+        for (const write of [
+            (id: string) => handOver(carla, id, memberNamed(group, 'Bruno')),
+            (id: string) => switches(carla, id, { showInExpenses: false }),
+        ]) {
+            const response = await write(group.id);
+            expect(response.status).toBe(404);
+            expect(await response.text()).toBe(await (await write(crypto.randomUUID())).text());
+        }
         const deleted = await remove(carla, group.id);
         expect(deleted.status).toBe(404);
         expect(await deleted.text()).toBe(await (await remove(carla, crypto.randomUUID())).text());

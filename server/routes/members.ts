@@ -9,10 +9,11 @@ import {
     groupIdSchema,
     memberIdSchema,
     memberWriteSchema,
+    mergeSchema,
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
-import { addFriend, addPlaceholder, findFriend, leaveGroup, renameMember } from '@server/db/members';
+import { addFriend, addPlaceholder, findFriend, leaveGroup, mergeMember, renameMember } from '@server/db/members';
 
 import { CLOSED, NOT_FOUND } from './groups';
 
@@ -83,6 +84,32 @@ const membersRoutes = new Hono<AppEnv>()
             return c.json({ error: 'id-taken' }, 409);
         }
         return answer();
+    })
+    .post('/:groupId/members/:memberId/merge', memberParam, sValidator('json', mergeSchema), async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const { groupId, memberId } = c.req.valid('param');
+        const { into } = c.req.valid('json');
+        const state = await readGroup(db, userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+        const dummy = state.members.find((member) => member.id === memberId);
+        if (!dummy) return c.json({ error: 'unknown-member' }, 404);
+
+        // Only a placeholder, only into a user, so a merge is one step and never a chain (ADR-0014)
+        if (dummy.mergedInto !== into) {
+            if (closedFor(state)) return c.json(CLOSED, 409);
+            if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
+            if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
+            if (into === dummy.id) return c.json({ error: 'into-itself' }, 409);
+            if (dummy.claimed) return c.json({ error: 'not-placeholder' }, 409);
+            if (dummy.leftAt !== null) return c.json({ error: 'member-left' }, 409);
+            const target = state.members.find((member) => member.id === into);
+            if (!target) return c.json({ error: 'unknown-member' }, 422);
+            if (target.leftAt !== null) return c.json({ error: 'member-left' }, 422);
+            if (target.userId === null) return c.json({ error: 'not-a-user' }, 409);
+            await mergeMember(db, dummy.id, target.id);
+        }
+        return c.json(await readSharedGroup(db, userId, groupId), 200);
     })
     .delete('/:groupId/members/:memberId', memberParam, async (c) => {
         const db = c.env.DB;

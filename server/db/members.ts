@@ -1,4 +1,4 @@
-import type { MemberRole } from '@core/shared-group';
+import type { MemberRole, MySwitches } from '@core/shared-group';
 
 // What a person is called when they make or join a group: their nickname, else the name of their account, as it is then
 const PERSON_NAME = `(SELECT COALESCE(profile.nickname, "user".name) FROM "user" LEFT JOIN profile ON profile.user_id = "user".id WHERE "user".id = ?3)`;
@@ -68,6 +68,33 @@ const leaveGroup = async (db: D1Database, memberId: string): Promise<void> => {
         .run();
 };
 
+// From then on the placeholder's id means `into`, and it has left
+const mergeMember = async (db: D1Database, memberId: string, into: string): Promise<void> => {
+    await db.prepare(MERGE).bind(memberId, into, Date.now()).run();
+};
+
+// The owner becomes a member, and that member the owner, together
+const handOver = async (db: D1Database, groupId: string, to: string): Promise<void> => {
+    await db.batch([
+        db.prepare(`UPDATE shared_members SET role = 'member' WHERE group_id = ?1 AND role = 'owner'`).bind(groupId),
+        db.prepare(`UPDATE shared_members SET role = 'owner' WHERE id = ?1`).bind(to),
+    ]);
+};
+
+// A switch that isn't sent stays as it is; archiving again keeps the day it was archived
+const saveMySwitches = async (db: D1Database, memberId: string, switches: MySwitches): Promise<void> => {
+    const flag = (value: boolean | undefined) => (value === undefined ? null : Number(value));
+    await db
+        .prepare(
+            `UPDATE shared_members SET
+                show_in_expenses = COALESCE(?2, show_in_expenses),
+                archived_at = CASE ?3 WHEN 1 THEN COALESCE(archived_at, ?4) WHEN 0 THEN NULL ELSE archived_at END
+             WHERE id = ?1`
+        )
+        .bind(memberId, flag(switches.showInExpenses), flag(switches.archived), Date.now())
+        .run();
+};
+
 // Nothing when the group isn't an open friend of the user's
 const findFriend = async (
     db: D1Database,
@@ -99,9 +126,12 @@ export {
     addFriend,
     addPlaceholder,
     findFriend,
+    handOver,
     insertPerson,
     insertPlaceholder,
     isUniqueViolation,
     leaveGroup,
+    mergeMember,
     renameMember,
+    saveMySwitches,
 };

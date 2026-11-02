@@ -3,7 +3,14 @@ import { Hono } from 'hono';
 import * as v from 'valibot';
 
 import { memberBalances } from '@core/balance';
-import { MAX_FRIENDS, MAX_OPEN_GROUPS, groupIdSchema, groupWriteSchema } from '@core/shared-group';
+import {
+    MAX_FRIENDS,
+    MAX_OPEN_GROUPS,
+    groupIdSchema,
+    groupWriteSchema,
+    mySwitchesSchema,
+    ownerSchema,
+} from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import {
     changeGroup,
@@ -16,6 +23,7 @@ import {
     readGroup,
     readSharedGroup,
 } from '@server/db/groups';
+import { handOver, saveMySwitches } from '@server/db/members';
 
 import type { AppEnv } from '@server/env';
 
@@ -76,6 +84,39 @@ const groupsRoutes = new Hono<AppEnv>()
             }
             await deleteGroup(db, groupId);
         }
+        return c.json(await readSharedGroup(db, userId, groupId), 200);
+    })
+    .post('/:groupId/owner', groupParam, sValidator('json', ownerSchema), async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const { groupId } = c.req.valid('param');
+        const { memberId } = c.req.valid('json');
+        const state = await readGroup(db, userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+        const target = state.members.find((member) => member.id === memberId);
+        if (!target) return c.json({ error: 'unknown-member' }, 422);
+
+        if (target.role !== 'owner') {
+            if (closedFor(state)) return c.json(CLOSED, 409);
+            if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
+            if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
+            if (target.leftAt !== null) return c.json({ error: 'member-left' }, 422);
+            if (target.userId === null) return c.json({ error: 'not-a-user' }, 409);
+            await handOver(db, groupId, target.id);
+        }
+        return c.json(await readSharedGroup(db, userId, groupId), 200);
+    })
+    // The caller's own switches, which a closed group keeps too
+    .put('/:groupId/me', groupParam, sValidator('json', mySwitchesSchema), async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const { groupId } = c.req.valid('param');
+        const input = c.req.valid('json');
+        const state = await readGroup(db, userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+
+        if (input.archived && !closedFor(state)) return c.json({ error: 'not-closed' }, 409);
+        await saveMySwitches(db, state.me.id, input);
         return c.json(await readSharedGroup(db, userId, groupId), 200);
     });
 

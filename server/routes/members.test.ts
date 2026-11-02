@@ -56,6 +56,10 @@ function removeMember(as: TestSession, groupId: string, memberId: string) {
     return send(as, 'DELETE', `/groups/${groupId}/members/${memberId}`);
 }
 
+function merge(as: TestSession, groupId: string, memberId: string, into: string) {
+    return send(as, 'POST', `/groups/${groupId}/members/${memberId}/merge`, { into });
+}
+
 async function groupOfAna(groupId: string) {
     const group = (await listGroups(ana)).find((candidate) => candidate.id === groupId);
     if (!group) throw new Error('Ana is not in the group');
@@ -462,6 +466,83 @@ describe('DELETE /api/groups/:groupId/members/:memberId', () => {
     });
 });
 
+describe('POST /api/groups/:groupId/members/:memberId/merge', () => {
+    it('lets the owner merge a dummy into a member who is a user, whose balance it becomes', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Bruno', 'Carla']);
+        const dummy = memberNamed(group, 'Bruno');
+        await seedEntry(group.id, { paidBy: group.me, shares: { [dummy]: 600 } });
+
+        const after = await groupOf(await merge(ana, group.id, dummy, brunoId));
+
+        expect(member(after, dummy)).toEqual({
+            id: dummy,
+            name: 'Bruno',
+            role: 'member',
+            claimed: false,
+            leftAt: expect.any(Number),
+            mergedInto: brunoId,
+        });
+        expect(member(after, memberNamed(group, 'Carla'))).toMatchObject({ leftAt: null, mergedInto: null });
+        expect(await error(await removeMember(bruno, group.id, brunoId), 409)).toBe('unsettled');
+    });
+
+    it('answers the group when it is sent again', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Bruno']);
+        const dummy = memberNamed(group, 'Bruno');
+        const first = await groupOf(await merge(ana, group.id, dummy, brunoId));
+
+        expect(await groupOf(await merge(ana, group.id, dummy, brunoId))).toEqual(first);
+    });
+
+    it('merges a dummy only into a member who is a user, never into a dummy or into itself', async () => {
+        const { group } = await tripWithBruno(['Carla', 'Dani']);
+        const carlaId = memberNamed(group, 'Carla');
+
+        const intoDummy = await merge(ana, group.id, carlaId, memberNamed(group, 'Dani'));
+        const intoItself = await merge(ana, group.id, carlaId, carlaId);
+
+        expect(await error(intoDummy, 409)).toBe('not-a-user');
+        expect(await error(intoItself, 409)).toBe('into-itself');
+        expect(member(await groupOfAna(group.id), carlaId)).toMatchObject({ leftAt: null, mergedInto: null });
+    });
+
+    it('never merges a member who is a user', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+
+        expect(await error(await merge(ana, group.id, brunoId, group.me), 409)).toBe('not-placeholder');
+        expect(await error(await merge(ana, group.id, group.me, brunoId), 409)).toBe('not-placeholder');
+    });
+
+    it('refuses a member the group doesn’t have, and one who has left, on either side', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Carla', 'Dani']);
+        const carlaId = memberNamed(group, 'Carla');
+        const daniId = memberNamed(group, 'Dani');
+        await groupOf(await removeMember(ana, group.id, daniId));
+        await groupOf(await removeMember(bruno, group.id, brunoId));
+
+        expect(await error(await merge(ana, group.id, carlaId, crypto.randomUUID()), 422)).toBe('unknown-member');
+        expect(await error(await merge(ana, group.id, carlaId, brunoId), 422)).toBe('member-left');
+        expect(await error(await merge(ana, group.id, daniId, group.me), 409)).toBe('member-left');
+        expect(await error(await merge(ana, group.id, crypto.randomUUID(), group.me), 404)).toBe('unknown-member');
+    });
+
+    it('lets nobody but the owner merge', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Bruno']);
+
+        const response = await merge(bruno, group.id, memberNamed(group, 'Bruno'), brunoId);
+
+        expect(await error(response, 403)).toBe('not-owner');
+    });
+
+    it('merges nothing in a friend', async () => {
+        const friend = await makeFriend(ana);
+
+        const response = await merge(ana, friend.id, friend.members[1]?.id ?? '', friend.me);
+
+        expect(await error(response, 409)).toBe('direct');
+    });
+});
+
 describe('a member who left', () => {
     it('can write nothing more to the group', async () => {
         const { group, bruno: brunoId } = await tripWithBruno(['Carla']);
@@ -515,6 +596,10 @@ describe('a stranger', () => {
             expect(theirs.status).toBe(404);
             expect(await theirs.text()).toBe(await missing.text());
         }
+        const merged = await merge(carla, group.id, memberNamed(group, 'Bruno'), group.me);
+        const mergedMissing = await merge(carla, crypto.randomUUID(), memberNamed(group, 'Bruno'), group.me);
+        expect(merged.status).toBe(404);
+        expect(await merged.text()).toBe(await mergedMissing.text());
         const removed = await removeMember(carla, group.id, memberNamed(group, 'Bruno'));
         const removedMissing = await removeMember(carla, crypto.randomUUID(), memberNamed(group, 'Bruno'));
         expect(removed.status).toBe(404);
