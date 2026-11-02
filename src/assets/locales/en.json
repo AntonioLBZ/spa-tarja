@@ -346,7 +346,8 @@
             "people": "People to add",
             "remove": "Remove",
             "removeItem": "Remove {name}",
-            "submit": "Make the group"
+            "submit": "Make the group",
+            "full": "A group takes {max} people at most, you included."
         },
         "nameInvalid": "Write a name with at least one character that shows.",
         "failure": {

@@ -10,7 +10,7 @@ import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
-import { MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SharedGroup } from '@core/shared-group';
@@ -264,6 +264,43 @@ describe('making a group', () => {
             ['Dani', 'member', false],
             ['Eva', 'member', false],
         ]);
+    });
+
+    it('adds the person still in the field when it is made', async () => {
+        const { api } = open();
+        await screen.findByText(text.empty);
+        fireEvent.click(newGroupToggle());
+
+        addPerson('Cris');
+        fireEvent.change(field(text.new.person), { target: { value: ' Dani ' } });
+        makeGroup('Lisbon');
+
+        await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
+        expect(api.groups[0]!.members.map((member) => member.name)).toEqual([TEST_USER.name, 'Cris', 'Dani']);
+    });
+
+    it('takes no more people than a group holds, and says so', async () => {
+        const { api } = open();
+        await screen.findByText(text.empty);
+        fireEvent.click(newGroupToggle());
+        const full = t('groups.new.full', { max: MAX_GROUP_MEMBERS });
+
+        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) {
+            fireEvent.change(field(text.new.person), { target: { value: `Person ${index}` } });
+            fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
+        }
+        fireEvent.change(field(text.new.person), { target: { value: 'One more' } });
+        fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
+
+        expect((await screen.findByRole('alert')).textContent).toBe(full);
+        fireEvent.click(screen.getByRole('button', { name: text.new.add }));
+        makeGroup('Lisbon');
+
+        expect(screen.getByRole('alert').textContent).toBe(full);
+        const added = within(screen.getByRole('list', { name: text.new.people })).getAllByRole('listitem');
+        expect(added).toHaveLength(MAX_GROUP_MEMBERS - 1);
+        expect(field(text.new.person).value).toBe('One more');
+        expect(api.groupRequests).toEqual([]);
     });
 
     it('refuses a name with nothing that shows, without sending it', async () => {

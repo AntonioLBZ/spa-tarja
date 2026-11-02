@@ -346,7 +346,8 @@
             "people": "Personas que añadir",
             "remove": "Quitar",
             "removeItem": "Quitar a {name}",
-            "submit": "Crear el grupo"
+            "submit": "Crear el grupo",
+            "full": "Un grupo admite {max} personas como máximo, contándote a ti."
         },
         "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",
         "failure": {

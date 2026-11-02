@@ -34,27 +34,34 @@ const NewGroup = (props: NewGroupProps) => {
     const [person, setPerson] = useState('');
     const [people, setPeople] = useState<Placeholder[]>([]);
     const [nameInvalid, setNameInvalid] = useState(false);
-    const [personInvalid, setPersonInvalid] = useState(false);
+    // Why the person typed can't be added: a name with nothing that shows, or a group with no room left
+    const [personError, setPersonError] = useState<'invalid' | 'full' | null>(null);
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
-    // The person makes the group, so the rest are one fewer than the most a group takes
-    const full = people.length >= MAX_GROUP_MEMBERS - 1;
 
-    const addPerson = () => {
+    // The people with the one in the field added, or null when it can't be, and the field then says why. The person
+    // makes the group, so the rest are one fewer than the most a group takes.
+    const withTyped = (): Placeholder[] | null => {
         const parsed = v.safeParse(sharedNameSchema, person);
         if (!parsed.success) {
-            setPersonInvalid(true);
-            return;
+            setPersonError('invalid');
+            return null;
         }
-        setPeople((current) => [...current, { id: crypto.randomUUID(), name: parsed.output }]);
+        if (people.length >= MAX_GROUP_MEMBERS - 1) {
+            setPersonError('full');
+            return null;
+        }
+        const added = [...people, { id: crypto.randomUUID(), name: parsed.output }];
+        setPeople(added);
         setPerson('');
+        return added;
     };
 
     // Enter adds the person instead of making the group
     const handlePersonKey = (event: KeyboardEvent<HTMLInputElement>) => {
         if (event.key !== 'Enter') return;
         event.preventDefault();
-        if (!full) addPerson();
+        withTyped();
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -64,11 +71,14 @@ const NewGroup = (props: NewGroupProps) => {
             setNameInvalid(true);
             return;
         }
+        // A person typed and never added goes in with the rest
+        const others = person.trim() ? withTyped() : people;
+        if (!others) return;
 
         setFailure(null);
         setBusy(true);
         try {
-            const group = await createGroup({ id: ids.group, name: parsed.output, me: ids.me, others: people });
+            const group = await createGroup({ id: ids.group, name: parsed.output, me: ids.me, others });
             void navigate({ to: '/groups/$groupId', params: { groupId: group.id } });
         } catch (error) {
             setFailure(failureOf(error));
@@ -98,7 +108,11 @@ const NewGroup = (props: NewGroupProps) => {
                 <Field
                     label={t('new.person')}
                     hint={t('new.personHint')}
-                    error={personInvalid ? t('nameInvalid') : null}
+                    error={
+                        personError === 'invalid'
+                            ? t('nameInvalid')
+                            : personError === 'full' && t('new.full', { max: MAX_GROUP_MEMBERS })
+                    }
                 >
                     {(control) => (
                         <div className="new-group__row">
@@ -112,11 +126,11 @@ const NewGroup = (props: NewGroupProps) => {
                                 value={person}
                                 onChange={(event) => {
                                     setPerson(event.target.value);
-                                    setPersonInvalid(false);
+                                    setPersonError(null);
                                 }}
                                 onKeyDown={handlePersonKey}
                             />
-                            <Button disabled={disabled || full} onClick={addPerson}>
+                            <Button disabled={disabled} onClick={() => withTyped()}>
                                 {t('new.add')}
                             </Button>
                         </div>
