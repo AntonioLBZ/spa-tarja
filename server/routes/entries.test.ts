@@ -19,7 +19,6 @@ beforeEach(async () => {
     carla = await signIn('carla@example.com', 'Carla Ruiz');
 });
 
-// A group of Ana's in which Bruno is a member who is a user, with these dummies
 async function tripWithBruno(dummies: string[] = []) {
     const group = await makeGroup(ana, ['Bruno', ...dummies]);
     const brunoId = memberNamed(group, 'Bruno');

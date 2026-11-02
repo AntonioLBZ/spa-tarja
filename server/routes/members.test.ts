@@ -40,7 +40,6 @@ async function addFriend(as: TestSession, groupId: string, friend: string, repla
     return { id, group: await groupOf(await putMember(as, groupId, id, { friend, replaces })) };
 }
 
-// Ana's group with Bruno in it, added from her friends
 async function tripWithBruno(dummies: string[] = []) {
     const group = await makeGroup(ana, dummies);
     const friend = await befriend(ana, bruno);

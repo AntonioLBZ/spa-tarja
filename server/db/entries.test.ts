@@ -36,7 +36,6 @@ function dinner(group: SharedGroup, updatedAt = 1_000) {
     });
 }
 
-// The entry `as` writes to the group, under that id
 function write(as: TestSession, groupId: string, id: string, input: SharedEntryInput) {
     return upsertEntry(env.DB, { groupId, id, userId: as.userId }, input);
 }

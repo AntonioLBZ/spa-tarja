@@ -62,7 +62,6 @@ async function rows(table: string, groupId: string) {
     return row?.n;
 }
 
-// A group of Ana's in which Bruno is a member who is a user
 async function sharedWithBruno() {
     const group = await makeGroup(ana, ['Bruno']);
     await claim(memberNamed(group, 'Bruno'), bruno);
