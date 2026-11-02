@@ -41,6 +41,9 @@ const memberRefusal = (
     return left ? 'member-left' : null;
 };
 
+// How far ahead of the server a device's clock may write: a later `updatedAt` would win over every edit until then
+const CLOCK_SLACK_MS = 86_400_000;
+
 // What a write that changed nothing answers: the entry kept over it while the group is open; once it is closed for the
 // caller, only this very write sent again, and only as far as the caller reads the group
 const keptEntry = (state: GroupState, kept: StoredEntry | null, updatedAt: number): LedgerEntry | null => {
@@ -73,6 +76,7 @@ const entriesRoutes = new Hono<AppEnv>()
             return entry ? c.json(entry, 200) : c.json(CLOSED, 409);
         };
         if (closedFor(state)) return answerKept(state, stored);
+        if (input.updatedAt > Date.now() + CLOCK_SLACK_MS) return c.json({ error: 'clock-ahead' }, 422);
 
         if (input.kind === 'expense' && !isDefaultCategoryId(input.categoryId)) {
             return c.json({ error: 'unknown-category' }, 400);

@@ -350,6 +350,24 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await error(response, 422)).toBe('currency-mismatch');
     });
 
+    it('answers 422 clock-ahead for a write from a clock more than a day ahead, and keeps the entry editable', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const id = crypto.randomUUID();
+        const body = dinner(group.me, { [brunoId]: 3000 });
+        await entryOf(await putEntry(ana, group.id, id, body));
+        const day = 86_400_000;
+
+        for (const updatedAt of [Date.now() + 2 * day, Number.MAX_SAFE_INTEGER]) {
+            const ahead = await putEntry(bruno, group.id, id, { ...body, updatedAt, deletedAt: updatedAt });
+            const created = await putEntry(bruno, group.id, crypto.randomUUID(), { ...body, updatedAt });
+            expect(await error(ahead, 422)).toBe('clock-ahead');
+            expect(await error(created, 422)).toBe('clock-ahead');
+        }
+        const soon = await putEntry(ana, group.id, id, { ...body, text: 'Tapas', updatedAt: Date.now() + day / 2 });
+        expect(await entryOf(soon)).toMatchObject({ text: 'Tapas', deletedAt: null });
+        expect(await seqsOf(group.id)).toEqual([2]);
+    });
+
     it('answers 422 unknown-member for a payer or a share the group doesn’t have', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const theirs = await makeGroup(carla, ['Dani']);
@@ -678,6 +696,7 @@ describe('a closed group', () => {
             ),
             putEntry(ana, group.id, crypto.randomUUID(), dinner(crypto.randomUUID(), { [brunoId]: 3000 })),
             putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, { [brunoId]: 3000 }, { currency: 'USD' })),
+            putEntry(ana, group.id, id, dinner(group.me, { [group.me]: 3000 }, { updatedAt: Number.MAX_SAFE_INTEGER })),
         ];
 
         for (const response of await Promise.all(writes)) expect(await error(response, 409)).toBe('closed');
