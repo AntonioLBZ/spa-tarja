@@ -21,6 +21,7 @@ interface MemberRow {
     created_at: number;
     claimed_at: number | null;
     left_at: number | null;
+    left_seq: number | null;
     archived_at: number | null;
     merged_into: string | null;
     show_in_expenses: number;
@@ -41,6 +42,8 @@ interface StoredMember extends GroupMember {
     // The nickname of that user, which a friend shows live
     nickname: string | null;
     createdAt: number;
+    // The cursor of the group when they left, which is as far as they read it
+    leftSeq: number | null;
     archivedAt: number | null;
     showInExpenses: boolean;
 }
@@ -55,8 +58,8 @@ interface GroupState {
 const GROUP_COLUMNS = 'id, kind, name, currency, simplify_debts, deleted_at';
 
 const MEMBERS_WITH_NICKNAMES = `
-    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.created_at, m.claimed_at, m.left_at, m.archived_at,
-        m.merged_into, m.show_in_expenses
+    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.created_at, m.claimed_at, m.left_at, m.left_seq,
+        m.archived_at, m.merged_into, m.show_in_expenses
     FROM shared_members m LEFT JOIN profile ON profile.user_id = m.user_id`;
 
 // Every group the user has a member in, closed ones too
@@ -91,6 +94,7 @@ const toMember = (row: MemberRow): StoredMember => {
         userId: row.user_id,
         nickname: row.nickname,
         createdAt: row.created_at,
+        leftSeq: row.left_seq,
         archivedAt: row.archived_at,
         showInExpenses: row.show_in_expenses === 1,
     };
