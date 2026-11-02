@@ -19,6 +19,9 @@ type GroupFailure =
     | 'notPlaceholder'
     | 'tooManyGroups'
     | 'tooManyFriends'
+    | 'friendTooManyGroups'
+    | 'alreadyMember'
+    | 'unknownFriend'
     | 'tooManyMembers'
     | 'failed';
 
@@ -33,6 +36,8 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     'not-placeholder': 'notPlaceholder',
     'too-many-groups': 'tooManyGroups',
     'too-many-friends': 'tooManyFriends',
+    'already-member': 'alreadyMember',
+    'unknown-friend': 'unknownFriend',
     'too-many-members': 'tooManyMembers',
 };
 
@@ -43,12 +48,20 @@ const failureOf = (error: unknown): GroupFailure => {
     return 'failed';
 };
 
+// A refusal of adding one of the person's friends to a group, where a limit of groups is the friend's
+const failureOfFriend = (error: unknown): GroupFailure => {
+    const failure = failureOf(error);
+    return failure === 'tooManyGroups' ? 'friendTooManyGroups' : failure;
+};
+
 const useFailureWords = () => {
     const t = useTranslations('groups.failure');
 
     return useCallback(
         (failure: GroupFailure) => {
-            if (failure === 'tooManyGroups') return t(failure, { max: MAX_OPEN_GROUPS });
+            if (failure === 'tooManyGroups' || failure === 'friendTooManyGroups') {
+                return t(failure, { max: MAX_OPEN_GROUPS });
+            }
             if (failure === 'tooManyFriends') return t(failure, { max: MAX_FRIENDS });
             if (failure === 'tooManyMembers') return t(failure, { max: MAX_GROUP_MEMBERS });
             return t(failure);
@@ -57,4 +70,4 @@ const useFailureWords = () => {
     );
 };
 
-export { failureOf, useFailureWords, type GroupFailure };
+export { failureOf, failureOfFriend, useFailureWords, type GroupFailure };

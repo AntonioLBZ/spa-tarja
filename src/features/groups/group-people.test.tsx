@@ -6,10 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
-import { MAX_GROUP_MEMBERS, type GroupMember, type SharedGroup } from '@core/shared-group';
+import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, type GroupMember, type SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.people;
@@ -417,6 +418,114 @@ describe('making someone owner', () => {
         fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
 
         expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.memberGone);
+    });
+});
+
+describe('adding a friend', () => {
+    function friendOf(name: string, claimed = true) {
+        const me = person(TEST_USER.name, { role: 'owner' });
+        return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, { claimed })], me: me.id });
+    }
+
+    const eva = friendOf('Eva');
+
+    async function editWith(group: SharedGroup, friends: SharedGroup[] = [eva, friendOf('Fran', false)]) {
+        const api = createFakeApi({ groups: [group, ...friends] });
+        stubApi(api.handler);
+        renderApp({ path: `/groups/${group.id}/edit` });
+        await screen.findByRole('heading', { level: 2, name: text.title });
+        return { api, members: () => api.groups[0]!.members };
+    }
+
+    function choose(name: string) {
+        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
+        fireEvent.click(screen.getByRole('option', { name }));
+    }
+
+    it('lists the friends who use the app and adds one as a new member, who has joined', async () => {
+        const { members } = await editWith(trip());
+
+        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.friendNone, 'Eva']);
+        fireEvent.click(screen.getByRole('option', { name: 'Eva' }));
+        fireEvent.click(button(text.addFriend));
+
+        await waitFor(() => expect(rows()).toHaveLength(4));
+        expect(rows()[3]).toBe(`Eva${t('groups.balance.memberSettled', { name: 'Eva' })}`);
+        expect(members().at(-1)).toMatchObject({ name: 'Eva', claimed: true });
+        expect(members().find((member) => member.id === cris.id)?.mergedInto).toBeNull();
+        expect(screen.getByRole('combobox', { name: text.friend }).textContent).toBe(text.friendNone);
+    });
+
+    it('lets the owner put the friend in place of a dummy, who leaves the list', async () => {
+        const { members } = await editWith(trip());
+
+        choose('Eva');
+        const place = screen.getByRole('group', { name: text.place });
+        expect(
+            within(place)
+                .getAllByRole('radio')
+                .map((radio) => [radio.closest('label')!.textContent, (radio as HTMLInputElement).checked])
+        ).toEqual([
+            [text.asNew, true],
+            [t('groups.people.inPlaceOf', { name: 'Cris' }), false],
+        ]);
+        fireEvent.click(within(place).getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+        fireEvent.click(button(text.addFriend));
+
+        await waitFor(() => expect(rows()).toHaveLength(3));
+        expect(rows()[2]).toMatch(/^Eva/);
+        const added = members().at(-1)!;
+        expect(members().find((member) => member.id === cris.id)?.mergedInto).toBe(added.id);
+    });
+
+    it('asks nothing of a member who is not the owner', async () => {
+        await editWith(trip(bea));
+
+        choose('Eva');
+
+        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
+    });
+
+    it('asks nothing when the group has no dummies', async () => {
+        await editWith(sampleGroup({ members: [ana, bea], me: ana.id }));
+
+        choose('Eva');
+
+        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
+    });
+
+    it.each([
+        ['already-member', en.groups.failure.alreadyMember],
+        ['unknown-friend', en.groups.failure.unknownFriend],
+        ['not-placeholder', en.groups.failure.notPlaceholder],
+        ['too-many-groups', t('groups.failure.friendTooManyGroups', { max: MAX_OPEN_GROUPS })],
+    ])('says in words why the server refused it (%s)', async (error, words) => {
+        const { api } = await editWith(trip());
+        api.state.groupRefusal = { status: 409, error };
+
+        choose('Eva');
+        fireEvent.click(button(text.addFriend));
+
+        expect((await screen.findByRole('alert')).textContent).toBe(words);
+        expect(rows()).toHaveLength(3);
+    });
+
+    it('is not there when no friend uses the app', async () => {
+        await editWith(trip(), [friendOf('Fran', false)]);
+
+        expect(screen.queryByRole('combobox', { name: text.friend })).toBeNull();
+    });
+
+    it('is off without a connection', async () => {
+        await editWith(trip());
+        choose('Eva');
+
+        onlineManager.setOnline(false);
+
+        await screen.findByText(en.groups.offline);
+        expect((screen.getByRole('combobox', { name: text.friend }) as HTMLButtonElement).disabled).toBe(true);
+        expect(button(text.addFriend).disabled).toBe(true);
     });
 });
 

@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
-import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
@@ -386,6 +386,177 @@ describe('making a group', () => {
         expect(field(text.new.person).disabled).toBe(true);
         expect((screen.getByRole('button', { name: text.new.submit }) as HTMLButtonElement).disabled).toBe(true);
         expect(rows(text.lists.groups)).toEqual([`Lisbon${text.row.settled}`]);
+    });
+});
+
+describe('making a group with friends', () => {
+    function friendOf(
+        name: string,
+        overrides: Parameters<typeof person>[1] = {},
+        closed: SharedGroup['closed'] = null
+    ) {
+        const me = person(TEST_USER.name, { role: 'owner' });
+        return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, overrides)], me: me.id, closed });
+    }
+
+    const friends = [
+        friendOf('Bea'),
+        friendOf('Cris', { claimed: false }),
+        friendOf('Dani', {}, 'deleted'),
+        friendOf('Eva'),
+    ];
+
+    function friendField() {
+        return screen.getByRole('combobox', { name: text.new.friend });
+    }
+
+    function chooseFriend(name: string) {
+        fireEvent.click(friendField());
+        fireEvent.click(screen.getByRole('option', { name }));
+        fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
+    }
+
+    function listed() {
+        return within(screen.getByRole('list', { name: text.new.people }))
+            .getAllByRole('listitem')
+            .map((item) => item.firstChild?.textContent);
+    }
+
+    function made(api: ReturnType<typeof createFakeApi>) {
+        return api.groups.find((group) => group.kind === 'group')!;
+    }
+
+    async function start(wrap?: (handler: Handler) => Handler) {
+        const api = createFakeApi({ groups: friends });
+        stubApi(wrap ? wrap(api.handler) : api.handler);
+        renderApp({ path: '/groups' });
+        await screen.findByText(text.balance.allSettled);
+        fireEvent.click(newGroupToggle());
+        return api;
+    }
+
+    it('lists only the open friends who use the app, each added once', async () => {
+        await start();
+
+        fireEvent.click(friendField());
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+            text.new.friendNone,
+            'Bea',
+            'Eva',
+        ]);
+        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
+
+        expect(listed()).toEqual(['Bea']);
+        expect(friendField().textContent).toBe(text.new.friendNone);
+        fireEvent.click(friendField());
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.new.friendNone, 'Eva']);
+    });
+
+    it('adds each friend once the group is made with its dummies, and opens it', async () => {
+        const api = await start();
+
+        addPerson('Fran');
+        chooseFriend('Eva');
+        expect(listed()).toEqual(['Fran', 'Eva']);
+        makeGroup('Lisbon');
+
+        expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
+        expect(made(api).members.map((member) => [member.name, member.claimed])).toEqual([
+            [TEST_USER.name, true],
+            ['Fran', false],
+            ['Eva', true],
+        ]);
+        expect(api.groupRequests).toEqual([
+            `PUT /api/groups/${made(api).id}`,
+            `PUT /api/groups/${made(api).id}/members/${made(api).members[2]!.id}`,
+        ]);
+    });
+
+    it('takes no friend past what a group holds', async () => {
+        await start();
+
+        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) {
+            fireEvent.change(field(text.new.person), { target: { value: `Person ${index}` } });
+            fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
+        }
+        chooseFriend('Bea');
+
+        expect((await screen.findByRole('alert')).textContent).toBe(t('groups.new.full', { max: MAX_GROUP_MEMBERS }));
+        expect(listed()).not.toContain('Bea');
+    });
+
+    it.each([
+        ['already-member', text.failure.alreadyMember],
+        ['unknown-friend', text.failure.unknownFriend],
+        ['too-many-groups', t('groups.failure.friendTooManyGroups', { max: MAX_OPEN_GROUPS })],
+    ])(
+        'says why a friend could not be added (%s), and finishes the same group when sent again',
+        async (error, words) => {
+            let refuse = true;
+            const api = await start((handler) => (url, init) => {
+                if (refuse && url.pathname.includes('/members/')) return Response.json({ error }, { status: 409 });
+                return handler(url, init);
+            });
+            chooseFriend('Bea');
+            makeGroup('Lisbon');
+            expect((await screen.findByRole('alert')).textContent).toBe(words);
+            refuse = false;
+
+            fireEvent.click(screen.getByRole('button', { name: text.new.submit }));
+
+            await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
+            expect(api.groups.filter((group) => group.kind === 'group')).toHaveLength(1);
+            expect(made(api).members.map((member) => member.name)).toEqual([TEST_USER.name, 'Bea']);
+        }
+    );
+
+    it('ends with the people as they are listed when the answer of the first try was lost', async () => {
+        let loseNext = true;
+        const api = await start((handler) => async (url, init) => {
+            const answer = await handler(url, init);
+            if (init?.method === 'PUT' && loseNext) {
+                loseNext = false;
+                throw new TypeError('Failed to fetch');
+            }
+            return answer;
+        });
+        addPerson('Fran');
+        addPerson('Gus');
+        makeGroup('Lisbon');
+        expect((await screen.findByRole('alert')).textContent).toBe(text.failure.failed);
+
+        fireEvent.click(screen.getByRole('button', { name: t('groups.new.removeItem', { name: 'Fran' }) }));
+        addPerson('Hana');
+        chooseFriend('Bea');
+        makeGroup('Lisbon');
+
+        await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
+        expect(api.groups.filter((group) => group.kind === 'group')).toHaveLength(1);
+        expect(
+            made(api)
+                .members.filter((member) => member.leftAt === null)
+                .map((member) => member.name)
+        ).toEqual([TEST_USER.name, 'Gus', 'Hana', 'Bea']);
+    });
+
+    it('leaves the friends out when none of them uses the app', async () => {
+        stubApi(createFakeApi({ groups: [friendOf('Cris', { claimed: false })] }).handler);
+        renderApp({ path: '/groups' });
+        await screen.findByText(text.balance.allSettled);
+        fireEvent.click(newGroupToggle());
+
+        expect(screen.queryByRole('combobox', { name: text.new.friend })).toBeNull();
+    });
+
+    it('turns the friends off without a connection', async () => {
+        await start();
+
+        onlineManager.setOnline(false);
+
+        await screen.findByText(text.offline);
+        expect((friendField() as HTMLButtonElement).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
     });
 });
 

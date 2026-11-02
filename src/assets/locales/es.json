@@ -362,6 +362,9 @@
             "person": "Añadir a una persona",
             "personHint": "Por su nombre, de una en una. No necesita la app.",
             "add": "Añadir",
+            "friend": "De tus amigos",
+            "friendNone": "Elige a un amigo",
+            "addFriend": "Añadir amigo",
             "people": "Personas que añadir",
             "remove": "Quitar",
             "removeItem": "Quitar a {name}",
@@ -387,6 +390,9 @@
             "notPlaceholder": "Esa persona ya se ha unido, así que no se puede fusionar ni sustituir.",
             "tooManyGroups": "Estás en {max} grupos abiertos, el máximo. Sal de alguno o elimínalo primero.",
             "tooManyFriends": "Tienes {max} amigos, el máximo. Quita alguno primero.",
+            "friendTooManyGroups": "Esa persona está en {max} grupos abiertos, el máximo.",
+            "alreadyMember": "Esa persona ya está en el grupo, o estuvo antes.",
+            "unknownFriend": "Esa persona ya no está entre tus amigos.",
             "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
             "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
         },
@@ -426,7 +432,13 @@
             "unsettled": "El saldo de {name} no está a cero. Primero hay que saldar cuentas.",
             "add": "Añadir a una persona",
             "addHint": "Por su nombre. No necesita la app.",
-            "addSubmit": "Añadir"
+            "addSubmit": "Añadir",
+            "friend": "De tus amigos",
+            "friendNone": "Elige a un amigo",
+            "place": "Cómo entra",
+            "asNew": "Como persona nueva",
+            "inPlaceOf": "En lugar de {name}",
+            "addFriend": "Añadir amigo"
         },
         "close": {
             "leave": {

@@ -1,18 +1,23 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
+import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { Select } from '@/components/select/select';
 import { Sheet } from '@/components/sheet/sheet';
 import { memberBalances } from '@core/balance';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
 
-import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
+import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
+import { isOwner } from './is-owner';
 import { PersonRow } from './person-row';
 import { useGroupActions } from './use-group-actions';
+import { useGroupWords } from './use-group-words';
+import { useRealFriends } from './use-real-friends';
 
 import type { Ledger } from './use-ledgers';
 
@@ -29,7 +34,7 @@ interface AddPersonProps {
     disabled: boolean;
 }
 
-// The members of a group who haven't left, each with what can be done to them, and adding a person
+// The members of a group who haven't left, each with what can be done to them, and adding a dummy or a friend
 const GroupPeople = (props: GroupPeopleProps) => {
     const { ledger, disabled } = props;
     const { group, entries, hasData } = ledger;
@@ -59,6 +64,7 @@ const GroupPeople = (props: GroupPeopleProps) => {
                 </CardList>
             </Sheet>
             <AddPerson group={group} disabled={disabled} />
+            <AddFriendMember group={group} disabled={disabled} />
         </section>
     );
 };
@@ -120,6 +126,99 @@ const AddPerson = (props: AddPersonProps) => {
                     </div>
                 )}
             </Field>
+            {failure && (
+                <Notice tone="danger" role="alert">
+                    {failureWords(failure)}
+                </Notice>
+            )}
+        </form>
+    );
+};
+
+// One of the person's friends who use the app, at once: as a new member or, for the owner, in place of a dummy, who is
+// merged into them. The member id is kept until the friend is added, so one sent again is the same; choosing another
+// friend makes a new one.
+const AddFriendMember = (props: AddPersonProps) => {
+    const { group, disabled } = props;
+    const t = useTranslations('groups');
+    const failureWords = useFailureWords();
+    const words = useGroupWords(group);
+    const { addFriend } = useGroupActions();
+    const friends = useRealFriends();
+    const placeName = useId();
+    const field = useRef<HTMLButtonElement>(null);
+    const [id, setId] = useState(() => crypto.randomUUID());
+    // The friend chosen, or '' for none
+    const [friend, setFriend] = useState('');
+    // As a new member, or in place of the dummy with this id
+    const [place, setPlace] = useState('new');
+    const [failure, setFailure] = useState<GroupFailure | null>(null);
+    const [busy, setBusy] = useState(false);
+
+    if (friends.length === 0) return null;
+
+    const dummies = isOwner(group) ? group.members.filter((member) => !member.claimed && member.leftAt === null) : [];
+
+    const choose = (next: string) => {
+        setFriend(next);
+        setPlace('new');
+        setId(crypto.randomUUID());
+        setFailure(null);
+    };
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (friend === '') return;
+
+        setFailure(null);
+        setBusy(true);
+        try {
+            await addFriend(group.id, id, place === 'new' ? { friend } : { friend, replaces: place });
+            choose('');
+            field.current?.focus();
+        } catch (error) {
+            setFailure(failureOfFriend(error));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <form className="group-people__add" onSubmit={(event) => void handleSubmit(event)}>
+            <Field label={t('people.friend')}>
+                {(control) => (
+                    <Select
+                        {...control}
+                        ref={field}
+                        disabled={disabled}
+                        label={t('people.friend')}
+                        options={[
+                            { value: '', label: t('people.friendNone') },
+                            ...friends.map((item) => ({ value: item.id, label: item.name })),
+                        ]}
+                        value={friend}
+                        onChange={choose}
+                    />
+                )}
+            </Field>
+            {friend !== '' && dummies.length > 0 && (
+                <ChoiceGroup
+                    legend={t('people.place')}
+                    name={placeName}
+                    options={[
+                        { value: 'new', label: t('people.asNew') },
+                        ...dummies.map((dummy) => ({
+                            value: dummy.id,
+                            label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
+                        })),
+                    ]}
+                    value={place}
+                    onChange={setPlace}
+                />
+            )}
+            <Button block disabled={disabled || busy || friend === ''} type="submit">
+                {t('people.addFriend')}
+            </Button>
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}

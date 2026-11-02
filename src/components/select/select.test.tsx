@@ -96,6 +96,16 @@ describe('the field', () => {
         expect(ref.current).toBe(screen.getByRole('combobox'));
     });
 
+    it('can be turned off, and then does not open', () => {
+        render(<Select disabled id="category" label="Category" options={OPTIONS} value="food" onChange={() => {}} />);
+
+        const combobox = screen.getByRole('combobox') as HTMLButtonElement;
+        fireEvent.click(combobox);
+
+        expect(combobox.disabled).toBe(true);
+        expect(screen.queryByRole('listbox')).toBeNull();
+    });
+
     it('says nothing about either unless it is told', () => {
         render(<Harness />);
 

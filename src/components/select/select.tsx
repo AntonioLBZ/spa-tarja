@@ -21,6 +21,7 @@ interface SelectProps<Value extends string> {
     // Of the field, from a `Field` around it
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
+    disabled?: boolean;
     // The field, for a screen that puts the focus on it
     ref?: Ref<HTMLButtonElement>;
 }
@@ -40,6 +41,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
         onChange,
         'aria-describedby': describedBy,
         'aria-invalid': invalid,
+        disabled,
         ref,
     } = props;
     const listId = useId();
@@ -175,6 +177,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                 aria-expanded={open}
                 aria-haspopup="listbox"
                 aria-invalid={invalid}
+                disabled={disabled}
                 role="combobox"
                 type="button"
                 onClick={() => {
