@@ -83,7 +83,7 @@ The switch of the group and the simplified view of the balances ([balances](docs
 
 ### 29. Delete the account
 
-`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. A user deleted while their session cache is still valid (up to 5 minutes) must get `401` from the profile routes, with a test: today `PUT /api/profile` answers `500` on the foreign key and `readProfile` throws a plain error.
+`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. A user deleted while their session cache is still valid (up to 5 minutes) must get `401` from the profile routes, with a test: today `PUT /api/profile` answers `500` on the foreign key and `readProfile` throws a plain error, which making a group and adding a friend also call. What the tables of groups need from it, in its one batch: blank `shared_members.name` (and close the user's friends and hand over or close the groups they own, or a row keeps `role = 'owner'` with no user) before the `user` row is deleted, since `ON DELETE SET NULL` clears `user_id` then and the user's members can no longer be found; the indexes on `created_by` and `updated_by` keep that `SET NULL` from reading every row.
 
 ### 30. The privacy notice
 
