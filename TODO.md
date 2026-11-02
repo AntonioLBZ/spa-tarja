@@ -45,33 +45,11 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, and 23, the groups on the device, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 24. The screens of groups and friends
-
-The first half is done: the Groups tab with its totals, the groups and the friends, the closed and the archived ones and New group with dummies; a group with its balances; its settings with Show in my expenses, Archive, the name and the people (add a dummy, rename, remove) ([groups](docs/specs/groups.md), [balances](docs/specs/balances.md)). What is left, with its stories and copy in `en` and `es`:
-
-- **Friends.** Add a friend on the Groups tab, a `Disclosure` next to New group (`useGroupActions().createFriend`, then open it). The `Select` of your friends who are real people in New group (`addFriend` once `createGroup` answers, with the ids kept by the form) and under Add a person in the settings (`AddPerson` in `group-people.tsx`), with the `ChoiceGroup` "Add as a new member" or "In place of <dummy>" for the owner when the group has dummies (`addFriend` with `replaces`).
-- **The people.** Merge into… and Make owner as more actions of `PersonRow` (`merge`, `handOver`).
-- **Leave and Delete**, the `danger` buttons at the end of the settings (`leave`, whose `unsynced` refusal is worded already, and `remove`), each asking in a panel, the unsettled case with the link to settle up.
-- **Settle up**: a ghost button on each line of `GroupBalances` and the form under the balances of an open group, written through `useEntryActions`.
-
-To reuse: `useGroupWords` (the title, the names with "(left)", "Deleted user" and numbers, the balances in words and why a group is closed), `failureOf` and `useFailureWords` for every refusal, `isOwner`, and `GroupGate` with `useLedger` for a screen of one group.
-
-Left as they are on purpose, for 24b:
-
-- `NewGroup` keeps the first group's people after a lost answer even if the list changed since: lock the list while it is sent, or compare the answer.
-- The totals of the Groups tab vanish with no notice when one open group's expenses fail for good.
-
-To restructure rather than extend:
-
-- `GroupBalances` renders each debt as `<li>{sentence}</li>`: settle up needs a button per line and the form's state lifted above the list.
-- `PersonRow` hands the focus on by hand, one ref per button and a chain of ifs: Merge and Make owner want a small helper that focuses the step.
-- `NewGroup` keeps ids only for dummies: friends need their member ids kept too, so that `createGroup` and the `addFriend` calls after it can be sent again.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, and 24, the screens of groups and friends, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 25. Sharing an expense
 
-The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` is there already. Entries are written with `useEntryActions`; the outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
+The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). The ledger also lists the settlements that Settle up writes already ("You paid Bruno"), which are deleted there and never duplicated; the add form goes between the settle up form and the ledger on the screen of a group. `Checkbox` is there already. Entries are written with `useEntryActions`; the outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
 
 ### 26. Friends by invitation
 
