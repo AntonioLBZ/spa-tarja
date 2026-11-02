@@ -105,6 +105,20 @@ describe('user data', () => {
         expect(screen.queryByText('Copied')).toBeNull();
     });
 
+    it("hands another account an empty outbox of groups and leaves the first one's on the device", async () => {
+        const storage = createMemoryStorage();
+        const entry = { id: crypto.randomUUID(), groupId: crypto.randomUUID(), updatedAt: 1 };
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [entry]);
+        stubApi(createFakeApi().handler);
+
+        const app = renderApp({ storage, fakeAuth: createFakeAuth({ session: BEA }) });
+
+        await screen.findByText(en.expenses.list.empty);
+        await app.groupOutbox.ready;
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+        expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([entry]);
+    });
+
     it("hands the next account an empty app when the session turns out to be another's", async () => {
         const storage = createMemoryStorage();
         await leaveUnsent(storage, TEST_USER);

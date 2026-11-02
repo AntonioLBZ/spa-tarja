@@ -4,12 +4,13 @@ import { createContext, use, useState, type ReactNode } from 'react';
 import { useAuth, useUser } from '@/lib/auth';
 import { createQueryClient } from '@/lib/query-client';
 
-import { createOutbox } from './outbox';
+import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
 import { OutboxProvider } from './outbox-context';
 import { createPersistOptions } from './persister';
 import { createUserStorage } from './user-storage';
 
 import type { KeyValueStorage } from './storage';
+import type { Expense } from '@core/expense';
 
 interface UserData {
     // Deletes what the signed-in user keeps on this device
@@ -23,7 +24,7 @@ interface UserDataProviderProps {
     children: ReactNode;
 }
 
-// The outbox and the cache of the signed-in user, kept on the device apart from any other account's
+// The outboxes and the cache of the signed-in user, kept on the device apart from any other account's
 const UserDataProvider = (props: UserDataProviderProps) => {
     const { storage, children } = props;
     const user = useUser();
@@ -31,7 +32,8 @@ const UserDataProvider = (props: UserDataProviderProps) => {
     const [data] = useState(() => {
         const mine = createUserStorage(storage, user.id);
         return {
-            outbox: createOutbox(mine.storage),
+            outbox: createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY),
+            groupOutbox: createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY),
             queryClient: createQueryClient({ onUnauthorized: check }),
             persistOptions: createPersistOptions(mine.storage),
             userData: { discard: mine.discard },
@@ -40,7 +42,7 @@ const UserDataProvider = (props: UserDataProviderProps) => {
 
     return (
         <UserDataContext value={data.userData}>
-            <OutboxProvider outbox={data.outbox}>
+            <OutboxProvider outbox={data.outbox} groupOutbox={data.groupOutbox}>
                 <PersistQueryClientProvider client={data.queryClient} persistOptions={data.persistOptions}>
                     {children}
                 </PersistQueryClientProvider>

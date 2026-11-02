@@ -13,16 +13,16 @@ const SyncStatus = () => {
     const { pending, rejected } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const online = useOnline();
 
-    if (online && pending.length === 0 && rejected === 0) return null;
+    if (online && pending.length === 0 && rejected.length === 0) return null;
 
     return (
         <div className="sync-status">
             {!online && <Notice tone="quiet">{t('offline')}</Notice>}
             {pending.length > 0 && <Notice tone="quiet">{t('pending', { count: pending.length })}</Notice>}
-            {rejected > 0 && (
+            {rejected.length > 0 && (
                 <div className="sync-status__rejected">
                     <Notice tone="danger" role="alert" className="sync-status__message">
-                        {t('rejected', { count: rejected })}
+                        {t('rejected', { count: rejected.length })}
                     </Notice>
                     <Button onClick={outbox.dismissRejected}>{t('dismiss')}</Button>
                 </div>

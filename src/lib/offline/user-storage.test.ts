@@ -32,31 +32,37 @@ describe('user storage', () => {
     });
 
     describe('discard', () => {
-        it("deletes the outbox and the cache of the user, and nobody else's", async () => {
+        it("deletes both outboxes and the cache of the user, and nobody else's", async () => {
             const storage = createMemoryStorage();
             const ana = createUserStorage(storage, 'ana');
             const bea = createUserStorage(storage, 'bea');
             await ana.storage.set('tarja:outbox', ['ana']);
+            await ana.storage.set('tarja:group-outbox', ['ana in a group']);
             await ana.storage.set('tarja:query-cache', { ana: true });
             await bea.storage.set('tarja:outbox', ['bea']);
+            await bea.storage.set('tarja:group-outbox', ['bea in a group']);
             await bea.storage.set('tarja:query-cache', { bea: true });
 
             await ana.discard();
 
             expect(await ana.storage.get('tarja:outbox')).toBeUndefined();
+            expect(await ana.storage.get('tarja:group-outbox')).toBeUndefined();
             expect(await ana.storage.get('tarja:query-cache')).toBeUndefined();
             expect(await bea.storage.get('tarja:outbox')).toEqual(['bea']);
+            expect(await bea.storage.get('tarja:group-outbox')).toEqual(['bea in a group']);
             expect(await bea.storage.get('tarja:query-cache')).toEqual({ bea: true });
         });
 
         it('deletes data it never touched in this session', async () => {
             const storage = createMemoryStorage();
             await storage.set('tarja:outbox:ana', ['left from before']);
+            await storage.set('tarja:group-outbox:ana', ['left from before']);
             await storage.set('tarja:query-cache:ana', { left: true });
 
             await createUserStorage(storage, 'ana').discard();
 
             expect(await storage.get('tarja:outbox:ana')).toBeUndefined();
+            expect(await storage.get('tarja:group-outbox:ana')).toBeUndefined();
             expect(await storage.get('tarja:query-cache:ana')).toBeUndefined();
         });
 

@@ -4,11 +4,13 @@ import { render } from '@testing-library/react';
 import { useEffect } from 'react';
 import { vi } from 'vitest';
 
-import { useOutbox, type KeyValueStorage, type Outbox } from '@/lib/offline';
+import { useGroupOutbox, useOutbox, type KeyValueStorage, type Outbox, type PendingEntry } from '@/lib/offline';
 import { createFakeAuth } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { AppProviders } from '@/providers';
 import { createAppRouter } from '@/router';
+
+import type { Expense } from '@core/expense';
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
 
@@ -23,7 +25,8 @@ const stubApi = (handler: Handler) => {
 };
 
 interface UserData {
-    outbox: Outbox;
+    outbox: Outbox<Expense>;
+    groupOutbox: Outbox<PendingEntry>;
     queryClient: QueryClient;
 }
 
@@ -31,19 +34,20 @@ interface ProbeProps {
     onData: (data: UserData) => void;
 }
 
-// Hands the test the outbox and the query client the signed-in user got
+// Hands the test the outboxes and the query client the signed-in user got
 const Probe = (props: ProbeProps) => {
     const { onData } = props;
     const outbox = useOutbox();
+    const groupOutbox = useGroupOutbox();
     const queryClient = useQueryClient();
     useEffect(() => {
-        onData({ outbox, queryClient });
-    }, [onData, outbox, queryClient]);
+        onData({ outbox, groupOutbox, queryClient });
+    }, [onData, outbox, groupOutbox, queryClient]);
     return null;
 };
 
 // The app as it is mounted for real, over memory storage and a fake sign-in. Signed in as the test user unless told so.
-// `outbox` and `queryClient` exist once somebody is signed in.
+// `outbox`, `groupOutbox` and `queryClient` exist once somebody is signed in.
 const renderApp = ({
     path = '/',
     storage = createMemoryStorage(),
@@ -63,6 +67,9 @@ const renderApp = ({
         fakeAuth,
         get outbox() {
             return data!.outbox;
+        },
+        get groupOutbox() {
+            return data!.groupOutbox;
         },
         get queryClient() {
             return data!.queryClient;

@@ -6,7 +6,7 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { stubApi } from '@/lib/test/render-app';
 
-import { createOutbox } from './outbox';
+import { OUTBOX_STORAGE_KEY, createOutbox } from './outbox';
 import { expensesQuery, syncExpenses } from './sync';
 
 import type { Expense } from '@core/expense';
@@ -31,7 +31,7 @@ function setup(options: Parameters<typeof createFakeApi>[0] = {}) {
     stubApi(api.handler);
     const client = createQueryClient();
     const storage = createMemoryStorage();
-    const outbox = createOutbox(storage);
+    const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
     // Goes through the query like the app does; staleTime 0 so each call really syncs
     const sync = () => client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
@@ -98,7 +98,7 @@ describe('pushing the outbox', () => {
         const { api, client } = setup();
         const storage = createMemoryStorage();
         await storage.set('tarja:outbox', [expense('saved-before')]);
-        const outbox = createOutbox(storage);
+        const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
         await client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
 
@@ -121,7 +121,7 @@ describe('pushing the outbox', () => {
         const { api, client } = setup();
         const storage = createMemoryStorage();
         await storage.set('tarja:outbox', [expense('older', { payment: 'voucher', chargeDate: '2026-11-12' })]);
-        const outbox = createOutbox(storage);
+        const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
         await client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
 
@@ -150,7 +150,7 @@ describe('pushing the outbox', () => {
 
         expect(api.attempts.map((item) => item.id)).toEqual(['a']);
         expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a', 'b']);
-        expect(outbox.getState().rejected).toBe(0);
+        expect(outbox.getState().rejected).toEqual([]);
     });
 
     it('keeps everything pending when the session has ended, so the next sign-in delivers it', async () => {
@@ -161,7 +161,7 @@ describe('pushing the outbox', () => {
         await expect(sync()).rejects.toMatchObject({ status: 401 });
 
         expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a']);
-        expect(outbox.getState().rejected).toBe(0);
+        expect(outbox.getState().rejected).toEqual([]);
     });
 
     it('keeps everything pending when the connection is down, and delivers it once it is back', async () => {
@@ -183,7 +183,7 @@ describe('pushing the outbox', () => {
         api.state.writeStatus = 400;
         await outbox.put(expense('bad'));
         await expect(sync()).resolves.toBeDefined();
-        expect(outbox.getState()).toEqual({ pending: [], rejected: 1 });
+        expect(outbox.getState()).toEqual({ pending: [], rejected: [{ item: expense('bad'), code: null }] });
 
         api.state.writeStatus = null;
         await outbox.put(expense('good'));
@@ -199,7 +199,7 @@ describe('pushing the outbox', () => {
 
         await sync();
 
-        expect(outbox.getState()).toEqual({ pending: [], rejected: 1 });
+        expect(outbox.getState()).toEqual({ pending: [], rejected: [{ item: expense('taken'), code: null }] });
     });
 
     it('does not send an expense twice when two syncs overlap', async () => {

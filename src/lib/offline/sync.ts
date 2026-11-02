@@ -4,14 +4,15 @@ import { ApiError, EXPENSES_KEY, fetchChanges, putExpense, type ExpensesState } 
 import { upsertById } from '@core/expense-merge';
 
 import type { Outbox } from './outbox';
+import type { Expense } from '@core/expense';
 
 // What the server said no to for good: the same write will never be accepted, so retrying is pointless
-const isPermanent = (error: unknown): boolean => {
+const isPermanent = (error: unknown): error is ApiError => {
     return error instanceof ApiError && (error.status === 400 || error.status === 409 || error.status === 422);
 };
 
 // Sends what is pending, oldest first. The first failure that may pass on its own stops the run, keeping the order.
-const pushOutbox = async (client: QueryClient, outbox: Outbox): Promise<void> => {
+const pushOutbox = async (client: QueryClient, outbox: Outbox<Expense>): Promise<void> => {
     await outbox.ready;
 
     for (const expense of [...outbox.getState().pending]) {
@@ -24,7 +25,7 @@ const pushOutbox = async (client: QueryClient, outbox: Outbox): Promise<void> =>
             await outbox.settle(expense);
         } catch (error) {
             if (!isPermanent(error)) throw error;
-            await outbox.reject(expense);
+            await outbox.reject(expense, error.code);
         }
     }
 };
@@ -43,9 +44,9 @@ const pullChanges = async (client: QueryClient): Promise<ExpensesState> => {
 };
 
 // Runs one at a time per outbox, so overlapping triggers never send the same expense twice
-const running = new WeakMap<Outbox, Promise<unknown>>();
+const running = new WeakMap<Outbox<Expense>, Promise<unknown>>();
 
-const syncExpenses = (client: QueryClient, outbox: Outbox): Promise<ExpensesState> => {
+const syncExpenses = (client: QueryClient, outbox: Outbox<Expense>): Promise<ExpensesState> => {
     const turn = (running.get(outbox) ?? Promise.resolve())
         .catch(() => undefined)
         .then(async () => {
@@ -57,7 +58,7 @@ const syncExpenses = (client: QueryClient, outbox: Outbox): Promise<ExpensesStat
 };
 
 // The one place data moves: any trigger Query has (open, focus, reconnect, invalidation) runs a full sync
-const expensesQuery = (outbox: Outbox) => {
+const expensesQuery = (outbox: Outbox<Expense>) => {
     return queryOptions({
         queryKey: EXPENSES_KEY,
         queryFn: ({ client }) => syncExpenses(client, outbox),
