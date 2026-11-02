@@ -221,6 +221,24 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await entryOf(reworded)).toMatchObject({ ...credit, text: 'Tapas', updatedBy: brunoId });
     });
 
+    it('answers 422 kind-fixed to an expense turned into a settlement, or the reverse, deleted or not', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        const expense = crypto.randomUUID();
+        const payment = crypto.randomUUID();
+        await entryOf(await putEntry(ana, group.id, expense, dinner(group.me, { [brunoId]: 3000 })));
+        await entryOf(
+            await putEntry(bruno, group.id, payment, settlement(brunoId, group.me, 3000, { deletedAt: 1_000 }))
+        );
+
+        const writes = [
+            putEntry(ana, group.id, expense, settlement(group.me, brunoId, 3000, { updatedAt: 2_000 })),
+            putEntry(bruno, group.id, payment, dinner(brunoId, { [group.me]: 3000 }, { updatedAt: 2_000 })),
+        ];
+
+        for (const response of await Promise.all(writes)) expect(await error(response, 422)).toBe('kind-fixed');
+        expect(await seqsOf(group.id)).toEqual([1, 2]);
+    });
+
     it('reads the ids in upper case as the same group, entry and members', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const id = crypto.randomUUID();

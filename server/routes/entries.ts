@@ -112,6 +112,8 @@ const entriesRoutes = new Hono<AppEnv>()
         if (input.kind === 'expense' && !isDefaultCategoryId(input.categoryId)) {
             return c.json({ error: 'unknown-category' }, 400);
         }
+        // An expense stays an expense and a settlement a settlement: changing it is deleting it and entering another
+        if (stored && stored.entry.kind !== input.kind) return c.json({ error: 'kind-fixed' }, 422);
         if (input.currency !== state.group.currency) return c.json({ error: 'currency-mismatch' }, 422);
         const refusal = memberRefusal(state, input, stored?.entry ?? null);
         if (refusal) return c.json({ error: refusal }, 422);
