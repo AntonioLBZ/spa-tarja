@@ -320,6 +320,7 @@
             "date": "Date",
             "save": "Save",
             "same": "From and To have to be two different people.",
+            "sentence": "{text}.",
             "after": {
                 "youOwe": "After this, you owe {name} {amount}",
                 "owesYou": "After this, {name} owes you {amount}",

@@ -95,6 +95,10 @@ function save() {
     return screen.getByRole('button', { name: text.save }) as HTMLButtonElement;
 }
 
+function sentences(...texts: string[]) {
+    return texts.map((text) => `${text}.`).join(' ');
+}
+
 function hint() {
     return document.getElementById(amount().getAttribute('aria-describedby')!.split(' ')[0]!)!.textContent;
 }
@@ -203,7 +207,7 @@ describe('the form', () => {
         expect(select(text.from).textContent).toBe(text.you);
         expect(select(text.to).textContent).toBe('Bea');
         expect(amount().value).toBe('');
-        expect(hint()).toBe(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) }));
+        expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         expect(save().disabled).toBe(true);
     });
 
@@ -248,11 +252,11 @@ describe('the form', () => {
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         const debt = t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) });
 
-        expect(hint()).toBe(`${debt} ${t('groups.settle.after.youSettled', { name: 'Bea' })}`);
+        expect(hint()).toBe(sentences(debt, t('groups.settle.after.youSettled', { name: 'Bea' })));
         fireEvent.change(amount(), { target: { value: '20' } });
-        expect(hint()).toBe(`${debt} ${t('groups.settle.after.owesYou', { name: 'Bea', amount: euros(500) })}`);
+        expect(hint()).toBe(sentences(debt, t('groups.settle.after.owesYou', { name: 'Bea', amount: euros(500) })));
         fireEvent.change(amount(), { target: { value: '10' } });
-        expect(hint()).toBe(`${debt} ${t('groups.settle.after.youOwe', { name: 'Bea', amount: euros(500) })}`);
+        expect(hint()).toBe(sentences(debt, t('groups.settle.after.youOwe', { name: 'Bea', amount: euros(500) })));
     });
 
     it('says what follows between two other people', async () => {

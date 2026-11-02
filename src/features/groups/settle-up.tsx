@@ -144,12 +144,14 @@ const SettleUp = (props: SettleUpProps) => {
     };
 
     const before = debtBetween(debts, from, to);
+    // Each a sentence of its own, so that they are never read as one
     const hint = [
         before > 0 && words.debt({ from, to, cents: before }),
         before < 0 && words.debt({ from: to, to: from, cents: -before }),
         cents >= 1 && !same && after(before - cents),
     ]
-        .filter(Boolean)
+        .filter((text) => text !== false)
+        .map((text) => t('sentence', { text }))
         .join(' ');
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

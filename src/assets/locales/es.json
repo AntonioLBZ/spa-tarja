@@ -320,6 +320,7 @@
             "date": "Fecha",
             "save": "Guardar",
             "same": "Quien paga y quien recibe tienen que ser dos personas distintas.",
+            "sentence": "{text}.",
             "after": {
                 "youOwe": "Con esto, debes {amount} a {name}",
                 "owesYou": "Con esto, {name} te debe {amount}",
