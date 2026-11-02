@@ -23,7 +23,6 @@ const bea = person('Bea');
 const cris = person('Cris', { claimed: false });
 const dani = person('Dani', { leftAt: 1 });
 
-// Ana, the test user, paid a dinner with Bea, who owes her €10.00; Cris is a dummy and Dani left
 function trip(me: GroupMember = ana, overrides: Partial<SharedGroup> = {}) {
     return sampleGroup({ name: 'Lisbon', members: [ana, bea, cris, dani], me: me.id, ...overrides });
 }
@@ -95,6 +94,20 @@ describe('the people of a group', () => {
         await screen.findByRole('checkbox', { name: en.groups.edit.show });
         expect(screen.queryByRole('heading', { name: text.title })).toBeNull();
         expect(screen.queryByLabelText(text.add)).toBeNull();
+    });
+    it('show no balance, and leave Remove to ask, while the expenses are not on the device', async () => {
+        const group = trip();
+        const api = createFakeApi({ groups: [group] });
+        stubApi((url, init) =>
+            url.pathname.endsWith('/entries') ? new Response(null, { status: 503 }) : api.handler(url, init)
+        );
+        renderApp({ path: `/groups/${group.id}/edit` });
+        await screen.findByRole('heading', { level: 2, name: text.title });
+
+        await waitFor(() => expect(rows()).toEqual([`Ana${text.you}${text.owner}`, 'Bea', `Cris${text.notJoined}`]));
+        fireEvent.click(row('Bea'));
+        fireEvent.click(button(t('groups.people.removeItem', { name: 'Bea' })));
+        expect(screen.getByText(t('groups.people.removeConfirm', { name: 'Bea' }))).toBeDefined();
     });
 });
 
@@ -173,6 +186,18 @@ describe('removing', () => {
 
         await waitFor(() => expect(memberOf(cris.id)?.leftAt).not.toBeNull());
         await waitFor(() => expect(rows()).toHaveLength(2));
+    });
+
+    it('gives the focus back to Remove when the question is cancelled', async () => {
+        const { api } = await edit(trip());
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.removeItem', { name: 'Cris' })));
+        fireEvent.click(button(text.cancel));
+
+        expect(screen.queryByText(t('groups.people.removeConfirm', { name: 'Cris' }))).toBeNull();
+        expect(document.activeElement).toBe(button(t('groups.people.removeItem', { name: 'Cris' })));
+        expect(api.groupRequests).toEqual([]);
     });
 
     it('is not offered on the owner themselves', async () => {

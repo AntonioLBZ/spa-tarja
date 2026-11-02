@@ -22,7 +22,6 @@ function euros(cents: number) {
     return formatAmount(cents, 'EUR', 'en');
 }
 
-// The test user paid it all and Bea owes her part, or the other way round
 function owedToMe(group: SharedGroup, cents: number) {
     return sampleEntry(group, {
         amountCents: cents * 2,

@@ -155,6 +155,26 @@ describe('a group', () => {
         ]);
     });
 
+    it('says you are settled in your own line of everyone', async () => {
+        const group = groupOf([ana, bea, cris], ana);
+        open(
+            [group],
+            [
+                expense(group, bea, [
+                    [bea, 1000],
+                    [cris, 1000],
+                ]),
+            ]
+        );
+        await screen.findByText(text.balance.allSettled);
+
+        expect(everyone()).toEqual([
+            text.balance.youSettled,
+            t('groups.balance.memberOwed', { name: 'Bea', amount: euros(1000) }),
+            t('groups.balance.memberOwes', { name: 'Cris', amount: euros(1000) }),
+        ]);
+    });
+
     it('names who left and who deleted their account', async () => {
         const gone = person('Bea', { leftAt: 1 });
         const deleted = person('');
@@ -310,6 +330,14 @@ describe('a group out of reach', () => {
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
         expect(await screen.findByText(t('groups.balance.owe', { amount: euros(1000) }))).toBeDefined();
+    });
+
+    it('opens from an address that spells the id in capitals', async () => {
+        const group = groupOf([ana, bea], ana, { name: 'Lisbon' });
+        open([group], [], `/groups/${group.id.toUpperCase()}`);
+
+        expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
+        expect(screen.queryByText(text.group.missing)).toBeNull();
     });
 
     it('says so, with a way back to Groups, for a group the device does not hold', async () => {
