@@ -38,7 +38,6 @@ async function setup(groups: SharedGroup[], options: Parameters<typeof createFak
     return { api, ...rendered, groupOf, writes, leaves };
 }
 
-// Every change of a group, as the screens make it, on the group of the test user and Bea
 const changes = (group: SharedGroup): Array<[string, (actions: Actions) => Promise<SharedGroup>]> => {
     const bea = group.members[1]!.id;
     return [

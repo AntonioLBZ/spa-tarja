@@ -21,7 +21,6 @@ const BEA: AuthUser = { id: 'user-bea', name: 'Bea Ruiz', email: 'bea@example.co
 const group = sampleGroup();
 const bea = group.members[1]!.id;
 
-// What the device kept of the groups the last time the user had the app open
 async function leaveCopy(
     storage: ReturnType<typeof createMemoryStorage>,
     groups: SharedGroup[],
