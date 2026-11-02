@@ -1,9 +1,10 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
@@ -429,10 +430,12 @@ describe('making a group with friends', () => {
     async function start(wrap?: (handler: Handler) => Handler) {
         const api = createFakeApi({ groups: friends });
         stubApi(wrap ? wrap(api.handler) : api.handler);
-        renderApp({ path: '/groups' });
+        const app = renderApp({ path: '/groups' });
         await screen.findByText(text.balance.allSettled);
         fireEvent.click(newGroupToggle());
-        return api;
+        return Object.assign(api, {
+            sync: () => act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY })),
+        });
     }
 
     it('lists only the open friends who use the app, each added once', async () => {
@@ -451,6 +454,18 @@ describe('making a group with friends', () => {
         expect(friendField().textContent).toBe(text.new.friendNone);
         fireEvent.click(friendField());
         expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.new.friendNone, 'Eva']);
+    });
+
+    it('chooses no friend again when the friend chosen is gone after a sync', async () => {
+        const api = await start();
+        fireEvent.click(friendField());
+        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+
+        api.groups.find((group) => group.id === friends[0]!.id)!.closed = 'deleted';
+        await api.sync();
+
+        await waitFor(() => expect(friendField().textContent).toBe(text.new.friendNone));
+        expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
     });
 
     it('adds each friend once the group is made with its dummies, and opens it', async () => {

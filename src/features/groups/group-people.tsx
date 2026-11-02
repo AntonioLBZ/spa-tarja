@@ -158,6 +158,9 @@ const AddFriendMember = (props: AddPersonProps) => {
     if (friends.length === 0) return null;
 
     const dummies = isOwner(group) ? group.members.filter((member) => !member.claimed && member.leftAt === null) : [];
+    // A friend or a dummy gone since they were chosen is chosen no more
+    const chosen = friends.some((item) => item.id === friend) ? friend : '';
+    const placed = dummies.some((dummy) => dummy.id === place) ? place : 'new';
 
     const choose = (next: string) => {
         setFriend(next);
@@ -168,12 +171,12 @@ const AddFriendMember = (props: AddPersonProps) => {
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (friend === '') return;
+        if (chosen === '') return;
 
         setFailure(null);
         setBusy(true);
         try {
-            await addFriend(group.id, id, place === 'new' ? { friend } : { friend, replaces: place });
+            await addFriend(group.id, id, placed === 'new' ? { friend: chosen } : { friend: chosen, replaces: placed });
             choose('');
             field.current?.focus();
         } catch (error) {
@@ -196,12 +199,12 @@ const AddFriendMember = (props: AddPersonProps) => {
                             { value: '', label: t('people.friendNone') },
                             ...friends.map((item) => ({ value: item.id, label: item.name })),
                         ]}
-                        value={friend}
+                        value={chosen}
                         onChange={choose}
                     />
                 )}
             </Field>
-            {friend !== '' && dummies.length > 0 && (
+            {chosen !== '' && dummies.length > 0 && (
                 <ChoiceGroup
                     legend={t('people.place')}
                     name={placeName}
@@ -212,11 +215,11 @@ const AddFriendMember = (props: AddPersonProps) => {
                             label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
                         })),
                     ]}
-                    value={place}
+                    value={placed}
                     onChange={setPlace}
                 />
             )}
-            <Button block disabled={disabled || busy || friend === ''} type="submit">
+            <Button block disabled={disabled || busy || chosen === ''} type="submit">
                 {t('people.addFriend')}
             </Button>
             {failure && (

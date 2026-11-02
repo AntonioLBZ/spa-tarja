@@ -1,10 +1,11 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
+import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
@@ -39,11 +40,12 @@ async function edit(group: SharedGroup) {
     });
     const api = createFakeApi({ groups: [group], entries: [dinner] });
     stubApi(api.handler);
-    renderApp({ path: `/groups/${group.id}/edit` });
+    const app = renderApp({ path: `/groups/${group.id}/edit` });
     await screen.findByRole('heading', { level: 2, name: text.title });
     await waitFor(() => expect(rows().join()).toContain(euros(1000)));
     const memberOf = (id: string) => api.groups[0]!.members.find((member) => member.id === id);
-    return { api, memberOf };
+    const sync = () => act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
+    return { api, memberOf, sync };
 }
 
 function sheet() {
@@ -316,6 +318,22 @@ describe('merging', () => {
         );
     });
 
+    it('chooses nobody again when the one chosen leaves while the panel is open', async () => {
+        const { api, sync } = await edit(trip());
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
+        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+
+        api.groups[0]!.members.find((member) => member.id === bea.id)!.leftAt = 2;
+        await sync();
+
+        await waitFor(() =>
+            expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone)
+        );
+        expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
+    });
+
     it('goes back to the actions on Cancel, with the focus on Merge and nothing sent', async () => {
         const { api } = await edit(trip());
 
@@ -440,9 +458,10 @@ describe('adding a friend', () => {
     async function editWith(group: SharedGroup, friends: SharedGroup[] = [eva, friendOf('Fran', false)]) {
         const api = createFakeApi({ groups: [group, ...friends] });
         stubApi(api.handler);
-        renderApp({ path: `/groups/${group.id}/edit` });
+        const app = renderApp({ path: `/groups/${group.id}/edit` });
         await screen.findByRole('heading', { level: 2, name: text.title });
-        return { api, members: () => api.groups[0]!.members };
+        const sync = () => act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
+        return { api, members: () => api.groups[0]!.members, sync };
     }
 
     function choose(name: string) {
@@ -485,6 +504,35 @@ describe('adding a friend', () => {
         expect(rows()[2]).toMatch(/^Eva/);
         const added = members().at(-1)!;
         expect(members().find((member) => member.id === cris.id)?.mergedInto).toBe(added.id);
+    });
+
+    it('chooses no friend again when the friend chosen is gone after a sync', async () => {
+        const { api, sync } = await editWith(trip(), [eva, friendOf('Gil')]);
+        choose('Eva');
+
+        api.groups.find((group) => group.id === eva.id)!.closed = 'deleted';
+        await sync();
+
+        await waitFor(() =>
+            expect(screen.getByRole('combobox', { name: text.friend }).textContent).toBe(text.friendNone)
+        );
+        expect(button(text.addFriend).disabled).toBe(true);
+        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
+    });
+
+    it('goes back to a new member when the dummy chosen is gone after a sync', async () => {
+        const { api, members, sync } = await editWith(trip());
+        choose('Eva');
+        fireEvent.click(screen.getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+
+        api.groups[0]!.members.find((member) => member.id === cris.id)!.leftAt = 2;
+        await sync();
+
+        await waitFor(() => expect(rows()).toHaveLength(2));
+        fireEvent.click(button(text.addFriend));
+
+        await waitFor(() => expect(rows()).toHaveLength(3));
+        expect(members().find((member) => member.id === cris.id)?.mergedInto).toBeNull();
     });
 
     it('asks nothing of a member who is not the owner', async () => {

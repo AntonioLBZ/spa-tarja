@@ -1,10 +1,11 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
+import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
@@ -149,6 +150,24 @@ describe('settling up from a line', () => {
         ]);
         expect(screen.queryByLabelText(text.amount)).toBeNull();
         expect(document.activeElement).toBe(toggle());
+    });
+
+    it('goes back to where it starts for a person who leaves while it is open', async () => {
+        const group = trip();
+        const { api, app } = await open(group, debts(group));
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+
+        api.groups[0]!.members.find((member) => member.id === bea.id)!.leftAt = 2;
+        await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
+
+        await waitFor(() => expect(select(text.to).textContent).toBe('Cris'));
+        fireEvent.click(save());
+
+        await waitFor(() =>
+            expect(app.groupOutbox.getState().pending).toMatchObject([
+                { paidBy: ana.id, shares: [{ memberId: cris.id, cents: 1500 }] },
+            ])
+        );
     });
 
     it('may pay more than the debt, which turns it the other way round', async () => {

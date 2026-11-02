@@ -66,6 +66,8 @@ const PersonRow = (props: PersonRowProps) => {
         value: target.id,
         label: target.id === group.me ? t('people.you') : words.nameOf(target.id),
     }));
+    // Nobody again when the one chosen left or was merged meanwhile
+    const chosen = targets.some((target) => target.value === into) ? into : '';
     const tags = [
         isMe && t('people.you'),
         member.role === 'owner' && t('people.owner'),
@@ -222,7 +224,7 @@ const PersonRow = (props: PersonRowProps) => {
                                 ref={focus.start}
                                 label={t('people.mergeInto')}
                                 options={[{ value: '', label: t('people.mergeNone') }, ...targets]}
-                                value={into}
+                                value={chosen}
                                 onChange={setInto}
                             />
                         )}
@@ -231,8 +233,8 @@ const PersonRow = (props: PersonRowProps) => {
                         <Button
                             ghost
                             aria-label={t('people.mergeConfirmItem', { name })}
-                            disabled={disabled || busy || into === ''}
-                            onClick={() => void run(() => merge(group.id, member.id, into), onGone)}
+                            disabled={disabled || busy || chosen === ''}
+                            onClick={() => void run(() => merge(group.id, member.id, chosen), onGone)}
                         >
                             {t('people.mergeConfirm')}
                         </Button>

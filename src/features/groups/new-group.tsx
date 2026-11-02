@@ -56,6 +56,8 @@ const NewGroup = (props: NewGroupProps) => {
     // The person makes the group, so the rest are one fewer than the most a group takes
     const full = people.length >= MAX_GROUP_MEMBERS - 1;
     const choices = friends.filter((item) => !people.some((listed) => listed.friend === item.id));
+    // A friend gone since they were chosen is chosen no more
+    const chosen = choices.some((item) => item.id === friend) ? friend : '';
 
     // The people with the one in the field added, or null when it can't be, and the field then says why
     const withTyped = (): Person[] | null => {
@@ -75,13 +77,13 @@ const NewGroup = (props: NewGroupProps) => {
     };
 
     const addChosen = () => {
-        const chosen = friends.find((item) => item.id === friend);
-        if (!chosen) return;
+        const added = choices.find((item) => item.id === chosen);
+        if (!added) return;
         if (full) {
             setFriendFull(true);
             return;
         }
-        setPeople([...people, { id: crypto.randomUUID(), name: chosen.name, friend: chosen.id }]);
+        setPeople([...people, { id: crypto.randomUUID(), name: added.name, friend: added.id }]);
         setFriend('');
     };
 
@@ -204,14 +206,14 @@ const NewGroup = (props: NewGroupProps) => {
                                             { value: '', label: t('new.friendNone') },
                                             ...choices.map((item) => ({ value: item.id, label: item.name })),
                                         ]}
-                                        value={friend}
+                                        value={chosen}
                                         onChange={(next) => {
                                             setFriend(next);
                                             setFriendFull(false);
                                         }}
                                     />
                                 </div>
-                                <Button disabled={disabled || friend === ''} onClick={addChosen}>
+                                <Button disabled={disabled || chosen === ''} onClick={addChosen}>
                                     {t('new.addFriend')}
                                 </Button>
                             </div>

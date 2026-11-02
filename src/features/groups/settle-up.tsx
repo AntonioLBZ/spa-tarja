@@ -105,7 +105,15 @@ const SettleUp = (props: SettleUpProps) => {
     const people = group.members.filter((member) => member.leftAt === null);
     if (people.length < 2) return null;
 
-    const draft = form.draft ?? startDraft(group, debts);
+    const start = startDraft(group, debts);
+    const kept = form.draft ?? start;
+    // An end who left, or was merged, since it was chosen goes back to where the form starts
+    const present = (memberId: string) => people.some((member) => member.id === memberId);
+    const draft = {
+        ...kept,
+        from: present(kept.from) ? kept.from : start.from,
+        to: present(kept.to) ? kept.to : start.to,
+    };
     const { from, to } = draft;
     const change = (next: Partial<SettleDraft>) => form.setDraft({ ...draft, ...next });
     const options = people.map((member) => ({
