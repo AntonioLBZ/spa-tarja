@@ -24,6 +24,8 @@
     flex-wrap: wrap;
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .person-row__actions {
