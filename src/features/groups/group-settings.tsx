@@ -9,6 +9,7 @@ import { Notice } from '@/components/notice/notice';
 import { useOnline } from '@/lib/offline';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
+import { CloseGroup } from './close-group';
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { GroupGate } from './group-gate';
 import { GroupPeople } from './group-people';
@@ -35,7 +36,8 @@ interface SectionProps {
     disabled: boolean;
 }
 
-// The settings of a group or a friend. A closed group keeps only the person's own switches.
+// The settings of a group or a friend, ending with the way to leave or delete it. A closed group keeps only the
+// person's own switches.
 const GroupSettings = (props: GroupSettingsProps) => {
     const { groupId } = props;
 
@@ -57,6 +59,7 @@ const SettingsView = (props: SettingsViewProps) => {
             <PersonalSwitches group={group} disabled={!online} />
             {open && group.kind === 'group' && isOwner(group) && <GroupName group={group} disabled={!online} />}
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
+            {open && <CloseGroup ledger={ledger} disabled={!online} />}
         </section>
     );
 };

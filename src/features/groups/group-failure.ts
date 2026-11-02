@@ -8,12 +8,21 @@ import { LocalRefusal } from './local-refusal';
 
 // Why a change to a group didn't happen, as the screens word it
 type GroupFailure =
-    'offline' | 'readOnly' | 'unsynced' | 'unsettled' | 'notOwner' | 'tooManyGroups' | 'tooManyMembers' | 'failed';
+    | 'offline'
+    | 'readOnly'
+    | 'unsynced'
+    | 'unsettled'
+    | 'notOwner'
+    | 'ownerLeaves'
+    | 'tooManyGroups'
+    | 'tooManyMembers'
+    | 'failed';
 
 const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     closed: 'readOnly',
     unsettled: 'unsettled',
     'not-owner': 'notOwner',
+    owner: 'ownerLeaves',
     'too-many-groups': 'tooManyGroups',
     'too-many-members': 'tooManyMembers',
 };

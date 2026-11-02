@@ -374,6 +374,7 @@
             "unsynced": "Algunos cambios tuyos en este grupo aún no se han enviado. Conéctate e inténtalo de nuevo.",
             "unsettled": "El saldo de esta persona no está a cero. Primero hay que saldar cuentas.",
             "notOwner": "Solo quien administra el grupo puede hacer eso.",
+            "ownerLeaves": "Quien administra el grupo no puede salir. Primero haz admin a otra persona, o elimina el grupo.",
             "tooManyGroups": "Estás en {max} grupos abiertos, el máximo. Sal de alguno o elimínalo primero.",
             "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
             "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
@@ -406,6 +407,31 @@
             "add": "Añadir a una persona",
             "addHint": "Por su nombre. No necesita la app.",
             "addSubmit": "Añadir"
+        },
+        "close": {
+            "leave": {
+                "button": "Salir del grupo",
+                "question": "¿Salir de {name}?",
+                "what": "El grupo se cierra para ti tal como está hoy. Sus gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "confirm": "Salir",
+                "unsettled": "Tu saldo en {name} no está a cero. Salda cuentas antes de salir."
+            },
+            "delete": {
+                "button": "Eliminar el grupo",
+                "question": "¿Eliminar {name}?",
+                "what": "El grupo se cierra para todas las personas que están en él. Los gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "confirm": "Eliminar",
+                "unsettled": "No todos los saldos de {name} están a cero. Saldad cuentas antes de eliminarlo."
+            },
+            "deleteFriend": {
+                "button": "Quitar de amigos",
+                "question": "¿Quitar a {name} de tus amigos?",
+                "what": "Lo que compartíais se queda como estaba. Sigue en tu lista, y puedes quitarlo aquí.",
+                "confirm": "Quitar",
+                "unsettled": "{name} y tú no estáis en paz. Saldad cuentas antes de quitarle de tus amigos."
+            },
+            "cancel": "Cancelar",
+            "settleUp": "Saldar cuentas"
         }
     },
     "summary": {

@@ -374,6 +374,7 @@
             "unsynced": "Some of your changes to this group haven't been sent yet. Connect and try again.",
             "unsettled": "This person's balance isn't zero. Settle up first.",
             "notOwner": "Only the owner of the group can do that.",
+            "ownerLeaves": "The owner can't leave. Make someone else the owner first, or delete the group.",
             "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
             "tooManyMembers": "This group has {max} people, the most it can have.",
             "failed": "Couldn't save the change. Try again."
@@ -406,6 +407,31 @@
             "add": "Add a person",
             "addHint": "By name. They don't need the app.",
             "addSubmit": "Add"
+        },
+        "close": {
+            "leave": {
+                "button": "Leave the group",
+                "question": "Leave {name}?",
+                "what": "The group closes for you as it is today. Its expenses stay in your list, and you can turn them off here.",
+                "confirm": "Leave",
+                "unsettled": "Your balance in {name} isn't zero. Settle up before you leave."
+            },
+            "delete": {
+                "button": "Delete the group",
+                "question": "Delete {name}?",
+                "what": "The group closes for everybody in it. The expenses stay in your list, and you can turn them off here.",
+                "confirm": "Delete",
+                "unsettled": "Not every balance in {name} is zero. Settle up before you delete it."
+            },
+            "deleteFriend": {
+                "button": "Remove friend",
+                "question": "Remove {name} from your friends?",
+                "what": "What you shared stays as it was. It stays in your list, and you can turn it off here.",
+                "confirm": "Remove",
+                "unsettled": "You and {name} aren't settled. Settle up before you remove them."
+            },
+            "cancel": "Cancel",
+            "settleUp": "Settle up"
         }
     },
     "summary": {
