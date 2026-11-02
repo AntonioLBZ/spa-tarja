@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_FRIENDS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_FRIENDS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH, UNNAMED_PERSON } from '@core/shared-group';
 import { app } from '@server/app';
 import {
     befriend,
@@ -584,6 +584,20 @@ describe('a stranger', () => {
 });
 
 describe('the names of people', () => {
+    it.each([
+        ['too long', 'x'.repeat(120), 'x'.repeat(SHARED_NAME_MAX_LENGTH)],
+        ['blank', '   ', UNNAMED_PERSON],
+        ['made of nothing visible', '\u200B\u2060', UNNAMED_PERSON],
+    ])('give a maker whose account name is %s a name the group takes back', async (_, account, expected) => {
+        const dani = await signIn('dani@example.com', account);
+
+        const group = await makeGroup(dani);
+
+        expect(group.members[0]?.name).toBe(expected);
+        const sentBack = await send(dani, 'PUT', `/groups/${group.id}/members/${group.me}`, { name: expected });
+        expect(sentBack.status).toBe(200);
+    });
+
     it('shows the other side of a friend by their nickname, live, and keeps the name a group gave them', async () => {
         const friend = await befriend(ana, bruno);
         const group = await sharedWithBruno();

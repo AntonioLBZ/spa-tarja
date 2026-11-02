@@ -10,10 +10,12 @@ import {
     memberIdSchema,
     memberWriteSchema,
     mergeSchema,
+    personName,
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
 import { addFriend, addPlaceholder, findFriend, leaveGroup, mergeMember, renameMember } from '@server/db/members';
+import { readProfile } from '@server/db/profile';
 
 import { CLOSED, NOT_FOUND } from './groups';
 
@@ -82,7 +84,8 @@ const membersRoutes = new Hono<AppEnv>()
             return c.json({ error: 'too-many-groups' }, 409);
         }
 
-        if ((await addFriend(db, added, friendUser, input.replaces ?? null)) === 'id-taken') {
+        const person = { userId: friendUser, name: personName(await readProfile(db, friendUser)) };
+        if ((await addFriend(db, added, person, input.replaces ?? null)) === 'id-taken') {
             return c.json({ error: 'id-taken' }, 409);
         }
         return answer();

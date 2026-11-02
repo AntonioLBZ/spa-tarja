@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
     MAX_GROUP_MEMBERS,
     SHARED_NAME_MAX_LENGTH,
+    UNNAMED_PERSON,
     groupChangeSchema,
     groupWriteSchema,
     memberWriteSchema,
@@ -11,6 +12,7 @@ import {
     mySwitchesSchema,
     newGroupSchema,
     ownerSchema,
+    personName,
 } from './shared-group';
 
 const ANA = '6a1f4c2e-8b3d-4e5f-9a7b-1c2d3e4f5a6b';
@@ -198,5 +200,37 @@ describe('the merge, the owner and the switches of a person', () => {
         });
         expect(v.parse(mySwitchesSchema, {})).toEqual({});
         expect(v.safeParse(mySwitchesSchema, { archived: 'yes' }).success).toBe(false);
+    });
+});
+
+describe('personName', () => {
+    it('is the nickname when there is one', () => {
+        expect(personName({ nickname: 'Anita', name: 'Ana García' })).toBe('Anita');
+    });
+
+    it('is the name of the account otherwise, trimmed', () => {
+        expect(personName({ nickname: null, name: '  Ana García ' })).toBe('Ana García');
+    });
+
+    it('cuts a long name of an account to the most a name can take, never in the middle of a character', () => {
+        expect(personName({ nickname: null, name: 'x'.repeat(120) })).toBe('x'.repeat(SHARED_NAME_MAX_LENGTH));
+        expect(personName({ nickname: null, name: `${'x'.repeat(SHARED_NAME_MAX_LENGTH - 1)}🙂` })).toBe(
+            'x'.repeat(SHARED_NAME_MAX_LENGTH - 1)
+        );
+    });
+
+    it.each([
+        ['empty', ''],
+        ['only spaces', '   '],
+        ['nothing visible', '\u200B\u2060'],
+    ])('stands in for a name of an account that is %s', (_, name) => {
+        expect(personName({ nickname: null, name })).toBe(UNNAMED_PERSON);
+    });
+
+    it('is always a name a group takes back', () => {
+        for (const name of ['', 'x'.repeat(120), '\u200B', ' Ana ', `${'x'.repeat(39)}🙂`]) {
+            const shown = personName({ nickname: null, name });
+            expect(v.parse(memberWriteSchema, { name: shown })).toEqual({ name: shown });
+        }
     });
 });

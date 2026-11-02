@@ -1,11 +1,8 @@
 import type { MemberRole, MySwitches } from '@core/shared-group';
 
-// What a person is called when they make or join a group: their nickname, else the name of their account, as it is then
-const PERSON_NAME = `(SELECT COALESCE(profile.nickname, "user".name) FROM "user" LEFT JOIN profile ON profile.user_id = "user".id WHERE "user".id = ?3)`;
-
 const INSERT_PERSON = `
     INSERT INTO shared_members (id, group_id, user_id, name, role, created_by, created_at, claimed_at)
-    VALUES (?1, ?2, ?3, ${PERSON_NAME}, ?4, ?5, ?6, ?6)`;
+    VALUES (?1, ?2, ?3, ?7, ?4, ?5, ?6, ?6)`;
 
 const INSERT_PLACEHOLDER = `
     INSERT INTO shared_members (id, group_id, name, role, created_by, created_at)
@@ -24,6 +21,12 @@ const FRIEND = `
     JOIN shared_members other ON other.group_id = g.id AND other.id <> mine.id
     WHERE g.id = ?1 AND g.kind = 'direct' AND g.deleted_at IS NULL`;
 
+// A user who goes into a group, under the name they start with there
+interface Person {
+    userId: string;
+    name: string;
+}
+
 interface NewMember {
     id: string;
     groupId: string;
@@ -32,9 +35,10 @@ interface NewMember {
     at: number;
 }
 
-// A member who is that user, named after them
-const insertPerson = (db: D1Database, member: NewMember, userId: string, role: MemberRole): D1PreparedStatement => {
-    return db.prepare(INSERT_PERSON).bind(member.id, member.groupId, userId, role, member.by, member.at);
+const insertPerson = (db: D1Database, member: NewMember, person: Person, role: MemberRole): D1PreparedStatement => {
+    return db
+        .prepare(INSERT_PERSON)
+        .bind(member.id, member.groupId, person.userId, role, member.by, member.at, person.name);
 };
 
 const insertPlaceholder = (db: D1Database, member: NewMember, name: string): D1PreparedStatement => {
@@ -108,10 +112,10 @@ const findFriend = async (
 const addFriend = async (
     db: D1Database,
     member: NewMember,
-    userId: string,
+    friend: Person,
     replaces: string | null
 ): Promise<'added' | 'id-taken'> => {
-    const statements = [insertPerson(db, member, userId, 'member')];
+    const statements = [insertPerson(db, member, friend, 'member')];
     if (replaces !== null) statements.push(db.prepare(MERGE).bind(replaces, member.id, member.at));
     try {
         await db.batch(statements);
@@ -134,4 +138,5 @@ export {
     mergeMember,
     renameMember,
     saveMySwitches,
+    type Person,
 };

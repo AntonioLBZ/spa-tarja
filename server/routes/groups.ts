@@ -10,6 +10,7 @@ import {
     groupWriteSchema,
     mySwitchesSchema,
     ownerSchema,
+    personName,
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import {
@@ -24,6 +25,7 @@ import {
     readSharedGroup,
 } from '@server/db/groups';
 import { handOver, saveMySwitches } from '@server/db/members';
+import { readProfile } from '@server/db/profile';
 
 import type { AppEnv } from '@server/env';
 
@@ -49,7 +51,8 @@ const groupsRoutes = new Hono<AppEnv>()
             const [limit, error] =
                 input.kind === 'group' ? [MAX_OPEN_GROUPS, 'too-many-groups'] : [MAX_FRIENDS, 'too-many-friends'];
             if ((await countOpenGroups(db, userId, input.kind)) >= limit) return c.json({ error }, 409);
-            if ((await createGroup(db, userId, groupId, input)) === 'id-taken') {
+            const maker = { userId, name: personName(await readProfile(db, userId)) };
+            if ((await createGroup(db, maker, groupId, input)) === 'id-taken') {
                 return c.json({ error: 'id-taken' }, 409);
             }
             return c.json(await readSharedGroup(db, userId, groupId), 200);

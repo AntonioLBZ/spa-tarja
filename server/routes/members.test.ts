@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH } from '@core/shared-group';
 import {
     befriend,
     groupOf,
@@ -208,6 +208,15 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
         await send(bruno, 'PUT', '/profile', { nickname: 'El Bruno' });
 
         expect(member((await listGroups(ana))[0] ?? group, brunoId)?.name).toBe('Bruni');
+    });
+
+    it('cuts the name of a friend whose account name is too long to what a group takes', async () => {
+        const dani = await signIn('dani@example.com', 'x'.repeat(120));
+        const group = await makeGroup(ana);
+
+        const { id, group: after } = await addFriend(ana, group.id, (await befriend(ana, dani)).id);
+
+        expect(member(after, id)?.name).toBe('x'.repeat(SHARED_NAME_MAX_LENGTH));
     });
 
     it('lets any member add their own friends', async () => {

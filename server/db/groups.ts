@@ -1,4 +1,4 @@
-import { insertPerson, insertPlaceholder, isUniqueViolation } from '@server/db/members';
+import { insertPerson, insertPlaceholder, isUniqueViolation, type Person } from '@server/db/members';
 
 import type { GroupClosed, GroupKind, GroupMember, MemberRole, NewGroup, SharedGroup } from '@core/shared-group';
 
@@ -173,16 +173,16 @@ const INSERT_GROUP = `
 // them in the order they came.
 const createGroup = async (
     db: D1Database,
-    userId: string,
+    maker: Person,
     groupId: string,
     input: NewGroup
 ): Promise<'created' | 'id-taken'> => {
     const now = Date.now();
-    const member = (id: string, position: number) => ({ id, groupId, by: userId, at: now + position });
+    const member = (id: string, position: number) => ({ id, groupId, by: maker.userId, at: now + position });
     try {
         await db.batch([
-            db.prepare(INSERT_GROUP).bind(groupId, input.kind, input.name, input.currency, userId, now),
-            insertPerson(db, member(input.me.id, 0), userId, 'owner'),
+            db.prepare(INSERT_GROUP).bind(groupId, input.kind, input.name, input.currency, maker.userId, now),
+            insertPerson(db, member(input.me.id, 0), maker, 'owner'),
             ...input.others.map((other, index) => insertPlaceholder(db, member(other.id, index + 1), other.name)),
         ]);
         return 'created';

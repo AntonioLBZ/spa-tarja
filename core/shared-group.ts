@@ -2,6 +2,7 @@ import * as v from 'valibot';
 
 import { isVisibleText } from './text';
 
+import type { Profile } from './profile';
 import type { SharedMember } from './shared-member';
 
 // Per user, counting only the groups that aren't closed for them
@@ -13,6 +14,9 @@ const MAX_FRIENDS = 100;
 const MAX_GROUP_MEMBERS = 30;
 
 const SHARED_NAME_MAX_LENGTH = 40;
+
+// What a group calls a person whose account has no name it can show
+const UNNAMED_PERSON = '?';
 
 const groupIdSchema = v.pipe(v.string(), v.uuid());
 
@@ -26,6 +30,26 @@ const sharedNameSchema = v.pipe(
     v.maxLength(SHARED_NAME_MAX_LENGTH),
     v.check(isVisibleText, 'Nothing visible')
 );
+
+// At most that many UTF-16 code units, never cutting a character in two
+const cutText = (text: string, max: number): string => {
+    let cut = '';
+    for (const character of text) {
+        if (cut.length + character.length > max) break;
+        cut += character;
+    }
+    return cut;
+};
+
+// The name a person starts with in a group they make or join: their nickname, else the name of their account cut to
+// fit, as long as it is a name a group takes
+const personName = ({ nickname, name }: Profile): string => {
+    for (const candidate of [nickname, cutText(name.trim(), SHARED_NAME_MAX_LENGTH)]) {
+        const parsed = v.safeParse(sharedNameSchema, candidate);
+        if (parsed.success) return parsed.output;
+    }
+    return UNNAMED_PERSON;
+};
 
 const currencySchema = v.pipe(v.string(), v.regex(/^[A-Z]{3}$/));
 
@@ -131,6 +155,7 @@ export {
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
     SHARED_NAME_MAX_LENGTH,
+    UNNAMED_PERSON,
     groupChangeSchema,
     groupIdSchema,
     groupWriteSchema,
@@ -140,6 +165,7 @@ export {
     mySwitchesSchema,
     newGroupSchema,
     ownerSchema,
+    personName,
     sharedNameSchema,
     type GroupChange,
     type GroupClosed,
