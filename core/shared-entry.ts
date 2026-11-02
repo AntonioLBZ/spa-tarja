@@ -13,6 +13,9 @@ const timestamp = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 
 const calendarDate = v.pipe(v.string(), v.check(isCalendarDate, 'Not a calendar day'));
 
+// A bound on what a write carries, above what a group's members can be over time, those who left and merged included
+const MAX_SHARES = 100;
+
 // In lower case, so that two spellings of one id are the same entry
 const entryIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());
 
@@ -40,7 +43,7 @@ const sharedExpenseSchema = v.object({
     kind: v.literal('expense'),
     categoryId: v.pipe(v.string(), v.minLength(1), v.maxLength(64)),
     split: v.picklist(SPLIT_MODES),
-    shares: v.pipe(v.array(shareSchema), v.minLength(1)),
+    shares: v.pipe(v.array(shareSchema), v.minLength(1), v.maxLength(MAX_SHARES)),
     payment: v.optional(paymentSchema, 'direct'),
     chargeDate: v.optional(v.nullable(calendarDate), null),
 });
@@ -114,6 +117,7 @@ type SharedEntry = SharedEntryInput & { id: string };
 type LedgerEntry = SharedEntry & { createdBy: string | null; updatedBy: string | null };
 
 export {
+    MAX_SHARES,
     SPLIT_MODES,
     entryIdSchema,
     sharedEntryInputSchema,

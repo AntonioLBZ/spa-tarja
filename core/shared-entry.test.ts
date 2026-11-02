@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
 import { MAX_AMOUNT_CENTS } from './money';
-import { entryIdSchema, sharedEntryInputSchema } from './shared-entry';
+import { MAX_SHARES, entryIdSchema, sharedEntryInputSchema } from './shared-entry';
 
 const ANA = '6a1f4c2e-8b3d-4e5f-9a7b-1c2d3e4f5a6b';
 const BRUNO = '7b2e5d3f-9c4e-4f6a-8b8c-2d3e4f5a6b7c';
@@ -171,6 +171,14 @@ describe('sharedEntryInputSchema', () => {
 
         it('takes any category id of the right shape, leaving the default ones to be checked apart', () => {
             expect(parse(dinner, { categoryId: crypto.randomUUID() }).success).toBe(true);
+        });
+
+        it(`takes up to ${MAX_SHARES} shares and refuses one more`, () => {
+            const shares = (count: number) =>
+                Array.from({ length: count }, () => ({ memberId: crypto.randomUUID(), cents: 1 }));
+
+            expect(parse(dinner, { amountCents: MAX_SHARES, shares: shares(MAX_SHARES) }).success).toBe(true);
+            expect(parse(dinner, { amountCents: MAX_SHARES + 1, shares: shares(MAX_SHARES + 1) }).success).toBe(false);
         });
 
         it('takes the largest safe integer as a moment', () => {

@@ -2,11 +2,11 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { MAX_AMOUNT_CENTS } from '@core/money';
+import { MAX_SHARES, type LedgerEntry } from '@core/shared-entry';
 import { app } from '@server/app';
 import { claim, groupOf, makeGroup, memberNamed, seedEntry, send } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
-import type { LedgerEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
 let ana: TestSession;
@@ -312,6 +312,16 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         );
 
         expect(response.status).toBe(400);
+    });
+
+    it(`answers 400 for more than ${MAX_SHARES} shares`, async () => {
+        const { group } = await tripWithBruno();
+        const shares = Object.fromEntries(Array.from({ length: MAX_SHARES + 1 }, () => [crypto.randomUUID(), 1]));
+
+        const response = await putEntry(ana, group.id, crypto.randomUUID(), dinner(group.me, shares));
+
+        expect(response.status).toBe(400);
+        expect(await response.text()).not.toContain('unknown-member');
     });
 
     it('answers 400 for an id that is not a UUID', async () => {
