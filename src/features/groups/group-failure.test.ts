@@ -4,7 +4,7 @@ import en from '@/assets/locales/en.json';
 import { ApiError } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
-import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { LocalRefusal } from './local-refusal';
@@ -36,6 +36,7 @@ describe('failureOf', () => {
         ['not-placeholder', 'notPlaceholder'],
         ['too-many-groups', 'tooManyGroups'],
         ['too-many-members', 'tooManyMembers'],
+        ['too-many-friends', 'tooManyFriends'],
     ] as const)('reads the refusal of the server %s', (code, failure) => {
         expect(failureOf(new ApiError(409, code))).toBe(failure);
     });
@@ -66,5 +67,6 @@ describe('useFailureWords', () => {
     it('says the limits it is about', () => {
         expect(words('tooManyGroups')).toBe(text.tooManyGroups.replace('{max}', String(MAX_OPEN_GROUPS)));
         expect(words('tooManyMembers')).toBe(text.tooManyMembers.replace('{max}', String(MAX_GROUP_MEMBERS)));
+        expect(words('tooManyFriends')).toBe(text.tooManyFriends.replace('{max}', String(MAX_FRIENDS)));
     });
 });

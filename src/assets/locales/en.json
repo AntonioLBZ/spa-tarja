@@ -341,6 +341,7 @@
         },
         "offline": "You're offline. Connect to make or change a group.",
         "empty": "You have no groups or friends yet.",
+        "totalsWait": "Couldn't load the expenses of every group, so there are no totals yet. Connect to see them.",
         "lists": {
             "groups": "Groups",
             "friends": "Friends",
@@ -367,6 +368,12 @@
             "submit": "Make the group",
             "full": "A group takes {max} people at most, you included."
         },
+        "friend": {
+            "title": "Add a friend",
+            "name": "Their name",
+            "nameHint": "They don't need the app. Once they're your friend, you can invite them.",
+            "submit": "Add the friend"
+        },
         "nameInvalid": "Write a name with at least one character that shows.",
         "failure": {
             "offline": "You're offline. Connect and try again.",
@@ -379,6 +386,7 @@
             "notAUser": "The person you chose hasn't joined the app yet.",
             "notPlaceholder": "That person has joined already, so they can't be merged or replaced.",
             "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
+            "tooManyFriends": "You have {max} friends, the most there can be. Remove one first.",
             "tooManyMembers": "This group has {max} people, the most it can have.",
             "failed": "Couldn't save the change. Try again."
         },

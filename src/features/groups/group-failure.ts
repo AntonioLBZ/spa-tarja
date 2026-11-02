@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ApiError } from '@/lib/api';
-import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import { LocalRefusal } from './local-refusal';
 
@@ -18,6 +18,7 @@ type GroupFailure =
     | 'notAUser'
     | 'notPlaceholder'
     | 'tooManyGroups'
+    | 'tooManyFriends'
     | 'tooManyMembers'
     | 'failed';
 
@@ -31,6 +32,7 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     'not-a-user': 'notAUser',
     'not-placeholder': 'notPlaceholder',
     'too-many-groups': 'tooManyGroups',
+    'too-many-friends': 'tooManyFriends',
     'too-many-members': 'tooManyMembers',
 };
 
@@ -47,6 +49,7 @@ const useFailureWords = () => {
     return useCallback(
         (failure: GroupFailure) => {
             if (failure === 'tooManyGroups') return t(failure, { max: MAX_OPEN_GROUPS });
+            if (failure === 'tooManyFriends') return t(failure, { max: MAX_FRIENDS });
             if (failure === 'tooManyMembers') return t(failure, { max: MAX_GROUP_MEMBERS });
             return t(failure);
         },
