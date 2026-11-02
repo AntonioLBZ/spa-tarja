@@ -288,7 +288,7 @@
     "groups": {
         "title": "Grupos",
         "names": {
-            "deleted": "Cuenta eliminada",
+            "deleted": "Usuario eliminado",
             "numbered": "{name} ({number})",
             "left": "{name} (se fue)",
             "unknown": "Una persona nueva"
@@ -361,7 +361,7 @@
         },
         "edit": {
             "link": "Editar grupo",
-            "linkFriend": "Editar amistad",
+            "linkFriend": "Editar amigo",
             "title": "Editar {name}",
             "show": "Mostrar en mis gastos",
             "showHint": "Si lo desactivas, los gastos de este grupo no salen en tu lista, tu resumen, tus gráficos ni tus presupuestos.",
@@ -374,9 +374,9 @@
             "title": "Personas",
             "you": "Tú",
             "owner": "Admin",
-            "notJoined": "Sin unirse",
+            "notJoined": "Aún no se ha unido",
             "rename": "Cambiar nombre",
-            "renameItem": "Cambiar el nombre de {name}",
+            "renameItem": "Cambiar nombre de {name}",
             "newName": "Nuevo nombre",
             "save": "Guardar nombre",
             "cancel": "Cancelar",

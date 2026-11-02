@@ -4,6 +4,7 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
@@ -271,5 +272,25 @@ describe('without a connection', () => {
         fireEvent.click(row('Bea'));
         expect(button(t('groups.people.renameItem', { name: 'Bea' })).disabled).toBe(true);
         expect(button(t('groups.people.removeItem', { name: 'Bea' })).disabled).toBe(true);
+    });
+});
+
+describe('in Spanish', () => {
+    it('names each action by words that hold what it shows', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const group = trip();
+        stubApi(createFakeApi({ groups: [group] }).handler);
+        renderApp({ path: `/groups/${group.id}/edit` });
+        const people = await screen.findByRole('heading', { level: 2, name: es.groups.people.title });
+
+        fireEvent.click(within(people.closest('section')!).getByRole('button', { name: /^Bea/ }));
+
+        const actions = within(people.closest('section')!)
+            .getAllByRole('button')
+            .filter((action) => action.hasAttribute('aria-label'));
+        expect(actions).toHaveLength(2);
+        for (const action of actions) {
+            expect(action.getAttribute('aria-label')!.toLowerCase()).toContain(action.textContent!.toLowerCase());
+        }
     });
 });
