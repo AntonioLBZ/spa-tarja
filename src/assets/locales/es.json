@@ -375,7 +375,7 @@
             "title": "Añadir un amigo",
             "name": "Su nombre",
             "nameHint": "No necesita la app. Cuando sea tu amigo, podrás enviarle una invitación.",
-            "submit": "Añadir al amigo"
+            "submit": "Añadir a tus amigos"
         },
         "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",
         "failure": {
@@ -453,14 +453,14 @@
                 "question": "¿Eliminar {name}?",
                 "what": "El grupo se cierra para todas las personas que están en él. Los gastos siguen en tu lista, y puedes quitarlos aquí.",
                 "confirm": "Eliminar",
-                "unsettled": "No todos los saldos de {name} están a cero. Saldad cuentas antes de eliminarlo."
+                "unsettled": "No todos los saldos de {name} están a cero. Primero hay que saldar cuentas."
             },
             "deleteFriend": {
                 "button": "Quitar de amigos",
                 "question": "¿Quitar a {name} de tus amigos?",
                 "what": "Lo que compartíais se queda como estaba. Sigue en tu lista, y puedes quitarlo aquí.",
                 "confirm": "Quitar",
-                "unsettled": "{name} y tú no estáis en paz. Saldad cuentas antes de quitarle de tus amigos."
+                "unsettled": "Aún hay deudas entre {name} y tú. Primero hay que saldar cuentas."
             },
             "cancel": "Cancelar",
             "settleUp": "Saldar cuentas"
