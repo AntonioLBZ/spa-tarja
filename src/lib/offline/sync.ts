@@ -6,6 +6,9 @@ import { upsertById } from '@core/expense-merge';
 import type { Outbox, OutboxItem, Rejection } from './outbox';
 import type { Expense } from '@core/expense';
 
+// How often to retry while something is waiting to sync, for connections that say they're up but aren't
+const RETRY_EVERY_MS = 30_000;
+
 // What the server says no to for good about an expense: the same write will never be accepted, so retrying is pointless
 const PERMANENT = [400, 409, 422];
 
@@ -83,4 +86,4 @@ const expensesQuery = (outbox: Outbox<Expense>) => {
     });
 };
 
-export { expensesQuery, inTurn, pushPending, syncExpenses };
+export { RETRY_EVERY_MS, expensesQuery, inTurn, pushPending, syncExpenses };

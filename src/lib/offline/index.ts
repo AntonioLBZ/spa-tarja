@@ -3,7 +3,7 @@ export { createOutbox, type Outbox, type OutboxState, type PendingEntry, type Re
 export { groupEntriesQuery, syncGroup } from './group-sync';
 export { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
 export { idbStorage, type KeyValueStorage } from './storage';
-export { expensesQuery } from './sync';
+export { RETRY_EVERY_MS, expensesQuery } from './sync';
 export { useOnline } from './use-online';
 export { UserDataProvider, useUserData } from './user-data';
 export { createUserStorage } from './user-storage';

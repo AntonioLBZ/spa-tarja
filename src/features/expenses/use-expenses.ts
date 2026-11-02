@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useSyncExternalStore } from 'react';
 
-import { expensesQuery, useOutbox } from '@/lib/offline';
+import { RETRY_EVERY_MS, expensesQuery, useOutbox } from '@/lib/offline';
 import { applyPending } from '@core/expense-merge';
-
-// How often to retry while something is waiting to sync, for connections that say they're up but aren't
-const RETRY_EVERY_MS = 30_000;
 
 // The expenses as the person sees them: what the server told this device, with their unsynced changes on top
 const useExpenses = () => {

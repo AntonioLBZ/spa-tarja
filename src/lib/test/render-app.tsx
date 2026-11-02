@@ -1,7 +1,7 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { RouterProvider, createMemoryHistory } from '@tanstack/react-router';
-import { render } from '@testing-library/react';
-import { useEffect } from 'react';
+import { render, renderHook } from '@testing-library/react';
+import { useEffect, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 import { useGroupOutbox, useOutbox, type KeyValueStorage, type Outbox, type PendingEntry } from '@/lib/offline';
@@ -77,4 +77,21 @@ const renderApp = ({
     };
 };
 
-export { renderApp, stubApi, type Handler };
+// A hook as the app runs it, under the same providers, over memory storage and a fake sign-in. Signed in as the test user
+// unless told so.
+const renderAppHook = <R,>(
+    hook: () => R,
+    {
+        storage = createMemoryStorage(),
+        fakeAuth = createFakeAuth(),
+    }: { storage?: KeyValueStorage; fakeAuth?: ReturnType<typeof createFakeAuth> } = {}
+) => {
+    const wrapper = (props: { children: ReactNode }) => (
+        <AppProviders auth={fakeAuth.auth} storage={storage}>
+            {props.children}
+        </AppProviders>
+    );
+    return { ...renderHook(hook, { wrapper }), storage, fakeAuth };
+};
+
+export { renderApp, renderAppHook, stubApi, type Handler };
