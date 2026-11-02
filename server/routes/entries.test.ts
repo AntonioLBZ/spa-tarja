@@ -395,29 +395,90 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await seqsOf(group.id)).toEqual([]);
     });
 
-    it('lets an entry go on naming a member who left after it named them, so a balance can land on them', async () => {
+    it('lets an entry that named a member who left change its text, day, category or card around them', async () => {
         const { group } = await tripWithBruno(['Dani']);
         const dani = memberNamed(group, 'Dani');
-        const id = crypto.randomUUID();
-        await entryOf(await putEntry(ana, group.id, id, dinner(group.me, { [dani]: 3000 })));
-        await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), settlement(dani, group.me, 3000)));
+        const owed = crypto.randomUUID();
+        const paid = crypto.randomUUID();
+        const card = { split: 'equal', payment: 'credit', chargeDate: '2026-11-25' };
+        const halves = { [group.me]: 1500, [dani]: 1500 };
+        await entryOf(await putEntry(ana, group.id, owed, dinner(group.me, halves, card)));
+        await entryOf(await putEntry(ana, group.id, paid, dinner(dani, halves)));
         await groupOf(await removeMember(ana, group, dani));
 
+        const changes = { text: 'Tapas', date: '2026-10-26', categoryId: 'leisure', updatedAt: 2_000 };
         const edited = await putEntry(
             ana,
             group.id,
-            id,
-            dinner(group.me, { [dani]: 2000, [group.me]: 1000 }, { updatedAt: 2_000 })
+            owed,
+            dinner(group.me, halves, { ...card, ...changes, chargeDate: '2026-12-25' })
         );
-        const repaid = await putEntry(ana, group.id, id, dinner(dani, { [group.me]: 3000 }, { updatedAt: 3_000 }));
+        const reworded = await putEntry(ana, group.id, paid, dinner(dani, halves, changes));
 
-        expect(await entryOf(edited)).toMatchObject({
-            shares: [
-                { memberId: dani, cents: 2000 },
-                { memberId: group.me, cents: 1000 },
-            ],
-        });
-        expect(await entryOf(repaid)).toMatchObject({ paidBy: dani });
+        expect(await entryOf(edited)).toMatchObject({ ...changes, chargeDate: '2026-12-25', paidBy: group.me });
+        expect(await entryOf(reworded)).toMatchObject({ ...changes, paidBy: dani });
+    });
+
+    it('answers 422 member-left to an edit that moves what a member who left pays or owes', async () => {
+        const { group } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        const owed = crypto.randomUUID();
+        const paid = crypto.randomUUID();
+        const halves = { [group.me]: 1500, [dani]: 1500 };
+        await entryOf(await putEntry(ana, group.id, owed, dinner(group.me, halves, { split: 'equal' })));
+        await entryOf(await putEntry(ana, group.id, paid, dinner(dani, halves)));
+        await groupOf(await removeMember(ana, group, dani));
+        const later = { split: 'equal', updatedAt: 2_000 };
+
+        const edits = [
+            putEntry(ana, group.id, owed, dinner(group.me, { [group.me]: 1000, [dani]: 2000 }, later)),
+            putEntry(ana, group.id, owed, dinner(group.me, { [group.me]: 2000, [dani]: 2000 }, later)),
+            putEntry(ana, group.id, owed, dinner(group.me, { [group.me]: 3000 }, later)),
+            putEntry(ana, group.id, owed, dinner(dani, halves, later)),
+            putEntry(ana, group.id, paid, dinner(dani, { [group.me]: 2500, [dani]: 1500 }, later)),
+            putEntry(ana, group.id, paid, dinner(group.me, halves, later)),
+        ];
+
+        for (const response of await Promise.all(edits)) expect(await error(response, 422)).toBe('member-left');
+        expect(await stored(owed)).toMatchObject({ updated_at: 1_000 });
+        expect(await stored(paid)).toMatchObject({ updated_at: 1_000 });
+    });
+
+    it('lets an entry that named a member who left be deleted and brought back as it was', async () => {
+        const { group } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        const id = crypto.randomUUID();
+        const body = dinner(group.me, { [group.me]: 1500, [dani]: 1500 });
+        await entryOf(await putEntry(ana, group.id, id, body));
+        await entryOf(await putEntry(ana, group.id, crypto.randomUUID(), settlement(dani, group.me, 1500)));
+        await groupOf(await removeMember(ana, group, dani));
+
+        const deleted = await putEntry(ana, group.id, id, { ...body, updatedAt: 2_000, deletedAt: 2_000 });
+        const back = await putEntry(ana, group.id, id, { ...body, updatedAt: 3_000 });
+
+        expect(await entryOf(deleted)).toMatchObject({ deletedAt: 2_000 });
+        expect(await entryOf(back)).toMatchObject({ deletedAt: null });
+    });
+
+    it('holds an entry deleted before a member left to what it said of them', async () => {
+        const { group } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        const id = crypto.randomUUID();
+        const body = dinner(group.me, { [group.me]: 1500, [dani]: 1500 });
+        await entryOf(await putEntry(ana, group.id, id, body));
+        await entryOf(await putEntry(ana, group.id, id, { ...body, updatedAt: 1_500, deletedAt: 1_500 }));
+        await groupOf(await removeMember(ana, group, dani));
+
+        const raised = await putEntry(
+            ana,
+            group.id,
+            id,
+            dinner(group.me, { [group.me]: 1000, [dani]: 2000 }, { updatedAt: 2_000 })
+        );
+        const back = await putEntry(ana, group.id, id, { ...body, updatedAt: 3_000 });
+
+        expect(await error(raised, 422)).toBe('member-left');
+        expect(await entryOf(back)).toMatchObject({ deletedAt: null, shares: body.shares });
     });
 
     it('reads a placeholder merged into a member as that member', async () => {

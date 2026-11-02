@@ -24,21 +24,35 @@ const ID_TAKEN = { error: 'id-taken' } as const;
 
 const namedIn = (entry: SharedEntryInput): string[] => [entry.paidBy, ...entry.shares.map((share) => share.memberId)];
 
-// Why an entry can't name the members it names: one the group doesn't have, or one who left and that the stored entry
-// didn't name already. A placeholder merged into a member stands for that member, in both.
+// What an entry has a member pay and owe, the placeholders merged into them counted as them
+const partOf = (members: GroupState['members'], entry: SharedEntryInput | null, memberId: string) => {
+    const isThem = (id: string) => canonicalMember(members, id) === memberId;
+    return {
+        paid: entry && isThem(entry.paidBy) ? entry.amountCents : 0,
+        owed: (entry?.shares ?? [])
+            .filter((share) => isThem(share.memberId))
+            .reduce((sum, share) => sum + share.cents, 0),
+    };
+};
+
+// Why an entry can't name the members it names: one the group doesn't have, or a write that moves what a member who
+// left pays or owes, so that nobody who left settled is handed a debt or a credit. A new entry can't name them at all;
+// one that did keeps them as it had them, whether it is deleted or not. A placeholder merged into a member stands for
+// that member.
 const memberRefusal = (
     { members }: GroupState,
     entry: SharedEntryInput,
     stored: SharedEntryInput | null
 ): 'unknown-member' | 'member-left' | null => {
-    const named = namedIn(entry);
-    if (named.some((id) => !members.some((member) => member.id === id))) return 'unknown-member';
-    const before = new Set(stored ? namedIn(stored).map((id) => canonicalMember(members, id)) : []);
-    const left = named
-        .map((id) => canonicalMember(members, id))
-        .filter((id) => !before.has(id))
-        .some((id) => members.find((member) => member.id === id)?.leftAt !== null);
-    return left ? 'member-left' : null;
+    if (namedIn(entry).some((id) => !members.some((member) => member.id === id))) return 'unknown-member';
+    const named = [...namedIn(entry), ...(stored ? namedIn(stored) : [])].map((id) => canonicalMember(members, id));
+    const moved = named.some((id) => {
+        const member = members.find((candidate) => candidate.id === id);
+        if (!member || member.leftAt === null) return false;
+        const [now, before] = [partOf(members, entry, id), partOf(members, stored, id)];
+        return now.paid !== before.paid || now.owed !== before.owed;
+    });
+    return moved ? 'member-left' : null;
 };
 
 // How far ahead of the server a device's clock may write: a later `updatedAt` would win over every edit until then
