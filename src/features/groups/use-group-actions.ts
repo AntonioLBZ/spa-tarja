@@ -1,0 +1,154 @@
+import { onlineManager, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
+
+import {
+    GROUPS_KEY,
+    deleteGroup,
+    deleteMember,
+    groupEntriesKey,
+    handOver,
+    mergeMember,
+    putGroup,
+    putMember,
+    putMySwitches,
+} from '@/lib/api';
+import { syncGroup, useGroupOutbox } from '@/lib/offline';
+import { upsertById } from '@core/expense-merge';
+import { DEFAULT_CURRENCY } from '@core/money';
+
+import { LocalRefusal } from './local-refusal';
+
+import type { GroupChange, MySwitches, SharedGroup } from '@core/shared-group';
+
+// A member made by name, with an id made on the device
+interface Placeholder {
+    id: string;
+    name: string;
+}
+
+// The ids come from the screen, which keeps them while it is open, so sending a make again after a lost answer is
+// harmless: the server answers the group it already made
+interface NewGroupInput {
+    id: string;
+    name: string;
+    // The person's own member
+    me: string;
+    others: readonly Placeholder[];
+}
+
+interface NewFriendInput {
+    id: string;
+    me: string;
+    other: Placeholder;
+}
+
+// One of the person's friends who is a real person, by the id of that friend, as a new member or in place of a dummy
+interface FriendInput {
+    friend: string;
+    replaces?: string;
+}
+
+// Whatever shapes a group needs a connection (ADR-0013), and an open group, but for the person's own switches. Each call
+// waits for the server and then puts the group it answers in the cache, so the list never needs a refetch.
+const useGroupActions = () => {
+    const queryClient = useQueryClient();
+    const outbox = useGroupOutbox();
+
+    return useMemo(() => {
+        const online = () => {
+            if (!onlineManager.isOnline()) throw new LocalRefusal('offline');
+        };
+
+        const openGroup = (groupId: string): SharedGroup => {
+            online();
+            const group = queryClient.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === groupId);
+            if (!group || group.closed !== null) throw new LocalRefusal('read-only');
+            return group;
+        };
+
+        // A read of the groups on its way started before this answer, so it would put an older list over it
+        const keep = async (group: SharedGroup): Promise<SharedGroup> => {
+            await queryClient.cancelQueries({ queryKey: GROUPS_KEY });
+            queryClient.setQueryData<SharedGroup[]>(GROUPS_KEY, (groups = []) => upsertById(groups, group));
+            return group;
+        };
+
+        return {
+            async createGroup({ id, name, me, others }: NewGroupInput) {
+                online();
+                return keep(
+                    await putGroup(id, {
+                        kind: 'group',
+                        name,
+                        currency: DEFAULT_CURRENCY,
+                        me: { id: me },
+                        others: [...others],
+                    })
+                );
+            },
+            async createFriend({ id, me, other }: NewFriendInput) {
+                online();
+                return keep(
+                    await putGroup(id, {
+                        kind: 'direct',
+                        name: null,
+                        currency: DEFAULT_CURRENCY,
+                        me: { id: me },
+                        others: [other],
+                    })
+                );
+            },
+            // The name or the simplified debts, for the owner
+            async change(groupId: string, change: GroupChange) {
+                openGroup(groupId);
+                return keep(await putGroup(groupId, change));
+            },
+            // Adds a dummy by name, or renames a member
+            async savePerson(groupId: string, memberId: string, name: string) {
+                openGroup(groupId);
+                return keep(await putMember(groupId, memberId, { name }));
+            },
+            async addFriend(groupId: string, memberId: string, input: FriendInput) {
+                openGroup(groupId);
+                return keep(await putMember(groupId, memberId, input));
+            },
+            async removeMember(groupId: string, memberId: string) {
+                openGroup(groupId);
+                return keep(await deleteMember(groupId, memberId));
+            },
+            async merge(groupId: string, memberId: string, into: string) {
+                openGroup(groupId);
+                return keep(await mergeMember(groupId, memberId, into));
+            },
+            async handOver(groupId: string, memberId: string) {
+                openGroup(groupId);
+                return keep(await handOver(groupId, memberId));
+            },
+            async remove(groupId: string) {
+                openGroup(groupId);
+                return keep(await deleteGroup(groupId));
+            },
+            // Someone who left reads the group only as it was then, so what this device hasn't sent or pulled by then
+            // would never reach them: both go first, and a failure of either stops the leave
+            async leave(groupId: string) {
+                const { me } = openGroup(groupId);
+                try {
+                    queryClient.setQueryData(groupEntriesKey(groupId), await syncGroup(queryClient, outbox, groupId));
+                } catch (error) {
+                    throw new LocalRefusal('unsynced', { cause: error });
+                }
+                if (outbox.getState().pending.some((write) => write.groupId === groupId)) {
+                    throw new LocalRefusal('unsynced');
+                }
+                return keep(await deleteMember(groupId, me));
+            },
+            // Show in my expenses and Archive, which a closed group takes too
+            async setSwitches(groupId: string, switches: MySwitches) {
+                online();
+                return keep(await putMySwitches(groupId, switches));
+            },
+        };
+    }, [queryClient, outbox]);
+};
+
+export { useGroupActions, type FriendInput, type NewFriendInput, type NewGroupInput, type Placeholder };
