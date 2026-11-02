@@ -270,6 +270,37 @@ describe('leaving a group', () => {
         expect(app.groupOf(group.id)?.closed).toBeNull();
     });
 
+    it('does not ask to leave a group that sending its writes finds closed, and says it is read-only', async () => {
+        const group = sampleGroup();
+        const app = await setup([group]);
+        app.api.groups[0]!.closed = 'deleted';
+        await act(() => app.result.current.outbox.put(sampleEntry(group)));
+
+        const refused = app.result.current.actions.leave(group.id);
+
+        await expect(refused).rejects.toBeInstanceOf(LocalRefusal);
+        await expect(refused).rejects.toMatchObject({ code: 'read-only' });
+        expect(app.leaves()).toEqual([]);
+        expect(app.result.current.outbox.getState().rejected).toMatchObject([{ code: 'closed' }]);
+    });
+
+    it('says the group is read-only, with what stopped the push, when it closed and the push then failed', async () => {
+        const group = sampleGroup();
+        const app = await setup([group]);
+        app.api.groups[0]!.closed = 'deleted';
+        let writes = 0;
+        stubApi((url, init) => {
+            if (init?.method === 'PUT' && ++writes > 1) throw new TypeError('Failed to fetch');
+            return app.api.handler(url, init);
+        });
+        await act(() => app.result.current.outbox.putAll([sampleEntry(group), sampleEntry(group)]));
+
+        const refused = app.result.current.actions.leave(group.id);
+
+        await expect(refused).rejects.toMatchObject({ code: 'read-only', cause: new TypeError('Failed to fetch') });
+        expect(app.leaves()).toEqual([]);
+    });
+
     it('does not ask to leave when the changes of the group cannot be pulled', async () => {
         const group = sampleGroup();
         const app = await setup([group]);

@@ -59,9 +59,13 @@ const useGroupActions = () => {
             if (!onlineManager.isOnline()) throw new LocalRefusal('offline');
         };
 
+        const groupOf = (groupId: string) => {
+            return queryClient.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === groupId);
+        };
+
         const openGroup = (groupId: string): SharedGroup => {
             online();
-            const group = queryClient.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === groupId);
+            const group = groupOf(groupId);
             if (!group || group.closed !== null) throw new LocalRefusal('read-only');
             return group;
         };
@@ -132,13 +136,17 @@ const useGroupActions = () => {
             // would never reach them: both go first, and a failure of either stops the leave
             async leave(groupId: string) {
                 const { me } = openGroup(groupId);
-                try {
-                    queryClient.setQueryData(groupEntriesKey(groupId), await syncGroup(queryClient, outbox, groupId));
-                } catch (error) {
-                    throw new LocalRefusal('unsynced', { cause: error });
-                }
-                if (outbox.getState().pending.some((write) => write.groupId === groupId)) {
-                    throw new LocalRefusal('unsynced');
+                const failure = await syncGroup(queryClient, outbox, groupId).then(
+                    (state) => {
+                        queryClient.setQueryData(groupEntriesKey(groupId), state);
+                        return null;
+                    },
+                    (error: unknown) => ({ cause: error })
+                );
+                // Sending the writes can find the group closed meanwhile
+                if (groupOf(groupId)?.closed !== null) throw new LocalRefusal('read-only', failure ?? undefined);
+                if (failure || outbox.getState().pending.some((write) => write.groupId === groupId)) {
+                    throw new LocalRefusal('unsynced', failure ?? undefined);
                 }
                 return keep(await deleteMember(groupId, me));
             },
