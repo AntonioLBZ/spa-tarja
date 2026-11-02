@@ -56,7 +56,18 @@ The first half is done: the Groups tab with its totals, the groups and the frien
 - **Leave and Delete**, the `danger` buttons at the end of the settings (`leave`, whose `unsynced` refusal is worded already, and `remove`), each asking in a panel, the unsettled case with the link to settle up.
 - **Settle up**: a ghost button on each line of `GroupBalances` and the form under the balances of an open group, written through `useEntryActions`.
 
-To reuse: `useGroupWords` (the title, the names with "(left)", "Deleted user" and numbers, the balances in words and why a group is closed), `failureOf` and `useFailureWords` for every refusal, and `GroupGate` for a screen of one group.
+To reuse: `useGroupWords` (the title, the names with "(left)", "Deleted user" and numbers, the balances in words and why a group is closed), `failureOf` and `useFailureWords` for every refusal, `isOwner`, and `GroupGate` with `useLedger` for a screen of one group.
+
+Left as they are on purpose, for 24b:
+
+- `NewGroup` keeps the first group's people after a lost answer even if the list changed since: lock the list while it is sent, or compare the answer.
+- The totals of the Groups tab vanish with no notice when one open group's expenses fail for good.
+
+To restructure rather than extend:
+
+- `GroupBalances` renders each debt as `<li>{sentence}</li>`: settle up needs a button per line and the form's state lifted above the list.
+- `PersonRow` hands the focus on by hand, one ref per button and a chain of ifs: Merge and Make owner want a small helper that focuses the step.
+- `NewGroup` keeps ids only for dummies: friends need their member ids kept too, so that `createGroup` and the `addFriend` calls after it can be sent again.
 
 ### 25. Sharing an expense
 
