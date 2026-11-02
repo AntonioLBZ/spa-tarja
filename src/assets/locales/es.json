@@ -358,6 +358,17 @@
             "tooManyGroups": "Estás en {max} grupos abiertos, el máximo. Sal de alguno o elimínalo primero.",
             "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
             "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
+        },
+        "edit": {
+            "link": "Editar grupo",
+            "linkFriend": "Editar amistad",
+            "title": "Editar {name}",
+            "show": "Mostrar en mis gastos",
+            "showHint": "Si lo desactivas, los gastos de este grupo no salen en tu lista, tu resumen, tus gráficos ni tus presupuestos.",
+            "archive": "Archivar",
+            "unarchive": "Recuperar",
+            "name": "Nombre",
+            "save": "Guardar"
         }
     },
     "summary": {

@@ -8,16 +8,19 @@ import type { ComponentPropsWithRef, ReactElement } from 'react';
 interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
     variant?: ButtonVariant;
     glyph?: boolean;
+    // Text only, for a link on paper or inside another edge
+    ghost?: boolean;
     block?: boolean;
 }
 
 const ButtonAnchor = (props: ButtonAnchorProps) => {
-    const { variant = 'default', glyph, block, className, ...rest } = props;
+    const { variant = 'default', glyph, ghost, block, className, ...rest } = props;
     const buttonClsx = clsx(
         'button',
         {
             [`button--${variant}`]: variant !== 'default',
             'button--glyph': glyph,
+            'button--ghost': ghost,
             'button--block': block,
         },
         className

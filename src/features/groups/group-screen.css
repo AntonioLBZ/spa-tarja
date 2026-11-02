@@ -9,3 +9,8 @@
     margin: 0;
     overflow-wrap: anywhere;
 }
+
+/* A ghost lines up with the text, so it doesn't stretch across the column */
+.group-screen__edit {
+    justify-self: start;
+}

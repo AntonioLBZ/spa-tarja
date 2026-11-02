@@ -25,8 +25,9 @@ describe('routeDepth', () => {
         expect(routeDepth('/budgets')).toBe(2);
     });
 
-    it('puts a group above Groups', () => {
+    it('puts a group above Groups and its settings above the group', () => {
         expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe(2);
+        expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe(3);
     });
 
     it('takes a page it does not know for the home screen', () => {
@@ -46,8 +47,9 @@ describe('navSection', () => {
         expect(navSection('/categories')).toBe('/settings');
     });
 
-    it('puts a group under Groups', () => {
+    it('puts a group and its settings under Groups', () => {
         expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe('/groups');
+        expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe('/groups');
     });
 
     it('takes a page it does not know for the home screen', () => {
@@ -65,6 +67,7 @@ describe('slideTypes', () => {
         expect(between('/summary', '/charts')).toEqual(['forward']);
         expect(between('/summary', '/budgets')).toEqual(['forward']);
         expect(between('/groups', '/groups/0b6f3c1e')).toEqual(['forward']);
+        expect(between('/groups/0b6f3c1e', '/groups/0b6f3c1e/edit')).toEqual(['forward']);
     });
 
     it('goes back when the new screen is shallower', () => {
@@ -75,6 +78,7 @@ describe('slideTypes', () => {
         expect(between('/charts', '/summary')).toEqual(['back']);
         expect(between('/budgets', '/summary')).toEqual(['back']);
         expect(between('/groups/0b6f3c1e', '/groups')).toEqual(['back']);
+        expect(between('/groups/0b6f3c1e/edit', '/groups/0b6f3c1e')).toEqual(['back']);
     });
 
     it('stays level between two screens at the same depth', () => {

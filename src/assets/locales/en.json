@@ -358,6 +358,17 @@
             "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
             "tooManyMembers": "This group has {max} people, the most it can have.",
             "failed": "Couldn't save the change. Try again."
+        },
+        "edit": {
+            "link": "Edit group",
+            "linkFriend": "Edit friend",
+            "title": "Edit {name}",
+            "show": "Show in my expenses",
+            "showHint": "When it's off, this group's expenses are not in your list, summary, charts or budgets.",
+            "archive": "Archive",
+            "unarchive": "Bring back",
+            "name": "Name",
+            "save": "Save"
         }
     },
     "summary": {

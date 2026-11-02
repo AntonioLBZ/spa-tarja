@@ -12,7 +12,10 @@ const DEPTHS: Record<string, number> = {
 };
 
 // The screens of one group, by the shape of their path
-const GROUP_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [[/^\/groups\/[^/]+$/, 2]];
+const GROUP_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
+    [/^\/groups\/[^/]+$/, 2],
+    [/^\/groups\/[^/]+\/edit$/, 3],
+];
 
 const routeDepth = (pathname: string): number => {
     return DEPTHS[pathname] ?? GROUP_DEPTHS.find(([shape]) => shape.test(pathname))?.[1] ?? 0;
