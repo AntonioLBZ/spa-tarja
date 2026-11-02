@@ -250,6 +250,30 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
         expect(again.members).toHaveLength(2);
     });
 
+    it('takes as a friend only a friend, never another group the caller shares with that person', async () => {
+        const group = await makeGroup(ana);
+        const { group: withBruno } = await tripWithBruno();
+
+        const response = await putMember(ana, group.id, crypto.randomUUID(), { friend: withBruno.id });
+
+        expect(await error(response, 422)).toBe('unknown-friend');
+        expect((await listGroups(bruno)).some((candidate) => candidate.id === group.id)).toBe(false);
+    });
+
+    it('answers 409 id-taken to a member id sent again for another person', async () => {
+        const group = await makeGroup(ana, ['Dani']);
+        const toBruno = await befriend(ana, bruno);
+        const toCarla = await befriend(ana, carla);
+        const { id } = await addFriend(ana, group.id, toBruno.id);
+
+        const otherFriend = await putMember(ana, group.id, id, { friend: toCarla.id });
+        const onADummy = await putMember(ana, group.id, memberNamed(group, 'Dani'), { friend: toCarla.id });
+
+        expect(await error(otherFriend, 409)).toBe('id-taken');
+        expect(await error(onADummy, 409)).toBe('id-taken');
+        expect((await groupOfAna(group.id)).members).toHaveLength(3);
+    });
+
     it('refuses a friend that is not the caller’s, the same as one that does not exist', async () => {
         const group = await makeGroup(ana);
         const theirs = await befriend(bruno, carla);
@@ -412,6 +436,15 @@ describe('DELETE /api/groups/:groupId/members/:memberId', () => {
         expect(await groupOfAna(group.id)).toMatchObject({ closed: null, members: left.members });
         const row = await env.DB.prepare('SELECT left_seq FROM shared_members WHERE id = ?1').bind(brunoId).first();
         expect(row?.left_seq).toBe(2);
+    });
+
+    it('lets a member who is settled leave while others in the group owe', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Carla']);
+        await seedEntry(group.id, { paidBy: group.me, shares: { [memberNamed(group, 'Carla')]: 1000 } });
+
+        const left = await groupOf(await removeMember(bruno, group.id, brunoId));
+
+        expect(left.closed).toBe('left');
     });
 
     it('refuses to let a member leave while they owe or are owed, and leaves them in', async () => {

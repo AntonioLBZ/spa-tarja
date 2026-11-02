@@ -17,10 +17,12 @@ const INSERT_PLACEHOLDER = `
 // Where the group's cursor stands, which is how far a member who leaves now reads afterwards
 const CURSOR = '(SELECT COALESCE(MAX(seq), 0) FROM shared_entries WHERE group_id = shared_members.group_id)';
 
-// Only into a member who is there, so that it does nothing when that member couldn't be added
+// Only a placeholder still in the group, so that a merge is never redone or chained, and only into a member who is
+// there, so that it does nothing when that member couldn't be added
 const MERGE = `
     UPDATE shared_members SET merged_into = ?2, left_at = ?3, left_seq = ${CURSOR}
-    WHERE id = ?1 AND EXISTS (SELECT 1 FROM shared_members AS target WHERE target.id = ?2)`;
+    WHERE id = ?1 AND merged_into IS NULL AND left_at IS NULL
+        AND EXISTS (SELECT 1 FROM shared_members AS target WHERE target.id = ?2)`;
 
 // The other side of a friend of the user's that is open: the user it is, or null while it is a dummy
 const FRIEND = `
