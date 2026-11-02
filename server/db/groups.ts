@@ -18,6 +18,7 @@ interface MemberRow {
     name: string;
     nickname: string | null;
     role: MemberRole;
+    created_at: number;
     claimed_at: number | null;
     left_at: number | null;
     archived_at: number | null;
@@ -39,6 +40,7 @@ interface StoredMember extends GroupMember {
     userId: string | null;
     // The nickname of that user, which a friend shows live
     nickname: string | null;
+    createdAt: number;
     archivedAt: number | null;
     showInExpenses: boolean;
 }
@@ -53,7 +55,7 @@ interface GroupState {
 const GROUP_COLUMNS = 'id, kind, name, currency, simplify_debts, deleted_at';
 
 const MEMBERS_WITH_NICKNAMES = `
-    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.claimed_at, m.left_at, m.archived_at,
+    SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.created_at, m.claimed_at, m.left_at, m.archived_at,
         m.merged_into, m.show_in_expenses
     FROM shared_members m LEFT JOIN profile ON profile.user_id = m.user_id`;
 
@@ -88,6 +90,7 @@ const toMember = (row: MemberRow): StoredMember => {
         mergedInto: row.merged_into,
         userId: row.user_id,
         nickname: row.nickname,
+        createdAt: row.created_at,
         archivedAt: row.archived_at,
         showInExpenses: row.show_in_expenses === 1,
     };
@@ -131,9 +134,27 @@ const manages = ({ group, me }: GroupState): boolean => {
     return group.kind === 'direct' || me.role === 'owner';
 };
 
-// Picked one by one, so that nothing the server keeps for itself can reach an answer
+// The people as the caller may see them, picked one by one so that nothing the server keeps for itself can reach an
+// answer. A person who left sees only those who were there then, as they were then but for their names.
+const visibleMembers = ({ group, members, me }: GroupState): GroupMember[] => {
+    const until = me.leftAt ?? Infinity;
+    return members
+        .filter((member) => member.createdAt <= until)
+        .map((member) => {
+            const leftThen = member.leftAt !== null && member.leftAt <= until;
+            return {
+                id: member.id,
+                name: group.kind === 'direct' ? (member.nickname ?? member.name) : member.name,
+                role: member.role,
+                claimed: member.claimed,
+                leftAt: leftThen ? member.leftAt : null,
+                mergedInto: leftThen ? member.mergedInto : null,
+            };
+        });
+};
+
 const toSharedGroup = (state: GroupState): SharedGroup => {
-    const { group, members, me } = state;
+    const { group, me } = state;
     return {
         id: group.id,
         kind: group.kind,
@@ -144,14 +165,7 @@ const toSharedGroup = (state: GroupState): SharedGroup => {
         archived: me.archivedAt !== null,
         me: me.id,
         showInExpenses: me.showInExpenses,
-        members: members.map((member) => ({
-            id: member.id,
-            name: group.kind === 'direct' ? (member.nickname ?? member.name) : member.name,
-            role: member.role,
-            claimed: member.claimed,
-            leftAt: member.leftAt,
-            mergedInto: member.mergedInto,
-        })),
+        members: visibleMembers(state),
     };
 };
 

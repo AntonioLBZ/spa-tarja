@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH } from '@core/shared-group';
 import {
@@ -604,6 +604,30 @@ describe('writes at the same moment', () => {
 });
 
 describe('a member who left', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('sees only the people who were there when they left, as they were then, even once the group is deleted', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Eva']);
+        const eva = memberNamed(group, 'Eva');
+        const left = await groupOf(await removeMember(bruno, group.id, brunoId));
+        vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 60_000 });
+
+        await addDummy(ana, group.id, 'Dani');
+        await addFriend(ana, group.id, (await befriend(ana, carla)).id, eva);
+        const theirs = async () => (await listGroups(bruno)).find((candidate) => candidate.id === group.id);
+
+        expect((await theirs())?.members).toEqual(left.members);
+        expect(member((await theirs()) ?? left, eva)).toMatchObject({ leftAt: null, mergedInto: null });
+        expect((await groupOfAna(group.id)).members).toHaveLength(5);
+
+        await groupOf(await send(ana, 'DELETE', `/groups/${group.id}`));
+
+        expect(await theirs()).toEqual({ ...left, closed: 'left' });
+        expect((await groupOfAna(group.id)).closed).toBe('deleted');
+    });
+
     it('can write nothing more to the group', async () => {
         const { group, bruno: brunoId } = await tripWithBruno(['Carla']);
         await removeMember(bruno, group.id, brunoId);
