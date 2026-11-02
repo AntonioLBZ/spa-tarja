@@ -3,7 +3,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { MAX_FRIENDS, MAX_OPEN_GROUPS } from '@core/shared-group';
 import { app } from '@server/app';
-import { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, send } from '@server/test/groups';
+import {
+    befriend,
+    claim,
+    groupOf,
+    listGroups,
+    makeFriend,
+    makeGroup,
+    memberNamed,
+    seedEntry,
+    send,
+} from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
 let ana: TestSession;
@@ -32,6 +42,10 @@ function trip(overrides: Record<string, unknown> = {}) {
 
 function put(as: TestSession, id: string, body: unknown) {
     return send(as, 'PUT', `/groups/${id}`, body);
+}
+
+function remove(as: TestSession, id: string) {
+    return send(as, 'DELETE', `/groups/${id}`);
 }
 
 async function rows(table: string, groupId: string) {
@@ -309,6 +323,130 @@ describe('PUT /api/groups/:id, a change', () => {
     });
 });
 
+describe('DELETE /api/groups/:id', () => {
+    it('lets the owner delete a settled group: it closes for everybody and keeps its rows', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+        await seedEntry(group.id, { paidBy: group.me, shares: { [brunoId]: 700 } });
+        await seedEntry(group.id, { paidBy: brunoId, shares: { [group.me]: 700 }, kind: 'settlement' });
+
+        const deleted = await groupOf(await remove(ana, group.id));
+
+        expect(deleted).toEqual({ ...group, members: deleted.members, closed: 'deleted' });
+        expect((await listGroups(bruno))[0]).toMatchObject({ id: group.id, closed: 'deleted' });
+        expect(await rows('shared_groups', group.id)).toBe(1);
+        expect(await rows('shared_members', group.id)).toBe(2);
+        expect(await rows('shared_entries', group.id)).toBe(2);
+    });
+
+    it('refuses to delete a group while a balance isn’t zero and another user is in it', async () => {
+        const group = await sharedWithBruno();
+        await seedEntry(group.id, { paidBy: group.me, shares: { [memberNamed(group, 'Bruno')]: 700 } });
+
+        const response = await remove(ana, group.id);
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'unsettled' });
+        expect((await listGroups(ana))[0]?.closed).toBeNull();
+    });
+
+    it('deletes a group of the owner and dummies whatever the balances', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        await seedEntry(group.id, { paidBy: group.me, shares: { [memberNamed(group, 'Bruno')]: 700 } });
+
+        expect((await groupOf(await remove(ana, group.id))).closed).toBe('deleted');
+    });
+
+    it('deletes a group whatever the balances once the other users have left it', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+        await groupOf(await send(bruno, 'DELETE', `/groups/${group.id}/members/${brunoId}`));
+        await seedEntry(group.id, { paidBy: group.me, shares: { [brunoId]: 700 } });
+
+        expect((await groupOf(await remove(ana, group.id))).closed).toBe('deleted');
+    });
+
+    it('lets nobody but the owner delete a group', async () => {
+        const group = await sharedWithBruno();
+
+        const response = await remove(bruno, group.id);
+
+        expect(response.status).toBe(403);
+        expect(await response.json()).toEqual({ error: 'not-owner' });
+        expect((await listGroups(ana))[0]?.closed).toBeNull();
+    });
+
+    it('lets either side delete a friend: a dummy one at any time, a real one once settled', async () => {
+        const dummy = await makeFriend(ana);
+        await seedEntry(dummy.id, { paidBy: dummy.me, shares: { [dummy.members[1]?.id ?? '']: 900 } });
+        const real = await befriend(ana, bruno);
+        await seedEntry(real.id, { paidBy: real.a, shares: { [real.b]: 900 } });
+
+        const refused = await remove(bruno, real.id);
+        await seedEntry(real.id, { paidBy: real.b, shares: { [real.a]: 900 }, kind: 'settlement' });
+
+        expect((await groupOf(await remove(ana, dummy.id))).closed).toBe('deleted');
+        expect(refused.status).toBe(409);
+        expect((await groupOf(await remove(bruno, real.id))).closed).toBe('deleted');
+    });
+
+    it('answers the group when it is sent again', async () => {
+        const group = await makeGroup(ana);
+        const first = await groupOf(await remove(ana, group.id));
+
+        expect(await groupOf(await remove(ana, group.id))).toEqual(first);
+    });
+});
+
+describe('a closed group', () => {
+    it('takes no write once it is deleted', async () => {
+        const group = await sharedWithBruno();
+        const carlaId = crypto.randomUUID();
+        await groupOf(await send(ana, 'PUT', `/groups/${group.id}/members/${carlaId}`, { name: 'Carla' }));
+        await groupOf(await remove(ana, group.id));
+        const friend = await befriend(ana, carla);
+
+        const writes = [
+            put(ana, group.id, { name: 'Flat' }),
+            put(ana, group.id, { simplifyDebts: true }),
+            send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { name: 'Dani' }),
+            send(ana, 'PUT', `/groups/${group.id}/members/${carlaId}`, { name: 'Carla R.' }),
+            send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { friend: friend.id }),
+            send(ana, 'DELETE', `/groups/${group.id}/members/${carlaId}`),
+            send(bruno, 'DELETE', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`),
+        ];
+
+        for (const response of await Promise.all(writes)) {
+            expect(response.status).toBe(409);
+            expect(await response.json()).toEqual({ error: 'closed' });
+        }
+        expect((await listGroups(ana))[0]).toMatchObject({ name: 'Trip', simplifyDebts: false, closed: 'deleted' });
+    });
+
+    it('takes no write from a member who left it', async () => {
+        const group = await sharedWithBruno();
+        await groupOf(await send(bruno, 'DELETE', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`));
+
+        for (const response of [await put(bruno, group.id, { name: 'Flat' }), await remove(bruno, group.id)]) {
+            expect(response.status).toBe(409);
+            expect(await response.json()).toEqual({ error: 'closed' });
+        }
+        expect((await listGroups(ana))[0]).toMatchObject({ name: 'Trip', closed: null });
+    });
+
+    it(`doesn’t count toward the ${MAX_OPEN_GROUPS} open groups, deleted or left`, async () => {
+        const groups = [];
+        for (let made = 0; made < MAX_OPEN_GROUPS; made++) groups.push(await makeGroup(ana));
+        await groupOf(await remove(ana, groups[0]?.id ?? ''));
+        const shared = await makeGroup(bruno, ['Ana']);
+        await claim(memberNamed(shared, 'Ana'), ana);
+        await groupOf(await send(ana, 'DELETE', `/groups/${shared.id}/members/${memberNamed(shared, 'Ana')}`));
+
+        expect((await put(ana, crypto.randomUUID(), trip())).status).toBe(200);
+        expect((await put(ana, crypto.randomUUID(), trip())).status).toBe(409);
+    });
+});
+
 describe('a stranger', () => {
     it('gets the same 404 for a group of somebody else as for one that does not exist, and changes nothing', async () => {
         const group = await makeGroup(ana, ['Bruno']);
@@ -319,6 +457,9 @@ describe('a stranger', () => {
         expect(theirs.status).toBe(404);
         expect(missing.status).toBe(404);
         expect(await theirs.text()).toBe(await missing.text());
+        const deleted = await remove(carla, group.id);
+        expect(deleted.status).toBe(404);
+        expect(await deleted.text()).toBe(await (await remove(carla, crypto.randomUUID())).text());
         expect(await listGroups(ana)).toEqual([group]);
     });
 

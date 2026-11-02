@@ -2,11 +2,15 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
+import { memberBalances } from '@core/balance';
 import { MAX_FRIENDS, MAX_OPEN_GROUPS, groupIdSchema, groupWriteSchema } from '@core/shared-group';
+import { listLiveEntries } from '@server/db/entries';
 import {
     changeGroup,
+    closedFor,
     countOpenGroups,
     createGroup,
+    deleteGroup,
     listGroups,
     manages,
     readGroup,
@@ -19,6 +23,9 @@ const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
 
 // The same answer whether the group doesn't exist or the caller has never been in it, so that its existence isn't told
 const NOT_FOUND = { error: 'not-found' } as const;
+
+// A write to a group that was deleted, or that the caller left
+const CLOSED = { error: 'closed' } as const;
 
 const groupsRoutes = new Hono<AppEnv>()
     .get('/', async (c) => c.json({ groups: await listGroups(c.env.DB, c.var.userId) }))
@@ -45,10 +52,31 @@ const groupsRoutes = new Hono<AppEnv>()
         const wanted = input.kind === undefined ? input.simplifyDebts : undefined;
         const simplifyDebts = wanted === undefined || wanted === state.group.simplifyDebts ? null : wanted;
         if (name === null && simplifyDebts === null) return c.json(await readSharedGroup(db, userId, groupId), 200);
+        if (closedFor(state)) return c.json(CLOSED, 409);
         if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
 
         await changeGroup(db, groupId, { name, simplifyDebts });
         return c.json(await readSharedGroup(db, userId, groupId), 200);
+    })
+    .delete('/:groupId', groupParam, async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const { groupId } = c.req.valid('param');
+        const state = await readGroup(db, userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+
+        if (state.group.deletedAt === null) {
+            if (closedFor(state)) return c.json(CLOSED, 409);
+            if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
+            // Closing with a balance hurts nobody when the caller is the only user still in the group
+            const users = state.members.filter((member) => member.userId !== null && member.leftAt === null);
+            if (users.length > 1) {
+                const balances = memberBalances(await listLiveEntries(db, groupId), state.members);
+                if (balances.some((balance) => balance.cents !== 0)) return c.json({ error: 'unsettled' }, 409);
+            }
+            await deleteGroup(db, groupId);
+        }
+        return c.json(await readSharedGroup(db, userId, groupId), 200);
     });
 
-export { NOT_FOUND, groupsRoutes };
+export { CLOSED, NOT_FOUND, groupsRoutes };

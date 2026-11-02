@@ -60,6 +60,14 @@ const renameMember = async (db: D1Database, memberId: string, name: string): Pro
     await db.prepare('UPDATE shared_members SET name = ?2 WHERE id = ?1').bind(memberId, name).run();
 };
 
+// The row stays, so the entries go on naming the member
+const leaveGroup = async (db: D1Database, memberId: string): Promise<void> => {
+    await db
+        .prepare(`UPDATE shared_members SET left_at = ?2, left_seq = ${CURSOR} WHERE id = ?1 AND left_at IS NULL`)
+        .bind(memberId, Date.now())
+        .run();
+};
+
 // Nothing when the group isn't an open friend of the user's
 const findFriend = async (
     db: D1Database,
@@ -87,4 +95,13 @@ const addFriend = async (
     }
 };
 
-export { addFriend, addPlaceholder, findFriend, insertPerson, insertPlaceholder, isUniqueViolation, renameMember };
+export {
+    addFriend,
+    addPlaceholder,
+    findFriend,
+    insertPerson,
+    insertPlaceholder,
+    isUniqueViolation,
+    leaveGroup,
+    renameMember,
+};

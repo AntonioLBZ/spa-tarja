@@ -208,11 +208,21 @@ const changeGroup = async (
         .run();
 };
 
+// Closes it; nothing in it is deleted
+const deleteGroup = async (db: D1Database, groupId: string): Promise<void> => {
+    const now = Date.now();
+    await db
+        .prepare('UPDATE shared_groups SET deleted_at = ?2, updated_at = ?2 WHERE id = ?1 AND deleted_at IS NULL')
+        .bind(groupId, now)
+        .run();
+};
+
 export {
     changeGroup,
     closedFor,
     countOpenGroups,
     createGroup,
+    deleteGroup,
     listGroups,
     manages,
     readGroup,

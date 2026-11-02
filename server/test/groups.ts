@@ -69,4 +69,39 @@ const memberNamed = (group: SharedGroup, name: string): string => {
     return member.id;
 };
 
-export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, send };
+interface SeededEntry {
+    paidBy: string;
+    // What each member owes of it, which adds up to the amount
+    shares: Record<string, number>;
+    kind?: 'expense' | 'settlement';
+    deletedAt?: number | null;
+}
+
+// An entry written straight into the group, with the next seq of the group, which it answers
+const seedEntry = async (groupId: string, entry: SeededEntry): Promise<number> => {
+    const shares = Object.entries(entry.shares).map(([memberId, cents]) => ({ memberId, cents }));
+    const amount = shares.reduce((sum, share) => sum + share.cents, 0);
+    const kind = entry.kind ?? 'expense';
+    const row = await env.DB.prepare(
+        `INSERT INTO shared_entries (id, group_id, kind, text, category_id, amount_cents, currency, date, paid_by, split,
+            shares, created_at, updated_at, deleted_at, seq)
+         VALUES (?1, ?2, ?3, 'Dinner', ?4, ?5, 'EUR', '2026-10-25', ?6, 'exact', ?7, 1, 1, ?8,
+            (SELECT COALESCE(MAX(seq), 0) + 1 FROM shared_entries WHERE group_id = ?2))
+         RETURNING seq`
+    )
+        .bind(
+            crypto.randomUUID(),
+            groupId,
+            kind,
+            kind === 'expense' ? 'food' : null,
+            amount,
+            entry.paidBy,
+            JSON.stringify(shares),
+            entry.deletedAt ?? null
+        )
+        .first<{ seq: number }>();
+    if (!row) throw new Error('The entry was not written');
+    return row.seq;
+};
+
+export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, seedEntry, send };

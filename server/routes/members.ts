@@ -2,6 +2,7 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
+import { memberBalances } from '@core/balance';
 import {
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
@@ -9,10 +10,11 @@ import {
     memberIdSchema,
     memberWriteSchema,
 } from '@core/shared-group';
-import { countOpenGroups, manages, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
-import { addFriend, addPlaceholder, findFriend, renameMember } from '@server/db/members';
+import { listLiveEntries } from '@server/db/entries';
+import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
+import { addFriend, addPlaceholder, findFriend, leaveGroup, renameMember } from '@server/db/members';
 
-import { NOT_FOUND } from './groups';
+import { CLOSED, NOT_FOUND } from './groups';
 
 import type { AppEnv } from '@server/env';
 
@@ -23,11 +25,8 @@ const openMembers = ({ members }: GroupState): number => {
     return members.filter((member) => member.leftAt === null).length;
 };
 
-const membersRoutes = new Hono<AppEnv>().put(
-    '/:groupId/members/:memberId',
-    memberParam,
-    sValidator('json', memberWriteSchema),
-    async (c) => {
+const membersRoutes = new Hono<AppEnv>()
+    .put('/:groupId/members/:memberId', memberParam, sValidator('json', memberWriteSchema), async (c) => {
         const db = c.env.DB;
         const userId = c.var.userId;
         const { groupId, memberId } = c.req.valid('param');
@@ -41,6 +40,7 @@ const membersRoutes = new Hono<AppEnv>().put(
 
         if (input.friend === undefined) {
             if (existing?.name === input.name) return answer();
+            if (closedFor(state)) return c.json(CLOSED, 409);
             if (existing) {
                 if (!manages(state) && existing.id !== state.me.id) return c.json({ error: 'not-owner' }, 403);
                 await renameMember(db, memberId, input.name);
@@ -52,13 +52,15 @@ const membersRoutes = new Hono<AppEnv>().put(
             return answer();
         }
 
-        const friend = await findFriend(db, userId, input.friend);
-        if (!friend) return c.json({ error: 'unknown-friend' }, 422);
         if (existing) {
-            const sentAgain = existing.userId !== null && existing.userId === friend.userId;
+            const friend = await findFriend(db, userId, input.friend);
+            const sentAgain = existing.userId !== null && existing.userId === friend?.userId;
             return sentAgain ? answer() : c.json({ error: 'id-taken' }, 409);
         }
+        if (closedFor(state)) return c.json(CLOSED, 409);
         if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
+        const friend = await findFriend(db, userId, input.friend);
+        if (!friend) return c.json({ error: 'unknown-friend' }, 422);
         const friendUser = friend.userId;
         if (friendUser === null) return c.json({ error: 'not-a-user' }, 409);
         if (state.members.some((member) => member.userId === friendUser)) {
@@ -81,7 +83,28 @@ const membersRoutes = new Hono<AppEnv>().put(
             return c.json({ error: 'id-taken' }, 409);
         }
         return answer();
-    }
-);
+    })
+    .delete('/:groupId/members/:memberId', memberParam, async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const { groupId, memberId } = c.req.valid('param');
+        const state = await readGroup(db, userId, groupId);
+        if (!state) return c.json(NOT_FOUND, 404);
+        const target = state.members.find((member) => member.id === memberId);
+        if (!target) return c.json({ error: 'unknown-member' }, 404);
+
+        if (target.leftAt === null) {
+            if (closedFor(state)) return c.json(CLOSED, 409);
+            if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
+            if (target.id !== state.me.id && !manages(state)) return c.json({ error: 'not-owner' }, 403);
+            if (target.id === state.me.id && state.me.role === 'owner') return c.json({ error: 'owner' }, 409);
+            const balances = memberBalances(await listLiveEntries(db, groupId), state.members);
+            if (balances.some((balance) => balance.memberId === target.id && balance.cents !== 0)) {
+                return c.json({ error: 'unsettled' }, 409);
+            }
+            await leaveGroup(db, target.id);
+        }
+        return c.json(await readSharedGroup(db, userId, groupId), 200);
+    });
 
 export { membersRoutes };
