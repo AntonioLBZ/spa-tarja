@@ -55,6 +55,23 @@ const memberRefusal = (
     return moved ? 'member-left' : null;
 };
 
+// Whether the entry sets a card that isn't the caller's: only the payer says how they paid, so anybody else writes it
+// paid now, or keeps the card the stored entry has for the same payer
+const setsCardOfAnother = (
+    { members, me }: GroupState,
+    entry: SharedEntryInput,
+    stored: SharedEntryInput | null
+): boolean => {
+    const payer = canonicalMember(members, entry.paidBy);
+    if (entry.payment === 'direct' || payer === me.id) return false;
+    const kept =
+        stored !== null &&
+        canonicalMember(members, stored.paidBy) === payer &&
+        stored.payment === entry.payment &&
+        stored.chargeDate === entry.chargeDate;
+    return !kept;
+};
+
 // How far ahead of the server a device's clock may write: a later `updatedAt` would win over every edit until then
 const CLOCK_SLACK_MS = 86_400_000;
 
@@ -98,6 +115,7 @@ const entriesRoutes = new Hono<AppEnv>()
         if (input.currency !== state.group.currency) return c.json({ error: 'currency-mismatch' }, 422);
         const refusal = memberRefusal(state, input, stored?.entry ?? null);
         if (refusal) return c.json({ error: refusal }, 422);
+        if (setsCardOfAnother(state, input, stored?.entry ?? null)) return c.json({ error: 'not-the-payer' }, 422);
         const written = await upsertEntry(db, { groupId, id, userId }, input);
         if (written) return c.json(written, 200);
 

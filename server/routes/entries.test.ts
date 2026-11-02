@@ -157,6 +157,70 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(voucher).toMatchObject({ payment: 'voucher', chargeDate: '2026-11-01' });
     });
 
+    it('answers 422 not-the-payer to a card set for somebody else, and lets the payer add it', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        const id = crypto.randomUUID();
+        const halves = { [group.me]: 1500, [brunoId]: 1500 };
+        const credit = { payment: 'credit', chargeDate: '2026-11-25' };
+
+        const forAna = await putEntry(bruno, group.id, id, dinner(group.me, halves, credit));
+        const forDani = await putEntry(
+            ana,
+            group.id,
+            crypto.randomUUID(),
+            dinner(dani, { [dani]: 1500, [brunoId]: 1500 }, { payment: 'voucher', chargeDate: '2026-10-25' })
+        );
+        expect(await error(forAna, 422)).toBe('not-the-payer');
+        expect(await error(forDani, 422)).toBe('not-the-payer');
+
+        expect(await entryOf(await putEntry(bruno, group.id, id, dinner(group.me, halves)))).toMatchObject({
+            payment: 'direct',
+        });
+        expect(
+            await entryOf(await putEntry(ana, group.id, id, dinner(group.me, halves, { ...credit, updatedAt: 2_000 })))
+        ).toMatchObject(credit);
+    });
+
+    it('lets another member edit an expense around the payer’s card, but not change it or give it to somebody else', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        const id = crypto.randomUUID();
+        const halves = { [group.me]: 1500, [brunoId]: 1500 };
+        const credit = { payment: 'credit', chargeDate: '2026-11-25' };
+        await entryOf(await putEntry(ana, group.id, id, dinner(group.me, halves, credit)));
+
+        const redated = await putEntry(
+            bruno,
+            group.id,
+            id,
+            dinner(group.me, halves, { ...credit, chargeDate: '2026-12-25', updatedAt: 2_000 })
+        );
+        const voucher = await putEntry(
+            bruno,
+            group.id,
+            id,
+            dinner(group.me, halves, { ...credit, payment: 'voucher', updatedAt: 2_000 })
+        );
+        const handed = await putEntry(
+            bruno,
+            group.id,
+            id,
+            dinner(dani, { [dani]: 1500, [brunoId]: 1500 }, { ...credit, updatedAt: 2_000 })
+        );
+        const reworded = await putEntry(
+            bruno,
+            group.id,
+            id,
+            dinner(group.me, halves, { ...credit, text: 'Tapas', updatedAt: 3_000 })
+        );
+
+        expect(await error(redated, 422)).toBe('not-the-payer');
+        expect(await error(voucher, 422)).toBe('not-the-payer');
+        expect(await error(handed, 422)).toBe('not-the-payer');
+        expect(await entryOf(reworded)).toMatchObject({ ...credit, text: 'Tapas', updatedBy: brunoId });
+    });
+
     it('reads the ids in upper case as the same group, entry and members', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const id = crypto.randomUUID();

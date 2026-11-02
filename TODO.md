@@ -57,7 +57,7 @@ Groups, closed and archived groups, a group, its settings, the people and adding
 
 ### 25. Sharing an expense
 
-The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid, only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` and its story come with it.
+The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). `Checkbox` and its story come with it.
 
 ### 26. Friends by invitation
 
