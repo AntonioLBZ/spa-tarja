@@ -46,7 +46,7 @@ function balancesSheet() {
 function debtLines() {
     return within(balancesSheet())
         .getAllByRole('listitem')
-        .map((line) => line.textContent);
+        .map((line) => line.firstChild?.textContent);
 }
 
 function everyone() {

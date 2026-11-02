@@ -6,6 +6,7 @@ import { Notice } from '@/components/notice/notice';
 import { GroupBalances } from './group-balances';
 import { GroupGate } from './group-gate';
 import { myBalance } from './my-balance';
+import { SettleUp, useSettleUp } from './settle-up';
 import { useGroupWords } from './use-group-words';
 
 import type { Ledger } from './use-ledgers';
@@ -20,7 +21,7 @@ interface GroupViewProps {
     ledger: Ledger;
 }
 
-// A group or a friend: what the person is owed or owes, who owes whom, and the way to its settings
+// A group or a friend: what the person is owed or owes, who owes whom and settling up, and the way to its settings
 const GroupScreen = (props: GroupScreenProps) => {
     const { groupId } = props;
 
@@ -32,14 +33,17 @@ const GroupView = (props: GroupViewProps) => {
     const { group, entries, hasData, isError, isWaitingForNetwork } = ledger;
     const t = useTranslations('groups');
     const words = useGroupWords(group);
+    const settle = useSettleUp();
+    const open = group.closed === null;
 
     return (
         <section className="group-screen">
             <h1 className="group-screen__title">{words.title}</h1>
             {hasData && (
                 <>
-                    <Notice>{words.mine(myBalance(group, entries))}</Notice>
-                    <GroupBalances group={group} entries={entries} />
+                    <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
+                    <GroupBalances group={group} entries={entries} onSettle={open ? settle.take : undefined} />
+                    {open && <SettleUp group={group} entries={entries} form={settle} />}
                 </>
             )}
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.entriesFailed')}</Notice>}

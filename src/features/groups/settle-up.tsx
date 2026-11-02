@@ -1,0 +1,245 @@
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useTranslations } from 'use-intl';
+
+import { Button } from '@/components/button/button';
+import { Disclosure } from '@/components/disclosure/disclosure';
+import { Field } from '@/components/field/field';
+import { Notice } from '@/components/notice/notice';
+import { Select } from '@/components/select/select';
+import { useLocale } from '@/lib/i18n';
+import { pairwiseDebts, type Debt } from '@core/balance';
+import { isCalendarDate, toDateString } from '@core/date';
+import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
+
+import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
+import { useEntryActions } from './use-entry-actions';
+import { useGroupWords } from './use-group-words';
+
+import type { SharedEntry } from '@core/shared-entry';
+import type { SharedGroup } from '@core/shared-group';
+
+import './settle-up.css';
+
+// A settlement as the form holds it: who pays, who is paid, the amount as typed and the day
+interface SettleDraft {
+    from: string;
+    to: string;
+    amount: string;
+    date: string;
+}
+
+type SettleForm = ReturnType<typeof useSettleUp>;
+
+interface SettleUpProps {
+    group: SharedGroup;
+    entries: readonly SharedEntry[];
+    form: SettleForm;
+}
+
+// What the first owes the second, negative when the second owes the first
+const debtBetween = (debts: readonly Debt[], from: string, to: string): number => {
+    const debt = debts.find((item) => (item.from === from && item.to === to) || (item.from === to && item.to === from));
+    if (!debt) return 0;
+    return debt.from === from ? debt.cents : -debt.cents;
+};
+
+// From the person to whoever they owe most, else to the first other member who hasn't left, with the amount to type
+const startDraft = (group: SharedGroup, debts: readonly Debt[]): SettleDraft => {
+    const present = group.members.filter((member) => member.leftAt === null && member.id !== group.me);
+    const owed = debts
+        .filter((debt) => debt.from === group.me && present.some((member) => member.id === debt.to))
+        .sort((a, b) => b.cents - a.cents);
+    return {
+        from: group.me,
+        to: owed[0]?.to ?? present[0]?.id ?? group.me,
+        amount: '',
+        date: toDateString(new Date()),
+    };
+};
+
+// The state of the form, kept above the balances so that a line can fill it in. A draft of null is the start, which
+// follows the balances until something in it is changed.
+const useSettleUp = () => {
+    const { locale } = useLocale();
+    const [open, setOpen] = useState(false);
+    const [draft, setDraft] = useState<SettleDraft | null>(null);
+    // How many debts were taken from a line: each one puts the focus on the amount
+    const [taken, setTaken] = useState(0);
+
+    const take = useCallback(
+        (debt: Debt) => {
+            setDraft({
+                from: debt.from,
+                to: debt.to,
+                amount: formatAmountInput(debt.cents, locale),
+                date: toDateString(new Date()),
+            });
+            setOpen(true);
+            setTaken((count) => count + 1);
+        },
+        [locale]
+    );
+
+    return { open, setOpen, draft, setDraft, take, taken };
+};
+
+// Records that one member paid another, through the outbox so that it works offline. It counts for nobody, only in the
+// balances.
+const SettleUp = (props: SettleUpProps) => {
+    const { group, entries, form } = props;
+    const t = useTranslations('groups.settle');
+    const { locale } = useLocale();
+    const words = useGroupWords(group);
+    const failureWords = useFailureWords();
+    const { save } = useEntryActions();
+    const [failure, setFailure] = useState<GroupFailure | null>(null);
+    const [busy, setBusy] = useState(false);
+    const toggle = useRef<HTMLButtonElement>(null);
+    const amountInput = useRef<HTMLInputElement>(null);
+    const debts = useMemo(() => pairwiseDebts(entries, group.members), [entries, group.members]);
+
+    useEffect(() => {
+        if (form.taken > 0) amountInput.current?.focus();
+    }, [form.taken]);
+
+    const people = group.members.filter((member) => member.leftAt === null);
+    if (people.length < 2) return null;
+
+    const draft = form.draft ?? startDraft(group, debts);
+    const { from, to } = draft;
+    const change = (next: Partial<SettleDraft>) => form.setDraft({ ...draft, ...next });
+    const options = people.map((member) => ({
+        value: member.id,
+        label: member.id === group.me ? t('you') : words.nameOf(member.id),
+    }));
+    // Nothing when it isn't an amount
+    const cents = parseAmount(draft.amount, locale) ?? 0;
+    const same = from === to;
+    const valid = cents >= 1 && !same && isCalendarDate(draft.date);
+
+    // A debt in words, as one of "After this…"
+    const afterDebt = (debtor: string, creditor: string, owed: number) => {
+        const amount = formatAmount(owed, group.currency, locale);
+        if (debtor === group.me) return t('after.youOwe', { name: words.nameOf(creditor), amount });
+        if (creditor === group.me) return t('after.owesYou', { name: words.nameOf(debtor), amount });
+        return t('after.owes', { from: words.nameOf(debtor), to: words.nameOf(creditor), amount });
+    };
+
+    // What the two would owe each other: what is paid comes off what the payer owes, as the one share of a settlement
+    const after = (net: number) => {
+        if (net > 0) return afterDebt(from, to, net);
+        if (net < 0) return afterDebt(to, from, -net);
+        if (from === group.me || to === group.me) {
+            return t('after.youSettled', { name: words.nameOf(from === group.me ? to : from) });
+        }
+        return t('after.settled', { from: words.nameOf(from), to: words.nameOf(to) });
+    };
+
+    const before = debtBetween(debts, from, to);
+    const hint = [
+        before > 0 && words.debt({ from, to, cents: before }),
+        before < 0 && words.debt({ from: to, to: from, cents: -before }),
+        cents >= 1 && !same && after(before - cents),
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (busy || !valid) return;
+
+        const now = Date.now();
+        setFailure(null);
+        setBusy(true);
+        try {
+            await save(group.id, {
+                id: crypto.randomUUID(),
+                kind: 'settlement',
+                text: '',
+                categoryId: null,
+                amountCents: cents,
+                currency: group.currency,
+                date: draft.date,
+                paidBy: from,
+                split: 'exact',
+                shares: [{ memberId: to, cents }],
+                payment: 'direct',
+                chargeDate: null,
+                createdAt: now,
+                updatedAt: now,
+                deletedAt: null,
+            });
+            form.setDraft(null);
+            form.setOpen(false);
+            toggle.current?.focus();
+        } catch (error) {
+            setFailure(failureOf(error));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Disclosure summary={t('title')} chevron open={form.open} toggleRef={toggle} onOpenChange={form.setOpen}>
+            <form className="settle-up" onSubmit={(event) => void handleSubmit(event)}>
+                <Field label={t('from')}>
+                    {(control) => (
+                        <Select
+                            {...control}
+                            label={t('from')}
+                            options={options}
+                            value={from}
+                            onChange={(next) => change({ from: next })}
+                        />
+                    )}
+                </Field>
+                <Field label={t('to')} error={same ? t('same') : null}>
+                    {(control) => (
+                        <Select
+                            {...control}
+                            label={t('to')}
+                            options={options}
+                            value={to}
+                            onChange={(next) => change({ to: next })}
+                        />
+                    )}
+                </Field>
+                <Field label={t('amount')} hint={hint || undefined}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            ref={amountInput}
+                            autoComplete="off"
+                            inputMode="decimal"
+                            required
+                            type="text"
+                            value={draft.amount}
+                            onChange={(event) => change({ amount: event.target.value })}
+                        />
+                    )}
+                </Field>
+                <Field label={t('date')}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            required
+                            type="date"
+                            value={draft.date}
+                            onChange={(event) => change({ date: event.target.value })}
+                        />
+                    )}
+                </Field>
+                <Button block variant="primary" disabled={!valid || busy} type="submit">
+                    {t('save')}
+                </Button>
+                {failure && (
+                    <Notice tone="danger" role="alert">
+                        {failureWords(failure)}
+                    </Notice>
+                )}
+            </form>
+        </Disclosure>
+    );
+};
+
+export { SettleUp, useSettleUp, type SettleUpProps };

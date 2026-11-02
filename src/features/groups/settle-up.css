@@ -1,0 +1,4 @@
+.settle-up {
+    display: grid;
+    gap: var(--size-4);
+}

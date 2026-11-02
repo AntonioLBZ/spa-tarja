@@ -1,4 +1,5 @@
 import { GroupBalances as GroupBalancesComponent } from '@/features/groups/group-balances';
+import { fn } from 'storybook/test';
 
 import type { SharedEntry } from '@core/shared-entry';
 import type { GroupMember, SharedGroup } from '@core/shared-group';
@@ -7,6 +8,8 @@ import type { Meta } from '@storybook/react-vite';
 interface GroupBalancesStoryProps {
     // Whether anybody owes anything
     debts: boolean;
+    // Whether the group is open, so that its lines offer Settle up
+    open: boolean;
 }
 
 const member = (id: string, name: string, rest: Partial<GroupMember> = {}): GroupMember => ({
@@ -66,13 +69,15 @@ const ENTRIES: readonly SharedEntry[] = [
 
 const Story: Meta<GroupBalancesStoryProps> = {
     title: 'Features/GroupBalances',
-    args: { debts: true },
+    args: { debts: true, open: true },
 };
 
-export const GroupBalances = (args: GroupBalancesStoryProps) => {
-    const { debts } = args;
+const settle = fn();
 
-    return <GroupBalancesComponent group={GROUP} entries={debts ? ENTRIES : []} />;
+export const GroupBalances = (args: GroupBalancesStoryProps) => {
+    const { debts, open } = args;
+
+    return <GroupBalancesComponent group={GROUP} entries={debts ? ENTRIES : []} onSettle={open ? settle : undefined} />;
 };
 
 export default Story;

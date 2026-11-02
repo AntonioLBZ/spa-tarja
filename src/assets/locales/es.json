@@ -310,6 +310,24 @@
             "none": "Nadie debe nada.",
             "everyone": "El saldo de cada persona"
         },
+        "settle": {
+            "title": "Saldar cuentas",
+            "lineItem": "Saldar cuentas: {debt}",
+            "from": "Paga",
+            "to": "Recibe",
+            "you": "Tú",
+            "amount": "Importe",
+            "date": "Fecha",
+            "save": "Guardar",
+            "same": "Quien paga y quien recibe tienen que ser dos personas distintas.",
+            "after": {
+                "youOwe": "Con esto, debes {amount} a {name}",
+                "owesYou": "Con esto, {name} te debe {amount}",
+                "owes": "Con esto, {from} debe {amount} a {to}",
+                "youSettled": "Con esto, quedas en paz con {name}",
+                "settled": "Con esto, {from} y {to} quedan en paz"
+            }
+        },
         "group": {
             "missing": "Este grupo no está aquí. No existe o no formas parte de él.",
             "loadFailed": "No se pudieron cargar tus grupos. Conéctate para verlos.",

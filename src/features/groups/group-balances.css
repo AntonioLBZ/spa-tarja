@@ -1,8 +1,16 @@
-/* A debt on paper, in words: no color, no notch, as tall as a row that opens */
+/* A debt on paper, in words: no color, no notch, as tall as a row that opens. Its Settle up goes to the end, or under
+   the words when they take the whole line */
 .group-balances__line {
     align-items: center;
     display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--size-4);
+    justify-content: space-between;
     margin: 0;
     min-height: var(--size-touch);
     overflow-wrap: anywhere;
+}
+
+.group-balances__text {
+    min-width: 0;
 }

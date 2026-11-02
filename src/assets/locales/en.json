@@ -310,6 +310,24 @@
             "none": "Nobody owes anybody.",
             "everyone": "Everyone's balance"
         },
+        "settle": {
+            "title": "Settle up",
+            "lineItem": "Settle up: {debt}",
+            "from": "From",
+            "to": "To",
+            "you": "You",
+            "amount": "Amount",
+            "date": "Date",
+            "save": "Save",
+            "same": "From and To have to be two different people.",
+            "after": {
+                "youOwe": "After this, you owe {name} {amount}",
+                "owesYou": "After this, {name} owes you {amount}",
+                "owes": "After this, {from} owes {to} {amount}",
+                "youSettled": "After this, you're settled with {name}",
+                "settled": "After this, {from} and {to} are settled"
+            }
+        },
         "group": {
             "missing": "This group isn't here. It doesn't exist, or you're not in it.",
             "loadFailed": "Couldn't load your groups. Connect to see them.",
