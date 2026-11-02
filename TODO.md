@@ -61,7 +61,7 @@ Migration `0012` for `friend_invitations`, the routes, the join page, the invite
 
 ### 27. Shared expenses in your own lists
 
-The shared rows in the list, the summary, the charts, the budgets and their warnings, the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)).
+The shared rows in the list, the summary, the charts, the budgets and their warnings, the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
 
 ### 28. Simplified debts
 
