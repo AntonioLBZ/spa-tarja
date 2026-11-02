@@ -97,7 +97,7 @@ design-system/   Storybook and the stories (a pnpm workspace package)
 
 - Vitest with `globals: false`: import `describe`, `it`, `expect` and `vi` from `vitest`.
 - Tests sit next to the code they cover (`*.test.ts(x)`), no comments in tests.
-- `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', init, env)`. Routes that need a session get one from `signIn()` (`server/test/session.ts`), which saves a user and a real session cookie in the test database (`signIn(email)` makes another user, for the tests of groups).
+- `server` tests run in workerd with a real local D1: `import { env } from 'cloudflare:workers'` and `app.request('/api/...', init, env)`. Routes that need a session get one from `signIn()` (`server/test/session.ts`), which saves a user and a real session cookie in the test database (`signIn(email, name)` makes another user, for the tests of groups).
 - `front` tests render the real route tree with `renderApp` (it mounts the real `AppProviders`, signed in as `TEST_USER` through `createFakeAuth`, `src/lib/test/fake-auth.ts`; pass `fakeAuth` to start signed out or with the server out of reach) and a fake `fetch` (`stubApi`, `src/lib/test/render-app.tsx`). An unmatched request must fail, never reach the network. Offline behaviour is tested with `createFakeApi` (`src/lib/test/fake-api.ts`, with a cursor, failures and a dropped connection) and `createMemoryStorage` in place of IndexedDB (pass it as `storage` to `renderApp`); use `onlineManager.setOnline` to cut and restore the connection. Assert on copy through `en.json` (`en.home.health.ok`), not on string literals.
 
 ## Conventions

@@ -49,7 +49,13 @@ Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0
 
 ### 22. Groups on the server
 
-Migration `0011`, the routes for groups, friends, members (a dummy, a friend, in place of a dummy), entries, the merge, the ownership and the switches, and the checks: membership on every call, the limits, `404` to a stranger, the read cut of a member who left, `409 closed`, leave and delete refused with a balance, default categories only. A merge is refused into a placeholder, into itself and of a member who is a user, with tests: `core` reads a chain or a loop of merges defensively, but the server never stores one. `signIn(email)` for the tests of several users ([groups](docs/specs/groups.md)). Done in two passes: part A is everything but the entries, with its task plan in `docs/superpowers/plans/2026-11-01-groups-server.md`, deleted at its end.
+Part A is done: migration `0011` (`shared_groups`, `shared_members`, and `shared_entries` with its unique `(group_id, seq)`), the body schemas in `core/shared-group.ts`, and every route of [groups](docs/specs/groups.md) but the entries, with their checks and their tests through `signIn(email, name)` (`server/routes/groups.ts` and `members.ts`). The balance checks read the live entries with `listLiveEntries` (`server/db/entries.ts`), and the tests write entries straight into the table with `seedEntry` (`server/test/groups.ts`).
+
+Part B, the entries ([shared expenses](docs/specs/shared-expenses.md), [offline sync](docs/specs/offline-sync.md)):
+
+- `PUT /groups/:groupId/entries/:id`, validated by `sharedEntryInputSchema`: idempotent, applied only when `updatedAt` is strictly newer (otherwise it answers the stored entry), `seq` taken as `MAX(seq) + 1` of the group inside the upsert, `createdBy` and `updatedBy` from the session, a delete being the same `PUT` with `deletedAt`. Refused with `404` (not a member, the same answer as for no group), `409 id-taken` (the id of an entry of another group), `409 closed` (deleted, or the caller left), `400 unknown-category` (only default categories, `isDefaultCategoryId`), `422 unknown-member`, `422 member-left` (a member who left and wasn't in the stored entry, a merged placeholder read as its target) and `422 currency-mismatch`.
+- `GET /groups/:groupId/entries?after=&limit=`: the changes after the cursor, tombstones included, with the new cursor, cut at `left_seq` for a member who left (the members of a deleted group read all of it).
+- Tests for several users: a stranger never reads or writes an entry, every refusal above, last write wins, the cut of a member who left, and that the route writes what `seedEntry` writes. Watch that an entry edited after a member left moves past their `left_seq`: they keep the version their device holds, and never read it if their device hadn't pulled it before they left.
 
 ### 23. Groups on the device
 
