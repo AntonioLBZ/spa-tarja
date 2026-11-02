@@ -287,7 +287,41 @@
     },
     "groups": {
         "title": "Grupos",
-        "soon": "Los grupos llegan pronto."
+        "soon": "Los grupos llegan pronto.",
+        "names": {
+            "deleted": "Cuenta eliminada",
+            "numbered": "{name} ({number})",
+            "left": "{name} (se fue)",
+            "unknown": "Una persona nueva"
+        },
+        "balance": {
+            "owed": "Te deben {amount}",
+            "owe": "Debes {amount}",
+            "allSettled": "Todo saldado",
+            "youSettled": "Tienes las cuentas saldadas",
+            "memberOwed": "A {name} le deben {amount}",
+            "memberOwes": "{name} debe {amount}",
+            "memberSettled": "{name} tiene las cuentas saldadas"
+        },
+        "debts": {
+            "label": "Saldos",
+            "youOwe": "Debes {amount} a {name}",
+            "owesYou": "{name} te debe {amount}",
+            "owes": "{from} debe {amount} a {to}",
+            "none": "Nadie debe nada.",
+            "everyone": "El saldo de cada persona"
+        },
+        "group": {
+            "missing": "Este grupo no está aquí. No existe o no formas parte de él.",
+            "loadFailed": "No se pudieron cargar tus grupos. Conéctate para verlos.",
+            "back": "Ir a Grupos",
+            "entriesFailed": "No se pudieron cargar los gastos de este grupo. Conéctate para verlos.",
+            "closed": {
+                "deleted": "Este grupo se eliminó. Sus gastos se quedan como estaban.",
+                "deletedFriend": "Esta persona ya no está entre tus amigos. Lo que compartíais se queda como estaba.",
+                "left": "Saliste de este grupo. Se queda como estaba el día que saliste."
+            }
+        }
     },
     "summary": {
         "title": "Resumen",

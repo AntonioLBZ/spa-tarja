@@ -1,4 +1,11 @@
-import type { PendingEntry } from '@/lib/offline';
+import { QueryClient, dehydrate } from '@tanstack/react-query';
+
+import { GROUPS_KEY, groupEntriesKey } from '@/lib/api';
+import { PERSIST_BUSTER, createPersister, createUserStorage, type PendingEntry } from '@/lib/offline';
+
+import { TEST_USER } from './fake-auth';
+
+import type { KeyValueStorage } from '@/lib/offline';
 import type { SharedEntry } from '@core/shared-entry';
 import type { GroupMember, SharedGroup } from '@core/shared-group';
 
@@ -57,4 +64,22 @@ const sampleEntry = (group: SharedGroup, overrides: Partial<SharedExpense> = {})
     };
 };
 
-export { person, sampleEntry, sampleGroup };
+// What the test user's device kept of the groups and their entries the last time it heard from the server
+const leaveCopy = async (storage: KeyValueStorage, groups: SharedGroup[], entries: PendingEntry[]) => {
+    const source = new QueryClient();
+    source.setQueryData(GROUPS_KEY, groups);
+    for (const item of groups) {
+        const own = entries.filter((entry) => entry.groupId === item.id);
+        source.setQueryData(groupEntriesKey(item.id), {
+            entries: own.map((entry) => ({ ...entry, createdBy: item.me, updatedBy: item.me })),
+            cursor: own.length,
+        });
+    }
+    await createPersister(createUserStorage(storage, TEST_USER.id).storage).persistClient({
+        timestamp: Date.now(),
+        buster: PERSIST_BUSTER,
+        clientState: dehydrate(source),
+    });
+};
+
+export { leaveCopy, person, sampleEntry, sampleGroup };

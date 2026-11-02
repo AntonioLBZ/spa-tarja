@@ -1,0 +1,8 @@
+/* A debt on paper, in words: no color, no notch, as tall as a row that opens */
+.group-balances__line {
+    align-items: center;
+    display: flex;
+    margin: 0;
+    min-height: var(--size-touch);
+    overflow-wrap: anywhere;
+}

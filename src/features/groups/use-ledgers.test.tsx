@@ -1,46 +1,22 @@
-import { QueryClient, dehydrate, onlineManager } from '@tanstack/react-query';
+import { onlineManager } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { GROUPS_KEY, groupEntriesKey } from '@/lib/api';
-import { PERSIST_BUSTER, createPersister, createUserStorage, useGroupOutbox } from '@/lib/offline';
+import { createUserStorage, useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
 
 import { useLedgers } from './use-ledgers';
 
 import type { AuthUser } from '@/lib/auth';
-import type { PendingEntry } from '@/lib/offline';
-import type { SharedGroup } from '@core/shared-group';
 
 const BEA: AuthUser = { id: 'user-bea', name: 'Bea Ruiz', email: 'bea@example.com' };
 
 const group = sampleGroup();
 const bea = group.members[1]!.id;
-
-async function leaveCopy(
-    storage: ReturnType<typeof createMemoryStorage>,
-    groups: SharedGroup[],
-    entries: PendingEntry[]
-) {
-    const source = new QueryClient();
-    source.setQueryData(GROUPS_KEY, groups);
-    for (const item of groups) {
-        const own = entries.filter((entry) => entry.groupId === item.id);
-        source.setQueryData(groupEntriesKey(item.id), {
-            entries: own.map((entry) => ({ ...entry, createdBy: item.me, updatedBy: item.me })),
-            cursor: own.length,
-        });
-    }
-    await createPersister(createUserStorage(storage, TEST_USER.id).storage).persistClient({
-        timestamp: Date.now(),
-        buster: PERSIST_BUSTER,
-        clientState: dehydrate(source),
-    });
-}
 
 function renderLedgers(options: Parameters<typeof renderAppHook>[1] = {}) {
     return renderAppHook(() => ({ ...useLedgers(), outbox: useGroupOutbox() }), options);

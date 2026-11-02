@@ -287,7 +287,41 @@
     },
     "groups": {
         "title": "Groups",
-        "soon": "Groups are coming soon."
+        "soon": "Groups are coming soon.",
+        "names": {
+            "deleted": "Deleted user",
+            "numbered": "{name} ({number})",
+            "left": "{name} (left)",
+            "unknown": "Someone new"
+        },
+        "balance": {
+            "owed": "You are owed {amount}",
+            "owe": "You owe {amount}",
+            "allSettled": "All settled",
+            "youSettled": "You're settled",
+            "memberOwed": "{name} is owed {amount}",
+            "memberOwes": "{name} owes {amount}",
+            "memberSettled": "{name} is settled"
+        },
+        "debts": {
+            "label": "Balances",
+            "youOwe": "You owe {name} {amount}",
+            "owesYou": "{name} owes you {amount}",
+            "owes": "{from} owes {to} {amount}",
+            "none": "Nobody owes anybody.",
+            "everyone": "Everyone's balance"
+        },
+        "group": {
+            "missing": "This group isn't here. It doesn't exist, or you're not in it.",
+            "loadFailed": "Couldn't load your groups. Connect to see them.",
+            "back": "Go to Groups",
+            "entriesFailed": "Couldn't load the expenses of this group. Connect to see them.",
+            "closed": {
+                "deleted": "This group was deleted. Its expenses stay as they were.",
+                "deletedFriend": "This friend was removed. What you shared stays as it was.",
+                "left": "You left this group. It stays as it was the day you left."
+            }
+        }
     },
     "summary": {
         "title": "Summary",
