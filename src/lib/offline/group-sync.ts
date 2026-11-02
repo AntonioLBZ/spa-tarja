@@ -36,9 +36,10 @@ const pushGroup = async (client: QueryClient, outbox: Outbox<PendingEntry>, grou
                 }
                 throw error;
             });
-            // The entry the server kept goes into the cache before the outbox lets go of it, so it never blinks out
+            // The entry the server kept goes into the cache before the outbox lets go of it, so it never blinks out, also
+            // in a group never pulled yet, whose pull then starts from the beginning
             client.setQueryData<GroupEntriesState>(groupEntriesKey(groupId), (state) =>
-                state ? { ...state, entries: upsertById(state.entries, kept) } : state
+                state ? { ...state, entries: upsertById(state.entries, kept) } : { entries: [kept], cursor: 0 }
             );
         });
     } finally {
