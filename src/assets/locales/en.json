@@ -418,6 +418,7 @@
             "mergeItem": "Merge into… ({name})",
             "mergeQuestion": "Merge {name} into someone who uses the app? What was split with {name} becomes theirs. This can't be undone.",
             "mergeInto": "Into",
+            "mergeNone": "Choose someone",
             "mergeConfirm": "Merge",
             "mergeConfirmItem": "Merge {name}",
             "makeOwner": "Make owner",

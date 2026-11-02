@@ -45,6 +45,7 @@ const PersonRow = (props: PersonRowProps) => {
     const [expanded, setExpanded] = useState(false);
     const [step, setStep] = useState<Step>('actions');
     const [draft, setDraft] = useState('');
+    // Whom a dummy is merged into, or '' while nobody is chosen: it can't be undone, so nobody is chosen for the person
     const [into, setInto] = useState('');
     const [invalid, setInvalid] = useState(false);
     const [failure, setFailure] = useState<GroupFailure | null>(null);
@@ -76,7 +77,7 @@ const PersonRow = (props: PersonRowProps) => {
         setFailure(null);
         setInvalid(false);
         if (next === 'renaming') setDraft(member.name);
-        if (next === 'merging') setInto(targets[0]?.value ?? '');
+        if (next === 'merging') setInto('');
     };
 
     const handleOpenChange = (open: boolean) => {
@@ -220,7 +221,7 @@ const PersonRow = (props: PersonRowProps) => {
                                 {...control}
                                 ref={focus.start}
                                 label={t('people.mergeInto')}
-                                options={targets}
+                                options={[{ value: '', label: t('people.mergeNone') }, ...targets]}
                                 value={into}
                                 onChange={setInto}
                             />
@@ -230,7 +231,7 @@ const PersonRow = (props: PersonRowProps) => {
                         <Button
                             ghost
                             aria-label={t('people.mergeConfirmItem', { name })}
-                            disabled={disabled || busy}
+                            disabled={disabled || busy || into === ''}
                             onClick={() => void run(() => merge(group.id, member.id, into), onGone)}
                         >
                             {t('people.mergeConfirm')}

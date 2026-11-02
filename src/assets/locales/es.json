@@ -418,6 +418,7 @@
             "mergeItem": "Fusionar con… ({name})",
             "mergeQuestion": "¿Fusionar a {name} con alguien que usa la app? Lo repartido con {name} pasa a ser suyo. No se puede deshacer.",
             "mergeInto": "Con",
+            "mergeNone": "Elige a alguien",
             "mergeConfirm": "Fusionar",
             "mergeConfirmItem": "Fusionar a {name}",
             "makeOwner": "Hacer admin",

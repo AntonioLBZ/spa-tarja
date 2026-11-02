@@ -298,8 +298,14 @@ describe('merging', () => {
 
         expect(screen.getByText(t('groups.people.mergeQuestion', { name: 'Cris' }))).toBeDefined();
         expect(document.activeElement).toBe(screen.getByRole('combobox', { name: text.mergeInto }));
+        expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone);
+        expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
         fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.you, 'Bea']);
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+            text.mergeNone,
+            text.you,
+            'Bea',
+        ]);
         fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
@@ -346,6 +352,8 @@ describe('merging', () => {
 
         fireEvent.click(row('Cris'));
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
+        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
         expect((await screen.findByRole('alert')).textContent).toBe(words);
