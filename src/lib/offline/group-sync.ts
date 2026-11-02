@@ -1,6 +1,6 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 
-import { GROUPS_KEY, fetchEntryChanges, groupEntriesKey, putEntry, type GroupEntriesState } from '@/lib/api';
+import { ApiError, GROUPS_KEY, fetchEntryChanges, groupEntriesKey, putEntry, type GroupEntriesState } from '@/lib/api';
 import { upsertById } from '@core/expense-merge';
 
 import { inTurn, pushPending } from './sync';
@@ -14,26 +14,36 @@ const PERMANENT = [400, 403, 404, 409, 422];
 
 // A group that refused a write as closed is read-only from then on. The answer doesn't say whether it was deleted or the
 // person left, so it reads as deleted until the server is asked.
-const markClosed = async (client: QueryClient, groupId: string) => {
+const markClosed = (client: QueryClient, groupId: string) => {
     client.setQueryData<SharedGroup[]>(GROUPS_KEY, (groups) =>
         groups?.map((group) =>
             group.id === groupId && group.closed === null ? { ...group, closed: 'deleted' } : group
         )
     );
-    await client.invalidateQueries({ queryKey: GROUPS_KEY });
 };
 
 const pushGroup = async (client: QueryClient, outbox: Outbox<PendingEntry>, groupId: string): Promise<void> => {
     await outbox.ready;
     const pending = outbox.getState().pending.filter((item) => item.groupId === groupId);
-    const rejected = await pushPending(outbox, pending, PERMANENT, async (entry) => {
-        const kept = await putEntry(entry);
-        // The entry the server kept goes into the cache before the outbox lets go of it, so it never blinks out
-        client.setQueryData<GroupEntriesState>(groupEntriesKey(groupId), (state) =>
-            state ? { ...state, entries: upsertById(state.entries, kept) } : state
-        );
-    });
-    if (rejected.some((rejection) => rejection.code === 'closed')) await markClosed(client, groupId);
+    let closed = false;
+    try {
+        await pushPending(outbox, pending, PERMANENT, async (entry) => {
+            const kept = await putEntry(entry).catch((error: unknown) => {
+                // Read-only at once, whatever happens to the rest of the push
+                if (error instanceof ApiError && error.code === 'closed') {
+                    markClosed(client, groupId);
+                    closed = true;
+                }
+                throw error;
+            });
+            // The entry the server kept goes into the cache before the outbox lets go of it, so it never blinks out
+            client.setQueryData<GroupEntriesState>(groupEntriesKey(groupId), (state) =>
+                state ? { ...state, entries: upsertById(state.entries, kept) } : state
+            );
+        });
+    } finally {
+        if (closed) await client.invalidateQueries({ queryKey: GROUPS_KEY });
+    }
 };
 
 const pullGroup = async (client: QueryClient, groupId: string): Promise<GroupEntriesState> => {

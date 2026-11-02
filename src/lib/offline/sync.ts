@@ -3,7 +3,7 @@ import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { ApiError, EXPENSES_KEY, fetchChanges, putExpense, type ExpensesState } from '@/lib/api';
 import { upsertById } from '@core/expense-merge';
 
-import type { Outbox, OutboxItem, Rejection } from './outbox';
+import type { Outbox, OutboxItem } from './outbox';
 import type { Expense } from '@core/expense';
 
 // How often to retry while something is waiting to sync, for connections that say they're up but aren't
@@ -12,15 +12,14 @@ const RETRY_EVERY_MS = 30_000;
 // What the server says no to for good about an expense: the same write will never be accepted, so retrying is pointless
 const PERMANENT = [400, 409, 422];
 
-// Sends what is pending, oldest first, and answers what the server refused for good, which leaves the outbox with its
-// reason. The first failure that may pass on its own stops the run, keeping the order.
+// Sends what is pending, oldest first. What the server refused for good leaves the outbox with its reason; the first
+// failure that may pass on its own stops the run, keeping the order.
 const pushPending = async <T extends OutboxItem>(
     outbox: Outbox<T>,
     items: readonly T[],
     permanent: readonly number[],
     send: (item: T) => Promise<void>
-): Promise<Rejection<T>[]> => {
-    const rejected: Rejection<T>[] = [];
+): Promise<void> => {
     for (const item of items) {
         try {
             await send(item);
@@ -28,10 +27,8 @@ const pushPending = async <T extends OutboxItem>(
         } catch (error) {
             if (!(error instanceof ApiError && permanent.includes(error.status))) throw error;
             await outbox.reject(item, error.code);
-            rejected.push({ item, code: error.code });
         }
     }
-    return rejected;
 };
 
 // The syncs running, by outbox and by what they sync, so overlapping triggers never send the same write twice

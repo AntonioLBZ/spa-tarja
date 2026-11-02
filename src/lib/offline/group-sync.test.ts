@@ -225,6 +225,23 @@ describe('pushing the entries of a group', () => {
         unsubscribe();
     });
 
+    it('marks the group closed at once, even when the rest of the push then fails', async () => {
+        const [first, second] = [sampleEntry(group), sampleEntry(group)];
+        const { api, cachedGroup, outbox, sync } = setup();
+        api.groups[0]!.closed = 'deleted';
+        let writes = 0;
+        stubApi((url, init) => {
+            if (init?.method === 'PUT' && ++writes > 1) throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        await outbox.putAll([first, second]);
+
+        await expect(sync()).rejects.toThrow('Failed to fetch');
+
+        expect(outbox.getState().rejected).toEqual([{ item: first, code: 'closed' }]);
+        expect(cachedGroup()?.closed).not.toBeNull();
+    });
+
     it('marks the group closed on the device before the server says which way', async () => {
         const entry = sampleEntry(group);
         const { api, cachedGroup, outbox, sync } = setup();
