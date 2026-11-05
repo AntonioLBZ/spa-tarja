@@ -48,6 +48,7 @@ The entries of a group on the screen of the group, under the add form and titled
 - An **expense**: the badge of its category, the name (the text, else the category), the total as the amount, and in the details who paid ("Paid by Ana", "You paid") and your part ("Your part €25.00", or "Not in this one" when you are out). Written last by someone else, it says "Added by Ana" while it was never edited (`updatedAt` is `createdAt`) and "Edited by Ana" after, "Deleted user" for a person who deleted their account; not synced yet, it says so.
 - A **settlement**: "Ana paid Bruno", "You paid Ana", "Ana paid you", with the amount, and no category; who wrote it and whether it is synced, as for an expense.
 - The panel holds Edit, Duplicate (not for a settlement) and Delete as ghost buttons `--size-4` apart. Show more adds 100 rows at a time and puts the focus on the first row it brings in.
+- Delete works as in the list of expenses ([expenses](expenses.md)): the row fades out, the focus goes at once to the next row, else to the one before, else to the title of the ledger, and once the delete is safe on the device the toast says "Deleted Dinner from Trip" ("Deleted the settlement “You paid Bea” from Trip") with Undo, which brings the entry back with the focus on its row. A delete or an Undo the device refuses (the group closed meanwhile) is said under the title.
 - In a closed group the rows have nothing to open: no chevron and no panel.
 
 ### What the server refused

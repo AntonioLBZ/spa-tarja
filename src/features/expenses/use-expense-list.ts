@@ -1,7 +1,7 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { readDuration } from '@/lib/motion';
+import { useFadeOut } from '@/lib/use-fade-out';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { toDateString } from '@core/date';
 import {
@@ -40,12 +40,7 @@ const useExpenseList = () => {
     const [limit, setLimit] = useState(PAGE_SIZE);
 
     // Expenses deleted a moment ago, kept on screen until their fade-out is over
-    const [leaving, setLeaving] = useState<ReadonlyMap<string, Expense>>(new Map());
-    const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
-    useEffect(() => {
-        const pending = timers.current;
-        return () => pending.forEach(clearTimeout);
-    }, []);
+    const { leaving, fadeOut } = useFadeOut<Expense>();
 
     const items = useMemo(() => {
         if (leaving.size === 0) return listItems(expenses);
@@ -110,22 +105,6 @@ const useExpenseList = () => {
         return next ? shownExpense(next).id : null;
     };
 
-    // Keeps the expenses on screen for the length of the fade-out that deleting them starts
-    const fadeOut = (deleted: readonly Expense[]) => {
-        const duration = readDuration('--duration-base');
-        if (duration === 0) return;
-        setLeaving((current) => new Map([...current, ...deleted.map((expense) => [expense.id, expense] as const)]));
-        const timer = setTimeout(() => {
-            timers.current.delete(timer);
-            setLeaving((current) => {
-                const next = new Map(current);
-                for (const expense of deleted) next.delete(expense.id);
-                return next;
-            });
-        }, duration);
-        timers.current.add(timer);
-    };
-
     return {
         // The groups to draw, cut at the limit, and how many rows that leaves out
         groups: drawn,
@@ -147,6 +126,7 @@ const useExpenseList = () => {
         clearFilters,
         changeGrouping,
         showMore,
+        // Keeps the expenses on screen for the length of the fade-out that deleting them starts
         fadeOut,
     };
 };

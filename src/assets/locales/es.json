@@ -514,7 +514,9 @@
             "editedBy": "Editado por {name}",
             "youPaidTo": "Pagaste a {name}",
             "paidYou": "{name} te pagó",
-            "paid": "{from} pagó a {to}"
+            "paid": "{from} pagó a {to}",
+            "deleted": "Eliminado de {group}: {name}",
+            "deletedSettlement": "Eliminado de {group}: el pago «{name}»"
         },
         "refused": {
             "change": "Se descartó un cambio en «{name}» de {group}.",

@@ -1,5 +1,8 @@
+import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
@@ -10,7 +13,7 @@ import { useEntryWords } from './use-entry-words';
 
 import type { LedgerEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
-import type { Ref } from 'react';
+import type { RefCallback } from 'react';
 
 import '@/features/expenses/expense-row.css';
 import './ledger-row.css';
@@ -20,14 +23,18 @@ interface LedgerRowProps {
     entry: LedgerEntry;
     // Not on the server yet
     pending: boolean;
-    // Takes the focus when "Show more" brings it in
-    rowRef?: Ref<HTMLLIElement>;
+    // Deleted a moment ago, fading out
+    leaving: boolean;
+    // Without it, as in a closed group, the row has nothing to open
+    onDelete?: (entry: LedgerEntry) => void;
+    // What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open
+    focusRef?: RefCallback<HTMLElement>;
 }
 
 // An entry of the ledger as a line of the ticket: an expense by its name with its total, who paid and your part, or a
-// settlement in words, and who wrote it last when it wasn't the person
+// settlement in words, and who wrote it last when it wasn't the person. Pressing it opens what can be done to it.
 const LedgerRow = (props: LedgerRowProps) => {
-    const { group, entry, pending, rowRef } = props;
+    const { group, entry, pending, leaving, onDelete, focusRef } = props;
     const t = useTranslations('groups');
     const tList = useTranslations('expenses.list');
     const { locale } = useLocale();
@@ -51,25 +58,49 @@ const LedgerRow = (props: LedgerRowProps) => {
               ]
             : [];
 
-    return (
-        <li ref={rowRef} className="expense-item ledger-row" tabIndex={-1}>
-            <span className="expense-item__body">
-                <span className="expense-item__name">
-                    {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
-                    <span className="expense-item__text">{words.entryName(entry)}</span>
-                </span>
-                <span className="expense-item__amount">{money(entry.amountCents)}</span>
-                {(details.length > 0 || wrote || pending) && (
-                    <span className="expense-item__meta">
-                        {details.map((detail) => (
-                            <span key={detail}>{detail}</span>
-                        ))}
-                        {wrote && <span>{wrote}</span>}
-                        {pending && <span className="expense-item__pending">{tList('pending')}</span>}
-                    </span>
-                )}
+    const name = words.entryName(entry);
+    const body = (
+        <span className="expense-item__body">
+            <span className="expense-item__name">
+                {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
+                <span className="expense-item__text">{name}</span>
             </span>
-        </li>
+            <span className="expense-item__amount">{money(entry.amountCents)}</span>
+            {(details.length > 0 || wrote || pending) && (
+                <span className="expense-item__meta">
+                    {details.map((detail) => (
+                        <span key={detail}>{detail}</span>
+                    ))}
+                    {wrote && <span>{wrote}</span>}
+                    {pending && <span className="expense-item__pending">{tList('pending')}</span>}
+                </span>
+            )}
+        </span>
+    );
+    const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
+
+    if (!onDelete) {
+        return (
+            <li ref={focusRef} className="expense-item ledger-row" tabIndex={-1}>
+                {body}
+            </li>
+        );
+    }
+
+    return (
+        <Disclosure as="li" className={rowClsx} chevron toggleRef={focusRef} summary={body}>
+            <div className="expense-item__actions">
+                <Button
+                    ghost
+                    variant="danger"
+                    aria-label={tList('deleteItem', { name })}
+                    disabled={leaving}
+                    onClick={() => onDelete(entry)}
+                >
+                    {tList('delete')}
+                </Button>
+            </div>
+        </Disclosure>
     );
 };
 
