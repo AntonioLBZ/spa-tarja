@@ -23,6 +23,14 @@ const signIn = async (email = 'ana@example.com', name = 'Ana'): Promise<TestSess
     return { userId: user.id, headers };
 };
 
+// Another session of the same user, as on a second device
+const signInAgain = async (session: TestSession): Promise<TestSession> => {
+    const auth = betterAuth({ ...authOptions(env, ORIGIN), plugins: [testUtils()] });
+    const { test } = await auth.$context;
+    const { headers } = await test.login({ userId: session.userId });
+    return { userId: session.userId, headers };
+};
+
 // The same session with the cookie cache a browser gets once it has asked who is signed in, which the server trusts for
 // a few minutes without reading the session from the database
 const cachedSession = async (session: TestSession): Promise<TestSession> => {
@@ -33,4 +41,4 @@ const cachedSession = async (session: TestSession): Promise<TestSession> => {
     return { userId: session.userId, headers };
 };
 
-export { ORIGIN, cachedSession, signIn, type TestSession };
+export { ORIGIN, cachedSession, signIn, signInAgain, type TestSession };

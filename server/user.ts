@@ -17,4 +17,4 @@ const withUser = createMiddleware<AppEnv>(async (c, next) => {
     await next();
 });
 
-export { withUser };
+export { UNAUTHORIZED, withUser };

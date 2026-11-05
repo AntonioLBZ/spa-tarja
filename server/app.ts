@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import { createAuth } from '@server/auth';
 import { withUser } from '@server/user';
 
+import { accountRoutes } from './routes/account';
 import { budgetsRoutes } from './routes/budgets';
 import { categoriesRoutes } from './routes/categories';
 import { entriesRoutes } from './routes/entries';
@@ -30,6 +31,8 @@ const app = new Hono<AppEnv>()
     .use('/profile/*', withUser)
     .use('/groups/*', withUser)
     .use('/invitations/*', withUser)
+    .use('/account/*', withUser)
+    .route('/account', accountRoutes)
     .route('/budgets', budgetsRoutes)
     .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes)
