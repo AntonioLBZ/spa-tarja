@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 
 import { useToast } from '@/components/toast/toast';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useExpenses } from '@/features/expenses/use-expenses';
+import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { TOTAL_SCOPE } from '@core/budget';
@@ -22,7 +22,7 @@ const useBudgetWarning = (): ((added: readonly Expense[]) => void) => {
     const t = useTranslations('budgets.warning');
     const { locale } = useLocale();
     const toast = useToast();
-    const { expenses } = useExpenses();
+    const { expenses } = useYourExpenses();
     const { budgets, scopes, categoryOf } = useBudgets();
     const { labelOf } = useCategoryOptions();
     const income = useQuery(incomeQuery());

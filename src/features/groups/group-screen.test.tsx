@@ -254,10 +254,10 @@ describe('a group', () => {
 });
 
 describe('the sync of a group', () => {
-    it('asks the server for the expenses of that group only', async () => {
-        const lisbon = groupOf([ana, bea], ana, { name: 'Lisbon' });
+    it('asks the server for the expenses of that group and of those in your expenses, and of no other', async () => {
+        const lisbon = groupOf([ana, bea], ana, { name: 'Lisbon', showInExpenses: false });
         const porto = groupOf([ana, bea], ana, { name: 'Porto' });
-        const rome = groupOf([ana, bea], ana, { name: 'Rome' });
+        const rome = groupOf([ana, bea], ana, { name: 'Rome', showInExpenses: false });
         const { api } = open(
             [lisbon, porto, rome],
             [
@@ -270,9 +270,9 @@ describe('the sync of a group', () => {
 
         await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
 
-        expect(api.requests.filter((request) => request.includes('/entries'))).toEqual([
-            expect.stringContaining(`/api/groups/${lisbon.id}/entries`),
-        ]);
+        expect(api.requests.filter((request) => request.includes('/entries')).toSorted()).toEqual(
+            [`GET /api/groups/${lisbon.id}/entries?after=0`, `GET /api/groups/${porto.id}/entries?after=0`].toSorted()
+        );
     });
 });
 

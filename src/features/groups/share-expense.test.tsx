@@ -800,3 +800,57 @@ describe('New person…', () => {
         expect(screen.queryByText(share.none)).toBeNull();
     });
 });
+
+describe('the sync of a shared expense added at home', () => {
+    const entryRequests = (api: { requests: string[] }, group: SharedGroup) =>
+        api.requests.filter((request) => request.includes(`/api/groups/${group.id}/entries`));
+
+    it('sends it once the connection is back, with no screen of groups opened', async () => {
+        const group = trip();
+        const { api, app } = await openHome([group]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '30', text: 'Dinner' });
+        fireEvent.click(addButton());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
+        expect(api.entryWrites).toMatchObject([{ text: 'Dinner', amountCents: 3000 }]);
+    });
+
+    it('asks for no ledger of a group whose switch is off, and still sends a write to it', async () => {
+        const hidden = trip({ showInExpenses: false });
+        const shown = friend('Dani');
+        const { api, app } = await openHome([hidden, shown]);
+        await waitFor(() => expect(entryRequests(api, shown)).toEqual([`GET /api/groups/${shown.id}/entries?after=0`]));
+        expect(entryRequests(api, hidden)).toEqual([]);
+        fireEvent.click(forChoice(form.forShared));
+        pickOption(share.with, 'Trip');
+
+        fill({ amount: '30', text: 'Dinner' });
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(api.entryWrites).toMatchObject([{ text: 'Dinner' }]));
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
+        expect(entryRequests(api, hidden)[0]).toMatch(/^PUT /);
+    });
+
+    it('tries it again every 30 s from home after the connection dropped', async () => {
+        const { api, app } = await openHome([trip()]);
+        api.state.offline = true;
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '30', text: 'Dinner' });
+        fireEvent.click(addButton());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+
+        api.state.offline = false;
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+        await vi.waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
+        expect(api.entryWrites).toMatchObject([{ text: 'Dinner' }]);
+        vi.useRealTimers();
+    });
+});

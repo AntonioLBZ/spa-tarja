@@ -12,7 +12,7 @@ import { useSharedExpenseRows } from './use-shared-expense-rows';
 function renderRows(options: Parameters<typeof createFakeApi>[0]) {
     const api = createFakeApi(options);
     stubApi(api.handler);
-    return { api, ...renderAppHook(() => ({ rows: useSharedExpenseRows(), outbox: useGroupOutbox() })) };
+    return { api, ...renderAppHook(() => ({ ...useSharedExpenseRows(), outbox: useGroupOutbox() })) };
 }
 
 afterEach(() => {
@@ -71,5 +71,35 @@ describe('useSharedExpenseRows', () => {
         await act(() => result.current.outbox.put(entry));
 
         expect(result.current.rows).toMatchObject([{ id: entry.id, text: 'Offline dinner', amountCents: 2000 }]);
+    });
+
+    it('says which group and entry each row is from, also once the entry is deleted', async () => {
+        const group = sampleGroup();
+        const entry = sampleEntry(group);
+        const { result } = renderRows({ groups: [group], entries: [entry] });
+        await waitFor(() => expect(result.current.rows).toHaveLength(1));
+        onlineManager.setOnline(false);
+
+        await act(() => result.current.outbox.put({ ...entry, updatedAt: 2, deletedAt: 2 }));
+
+        expect(result.current.rows).toEqual([]);
+        expect(result.current.sourceOf(entry.id)).toMatchObject({ group, entry: { id: entry.id, deletedAt: 2 } });
+        expect(result.current.pendingIds.has(entry.id)).toBe(true);
+    });
+
+    it('syncs the groups that show in your expenses and those with a write waiting, and no other', async () => {
+        const shown = sampleGroup();
+        const hidden = sampleGroup({ showInExpenses: false });
+        const { api, result } = renderRows({ groups: [shown, hidden] });
+        await waitFor(() => expect(api.requests).toContain(`GET /api/groups/${shown.id}/entries?after=0`));
+        const asked = (group: { id: string }) =>
+            api.requests.filter((request) => request.includes(`/api/groups/${group.id}/entries`));
+        expect(asked(hidden)).toEqual([]);
+
+        await act(() => result.current.outbox.put(sampleEntry(hidden)));
+
+        await waitFor(() => expect(result.current.outbox.getState().pending).toEqual([]));
+        expect(asked(hidden)).toEqual([expect.stringMatching(/^PUT /), `GET /api/groups/${hidden.id}/entries?after=0`]);
+        expect(result.current.rows).toEqual([]);
     });
 });
