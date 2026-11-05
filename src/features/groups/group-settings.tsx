@@ -60,7 +60,12 @@ const SettingsView = (props: SettingsViewProps) => {
             <h1 className="group-settings__title">{t('edit.title', { name: words.title })}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <PersonalSwitches group={group} disabled={!online} />
-            {open && group.kind === 'group' && isOwner(group) && <GroupName group={group} disabled={!online} />}
+            {open && group.kind === 'group' && isOwner(group) && (
+                <>
+                    <GroupName group={group} disabled={!online} />
+                    <SimplifyDebts group={group} disabled={!online} />
+                </>
+            )}
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
             {invitable && <FriendInvite group={group} disabled={!online} />}
             {open && <CloseGroup ledger={ledger} disabled={!online} />}
@@ -186,6 +191,47 @@ const GroupName = (props: SectionProps) => {
                 </Notice>
             )}
         </form>
+    );
+};
+
+// Whether the group shows the fewest payments instead of who owes whom, which only its owner switches
+const SimplifyDebts = (props: SectionProps) => {
+    const { group, disabled } = props;
+    const t = useTranslations('groups.edit');
+    const failureWords = useFailureWords();
+    const { change } = useGroupActions();
+    // What was asked for, shown until the server answers
+    const [asked, setAsked] = useState<boolean | null>(null);
+    const [failure, setFailure] = useState<GroupFailure | null>(null);
+
+    const send = async (simplifyDebts: boolean) => {
+        if (asked !== null) return;
+        setAsked(simplifyDebts);
+        setFailure(null);
+        try {
+            await change(group.id, { simplifyDebts });
+        } catch (error) {
+            setFailure(failureOf(error));
+        } finally {
+            setAsked(null);
+        }
+    };
+
+    return (
+        <div className="group-settings__section">
+            <Checkbox
+                label={t('simplify')}
+                hint={t('simplifyHint')}
+                checked={asked ?? group.simplifyDebts}
+                disabled={disabled}
+                onChange={(checked) => void send(checked)}
+            />
+            {failure && (
+                <Notice tone="danger" role="alert">
+                    {failureWords(failure)}
+                </Notice>
+            )}
+        </div>
     );
 };
 

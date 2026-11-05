@@ -46,13 +46,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, and 27, shared expenses in your own lists, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 28. Simplified debts
-
-The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`), and so are the column and its change through `PUT /groups/:id` on the server.
-
-`GroupBalances` and `SettleUp` each call `pairwiseDebts`; the debts of the view must be computed once in `GroupView` and fed to both.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, 27, shared expenses in your own lists, and 28, simplified debts, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 29. Delete the account
 

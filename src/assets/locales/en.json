@@ -455,6 +455,8 @@
             "archive": "Archive",
             "unarchive": "Bring back",
             "name": "Name",
+            "simplify": "Simplify debts",
+            "simplifyHint": "Shows the fewest payments that settle the group. It doesn't change any expense.",
             "save": "Save"
         },
         "people": {

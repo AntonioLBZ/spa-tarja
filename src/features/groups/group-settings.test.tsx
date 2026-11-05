@@ -4,8 +4,9 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleGroup } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import type { SharedGroup } from '@core/shared-group';
@@ -197,6 +198,114 @@ describe('the name', () => {
         expect(nameField()).toBeNull();
         expect(showInExpenses()).toBeDefined();
         expect(button(text.edit.archive)).toBeDefined();
+    });
+});
+
+describe('Simplify debts', () => {
+    function simplify() {
+        return screen.getByRole('checkbox', { name: text.edit.simplify }) as HTMLInputElement;
+    }
+
+    function asNotOwner() {
+        const group = sampleGroup({ name: 'Lisbon' });
+        return { ...group, me: group.members[1]!.id };
+    }
+
+    it('is off to begin with, turns on and off again, and the server keeps it', async () => {
+        const { saved } = await edit(sampleGroup({ name: 'Lisbon' }));
+        expect(simplify().checked).toBe(false);
+        expect(screen.getByText(text.edit.simplifyHint).id).toBe(simplify().getAttribute('aria-describedby'));
+
+        fireEvent.click(simplify());
+
+        await waitFor(() => expect(simplify().checked).toBe(true));
+        expect(saved().simplifyDebts).toBe(true);
+
+        fireEvent.click(simplify());
+
+        await waitFor(() => expect(simplify().checked).toBe(false));
+        expect(saved().simplifyDebts).toBe(false);
+    });
+
+    it('reaches the group the screens read, with the name untouched', async () => {
+        const group = sampleGroup({ name: 'Lisbon' });
+        const api = createFakeApi({ groups: [group] });
+        stubApi(api.handler);
+        const app = renderApp({ path: `/groups/${group.id}/edit` });
+        await screen.findByRole('heading', { level: 1 });
+
+        fireEvent.click(await screen.findByRole('checkbox', { name: text.edit.simplify }));
+
+        await waitFor(() =>
+            expect(app.queryClient.getQueryData<SharedGroup[]>(GROUPS_KEY)).toMatchObject([
+                { name: 'Lisbon', simplifyDebts: true },
+            ])
+        );
+        expect(api.requests.filter((request) => request.startsWith('PUT'))).toEqual([`PUT /api/groups/${group.id}`]);
+    });
+
+    it('shows the simplified debts on the screen of the group once it is on', async () => {
+        const group = sampleGroup({ name: 'Lisbon' });
+        const api = createFakeApi({ groups: [group], entries: [sampleEntry(group)] });
+        stubApi(api.handler);
+        renderApp({ path: `/groups/${group.id}` });
+        expect(await screen.findByText(t('groups.debts.owesYou', { name: 'Bea', amount: '€20.00' }))).toBeDefined();
+        expect(screen.queryByText(text.debts.simplified)).toBeNull();
+
+        fireEvent.click(await screen.findByRole('link', { name: text.edit.link }));
+        fireEvent.click(await screen.findByRole('checkbox', { name: text.edit.simplify }));
+        await waitFor(() => expect(api.groups[0]!.simplifyDebts).toBe(true));
+        fireEvent.click(screen.getAllByRole('link', { name: en.nav.groups })[0]!);
+        fireEvent.click(await screen.findByRole('link', { name: new RegExp('Lisbon') }));
+
+        expect(await screen.findByText(text.debts.simplified)).toBeDefined();
+        expect(screen.getByText(t('groups.debts.owesYou', { name: 'Bea', amount: '€20.00' }))).toBeDefined();
+    });
+
+    it.each([
+        ['a member who is not the owner', asNotOwner()],
+        ['a friend', sampleGroup({ kind: 'direct', name: null })],
+        ['a closed group', sampleGroup({ name: 'Lisbon', closed: 'deleted' })],
+    ])('is not offered to %s', async (_, group) => {
+        await edit(group);
+
+        expect(screen.queryByRole('checkbox', { name: text.edit.simplify })).toBeNull();
+        expect(screen.queryByText(text.edit.simplifyHint)).toBeNull();
+    });
+
+    it('is off without a connection, with the reason said', async () => {
+        await edit(sampleGroup({ name: 'Lisbon' }));
+
+        onlineManager.setOnline(false);
+
+        expect(await screen.findByText(text.offline)).toBeDefined();
+        expect(simplify().disabled).toBe(true);
+    });
+
+    it.each([
+        ['the server says only the owner can', { status: 403, error: 'not-owner' }, text.failure.notOwner],
+        ['the group closed meanwhile', { status: 409, error: 'closed' }, text.failure.readOnly],
+        ['the server cannot be reached', { status: 503 }, text.failure.failed],
+    ])('stays as it was and says why when %s', async (_, refusal, words) => {
+        const { api, saved } = await edit(sampleGroup({ name: 'Lisbon' }));
+        api.state.groupRefusal = refusal;
+
+        fireEvent.click(simplify());
+
+        expect((await screen.findByRole('alert')).textContent).toBe(words);
+        expect(simplify().checked).toBe(false);
+        expect(saved().simplifyDebts).toBe(false);
+    });
+
+    it('sends one change for two taps in a row', async () => {
+        const { api, saved } = await edit(sampleGroup({ name: 'Lisbon' }));
+
+        fireEvent.click(simplify());
+        fireEvent.click(simplify());
+
+        await waitFor(() => expect(saved().simplifyDebts).toBe(true));
+        expect(api.requests.filter((request) => request.startsWith('PUT'))).toHaveLength(1);
+        await waitFor(() => expect(simplify().checked).toBe(true));
     });
 });
 

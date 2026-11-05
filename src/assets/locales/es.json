@@ -455,6 +455,8 @@
             "archive": "Archivar",
             "unarchive": "Recuperar",
             "name": "Nombre",
+            "simplify": "Simplificar deudas",
+            "simplifyHint": "Muestra los menos pagos que saldan el grupo. No cambia ningún gasto.",
             "save": "Guardar"
         },
         "people": {
