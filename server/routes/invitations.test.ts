@@ -55,6 +55,13 @@ async function linkOf(as: TestSession, friendId: string): Promise<string> {
     return invitation.token;
 }
 
+const BASE64URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+
+function respelled(token: string) {
+    const next = BASE64URL[BASE64URL.indexOf(token.slice(-1)) + 1] ?? '';
+    return `${token.slice(0, -1)}${next}`;
+}
+
 function readLink(as: TestSession, token: string) {
     return send(as, 'POST', '/invitations/read', { token });
 }
@@ -293,6 +300,10 @@ describe('a link that cannot be used', () => {
         ],
         ['with a signature made up', async () => `${(await invitedFriend()).token.slice(0, 36)}.${'A'.repeat(43)}`],
         ['of another shape', async () => 'nonsense'],
+        [
+            'spelled another way, which decodes to the same signature',
+            async () => respelled((await invitedFriend()).token),
+        ],
         [
             'that was revoked',
             async () => {

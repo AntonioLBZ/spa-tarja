@@ -3,8 +3,9 @@ import * as v from 'valibot';
 // How long the link of an invitation can be used
 const INVITATION_DAYS = 14;
 
-// The id of the invitation, a UUID, and a signature of it in base64url
-const TOKEN_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[\w-]{43}$/;
+// The id of the invitation, a UUID, and a signature of it in base64url: 32 bytes, whose last character carries only 4
+// bits, so only the 16 characters that end in two zero bits spell it; one invitation has one link
+const TOKEN_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[\w-]{42}[AEIMQUYcgkosw048]$/;
 
 const isInvitationToken = (token: string): boolean => {
     return TOKEN_SHAPE.test(token);

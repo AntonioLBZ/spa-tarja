@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { invitationTokenSchema, isInvitationToken } from './invitation';
 
 const ID = '0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f';
-const SIGNATURE = 'Ab_-0123456789abcdefghijklmnopqrstuvwxyzABC';
+const SIGNATURE = 'Ab_-0123456789abcdefghijklmnopqrstuvwxyzABc';
 
 describe('isInvitationToken', () => {
     it('takes an id and a signature of the right length', () => {
@@ -23,6 +23,7 @@ describe('isInvitationToken', () => {
         ['two dots', `${ID}..${SIGNATURE.slice(1)}`],
         ['a path after it', `${ID}.${SIGNATURE}/x`],
         ['a line after it', `${ID}.${SIGNATURE}\n`],
+        ['a last character that spells the signature another way', `${ID}.${SIGNATURE.slice(0, -1)}d`],
     ])('refuses %s', (_, token) => {
         expect(isInvitationToken(token)).toBe(false);
     });
