@@ -47,14 +47,14 @@ The repo side:
 
 Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, and 24, the screens of groups and friends, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
-### 25. Sharing an expense
+### 25. Sharing an expense, second half
 
-The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). The ledger also lists the settlements that Settle up writes already ("You paid Bruno"), which are deleted there and never duplicated; the add form goes between the settle up form and the ledger on the screen of a group. `Checkbox` is there already. Entries are written with `useEntryActions`; the outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
+The form is done, at home and on the screen of a group: the head, For, the Shared tail (With and New person…, Paid by, the three modes, How you paid) and the default categories only. What is left: the ledger of a group, Edit, Duplicate and Delete with Undo of shared entries, and the filter Shared with ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). The ledger also lists the settlements that Settle up writes already ("You paid Bruno"), which are deleted there and never duplicated; it goes under the add form on the screen of a group. The outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
 
-What the screens of groups hand on:
+What the first half hands on:
 
-- `SettleUp` builds a full `SharedEntry` literal inline; the add form needs the same builder, and a mistyped settlement must be deletable from the ledger.
-- The state of the add form, and of Edit and Duplicate, must be lifted next to `useSettleUp` in `GroupView`.
+- `ExpenseForm` takes `group`, the group of the screen (For and With are left out). Edit and Duplicate of a shared entry need it to take the entry too: `useSharedTail` starts from `START` and has to start from the entry (its payer, mode and who is in, the percentages through `percentsOf`, the amounts as saved, and its cents kept when nothing of the split is touched); `newEntry` builds a copy, and an edit keeps the id and `createdAt` with an `updatedAt` later than the version it replaces, through `useEntryActions().save`.
+- Whether the form of a group is open is `adding` in `GroupView`, next to `useSettleUp`: the state of Edit and Duplicate goes there too.
 - The notice for refused writes must cover settlements too (`member-left`, `closed`, `clock-ahead`).
 - A friend taken out of the list and put back hits `already-member` for good, since a member who left cannot be re-added.
 - The totals and the notices of a ledger that failed to load have no `role`.
@@ -66,7 +66,7 @@ Migration `0012` for `friend_invitations`, the routes, the join page, the invite
 
 ### 27. Shared expenses in your own lists
 
-The shared rows in the list, the summary, the charts, the budgets and their warnings, the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
+The shared rows in the list, the summary, the charts, the budgets and their warnings (also the one a shared expense brings when it is added or duplicated, for your part, which the form doesn't ask for yet), the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
 
 ### 28. Simplified debts
 
