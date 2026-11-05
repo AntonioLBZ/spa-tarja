@@ -18,6 +18,9 @@ const MAX_CLOSED_GROUPS = 100;
 // Counting only the members who haven't left
 const MAX_GROUP_MEMBERS = 30;
 
+// Per user, the direct invitations that are still open: a link holds no place for anybody, so a person keeps only a few
+const MAX_OPEN_INVITATIONS = 20;
+
 const SHARED_NAME_MAX_LENGTH = 40;
 
 // What a group calls a person whose account has no name it can show
@@ -162,6 +165,7 @@ export {
     MAX_FRIENDS,
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
+    MAX_OPEN_INVITATIONS,
     SHARED_NAME_MAX_LENGTH,
     UNNAMED_PERSON,
     groupChangeSchema,

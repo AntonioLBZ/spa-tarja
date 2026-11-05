@@ -2,12 +2,21 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { memberBalances } from '@core/balance';
-import { INVITATION_DAYS, isInvitationToken, type FriendInvitation } from '@core/invitation';
-import { MAX_FRIENDS, type SharedGroup } from '@core/shared-group';
+import { INVITATION_DAYS, isInvitationToken, type FriendInvitation, type PendingInvitation } from '@core/invitation';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_INVITATIONS, type SharedGroup } from '@core/shared-group';
 import { app } from '@server/app';
 import { signInvitation } from '@server/invitation-token';
-import { befriend, groupOf, listGroups, makeFriend, makeGroup, seedEntry, send } from '@server/test/groups';
-import { signIn, type TestSession } from '@server/test/session';
+import {
+    befriend,
+    groupOf,
+    listGroups,
+    makeFriend,
+    makeGroup,
+    seedClosedGroups,
+    seedEntry,
+    send,
+} from '@server/test/groups';
+import { sentAs, signIn, type TestSession } from '@server/test/session';
 
 import type { SharedEntry } from '@core/shared-entry';
 
@@ -87,6 +96,46 @@ async function entriesOf(as: TestSession, groupId: string): Promise<SharedEntry[
     const response = await send(as, 'GET', `/groups/${groupId}/entries`);
     expect(response.status).toBe(200);
     return ((await response.json()) as { entries: SharedEntry[] }).entries;
+}
+
+function makeLink(as: TestSession) {
+    return send(as, 'POST', '/invitations');
+}
+
+function listLinks(as: TestSession) {
+    return send(as, 'GET', '/invitations');
+}
+
+function revokeLink(as: TestSession, id: string) {
+    return send(as, 'DELETE', `/invitations/${id}`);
+}
+
+async function linkMade(as: TestSession): Promise<PendingInvitation> {
+    const response = await makeLink(as);
+    expect(response.status).toBe(200);
+    return ((await response.json()) as { invitation: PendingInvitation }).invitation;
+}
+
+async function pendingIn(response: Response): Promise<PendingInvitation[]> {
+    expect(response.status).toBe(200);
+    return ((await response.json()) as { invitations: PendingInvitation[] }).invitations;
+}
+
+async function seedFriends(userId: string, count: number) {
+    const statements = Array.from({ length: count }, () => {
+        const groupId = crypto.randomUUID();
+        return [
+            env.DB.prepare(
+                `INSERT INTO shared_groups (id, kind, currency, created_by, created_at, updated_at)
+                 VALUES (?1, 'direct', 'EUR', ?2, 1, 1)`
+            ).bind(groupId, userId),
+            env.DB.prepare(
+                `INSERT INTO shared_members (id, group_id, user_id, name, role, created_at, claimed_at)
+                 VALUES (?1, ?2, ?3, 'Someone', 'owner', 1, 1)`
+            ).bind(crypto.randomUUID(), groupId, userId),
+        ];
+    });
+    await env.DB.batch(statements.flat());
 }
 
 async function storedRows() {
@@ -534,20 +583,7 @@ describe('accepting', () => {
 
     it('refuses a person who has as many friends as there can be', async () => {
         const { token } = await invitedFriend();
-        const statements = Array.from({ length: MAX_FRIENDS }, () => {
-            const groupId = crypto.randomUUID();
-            return [
-                env.DB.prepare(
-                    `INSERT INTO shared_groups (id, kind, currency, created_by, created_at, updated_at)
-                     VALUES (?1, 'direct', 'EUR', ?2, 1, 1)`
-                ).bind(groupId, bruno.userId),
-                env.DB.prepare(
-                    `INSERT INTO shared_members (id, group_id, user_id, name, role, created_at, claimed_at)
-                     VALUES (?1, ?2, ?3, 'Bruno', 'owner', 1, 1)`
-                ).bind(crypto.randomUUID(), groupId, bruno.userId),
-            ];
-        });
-        await env.DB.batch(statements.flat());
+        await seedFriends(bruno.userId, MAX_FRIENDS);
 
         expect(await error(await accept(bruno, token), 409)).toBe('too-many-friends');
     });
@@ -599,5 +635,144 @@ describe('declining', () => {
 
         expect(await invitationIn(await listInvitation(ana, friend.id))).toMatchObject({ token: another });
         expect((await readLink(bruno, another)).status).toBe(200);
+    });
+});
+
+describe('a link to be friends with nobody behind it', () => {
+    it('is made for 14 days, as a link whose id names a row with no friend and no dummy', async () => {
+        const before = Date.now();
+
+        const made = await linkMade(ana);
+
+        expect(isInvitationToken(made.token)).toBe(true);
+        expect(made.token.startsWith(`${made.id}.`)).toBe(true);
+        expect(made.expiresAt).toBeGreaterThanOrEqual(before + INVITATION_DAYS * DAY);
+        expect(made.expiresAt).toBeLessThanOrEqual(Date.now() + INVITATION_DAYS * DAY);
+        expect(await storedRows()).toEqual([
+            expect.objectContaining({ id: made.id, group_id: null, member_id: null, created_by: ana.userId }),
+        ]);
+        expect(JSON.stringify(await storedRows())).not.toContain(made.token.slice(37));
+    });
+
+    it('is listed to whoever made it, newest first, with the token to copy it again', async () => {
+        const first = await linkMade(ana);
+        const second = await linkMade(ana);
+
+        expect(await pendingIn(await listLinks(ana))).toEqual([second, first]);
+    });
+
+    it('is listed to nobody else, and the links of a dummy are not in the list', async () => {
+        await linkMade(ana);
+        const friend = await makeFriend(bruno);
+        await linkOf(bruno, friend.id);
+
+        expect(await pendingIn(await listLinks(bruno))).toEqual([]);
+        expect(await pendingIn(await listLinks(carla))).toEqual([]);
+    });
+
+    it('leaves the list once it is revoked, and revoking it again changes nothing', async () => {
+        const first = await linkMade(ana);
+        const second = await linkMade(ana);
+
+        expect(await pendingIn(await revokeLink(ana, first.id))).toEqual([second]);
+        expect(await pendingIn(await revokeLink(ana, first.id))).toEqual([second]);
+        expect(await error(await readLink(bruno, first.token), 410)).toBe('gone');
+    });
+
+    it('leaves the list once it expires, and not a moment before', async () => {
+        const made = await linkMade(ana);
+
+        vi.useFakeTimers({ toFake: ['Date'], now: made.expiresAt - 1 });
+        expect(await pendingIn(await listLinks(ana))).toEqual([made]);
+        vi.setSystemTime(made.expiresAt);
+        expect(await pendingIn(await listLinks(ana))).toEqual([]);
+    });
+
+    it('is revoked by nobody but who made it, who gets the same answer as for a link that does not exist', async () => {
+        const made = await linkMade(ana);
+        const friend = await makeFriend(bruno);
+        const dummyLink = await linkOf(bruno, friend.id);
+
+        const answers = [
+            await revokeLink(bruno, made.id),
+            await revokeLink(bruno, crypto.randomUUID()),
+            await revokeLink(bruno, dummyLink.slice(0, 36)),
+        ];
+
+        expect(answers.map((answer) => answer.status)).toEqual([404, 404, 404]);
+        const bodies = await Promise.all(answers.map((answer) => answer.text()));
+        expect(new Set(bodies)).toEqual(new Set([JSON.stringify({ error: 'not-found' })]));
+        expect(await pendingIn(await listLinks(ana))).toEqual([made]);
+        expect(await invitationIn(await listInvitation(bruno, friend.id))).toMatchObject({ token: dummyLink });
+    });
+
+    it('takes an id in any case, and nothing but an id', async () => {
+        const made = await linkMade(ana);
+
+        expect((await revokeLink(ana, 'nonsense')).status).toBe(400);
+        expect(await pendingIn(await revokeLink(ana, made.id.toUpperCase()))).toEqual([]);
+    });
+
+    it(`is refused past ${MAX_OPEN_INVITATIONS} open ones, and a revoked or expired one frees its place`, async () => {
+        const made = await Promise.all(Array.from({ length: MAX_OPEN_INVITATIONS + 5 }, () => makeLink(ana)));
+
+        expect(made.filter((response) => response.status === 200)).toHaveLength(MAX_OPEN_INVITATIONS);
+        const refused = made.filter((response) => response.status !== 200);
+        expect(await Promise.all(refused.map((response) => error(response, 409)))).toEqual(
+            refused.map(() => 'too-many-invitations')
+        );
+        const [newest] = await pendingIn(await listLinks(ana));
+        await revokeLink(ana, newest?.id ?? '');
+        await linkMade(ana);
+        expect(await error(await makeLink(ana), 409)).toBe('too-many-invitations');
+        vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + INVITATION_DAYS * DAY });
+        await linkMade(ana);
+    });
+
+    it('is refused to a person who can take no more friends', async () => {
+        await seedFriends(ana.userId, MAX_FRIENDS);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        expect(await error(await makeLink(ana), 409)).toBe('too-many-friends');
+        expect(await error(await makeLink(bruno), 409)).toBe('too-many-closed-groups');
+        expect(await storedRows()).toEqual([]);
+    });
+
+    it('needs a session, and the window of the user it was opened for', async () => {
+        const made = await linkMade(ana);
+        const anonymous = { userId: '', headers: new Headers() };
+        const otherWindow = sentAs(ana, bruno.userId);
+
+        for (const as of [anonymous, otherWindow]) {
+            const answers = [await makeLink(as), await listLinks(as), await revokeLink(as, made.id)];
+            expect(answers.map((answer) => answer.status)).toEqual([401, 401, 401]);
+        }
+        expect(await pendingIn(await listLinks(ana))).toEqual([made]);
+    });
+
+    it('is never kept by a cache, nor framed', async () => {
+        const made = await makeLink(ana);
+        const { invitation } = (await made.clone().json()) as { invitation: PendingInvitation };
+
+        const answers = [made, await listLinks(ana), await revokeLink(ana, invitation.id)];
+
+        for (const answer of answers) {
+            expect(answer.headers.get('cache-control')).toBe('no-store');
+            expect(answer.headers.get('x-frame-options')).toBe('DENY');
+            expect(answer.headers.get('content-security-policy')).toBe("frame-ancestors 'none'");
+        }
+    });
+
+    it('makes and shows no link without a secret to sign with', async () => {
+        await linkMade(ana);
+        const bare = { ...env, BETTER_AUTH_SECRET: '' };
+
+        const answers = [
+            await app.request('/api/invitations', { method: 'POST', headers: ana.headers }, bare),
+            await app.request('/api/invitations', { headers: ana.headers }, bare),
+        ];
+
+        expect(answers.map((answer) => answer.status)).toEqual([500, 500]);
+        expect((await Promise.all(answers.map((answer) => answer.text()))).join('')).not.toMatch(/\.[\w-]{43}/);
     });
 });

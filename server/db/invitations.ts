@@ -1,4 +1,5 @@
 import { INVITATION_DAYS } from '@core/invitation';
+import { MAX_OPEN_INVITATIONS } from '@core/shared-group';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -29,6 +30,26 @@ const REVOKE = `
 const INSERT = `
     INSERT INTO friend_invitations (id, group_id, member_id, created_by, created_at, expires_at)
     VALUES (?1, ?2, ?3, ?4, ?5, ?6)`;
+
+// A direct invitation that nobody answered or revoked and that hasn't expired; ?2 is the time now
+const PENDING = `
+    member_id IS NULL AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL AND expires_at > ?2`;
+
+// Only while the person has room for one more, counted in the same statement, so that makes at the same moment can't
+// pass the limit
+const INSERT_DIRECT = `
+    INSERT INTO friend_invitations (id, created_by, created_at, expires_at)
+    SELECT ?1, ?3, ?2, ?4
+    WHERE (SELECT COUNT(*) FROM friend_invitations WHERE created_by = ?3 AND ${PENDING}) < ${MAX_OPEN_INVITATIONS}`;
+
+// The rowid breaks a tie of two made in the same millisecond, as it grows with every invitation made
+const LIST_PENDING = `
+    SELECT id, expires_at AS expiresAt FROM friend_invitations
+    WHERE created_by = ?1 AND ${PENDING} ORDER BY created_at DESC, rowid DESC`;
+
+const REVOKE_DIRECT = `UPDATE friend_invitations SET revoked_at = ?2 WHERE id = ?3 AND created_by = ?1 AND ${PENDING}`;
+
+const OWN_DIRECT = 'SELECT 1 FROM friend_invitations WHERE id = ?3 AND created_by = ?1 AND member_id IS NULL';
 
 const endOf = (row: LatestRow): LatestInvitation['ended'] => {
     if (row.accepted_at !== null) return 'accepted';
@@ -148,13 +169,50 @@ const revokeInvitations = async (db: D1Database, groupId: string): Promise<void>
     await db.prepare(REVOKE).bind(groupId, Date.now()).run();
 };
 
+// A link to be friends with nobody behind it, or null when the person has as many open as there can be
+const createDirectInvitation = async (
+    db: D1Database,
+    by: string,
+    at: number
+): Promise<{ id: string; expiresAt: number } | null> => {
+    const id = crypto.randomUUID();
+    const expiresAt = at + INVITATION_DAYS * DAY;
+    const { meta } = await db.prepare(INSERT_DIRECT).bind(id, at, by, expiresAt).run();
+    return meta.changes > 0 ? { id, expiresAt } : null;
+};
+
+// The direct invitations of the person that can still be used, newest first
+const listPendingInvitations = async (
+    db: D1Database,
+    userId: string
+): Promise<Array<{ id: string; expiresAt: number }>> => {
+    const { results } = await db
+        .prepare(LIST_PENDING)
+        .bind(userId, Date.now())
+        .all<{ id: string; expiresAt: number }>();
+    return results;
+};
+
+// Whether it is a direct invitation of the person's, which is then revoked if it was still open
+const revokeDirectInvitation = async (db: D1Database, userId: string, id: string): Promise<boolean> => {
+    const now = Date.now();
+    const [, own] = await db.batch([
+        db.prepare(REVOKE_DIRECT).bind(userId, now, id),
+        db.prepare(OWN_DIRECT).bind(userId, now, id),
+    ]);
+    return (own?.results.length ?? 0) > 0;
+};
+
 export {
     acceptInvitation,
     areFriends,
+    createDirectInvitation,
     createInvitation,
     declineInvitation,
     latestInvitation,
+    listPendingInvitations,
     readInvitation,
+    revokeDirectInvitation,
     revokeInvitations,
     type InvitationState,
 };

@@ -3,16 +3,26 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import * as v from 'valibot';
 
-import { invitationTokenSchema } from '@core/invitation';
-import { MAX_FRIENDS, groupIdSchema, personName } from '@core/shared-group';
-import { closedFor, countOpenGroups, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
+import { invitationIdSchema, invitationTokenSchema } from '@core/invitation';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, groupIdSchema, personName } from '@core/shared-group';
+import {
+    closedFor,
+    countClosedGroups,
+    countOpenGroups,
+    readGroup,
+    readSharedGroup,
+    type GroupState,
+} from '@server/db/groups';
 import {
     acceptInvitation,
     areFriends,
+    createDirectInvitation,
     createInvitation,
     declineInvitation,
     latestInvitation,
+    listPendingInvitations,
     readInvitation,
+    revokeDirectInvitation,
     revokeInvitations,
 } from '@server/db/invitations';
 import { readProfile } from '@server/db/profile';
@@ -20,7 +30,7 @@ import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
 import { CLOSED, NOT_FOUND } from './groups';
 
-import type { FriendInvitation, InvitationView } from '@core/invitation';
+import type { FriendInvitation, InvitationView, PendingInvitation } from '@core/invitation';
 import type { AppEnv } from '@server/env';
 
 // What holds a link or its token is never kept by a cache on the way
@@ -32,6 +42,8 @@ const noStore = createMiddleware<AppEnv>(async (c, next) => {
 const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
 
 const tokenBody = sValidator('json', invitationTokenSchema);
+
+const invitationParam = sValidator('param', v.object({ invitationId: invitationIdSchema }));
 
 // A link that doesn't exist, was forged, expired, was revoked, answered or used, or whose friend or dummy is gone: the
 // same answer for all of them, so that a token can't be told from a missing one
@@ -97,15 +109,58 @@ const friendInvitationsRoutes = new Hono<AppEnv>()
         return c.json({ invitation: await friendInvitation(c.env, state) }, 200);
     });
 
+// Why a person can't take another friend: as many open as there can be, or as many closed groups
+const friendLimitOf = async (
+    db: D1Database,
+    userId: string
+): Promise<'too-many-friends' | 'too-many-closed-groups' | null> => {
+    if ((await countOpenGroups(db, userId, 'direct')) >= MAX_FRIENDS) return 'too-many-friends';
+    return (await countClosedGroups(db, userId)) >= MAX_CLOSED_GROUPS ? 'too-many-closed-groups' : null;
+};
+
+// The direct invitations of the person that can still be used, each with its link
+const pendingOf = async (env: Env, userId: string): Promise<PendingInvitation[]> => {
+    const pending = await listPendingInvitations(env.DB, userId);
+    return Promise.all(
+        pending.map(async ({ id, expiresAt }) => ({
+            id,
+            token: await signInvitation(env.BETTER_AUTH_SECRET, id),
+            expiresAt,
+        }))
+    );
+};
+
 // The invitation a link names, when the server signed its token
 const invitationOf = async (env: Env, token: unknown) => {
     const id = typeof token === 'string' ? await readInvitationToken(env.BETTER_AUTH_SECRET, token) : null;
     return id === null ? null : readInvitation(env.DB, id);
 };
 
-// What the person who opened a link does with it. The token comes in the body, so that no URL holds it.
+// The person's own links to be friends, with nobody behind them, and what the person who opened a link does with it.
+// The token comes in the body, so that no URL holds it.
 const invitationsRoutes = new Hono<AppEnv>()
     .use(noStore)
+    .get('/', async (c) => c.json({ invitations: await pendingOf(c.env, c.var.userId) }, 200))
+    .post('/', async (c) => {
+        const userId = c.var.userId;
+        const limit = await friendLimitOf(c.env.DB, userId);
+        if (limit) return c.json({ error: limit }, 409);
+        const made = await createDirectInvitation(c.env.DB, userId, Date.now());
+        if (!made) return c.json({ error: 'too-many-invitations' }, 409);
+        const invitation: PendingInvitation = {
+            id: made.id,
+            token: await signInvitation(c.env.BETTER_AUTH_SECRET, made.id),
+            expiresAt: made.expiresAt,
+        };
+        return c.json({ invitation }, 200);
+    })
+    // Another person's invitation, or one for a dummy, is not found, as one that doesn't exist
+    .delete('/:invitationId', invitationParam, async (c) => {
+        const userId = c.var.userId;
+        const own = await revokeDirectInvitation(c.env.DB, userId, c.req.valid('param').invitationId);
+        if (!own) return c.json(NOT_FOUND, 404);
+        return c.json({ invitations: await pendingOf(c.env, userId) }, 200);
+    })
     .post('/read', tokenBody, async (c) => {
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);
