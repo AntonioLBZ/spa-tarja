@@ -88,6 +88,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    document.documentElement.style.removeProperty('--duration-base');
     localStorage.clear();
     onlineManager.setOnline(true);
     vi.useRealTimers();
@@ -305,7 +306,7 @@ describe('changing a shared row from the list', () => {
 
         press('deleteItem', 'Dinner');
 
-        expect(document.activeElement).toBe(toggle('Lunch'));
+        await waitFor(() => expect(document.activeElement).toBe(toggle('Lunch')));
         expect(await screen.findByText(t('groups.ledger.deleted', { name: 'Dinner', group: 'Trip to Lisbon' })));
         expect(app.groupOutbox.getState().pending).toMatchObject([{ text: 'Dinner', deletedAt: NOW }]);
         await waitFor(() => expect(screen.queryByText('Dinner')).toBeNull());
@@ -325,6 +326,23 @@ describe('changing a shared row from the list', () => {
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.deleteItem', { name: 'Dinner' }) }));
 
         await waitFor(() => expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined());
+    });
+
+    it('says under the title why a delete the device refuses did nothing, and keeps the row as it was', async () => {
+        document.documentElement.style.setProperty('--duration-base', '200ms');
+        const { app, group } = await openTrip();
+        fireEvent.click(toggle('Dinner'));
+        const remove = screen.getByRole('button', { name: t('expenses.list.deleteItem', { name: 'Dinner' }) });
+
+        app.queryClient.setQueryData(GROUPS_KEY, [{ ...group, closed: 'deleted' }]);
+        fireEvent.click(remove);
+
+        const notice = await screen.findByRole('alert');
+        expect(notice.textContent).toBe(en.groups.failure.readOnly);
+        expect(screen.getByRole('heading', { name: list.title }).nextElementSibling).toBe(notice);
+        expect(rowOf('Dinner').classList.contains('expense-item--leaving')).toBe(false);
+        expect(screen.queryByText(t('groups.ledger.deleted', { name: 'Dinner', group: 'Trip to Lisbon' }))).toBeNull();
+        expect(app.groupOutbox.getState().pending).toEqual([]);
     });
 
     it('says why Undo did nothing when the group closed meanwhile', async () => {

@@ -124,17 +124,17 @@ const ExpenseList = () => {
         }
     };
 
-    // A shared expense is deleted from its group, for everybody in it; the toast comes once that is safe on the device
-    // and says which group it was
+    // A shared expense is deleted from its group, for everybody in it. The row goes and the toast comes, saying which
+    // group it was, once that is safe on the device; a delete the device refuses leaves the row as it was.
     const removeShared = async (row: Expense, source: SharedRowSource) => {
         const neighbour = neighbourOf(row.id);
-        if (editingEntry?.entry.id === row.id) endEdit();
-        list.fadeOut([row]);
-        setRestored(null);
         setFailure(null);
-        ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
         try {
             const deleted = await entryActions.remove(source.group.id, source.entry);
+            if (editingEntry?.entry.id === row.id) endEdit();
+            list.fadeOut([row]);
+            setRestored(null);
+            ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
             toast.show({
                 message: tLedger('deleted', {
                     name: row.text || labelOf(row.categoryId),
