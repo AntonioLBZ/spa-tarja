@@ -9,7 +9,7 @@ import { YOUR_DATA_ID } from '@/features/export/your-data';
 import { forgetSharedWith } from '@/features/groups/shared-with';
 import { ApiError, deleteAccount } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
-import { useOnline, useUserData } from '@/lib/offline';
+import { useGroupOutbox, useOnline, useOutbox, useUserData } from '@/lib/offline';
 import { EMAIL_MAX_LENGTH, confirmsEmail } from '@core/account';
 
 import './delete-account.css';
@@ -23,6 +23,8 @@ const DeleteAccount = () => {
     const online = useOnline();
     const { check, forget } = useAuth();
     const { discard } = useUserData();
+    const outbox = useOutbox();
+    const groupOutbox = useGroupOutbox();
     const [open, setOpen] = useState(false);
     const [typed, setTyped] = useState('');
     const [phase, setPhase] = useState<Phase>('idle');
@@ -53,9 +55,14 @@ const DeleteAccount = () => {
 
     const handleDelete = async () => {
         setPhase('deleting');
+        // Nothing of the user's is sent from now on, so no write lands after the account is gone
+        outbox.pause();
+        groupOutbox.pause();
         try {
             await deleteAccount(typed);
         } catch (error) {
+            outbox.resume();
+            groupOutbox.resume();
             // The email the server holds is not the one the device knows; the connection is not what failed
             const refused = error instanceof ApiError && error.status === 422 && error.code === 'wrong-email';
             setPhase(refused ? 'wrong-email' : 'failed');

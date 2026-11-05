@@ -13,7 +13,7 @@ const RETRY_EVERY_MS = 30_000;
 const PERMANENT = [400, 409, 422];
 
 // Sends what is pending, oldest first. What the server refused for good leaves the outbox with its reason; the first
-// failure that may pass on its own stops the run, keeping the order.
+// failure that may pass on its own stops the run, keeping the order. A paused outbox sends nothing.
 const pushPending = async <T extends OutboxItem>(
     outbox: Outbox<T>,
     items: readonly T[],
@@ -21,6 +21,7 @@ const pushPending = async <T extends OutboxItem>(
     send: (item: T) => Promise<void>
 ): Promise<void> => {
     for (const item of items) {
+        if (outbox.isPaused()) return;
         try {
             await send(item);
             await outbox.settle(item);

@@ -43,11 +43,16 @@ interface Outbox<T extends OutboxItem> {
     dismissRejected: () => void;
     // Forget one of them, the others staying
     dismissRejection: (rejection: Rejection<T>) => void;
+    // While paused nothing is sent from it and what is pending stays; a send already on its way is not called back
+    pause: () => void;
+    resume: () => void;
+    isPaused: () => boolean;
 }
 
 const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: string): Outbox<T> => {
     let state: OutboxState<T> = { pending: [], rejected: [] };
     const listeners = new Set<() => void>();
+    let paused = false;
     let queue: Promise<unknown> = Promise.resolve();
 
     const commit = (next: OutboxState<T>) => {
@@ -104,6 +109,13 @@ const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: strin
         dismissRejected: () => commit({ ...state, rejected: [] }),
         dismissRejection: (rejection) =>
             commit({ ...state, rejected: state.rejected.filter((candidate) => candidate !== rejection) }),
+        pause: () => {
+            paused = true;
+        },
+        resume: () => {
+            paused = false;
+        },
+        isPaused: () => paused,
     };
 };
 

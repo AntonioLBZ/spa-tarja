@@ -5,8 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { readSharedWith, rememberSharedWith } from '@/features/groups/shared-with';
+import { EXPENSES_KEY } from '@/lib/api';
 import { readCachedUser } from '@/lib/auth';
-import { PERSIST_BUSTER, createUserStorage, type KeyValueStorage, type PendingEntry } from '@/lib/offline';
+import { PERSIST_BUSTER, createUserStorage, syncGroup, type KeyValueStorage, type PendingEntry } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
@@ -250,6 +251,32 @@ describe('delete account', () => {
         const again = new Event('cancel', { cancelable: true });
         dialog.dispatchEvent(again);
         expect(again.defaultPrevented).toBe(false);
+    });
+
+    it('sends nothing but the deletion while it is in flight, and sends what waits again if it failed', async () => {
+        const { api, app, dialog } = await openDialog();
+        const syncEntries = () => syncGroup(app.queryClient, app.groupOutbox, entry.groupId).catch(() => undefined);
+        api.state.accountDeleteStatus = 503;
+        const release = api.hold();
+        confirm(dialog);
+        await waitFor(() => expect(within(dialog).getByRole('button', { name: text.deleting })).toBeDefined());
+
+        await app.outbox.put(expense);
+        await app.groupOutbox.put(entry);
+        void app.queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
+        void syncEntries();
+        await waitFor(() => {
+            expect(api.requests).toContain('GET /api/expenses?after=0');
+            expect(api.requests).toContain(`GET /api/groups/${entry.groupId}/entries?after=0`);
+        });
+
+        expect(api.requests.filter((request) => !request.startsWith('GET'))).toEqual(['DELETE /api/account']);
+        release();
+        expect((await within(dialog).findByRole('alert')).textContent).toBe(text.failed);
+        await app.queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
+        await syncEntries();
+        expect(api.requests).toContain(`PUT /api/expenses/${expense.id}`);
+        expect(api.requests).toContain(`PUT /api/groups/${entry.groupId}/entries/${entry.id}`);
     });
 
     it('says it is deleting while the server answers', async () => {

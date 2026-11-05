@@ -83,6 +83,21 @@ describe('pulling changes', () => {
 });
 
 describe('pushing the outbox', () => {
+    it('sends nothing while its outbox is paused, keeps what is pending and sends it once it resumes', async () => {
+        const { api, outbox, sync } = setup();
+        await outbox.put(expense('a'));
+        outbox.pause();
+
+        await sync();
+
+        expect(api.attempts).toEqual([]);
+        expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a']);
+        outbox.resume();
+        await sync();
+        expect(api.writes.map((item) => item.id)).toEqual(['a']);
+        expect(outbox.getState().pending).toEqual([]);
+    });
+
     it('sends pending expenses before pulling, clears them, and shows the server result', async () => {
         const { api, outbox, sync } = setup();
         await outbox.put(expense('a'));
