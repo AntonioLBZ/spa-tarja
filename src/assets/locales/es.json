@@ -556,6 +556,21 @@
             "failed": "No se pudo responder a la invitación. Inténtalo de nuevo.",
             "retry": "Reintentar",
             "declined": "Has rechazado la invitación."
+        },
+        "invite": {
+            "title": "Invitar",
+            "hint": "Envía un enlace a {name}. Quien lo abra y acepte ocupa el lugar de {name} aquí y ve lo que habéis compartido. Sirve una vez, durante {days} días.",
+            "make": "Crear un enlace de invitación",
+            "makeAnother": "Crear otro enlace",
+            "link": "Enlace de invitación",
+            "until": "Abierto hasta el {date}. Sirve una vez.",
+            "copy": "Copiar enlace",
+            "share": "Compartir enlace",
+            "copied": "Enlace copiado.",
+            "sendFailed": "No se pudo copiar ni compartir el enlace. Selecciónalo arriba y cópialo tú.",
+            "revoke": "Retirar enlace",
+            "declined": "Han rechazado la invitación.",
+            "loadFailed": "No se pudo cargar la invitación. Conéctate para verla."
         }
     },
     "summary": {

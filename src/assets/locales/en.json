@@ -556,6 +556,21 @@
             "failed": "Couldn't answer the invitation. Try again.",
             "retry": "Try again",
             "declined": "You declined the invitation."
+        },
+        "invite": {
+            "title": "Invite",
+            "hint": "Send {name} a link. Whoever opens it and accepts takes the place of {name} here and sees what you've shared. It works once, for {days} days.",
+            "make": "Make an invitation link",
+            "makeAnother": "Make another link",
+            "link": "Invitation link",
+            "until": "Open until {date}. It works once.",
+            "copy": "Copy link",
+            "share": "Share link",
+            "copied": "Link copied.",
+            "sendFailed": "Couldn't copy or share the link. Select it above and copy it yourself.",
+            "revoke": "Revoke link",
+            "declined": "The invitation was declined.",
+            "loadFailed": "Couldn't load the invitation. Connect to see it."
         }
     },
     "summary": {

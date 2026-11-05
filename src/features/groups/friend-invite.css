@@ -1,0 +1,15 @@
+.friend-invite__text {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.friend-invite__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+/* A ghost lines up with the text, so it doesn't stretch across the sheet */
+.friend-invite__make {
+    justify-self: start;
+}
