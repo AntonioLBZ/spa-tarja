@@ -47,9 +47,10 @@ const pushOutbox = async (client: QueryClient, outbox: Outbox<Expense>): Promise
     await outbox.ready;
     await pushPending(outbox, outbox.getState().pending, PERMANENT, async (expense) => {
         const kept = await putExpense(expense);
-        // The row the server kept goes into the cache before the outbox lets go of it, so it never blinks out
+        // The row the server kept goes into the cache before the outbox lets go of it, so it never blinks out, also on a
+        // device that never pulled, whose pull then starts from the beginning
         client.setQueryData<ExpensesState>(EXPENSES_KEY, (state) =>
-            state ? { ...state, expenses: upsertById(state.expenses, kept) } : state
+            state ? { ...state, expenses: upsertById(state.expenses, kept) } : { expenses: [kept], cursor: 0 }
         );
     });
 };

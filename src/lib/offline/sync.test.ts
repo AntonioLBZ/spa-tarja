@@ -202,6 +202,50 @@ describe('pushing the outbox', () => {
         expect(outbox.getState()).toEqual({ pending: [], rejected: [{ item: expense('taken'), code: null }] });
     });
 
+    it('keeps a sent expense on the device when the pull after it fails', async () => {
+        const stored = expense('stored');
+        const { api, cached, outbox, sync } = setup({ expenses: [stored] });
+        await sync();
+        stubApi((url, init) => {
+            if (url.pathname === '/api/expenses' && (init?.method ?? 'GET') === 'GET')
+                throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        await outbox.put(expense('sent'));
+
+        await expect(sync()).rejects.toThrow('Failed to fetch');
+
+        expect(outbox.getState().pending).toEqual([]);
+        expect(cached()?.expenses.map((item) => item.id)).toEqual(['stored', 'sent']);
+    });
+
+    it('keeps a sent expense on the device when the pull after it fails, with nothing pulled before', async () => {
+        const { api, cached, outbox, sync } = setup();
+        stubApi((url, init) => {
+            if (url.pathname === '/api/expenses' && (init?.method ?? 'GET') === 'GET')
+                throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        await outbox.put(expense('sent'));
+
+        await expect(sync()).rejects.toThrow('Failed to fetch');
+
+        expect(outbox.getState().pending).toEqual([]);
+        expect(cached()?.expenses.map((item) => item.id)).toEqual(['sent']);
+        expect(cached()?.cursor).toBe(0);
+    });
+
+    it('starts the pull from the beginning after seeding the cache, and keeps what was sent', async () => {
+        const { api, cached, outbox, sync } = setup({ expenses: [expense('stored')] });
+        await outbox.put(expense('sent'));
+
+        await sync();
+
+        expect(api.requests.at(-1)).toBe('GET /api/expenses?after=0');
+        const ids = cached()?.expenses.map((item) => item.id) ?? [];
+        expect(ids.toSorted()).toEqual(['sent', 'stored']);
+    });
+
     it('does not send an expense twice when two syncs overlap', async () => {
         const { api, client, outbox } = setup();
         await outbox.put(expense('a'));
