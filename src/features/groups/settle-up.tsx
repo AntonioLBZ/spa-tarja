@@ -12,6 +12,7 @@ import { isCalendarDate, toDateString } from '@core/date';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
+import { newEntry } from './new-entry';
 import { useEntryActions } from './use-entry-actions';
 import { useGroupWords } from './use-group-words';
 
@@ -158,27 +159,24 @@ const SettleUp = (props: SettleUpProps) => {
         event.preventDefault();
         if (busy || !valid) return;
 
-        const now = Date.now();
         setFailure(null);
         setBusy(true);
         try {
-            await save(group.id, {
-                id: crypto.randomUUID(),
-                kind: 'settlement',
-                text: '',
-                categoryId: null,
-                amountCents: cents,
-                currency: group.currency,
-                date: draft.date,
-                paidBy: from,
-                split: 'exact',
-                shares: [{ memberId: to, cents }],
-                payment: 'direct',
-                chargeDate: null,
-                createdAt: now,
-                updatedAt: now,
-                deletedAt: null,
-            });
+            await save(
+                group.id,
+                newEntry(group, {
+                    kind: 'settlement',
+                    text: '',
+                    categoryId: null,
+                    amountCents: cents,
+                    date: draft.date,
+                    paidBy: from,
+                    split: 'exact',
+                    shares: [{ memberId: to, cents }],
+                    payment: 'direct',
+                    chargeDate: null,
+                })
+            );
             form.setDraft(null);
             form.setOpen(false);
             toggle.current?.focus();
