@@ -29,9 +29,11 @@ interface PendingInvitation {
     expiresAt: number;
 }
 
-// What a link shows the person who opens it: the name of who asks, and nothing else
+// What a link shows the person who opens it: the name of who asks, whether it is for a dummy whose place they would
+// take, and nothing else
 interface InvitationView {
     name: string;
+    forDummy: boolean;
 }
 
 export {

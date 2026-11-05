@@ -58,7 +58,7 @@ describe('createPersistOptions', () => {
         const client = new QueryClient();
         client.setQueryData(GROUPS_KEY, []);
         client.setQueryData(friendInvitationKey('friend'), { state: 'open', token: TOKEN, expiresAt: 1 });
-        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana' });
+        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana', forDummy: true });
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
 
         const queries = dehydrate(client, dehydrateOptions).queries;

@@ -317,7 +317,7 @@ describe('opening a link', () => {
         const response = await readLink(bruno, token);
 
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ name: 'Anita' });
+        expect(await response.json()).toEqual({ name: 'Anita', forDummy: true });
     });
 
     it('or else the name of their account, never their email', async () => {
@@ -327,7 +327,7 @@ describe('opening a link', () => {
 
         expect(response.status).toBe(200);
         const text = await response.text();
-        expect(JSON.parse(text)).toEqual({ name: 'Ana García' });
+        expect(JSON.parse(text)).toEqual({ name: 'Ana García', forDummy: true });
         expect(text).not.toContain('example.com');
     });
 
@@ -774,5 +774,228 @@ describe('a link to be friends with nobody behind it', () => {
 
         expect(answers.map((answer) => answer.status)).toEqual([500, 500]);
         expect((await Promise.all(answers.map((answer) => answer.text()))).join('')).not.toMatch(/\.[\w-]{43}/);
+    });
+});
+
+describe('a link to be friends, opened by somebody', () => {
+    async function directLink(as = ana) {
+        return (await linkMade(as)).token;
+    }
+
+    async function countRows(table: string) {
+        return (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>())?.n;
+    }
+
+    it('shows the name of who asks, and that no dummy is behind it', async () => {
+        await send(ana, 'PUT', '/profile', { nickname: 'Anita' });
+        const token = await directLink();
+
+        const response = await readLink(bruno, token);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ name: 'Anita', forDummy: false });
+    });
+
+    it('makes the two friends once accepted, both people, in a friend of the app currency that who asked owns', async () => {
+        const token = await directLink();
+
+        const friend = await groupOf(await accept(bruno, token));
+
+        expect(friend).toMatchObject({ kind: 'direct', name: null, currency: 'EUR', closed: null, archived: false });
+        expect(friend.members).toEqual([
+            expect.objectContaining({ name: 'Ana García', role: 'owner', claimed: true, leftAt: null }),
+            expect.objectContaining({ id: friend.me, name: 'Bruno Díaz', role: 'member', claimed: true }),
+        ]);
+        const [seen] = await listGroups(ana);
+        expect(seen).toEqual({ ...friend, me: friend.members[0]?.id });
+        expect(await storedRows()).toEqual([
+            expect.objectContaining({ group_id: friend.id, member_id: null, accepted_by: bruno.userId }),
+        ]);
+        expect(await pendingIn(await listLinks(ana))).toEqual([]);
+    });
+
+    it('answers the same friend again to the person who took it, and serves nobody else', async () => {
+        const token = await directLink();
+        const friend = await groupOf(await accept(bruno, token));
+
+        expect(await groupOf(await accept(bruno, token))).toEqual(friend);
+        expect(await error(await accept(carla, token), 410)).toBe('gone');
+        expect(await countRows('shared_groups')).toBe(1);
+    });
+
+    it('serves one person when two accept at the same moment, and makes no second friend', async () => {
+        const token = await directLink();
+
+        const responses = await Promise.all([accept(bruno, token), accept(carla, token)]);
+
+        expect(responses.map((response) => response.status).sort()).toEqual([200, 410]);
+        expect(await countRows('shared_groups')).toBe(1);
+        expect(await countRows('shared_members')).toBe(2);
+        const winner = responses[0]?.status === 200 ? bruno : carla;
+        expect(await storedRows()).toEqual([expect.objectContaining({ accepted_by: winner.userId })]);
+    });
+
+    it('makes one friend when two links of the same person are accepted at the same moment', async () => {
+        const [first, second] = [await directLink(), await directLink()];
+
+        const responses = await Promise.all([accept(bruno, first), accept(bruno, second)]);
+
+        expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+        expect(await responses.find((response) => response.status === 409)?.json()).toEqual({
+            error: 'already-friends',
+        });
+        expect(await countRows('shared_groups')).toBe(1);
+        expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
+    });
+
+    it('makes one friend when it and the link of a dummy of the same person are accepted at the same moment', async () => {
+        const dummyLink = await invitedFriend();
+        const token = await directLink();
+
+        const responses = await Promise.all([accept(bruno, token), accept(bruno, dummyLink.token)]);
+
+        expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+        const friends = (await listGroups(bruno)).filter((group) => group.kind === 'direct');
+        expect(friends).toHaveLength(1);
+    });
+
+    it('refuses two people who are friends already, also through a dummy taken before, and leaves it open', async () => {
+        await befriend(ana, bruno);
+        const token = await directLink();
+
+        expect(await error(await accept(bruno, token), 409)).toBe('already-friends');
+        expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
+        expect(await countRows('shared_groups')).toBe(1);
+    });
+
+    it('takes two people who share a group but are not friends', async () => {
+        const group = await makeGroup(ana);
+        await groupOf(await send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { name: 'Bruno' }));
+        const token = await directLink();
+
+        expect((await accept(bruno, token)).status).toBe(200);
+    });
+
+    it('tells the person who made it that it is their own, and stays open', async () => {
+        const token = await directLink();
+
+        for (const call of [readLink, accept, decline]) {
+            expect(await error(await call(ana, token), 409)).toBe('yourself');
+        }
+        expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
+    });
+
+    const goneCases: Array<[string, () => Promise<string>]> = [
+        [
+            'revoked',
+            async () => {
+                const made = await linkMade(ana);
+                await revokeLink(ana, made.id);
+                return made.token;
+            },
+        ],
+        [
+            'used by somebody else',
+            async () => {
+                const token = await directLink();
+                await groupOf(await accept(carla, token));
+                return token;
+            },
+        ],
+        [
+            'declined',
+            async () => {
+                const token = await directLink();
+                expect((await decline(carla, token)).status).toBe(204);
+                return token;
+            },
+        ],
+        [
+            'of a person who deleted their account',
+            async () => {
+                const token = await directLink();
+                await send(ana, 'DELETE', '/account', { email: 'ana@example.com' });
+                return token;
+            },
+        ],
+        ['with a signature made up', async () => `${(await directLink()).slice(0, 36)}.${'A'.repeat(43)}`],
+        ['spelled another way', async () => respelled(await directLink())],
+    ];
+
+    it.each(goneCases)('answers the same 410, byte for byte, when it was %s', async (_, make) => {
+        const never = await readLink(bruno, await signInvitation(env.BETTER_AUTH_SECRET, crypto.randomUUID()));
+        const expected = await never.text();
+        const token = await make();
+        const groups = await countRows('shared_groups');
+
+        for (const call of [readLink, accept, decline]) {
+            const response = await call(bruno, token);
+            expect(response.status).toBe(410);
+            expect(await response.text()).toBe(expected);
+        }
+        expect(await countRows('shared_groups')).toBe(groups);
+    });
+
+    it('answers 410 once it has expired, and not a moment before', async () => {
+        const made = await linkMade(ana);
+
+        vi.useFakeTimers({ toFake: ['Date'], now: made.expiresAt - 1 });
+        expect((await readLink(bruno, made.token)).status).toBe(200);
+        vi.setSystemTime(made.expiresAt);
+        for (const call of [readLink, accept, decline]) {
+            expect(await error(await call(bruno, made.token), 410)).toBe('gone');
+        }
+    });
+
+    it('is refused to a person who can take no more friends, with the limit that stops them', async () => {
+        const token = await directLink();
+        await seedFriends(bruno.userId, MAX_FRIENDS);
+        await seedClosedGroups(carla.userId, MAX_CLOSED_GROUPS);
+
+        expect(await error(await accept(bruno, token), 409)).toBe('too-many-friends');
+        expect(await error(await accept(carla, token), 409)).toBe('too-many-closed-groups');
+        expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
+    });
+
+    it.each([
+        ['friends', (userId: string) => seedFriends(userId, MAX_FRIENDS)],
+        ['closed groups', (userId: string) => seedClosedGroups(userId, MAX_CLOSED_GROUPS)],
+    ])('is refused when who asks has as many %s as there can be, in the same words', async (_, fill) => {
+        const token = await directLink();
+        await fill(ana.userId);
+        const groups = await countRows('shared_groups');
+
+        expect(await error(await accept(bruno, token), 409)).toBe('inviter-at-limit');
+        expect(await countRows('shared_groups')).toBe(groups);
+        expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
+    });
+
+    it('is declined, which ends it, leaves the list of who made it and keeps nothing of who declined', async () => {
+        const token = await directLink();
+
+        expect((await decline(bruno, token)).status).toBe(204);
+
+        expect(await pendingIn(await listLinks(ana))).toEqual([]);
+        expect(await countRows('shared_groups')).toBe(0);
+        expect(await storedRows()).toEqual([expect.objectContaining({ declined_at: expect.any(Number) })]);
+        expect(JSON.stringify(await storedRows())).not.toContain(bruno.userId);
+    });
+
+    it('is revoked when who made it deletes their account, while a friend it made stays to answer again', async () => {
+        const open = await directLink();
+        const used = await directLink();
+        const friend = await groupOf(await accept(bruno, used));
+
+        expect((await send(ana, 'DELETE', '/account', { email: 'ana@example.com' })).status).toBe(204);
+
+        expect(await error(await readLink(carla, open), 410)).toBe('gone');
+        const rows = await storedRows();
+        expect(rows.find((row) => open.startsWith(`${String(row.id)}.`))).toMatchObject({
+            created_by: null,
+            revoked_at: expect.any(Number),
+        });
+        const again = await groupOf(await accept(bruno, used));
+        expect(again).toMatchObject({ id: friend.id, closed: null });
+        expect(again.members.find((member) => member.id === again.me)?.role).toBe('owner');
     });
 });

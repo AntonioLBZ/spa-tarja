@@ -14,6 +14,7 @@ import {
     type GroupState,
 } from '@server/db/groups';
 import {
+    acceptDirectInvitation,
     acceptInvitation,
     areFriends,
     createDirectInvitation,
@@ -52,6 +53,9 @@ const GONE = { error: 'gone' } as const;
 const YOURSELF = { error: 'yourself' } as const;
 
 const ALREADY_FRIENDS = { error: 'already-friends' } as const;
+
+// Who asks can't take another friend now: one answer for every limit of theirs, so that it tells no more than that
+const INVITER_AT_LIMIT = { error: 'inviter-at-limit' } as const;
 
 // The dummy an invitation of this friend is for: the other side of an open friend, while nobody has taken its place
 const dummyOf = (state: GroupState) => {
@@ -165,7 +169,10 @@ const invitationsRoutes = new Hono<AppEnv>()
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);
         if (invitation.inviter === c.var.userId) return c.json(YOURSELF, 409);
-        const view: InvitationView = { name: personName(await readProfile(c.env.DB, invitation.inviter)) };
+        const view: InvitationView = {
+            name: personName(await readProfile(c.env.DB, invitation.inviter)),
+            forDummy: invitation.memberId !== null,
+        };
         return c.json(view, 200);
     })
     .post('/accept', tokenBody, async (c) => {
@@ -173,22 +180,35 @@ const invitationsRoutes = new Hono<AppEnv>()
         const userId = c.var.userId;
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation) return c.json(GONE, 410);
-        const answer = async () => c.json(await readSharedGroup(db, userId, invitation.groupId), 200);
+        const answer = async (friendId: string) => c.json(await readSharedGroup(db, userId, friendId), 200);
 
         // Sent again after an answer that never came
-        if (invitation.acceptedBy === userId) return answer();
-        if (!invitation.open || invitation.inviter === null) return c.json(GONE, 410);
-        if (invitation.inviter === userId) return c.json(YOURSELF, 409);
-        if (await areFriends(db, invitation.inviter, userId)) return c.json(ALREADY_FRIENDS, 409);
-        if ((await countOpenGroups(db, userId, 'direct')) >= MAX_FRIENDS) {
-            return c.json({ error: 'too-many-friends' }, 409);
-        }
+        if (invitation.acceptedBy === userId && invitation.groupId !== null) return answer(invitation.groupId);
+        const { inviter } = invitation;
+        if (!invitation.open || inviter === null) return c.json(GONE, 410);
+        if (inviter === userId) return c.json(YOURSELF, 409);
+        if (await areFriends(db, inviter, userId)) return c.json(ALREADY_FRIENDS, 409);
 
         const taker = { userId, name: personName(await readProfile(db, userId)) };
-        if (await acceptInvitation(db, invitation.id, taker)) return answer();
+        let friendId: string | null;
+        if (invitation.memberId === null) {
+            // A direct invitation makes a friend, which both sides need room for
+            const limit = await friendLimitOf(db, userId);
+            if (limit) return c.json({ error: limit }, 409);
+            if (await friendLimitOf(db, inviter)) return c.json(INVITER_AT_LIMIT, 409);
+            const inviterName = personName(await readProfile(db, inviter));
+            friendId = await acceptDirectInvitation(db, invitation.id, taker, inviterName);
+        } else {
+            if ((await countOpenGroups(db, userId, 'direct')) >= MAX_FRIENDS) {
+                return c.json({ error: 'too-many-friends' }, 409);
+            }
+            friendId = (await acceptInvitation(db, invitation.id, taker)) ? invitation.groupId : null;
+        }
+        if (friendId !== null) return answer(friendId);
+
         // Taken, revoked or closed meanwhile, or the two made friends through another link at the same moment
         const now = await readInvitation(db, invitation.id);
-        if (now?.acceptedBy === userId) return answer();
+        if (now?.acceptedBy === userId && now.groupId !== null) return answer(now.groupId);
         if (now?.open && now.inviter !== null && (await areFriends(db, now.inviter, userId))) {
             return c.json(ALREADY_FRIENDS, 409);
         }
