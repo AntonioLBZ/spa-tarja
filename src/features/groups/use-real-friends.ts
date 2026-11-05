@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { isUser } from './is-user';
 import { memberNames } from './member-names';
 import { useGroups } from './use-ledgers';
 
@@ -20,7 +21,7 @@ const useRealFriends = (): RealFriend[] => {
         const others = groups.flatMap((group) => {
             if (group.kind !== 'direct' || group.closed !== null) return [];
             const other = group.members.find((member) => member.id !== group.me);
-            return other?.claimed ? [{ id: group.id, member: other }] : [];
+            return other && isUser(other) ? [{ id: group.id, member: other }] : [];
         });
         const names = memberNames(
             others.map(({ member }) => member),

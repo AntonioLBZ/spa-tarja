@@ -329,6 +329,20 @@ describe('merging', () => {
         );
     });
 
+    it('offers no member who deleted their account', async () => {
+        await edit(trip(ana, { members: [ana, bea, cris, person('')] }));
+
+        fireEvent.click(row('Cris'));
+        fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
+        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
+
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+            text.mergeNone,
+            text.you,
+            'Bea',
+        ]);
+    });
+
     it('chooses nobody again when the one chosen leaves while the panel is open', async () => {
         const { api, sync } = await edit(trip());
         fireEvent.click(row('Cris'));
@@ -427,6 +441,16 @@ describe('making someone owner', () => {
 
         expect(document.activeElement).toBe(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
         expect(api.groupRequests).toEqual([]);
+    });
+
+    it('is not offered on a member who deleted their account', async () => {
+        await edit(trip(ana, { members: [ana, bea, cris, person('')] }));
+        const gone = t('groups.names.deleted');
+
+        fireEvent.click(row(gone));
+
+        expect(button(t('groups.people.removeItem', { name: gone }))).toBeDefined();
+        expect(screen.queryByRole('button', { name: t('groups.people.makeOwnerItem', { name: gone }) })).toBeNull();
     });
 
     it('is not offered on a dummy nor on yourself', async () => {
@@ -577,6 +601,14 @@ describe('adding a friend', () => {
 
         expect((await screen.findByRole('alert')).textContent).toBe(words);
         expect(rows()).toHaveLength(3);
+    });
+
+    it('does not offer a friend who deleted their account', async () => {
+        await editWith(trip(), [eva, friendOf('')]);
+
+        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
+
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.friendNone, 'Eva']);
     });
 
     it('is not there when no friend uses the app', async () => {

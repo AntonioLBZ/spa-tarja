@@ -11,6 +11,7 @@ import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type Shared
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { isOwner } from './is-owner';
+import { isUser } from './is-user';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 import { useStepFocus } from './use-step-focus';
@@ -30,9 +31,6 @@ interface PersonRowProps {
 
 // What the open panel shows: the actions, or one of them asking for more
 type Step = 'actions' | 'renaming' | 'merging' | 'handingOver' | 'removing';
-
-// A person who uses the app, now: one who deleted their account has no name
-const isUser = (member: GroupMember) => member.claimed && member.name !== '' && member.leftAt === null;
 
 // A member on the sheet of the people: the name first, then who they are and their balance. It opens with what the
 // person may do to them; a row with nothing to do doesn't open.
@@ -63,10 +61,12 @@ const PersonRow = (props: PersonRowProps) => {
     const canHandOver = owner && !isMe && isUser(member);
     const canRemove = owner && !isMe;
     // Whom a dummy can be merged into, in the group's order
-    const targets = group.members.filter(isUser).map((target) => ({
-        value: target.id,
-        label: target.id === group.me ? t('people.you') : words.nameOf(target.id),
-    }));
+    const targets = group.members
+        .filter((target) => isUser(target) && target.leftAt === null)
+        .map((target) => ({
+            value: target.id,
+            label: target.id === group.me ? t('people.you') : words.nameOf(target.id),
+        }));
     // Nobody again when the one chosen left or was merged meanwhile
     const chosen = targets.some((target) => target.value === into) ? into : '';
     const tags = [
