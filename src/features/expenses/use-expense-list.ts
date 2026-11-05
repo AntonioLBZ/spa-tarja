@@ -1,6 +1,8 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { useGroupTitles } from '@/features/groups/use-group-options';
+import { useGroups } from '@/features/groups/use-ledgers';
 import { useFadeOut } from '@/lib/use-fade-out';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { toDateString } from '@core/date';
@@ -18,7 +20,7 @@ import {
 
 import { useAddForm } from './add-form-state';
 import { readStoredGrouping, storeGrouping } from './list-grouping';
-import { useExpenses } from './use-expenses';
+import { useYourExpenses } from './use-your-expenses';
 
 import type { Expense } from '@core/expense';
 import type { ListContext, ListFilters, ListGrouping } from '@core/expense-list';
@@ -29,8 +31,10 @@ const PAGE_SIZE = 100;
 // The expenses of the home screen, narrowed by the filters and grouped. The filters are state of the screen; the
 // grouping is a stored preference.
 const useExpenseList = () => {
-    const { expenses, pendingIds, hasData, isError, isWaitingForNetwork } = useExpenses();
+    const { expenses, pendingIds, hasData, isError, isWaitingForNetwork, sourceOf } = useYourExpenses();
     const { options, labelOf } = useCategoryOptions();
+    const { groups: sharedGroups } = useGroups();
+    const titles = useGroupTitles(sharedGroups);
     const { added } = useAddForm();
 
     // What the list opened on, which does not count as a filter in use
@@ -53,9 +57,10 @@ const useExpenseList = () => {
         () => ({
             categoryOf: (categoryId) => (known.has(categoryId) ? categoryId : FALLBACK_CATEGORY_ID),
             labelOf,
+            groupNameOf: (groupId) => titles.get(groupId) ?? '',
             searchTexts: new WeakMap<Expense, string>(),
         }),
-        [known, labelOf]
+        [known, labelOf, titles]
     );
 
     const query = useDeferredValue(filters.query);
@@ -119,6 +124,8 @@ const useExpenseList = () => {
         grouping,
         leaving,
         pendingIds,
+        // The group and the entry of a shared row
+        sourceOf,
         hasData,
         isError,
         isWaitingForNetwork,

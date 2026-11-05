@@ -13,6 +13,7 @@ import { useLocale } from '@/lib/i18n';
 import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
+import { isSharedRow } from '@core/shared-expense';
 
 import { useAddForm } from './add-form-state';
 import { restoreExpenses } from './create-expenses';
@@ -36,7 +37,7 @@ const ExpenseList = () => {
     const { groups, grouping, leaving, pendingIds, hasData, isError, isWaitingForNetwork } = list;
     const { labelOf, styleOf } = useCategoryOptions();
     // The toggle of each row by the id of its expense, and the title, where the focus goes back after an edit
-    const toggles = useRef(new Map<string, HTMLButtonElement>());
+    const toggles = useRef(new Map<string, HTMLElement>());
     const title = useRef<HTMLHeadingElement>(null);
     useEffect(() => {
         if (refocus === null) return;
@@ -165,6 +166,7 @@ const ExpenseList = () => {
                                     pending={expenses.some((part) => pendingIds.has(part.id))}
                                     leaving={leaving.has(first.id)}
                                     showDate={grouping !== 'day'}
+                                    source={isSharedRow(first) ? list.sourceOf(first.id) : undefined}
                                     onEdit={startEdit}
                                     onDuplicate={startCopy}
                                     onDelete={(parts) => remove(parts, Date.now())}

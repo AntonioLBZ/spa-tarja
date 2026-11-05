@@ -12,8 +12,8 @@ const groupsFirst = (groups: readonly SharedGroup[]): SharedGroup[] => {
     return [...groups.filter((group) => group.kind !== 'direct'), ...groups.filter((group) => group.kind === 'direct')];
 };
 
-// The options of a Select of groups and friends: each by the name the screens give it, with its icon
-const useGroupOptions = (groups: readonly SharedGroup[]) => {
+// What the screens call each group and friend, by its id: its name, or the other person's for a friend
+const useGroupTitles = (groups: readonly SharedGroup[]): Map<string, string> => {
     const t = useTranslations('groups');
 
     return useMemo(() => {
@@ -21,12 +21,23 @@ const useGroupOptions = (groups: readonly SharedGroup[]) => {
             deleted: t('names.deleted'),
             numbered: (name: string, number: number) => t('names.numbered', { name, number }),
         };
-        return groups.map((group) => ({
-            value: group.id,
-            label: groupTitle(group, memberNames(group.members, words)),
-            icon: <Icon name={group.kind === 'direct' ? 'person' : 'groups'} />,
-        }));
+        return new Map(groups.map((group) => [group.id, groupTitle(group, memberNames(group.members, words))]));
     }, [groups, t]);
 };
 
-export { groupsFirst, useGroupOptions };
+// The options of a Select of groups and friends: each by the name the screens give it, with its icon
+const useGroupOptions = (groups: readonly SharedGroup[]) => {
+    const titles = useGroupTitles(groups);
+
+    return useMemo(
+        () =>
+            groups.map((group) => ({
+                value: group.id,
+                label: titles.get(group.id) ?? '',
+                icon: <Icon name={group.kind === 'direct' ? 'person' : 'groups'} />,
+            })),
+        [groups, titles]
+    );
+};
+
+export { groupsFirst, useGroupOptions, useGroupTitles };

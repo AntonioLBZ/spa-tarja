@@ -252,7 +252,7 @@ describe('sharedExpenseRows', () => {
             ledger([dinner('ana', { ana: 2000, bruno: 2000 }, 'voucher')]),
             ledger([{ ...dinner('carla', { ana: 1500, carla: 1500 }), id: 'taxi' }], { groupId: 'carla' }),
         ]);
-        const ctx: ListContext = { categoryOf: (id) => id, labelOf: (id) => id };
+        const ctx: ListContext = { categoryOf: (id) => id, labelOf: (id) => id, groupNameOf: () => '' };
 
         const [day] = buildList(rows, NO_FILTERS, 'day', ctx);
 
@@ -294,7 +294,7 @@ describe('sharedExpenseRows', () => {
 
 describe('your part of a shared expense in the summary, the charts, the budgets and the list', () => {
     const categoryOf = (categoryId: string) => categoryId;
-    const ctx: ListContext = { categoryOf, labelOf: (id) => id };
+    const ctx: ListContext = { categoryOf, labelOf: (id) => id, groupNameOf: () => '' };
     const october = { from: '2026-10-01', to: '2026-10-31' };
     const november = { from: '2026-11-01', to: '2026-11-30' };
 

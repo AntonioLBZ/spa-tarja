@@ -56,7 +56,9 @@ interface ListContext {
     categoryOf: (categoryId: string) => string;
     // The name of a category as the list shows it
     labelOf: (categoryId: string) => string;
-    // What a search read in each expense, kept between searches. Valid for as long as `labelOf` is.
+    // The name of the group or friend a shared row is from, as the list shows it
+    groupNameOf: (groupId: string) => string;
+    // What a search read in each expense, kept between searches. Valid for as long as `labelOf` and `groupNameOf` are.
     searchTexts?: WeakMap<Expense, string>;
 }
 
@@ -96,7 +98,8 @@ const listItems = (expenses: readonly Expense[]): ListItem[] => {
 const searchTextOf = (expense: Expense, ctx: ListContext): string => {
     const cached = ctx.searchTexts?.get(expense);
     if (cached !== undefined) return cached;
-    const text = normalizeText(`${expense.text} ${ctx.labelOf(expense.categoryId)}`);
+    const group = isSharedRow(expense) ? ` ${ctx.groupNameOf(expense.shared.groupId)}` : '';
+    const text = normalizeText(`${expense.text} ${ctx.labelOf(expense.categoryId)}${group}`);
     ctx.searchTexts?.set(expense, text);
     return text;
 };

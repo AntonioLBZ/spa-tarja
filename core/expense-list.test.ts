@@ -13,6 +13,7 @@ import {
     limitRows,
     listItems,
     openingFilters,
+    shownExpense,
     type ListContext,
     type ListFilters,
     type ListGrouping,
@@ -60,6 +61,7 @@ const NAMES: Record<string, string> = {
 const ctx: ListContext = {
     categoryOf: (id) => (id in NAMES ? id : FALLBACK_CATEGORY_ID),
     labelOf: (id) => NAMES[id] ?? NAMES[FALLBACK_CATEGORY_ID]!,
+    groupNameOf: () => '',
 };
 
 function filters(overrides: Partial<ListFilters>): ListFilters {
@@ -527,6 +529,19 @@ describe('the shared with filter', () => {
     it('keeps the rows of one group or friend', () => {
         expect(ids(list, { sharedWith: TRIP }).toSorted()).toEqual(['dinner', 'museum']);
         expect(ids(list, { sharedWith: BEA })).toEqual(['coffee']);
+    });
+
+    it('lets a search find a row by the name of its group or friend, and no expense of yours by it', () => {
+        const named: ListContext = { ...ctx, groupNameOf: (id) => (id === TRIP ? 'Trip to Lisboa' : 'Bea Ruiz') };
+        const found = (query: string) =>
+            buildList([...list, expense('trip')], filters({ query }), 'day', named)
+                .flatMap((group) => group.items.map((item) => shownExpense(item).id))
+                .toSorted();
+
+        expect(found('LISBOA trip')).toEqual(['dinner', 'museum']);
+        expect(found('ruiz')).toEqual(['coffee']);
+        expect(found('ruiz coffee')).toEqual(['coffee']);
+        expect(found('lisboa coffee')).toEqual([]);
     });
 
     it('counts as one filter, and adding an expense clears it', () => {
