@@ -55,7 +55,8 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     const reasonId = useId();
 
     const expense = expenses[0]!;
-    const shared = source && isSharedRow(expense) ? { row: expense, group: source.group } : null;
+    const derived = isSharedRow(expense);
+    const shared = source && derived ? { row: expense, group: source.group } : null;
     // A plan is edited or duplicated whole, so every part of it has to be here. A shared expense that names somebody who
     // left is not offered to edit, as most edits of it would move what they pay or owe; a copy leaves them out.
     const editable = source ? !namesSomeoneWhoLeft(source.entry, source.group) : canEdit(expenses);
@@ -97,8 +98,9 @@ const ExpenseRow = (props: ExpenseRowProps) => {
         </span>
     );
 
-    // The entry of a closed group is read-only
-    if (shared && shared.group.closed !== null) {
+    // The entry of a closed group is read-only, and so is a part of a shared expense with no entry to act on: it is never
+    // changed as an expense of one's own
+    if (derived && (!shared || shared.group.closed !== null)) {
         return (
             <li ref={toggleRef} className={clsx(expenseClsx, 'ledger-row')} tabIndex={-1}>
                 {body}
