@@ -30,6 +30,7 @@ const membersRoutes = new Hono<AppEnv>()
         const input = c.req.valid('json');
         const state = await readGroup(db, userId, groupId);
         if (!state) return c.json(NOT_FOUND, 404);
+        if (closedFor(state)) return c.json(CLOSED, 409);
 
         const existing = state.members.find((member) => member.id === memberId);
         const added = { id: memberId, groupId, by: userId, at: Date.now() };
@@ -37,7 +38,6 @@ const membersRoutes = new Hono<AppEnv>()
 
         if (input.friend === undefined) {
             if (existing?.name === input.name) return answer();
-            if (closedFor(state)) return c.json(CLOSED, 409);
             if (existing) {
                 if (!manages(state) && existing.id !== state.me.id) return c.json({ error: 'not-owner' }, 403);
                 await renameMember(db, memberId, input.name);
@@ -60,7 +60,6 @@ const membersRoutes = new Hono<AppEnv>()
             const sentAgain = existing.userId !== null && existing.userId === friend?.userId;
             return sentAgain ? answer() : c.json({ error: 'id-taken' }, 409);
         }
-        if (closedFor(state)) return c.json(CLOSED, 409);
         if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
         const friend = await findFriend(db, userId, input.friend);
         if (!friend) return c.json({ error: 'unknown-friend' }, 422);
@@ -101,12 +100,13 @@ const membersRoutes = new Hono<AppEnv>()
         const { into } = c.req.valid('json');
         const state = await readGroup(db, userId, groupId);
         if (!state) return c.json(NOT_FOUND, 404);
+        // Before anything is looked up, so a person who left learns nothing of what came after
+        if (closedFor(state)) return c.json(CLOSED, 409);
         const dummy = state.members.find((member) => member.id === memberId);
         if (!dummy) return c.json({ error: 'unknown-member' }, 404);
 
         // Only a placeholder, only into a user, so a merge is one step and never a chain (ADR-0014)
         if (dummy.mergedInto !== into) {
-            if (closedFor(state)) return c.json(CLOSED, 409);
             if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
             if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             if (into === dummy.id) return c.json({ error: 'into-itself' }, 409);
@@ -127,10 +127,13 @@ const membersRoutes = new Hono<AppEnv>()
         const state = await readGroup(db, userId, groupId);
         if (!state) return c.json(NOT_FOUND, 404);
         const target = state.members.find((member) => member.id === memberId);
+        // Before anything else is told, so a person who left learns nothing of what came after; only their own leave,
+        // sent again, is answered
+        const ownLeave = target !== undefined && target.id === state.me.id && target.leftAt !== null;
+        if (closedFor(state) && !ownLeave) return c.json(CLOSED, 409);
         if (!target) return c.json({ error: 'unknown-member' }, 404);
 
         if (target.leftAt === null) {
-            if (closedFor(state)) return c.json(CLOSED, 409);
             if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
             if (target.id !== state.me.id && !manages(state)) return c.json({ error: 'not-owner' }, 403);
             if (target.id === state.me.id && state.me.role === 'owner') return c.json({ error: 'owner' }, 409);

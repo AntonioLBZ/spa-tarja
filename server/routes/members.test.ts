@@ -706,6 +706,143 @@ describe('a member who left', () => {
     });
 });
 
+describe('a member who left, asking about what came after', () => {
+    function handOver(as: TestSession, groupId: string, memberId: string) {
+        return send(as, 'POST', `/groups/${groupId}/owner`, { memberId });
+    }
+
+    async function afterCarlaLeft() {
+        const group = await makeGroup(ana, ['Dani', 'Eva']);
+        const carlaId = (await addFriend(ana, group.id, (await befriend(ana, carla)).id)).id;
+        const brunoId = (await addFriend(ana, group.id, (await befriend(ana, bruno)).id)).id;
+        await groupOf(await removeMember(carla, group.id, carlaId));
+        const dani = memberNamed(group, 'Dani');
+        const eva = memberNamed(group, 'Eva');
+        await groupOf(await handOver(ana, group.id, brunoId));
+        await groupOf(await merge(bruno, group.id, dani, group.me));
+        await groupOf(await removeMember(bruno, group.id, eva));
+        return { groupId: group.id, ana: group.me, bruno: brunoId, carla: carlaId, dani, eva };
+    }
+
+    it.each([
+        ['the owner now', 'bruno'],
+        ['the owner before', 'ana'],
+        ['somebody who is not in the group', 'nobody'],
+    ] as const)('gets 409 closed to a handover to %s', async (_, whom) => {
+        const trip = await afterCarlaLeft();
+        const memberId = whom === 'nobody' ? crypto.randomUUID() : trip[whom];
+
+        const response = await handOver(carla, trip.groupId, memberId);
+
+        expect(await error(response, 409)).toBe('closed');
+    });
+
+    it.each([
+        ['the member it was merged into', 'dani', 'ana'],
+        ['another member', 'dani', 'bruno'],
+        ['a member who left', 'eva', 'ana'],
+        ['somebody who is not in the group', 'dani', 'nobody'],
+        ['itself', 'dani', 'dani'],
+    ] as const)('gets 409 closed to a merge of a dummy into %s', async (_, dummy, into) => {
+        const trip = await afterCarlaLeft();
+        const target = into === 'nobody' ? crypto.randomUUID() : trip[into];
+
+        const response = await merge(carla, trip.groupId, trip[dummy], target);
+
+        expect(await error(response, 409)).toBe('closed');
+    });
+
+    it.each([
+        ['a dummy merged since', 'dani'],
+        ['a dummy removed since', 'eva'],
+        ['the owner now', 'bruno'],
+        ['the owner before', 'ana'],
+        ['somebody who is not in the group', 'nobody'],
+    ] as const)('gets 409 closed to the removal of %s', async (_, whom) => {
+        const trip = await afterCarlaLeft();
+        const memberId = whom === 'nobody' ? crypto.randomUUID() : trip[whom];
+
+        const response = await removeMember(carla, trip.groupId, memberId);
+
+        expect(await error(response, 409)).toBe('closed');
+    });
+
+    it('gets 409 closed to a name sent for a member, whatever it is', async () => {
+        const trip = await afterCarlaLeft();
+
+        for (const name of ['Dani', 'Daniela', 'Bruno Díaz']) {
+            const response = await putMember(carla, trip.groupId, trip.dani, { name });
+            expect(await error(response, 409)).toBe('closed');
+        }
+    });
+
+    it('gets 409 closed to a delete of the group, whether or not it was deleted since', async () => {
+        const trip = await afterCarlaLeft();
+        expect(await error(await send(carla, 'DELETE', `/groups/${trip.groupId}`), 409)).toBe('closed');
+
+        await groupOf(await send(bruno, 'DELETE', `/groups/${trip.groupId}`));
+
+        expect(await error(await send(carla, 'DELETE', `/groups/${trip.groupId}`), 409)).toBe('closed');
+    });
+
+    it('is still told its own leave, sent again', async () => {
+        const trip = await afterCarlaLeft();
+
+        const again = await groupOf(await removeMember(carla, trip.groupId, trip.carla));
+
+        expect(again.closed).toBe('left');
+    });
+
+    it('sees the owner as it is now, and nothing else of what came after', async () => {
+        const trip = await afterCarlaLeft();
+
+        const theirs = (await listGroups(carla)).find((candidate) => candidate.id === trip.groupId);
+
+        expect(theirs?.members.find((candidate) => candidate.role === 'owner')?.id).toBe(trip.bruno);
+        expect(member(theirs!, trip.dani)).toMatchObject({ leftAt: null, mergedInto: null });
+        expect(member(theirs!, trip.eva)).toMatchObject({ leftAt: null, mergedInto: null });
+    });
+});
+
+describe('what is done already in an open group', () => {
+    it('answers the owner the group when the handover is sent again', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        await groupOf(await send(ana, 'POST', `/groups/${group.id}/owner`, { memberId: brunoId }));
+
+        const again = await send(bruno, 'POST', `/groups/${group.id}/owner`, { memberId: brunoId });
+
+        expect(member(await groupOf(again), brunoId)?.role).toBe('owner');
+    });
+
+    it('answers the owner the group when the merge is sent again', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        await groupOf(await merge(ana, group.id, dani, brunoId));
+
+        const again = await groupOf(await merge(ana, group.id, dani, brunoId));
+
+        expect(member(again, dani)?.mergedInto).toBe(brunoId);
+    });
+
+    it('answers the group when a removal is sent again, also by somebody else', async () => {
+        const { group } = await tripWithBruno(['Dani']);
+        const dani = memberNamed(group, 'Dani');
+        await groupOf(await removeMember(ana, group.id, dani));
+
+        expect(member(await groupOf(await removeMember(ana, group.id, dani)), dani)?.leftAt).not.toBeNull();
+        expect(member(await groupOf(await removeMember(bruno, group.id, dani)), dani)?.leftAt).not.toBeNull();
+    });
+
+    it('answers a member the group when their own leave is sent again', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+        await groupOf(await removeMember(bruno, group.id, brunoId));
+
+        const again = await groupOf(await removeMember(bruno, group.id, brunoId));
+
+        expect(again).toMatchObject({ closed: 'left', me: brunoId });
+    });
+});
+
 describe('a stranger', () => {
     it('gets the same 404 for a group of somebody else as for one that does not exist, and changes nothing', async () => {
         const group = await makeGroup(ana, ['Bruno']);

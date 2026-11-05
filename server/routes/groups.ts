@@ -77,9 +77,10 @@ const groupsRoutes = new Hono<AppEnv>()
         const { groupId } = c.req.valid('param');
         const state = await readGroup(db, userId, groupId);
         if (!state) return c.json(NOT_FOUND, 404);
+        // A person who left is not told whether the group was deleted since
+        if (state.me.leftAt !== null) return c.json(CLOSED, 409);
 
         if (state.group.deletedAt === null) {
-            if (closedFor(state)) return c.json(CLOSED, 409);
             if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             // Closing with a balance hurts nobody when the caller is the only user still in the group
             const users = state.members.filter((member) => member.userId !== null && member.leftAt === null);
@@ -98,11 +99,12 @@ const groupsRoutes = new Hono<AppEnv>()
         const { memberId } = c.req.valid('json');
         const state = await readGroup(db, userId, groupId);
         if (!state) return c.json(NOT_FOUND, 404);
+        // Before anything is looked up, so a person who left learns nothing of what came after
+        if (closedFor(state)) return c.json(CLOSED, 409);
         const target = state.members.find((member) => member.id === memberId);
         if (!target) return c.json({ error: 'unknown-member' }, 422);
 
         if (target.role !== 'owner') {
-            if (closedFor(state)) return c.json(CLOSED, 409);
             if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
             if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             if (target.leftAt !== null) return c.json({ error: 'member-left' }, 422);
