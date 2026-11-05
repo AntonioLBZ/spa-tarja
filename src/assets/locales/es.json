@@ -32,6 +32,7 @@
             "text": "Descripción",
             "category": "Categoría",
             "suggested": "Sugerida según la descripción",
+            "customShared": "Las categorías propias no están disponibles en los gastos compartidos.",
             "date": "Fecha",
             "for": "Para",
             "forMe": "Solo yo",
@@ -352,7 +353,10 @@
             "percentLeft": "Falta un {percent}",
             "percentOver": "Sobra un {percent}",
             "amountInvalid": "Cada importe tiene que ser un número.",
-            "percentInvalid": "Cada porcentaje tiene que ser un número de 0 a 100, con dos decimales como mucho."
+            "percentInvalid": "Cada porcentaje tiene que ser un número de 0 a 100, con dos decimales como mucho.",
+            "howYouPaid": "Cómo pagaste",
+            "othersNow": "Para los demás cuenta como pagado ahora.",
+            "cardNeedsYou": "Para pagar con tarjeta tienes que entrar en el reparto."
         },
         "group": {
             "missing": "Este grupo no está aquí. No existe o no formas parte de él.",

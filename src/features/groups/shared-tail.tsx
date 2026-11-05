@@ -7,6 +7,7 @@ import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
+import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
 import { useLocale } from '@/lib/i18n';
 import { splitEvenly } from '@core/installments';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
@@ -27,7 +28,6 @@ import { readSharedWith } from './shared-with';
 import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
 
-import type { PaymentState } from '@/features/expenses/payment-fields';
 import type { Share, SharedEntry, SplitMode } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
@@ -71,6 +71,7 @@ interface SharedTailProps {
 interface SharedPeopleProps {
     group: SharedGroup;
     tail: SharedTailState;
+    payment: PaymentState;
 }
 
 type SharedTailState = ReturnType<typeof useSharedTail>;
@@ -164,7 +165,12 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
         amount,
         inIds.map((memberId) => ({ memberId, value: parse(texts[memberId] ?? '', locale) }))
     );
-    const valid = group !== undefined && shares !== null && shares.length > 0 && problem === null;
+    // The schema's rule: whoever pays by card has a share
+    const cardWithoutYou =
+        payerIsMe &&
+        payment.payment !== 'direct' &&
+        (shares ? !shares.some((share) => share.memberId === me) : !inIds.includes(me));
+    const valid = group !== undefined && shares !== null && shares.length > 0 && problem === null && !cardWithoutYou;
 
     // What each member who can take part shows: nothing when out; else, split equally, their share once there is an
     // amount, and otherwise what is typed for them
@@ -185,6 +191,8 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
         group,
         present,
         payer,
+        payerIsMe,
+        cardWithoutYou,
         rows,
         mode: draft.mode,
         problem,
@@ -225,7 +233,7 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
 };
 
 const SharedTail = (props: SharedTailProps) => {
-    const { tail, fixed } = props;
+    const { tail, payment, fixed } = props;
     const t = useTranslations('groups');
     const { group } = tail;
 
@@ -260,14 +268,14 @@ const SharedTail = (props: SharedTailProps) => {
                     )}
                 </Field>
             )}
-            <SharedPeople group={group} tail={tail} />
+            <SharedPeople group={group} tail={tail} payment={payment} />
         </>
     );
 };
 
 // Who paid and who is in, with the share of each
 const SharedPeople = (props: SharedPeopleProps) => {
-    const { group, tail } = props;
+    const { group, tail, payment } = props;
     const t = useTranslations('groups.share');
     const { locale } = useLocale();
     const words = useGroupWords(group);
@@ -355,6 +363,15 @@ const SharedPeople = (props: SharedPeopleProps) => {
                         ? t('percentOver', { percent: percent(problem.left) })
                         : t('over', { amount: money(problem.left) })}
                 </Notice>
+            )}
+
+            {tail.payerIsMe && (
+                <PaymentFields
+                    label={t('howYouPaid')}
+                    hint={t('othersNow')}
+                    error={tail.cardWithoutYou ? t('cardNeedsYou') : null}
+                    state={payment}
+                />
             )}
         </>
     );

@@ -13,7 +13,7 @@ import { SharedTail, useSharedTail } from '@/features/groups/shared-tail';
 import { rememberSharedWith } from '@/features/groups/shared-with';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useLocale } from '@/lib/i18n';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
+import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories';
 import { toDateString } from '@core/date';
 import { TEXT_MAX_LENGTH, type Payment } from '@core/expense';
 import { formatAmountInput, parseAmount } from '@core/money';
@@ -134,11 +134,19 @@ const ExpenseForm = (props: ExpenseFormProps) => {
 
     // A new expense's category follows the description until the user picks one (the keywords, else the person's own
     // history); an edited one keeps what was saved, even an id with no category behind it any more, which shows as the
-    // fallback. A pick that has since been deleted no longer counts.
-    const suggestion = suggest(text);
-    const pick = options.some((option) => option.id === picked) ? picked : null;
-    const categoryId = pick ?? start.categoryId ?? suggestion;
-    const shownCategory = options.some((option) => option.id === categoryId) ? categoryId : FALLBACK_CATEGORY_ID;
+    // fallback. A pick that has since been deleted no longer counts. A shared expense takes a default category only,
+    // which everybody in the group has: a custom one stands aside for the suggestion while it is shared.
+    const categories = isShared ? options.filter((option) => isDefaultCategoryId(option.id)) : options;
+    const offered = (id: string | null) => categories.some((option) => option.id === id);
+    const own = options.some((option) => option.id === picked) ? picked : null;
+    const customAside = isShared && (own ?? start.categoryId) !== null && !isDefaultCategoryId(own ?? start.categoryId);
+    const suggested = suggest(text);
+    const suggestion = isShared && !isDefaultCategoryId(suggested) ? FALLBACK_CATEGORY_ID : suggested;
+    const pick = offered(picked) ? picked : null;
+    const saved =
+        start.categoryId !== null && (!isShared || isDefaultCategoryId(start.categoryId)) ? start.categoryId : null;
+    const categoryId = pick ?? saved ?? suggestion;
+    const shownCategory = offered(categoryId) ? categoryId : FALLBACK_CATEGORY_ID;
     const showSuggestion = start.categoryId === null && pick === null && suggestion !== FALLBACK_CATEGORY_ID;
     const canSave = isShared ? shared.valid : personal.partsProblem === null;
 
@@ -256,12 +264,15 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 )}
             </Field>
 
-            <Field label={t('category')} hint={showSuggestion ? t('suggested') : undefined}>
+            <Field
+                label={t('category')}
+                hint={customAside ? t('customShared') : showSuggestion ? t('suggested') : undefined}
+            >
                 {(control) => (
                     <CategorySelect
                         {...control}
                         label={t('category')}
-                        options={options}
+                        options={categories}
                         value={shownCategory}
                         onChange={setPicked}
                     />

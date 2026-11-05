@@ -32,6 +32,7 @@
             "text": "Description",
             "category": "Category",
             "suggested": "Suggested from the description",
+            "customShared": "Custom categories aren't available in shared expenses.",
             "date": "Date",
             "for": "For",
             "forMe": "Just me",
@@ -352,7 +353,10 @@
             "percentLeft": "{percent} left",
             "percentOver": "{percent} over",
             "amountInvalid": "Each amount has to be a number.",
-            "percentInvalid": "Each percentage has to be a number from 0 to 100, with two decimals at most."
+            "percentInvalid": "Each percentage has to be a number from 0 to 100, with two decimals at most.",
+            "howYouPaid": "How you paid",
+            "othersNow": "For the others it counts as paid now.",
+            "cardNeedsYou": "To pay by card you have to be in the split."
         },
         "group": {
             "missing": "This group isn't here. It doesn't exist, or you're not in it.",

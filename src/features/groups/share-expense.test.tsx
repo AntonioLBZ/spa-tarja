@@ -5,12 +5,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { GROUPS_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { toDateString } from '@core/date';
+import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { SharedGroup } from '@core/shared-group';
@@ -36,12 +36,13 @@ function friend(name: string, overrides: Partial<SharedGroup> = {}) {
     return sampleGroup({ kind: 'direct', name: null, members: [me, person(name)], me: me.id, ...overrides });
 }
 
-async function openHome(groups: SharedGroup[]) {
-    const api = createFakeApi({ groups });
+async function openHome(groups: SharedGroup[], options: Parameters<typeof createFakeApi>[0] = {}) {
+    const api = createFakeApi({ groups, ...options });
     stubApi(api.handler);
     const app = renderApp();
     await screen.findByRole('radio', { name: form.forShared });
     await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+    await waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success'));
     return { api, app };
 }
 
@@ -491,5 +492,139 @@ describe('splitting by amount', () => {
         pickMode('equal');
 
         expect(rows()).toEqual([`${share.you}${euros(500)}`, 'Bea', `Cris${euros(500)}`]);
+    });
+});
+
+describe('how you paid', () => {
+    const today = () => toDateString(new Date());
+
+    it('is asked while you pay, and a card saves the day it is charged', async () => {
+        const { app } = await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        expect(chosenOption(share.howYouPaid)).toBe(en.expenses.payment.direct);
+        expect(screen.getByText(share.othersNow)).toBeDefined();
+        pickOption(share.howYouPaid, en.expenses.payment.credit);
+        expect(field(form.chargeDate).value).toBe(addMonths(today(), 1));
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]).toMatchObject({
+            paidBy: ana.id,
+            payment: 'credit',
+            chargeDate: addMonths(today(), 1),
+        });
+    });
+
+    it('is left out when somebody else pays, and is back to Now when you do again', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        pickOption(share.howYouPaid, en.expenses.payment.voucher);
+
+        pickOption(share.paidBy, 'Bea');
+
+        expect(screen.queryByRole('combobox', { name: share.howYouPaid })).toBeNull();
+        expect(screen.queryByLabelText(form.chargeDate)).toBeNull();
+        pickOption(share.paidBy, share.you);
+        expect(chosenOption(share.howYouPaid)).toBe(en.expenses.payment.direct);
+    });
+
+    it('never sends a card for somebody else, whatever Just me holds', async () => {
+        const { app } = await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fill({ amount: '10' });
+        fireEvent.click(forChoice(form.forShared));
+        pickOption(share.paidBy, 'Bea');
+        fireEvent.click(forChoice(form.forMe));
+        pickOption(form.payment, en.expenses.payment.credit);
+        fireEvent.click(forChoice(form.forShared));
+
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]).toMatchObject({
+            paidBy: bea.id,
+            payment: 'direct',
+            chargeDate: null,
+        });
+    });
+
+    it.each([
+        ['a credit card', 'credit'],
+        ['a restaurant card', 'voucher'],
+    ] as const)('needs you in the split to pay with %s', async (_, payment) => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickOption(share.howYouPaid, en.expenses.payment[payment]);
+
+        fireEvent.click(checkbox(share.you));
+
+        expect(within(theForm()).getByRole('alert').textContent).toBe(share.cardNeedsYou);
+        expect(addButton().disabled).toBe(true);
+    });
+
+    it('refuses a charge before the day of the expense, as for an expense of one person', async () => {
+        const { app } = await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickOption(share.howYouPaid, en.expenses.payment.credit);
+
+        fireEvent.change(field(form.chargeDate), { target: { value: addMonths(today(), -1) } });
+        fireEvent.click(addButton());
+
+        expect((await screen.findByRole('alert')).textContent).toBe(form.chargeDateInvalid);
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+    });
+});
+
+describe('the category of a shared expense', () => {
+    const kids = { id: crypto.randomUUID(), name: 'Kids', color: 'blue', icon: 'child_care' } as const;
+
+    it('is one of the default ones only', async () => {
+        await openHome([trip()], { categories: [kids] });
+
+        expect(optionNames(form.category)).toEqual([...Object.values(en.categories), 'Kids']);
+        fireEvent.click(forChoice(form.forShared));
+        expect(optionNames(form.category)).toEqual(Object.values(en.categories));
+    });
+
+    it('takes the place of a custom one with the suggestion, says why, and gives it back to Just me', async () => {
+        const { app } = await openHome([trip()], { categories: [kids] });
+        onlineManager.setOnline(false);
+        fill({ amount: '10', text: 'Dinner' });
+        pickOption(form.category, 'Kids');
+
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(chosenOption(form.category)).toBe(en.categories.food);
+        expect(screen.getByText(form.customShared)).toBeDefined();
+        fireEvent.click(forChoice(form.forMe));
+        expect(chosenOption(form.category)).toBe('Kids');
+        fireEvent.click(forChoice(form.forShared));
+        fireEvent.click(addButton());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]!.categoryId).toBe('food');
+    });
+
+    it('is Other in place of a custom one when the description suggests nothing', async () => {
+        await openHome([trip()], { categories: [kids] });
+        pickOption(form.category, 'Kids');
+
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(chosenOption(form.category)).toBe(en.categories.other);
+    });
+
+    it('is still suggested from the description', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+
+        fill({ amount: '10', text: 'Dinner' });
+
+        expect(chosenOption(form.category)).toBe(en.categories.food);
+        expect(screen.getByText(form.suggested)).toBeDefined();
     });
 });
