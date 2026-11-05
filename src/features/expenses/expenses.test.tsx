@@ -10,7 +10,7 @@ import { CATEGORIES_KEY, GROUPS_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
-import { person, sampleGroup } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
@@ -1254,6 +1254,41 @@ describe('suggesting a category from your own expenses', () => {
 
         expect(chosenOption(label)).toBe('Gym');
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('learns from your part of a shared expense', async () => {
+        const group = sampleGroup();
+        stubApi(
+            createFakeApi({
+                groups: [group],
+                entries: [sampleEntry(group, { text: 'Padel con Bea', categoryId: 'leisure' })],
+            }).handler
+        );
+        renderApp();
+        await screen.findByText('Padel con Bea');
+
+        typeText('Padel');
+
+        expect(chosenOption(label)).toBe(en.categories.leisure);
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('does not learn from a shared expense of a group whose switch is off', async () => {
+        const group = sampleGroup({ showInExpenses: false });
+        const api = createFakeApi({
+            expenses: [expense({ text: 'Lunch' })],
+            groups: [group],
+            entries: [sampleEntry(group, { text: 'Padel con Bea', categoryId: 'leisure' })],
+        });
+        stubApi(api.handler);
+        const app = renderApp();
+        await screen.findByText('Lunch');
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+
+        typeText('Padel');
+
+        expect(chosenOption(label)).toBe(en.categories.other);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
     it('skips a category that no longer exists', async () => {
