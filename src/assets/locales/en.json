@@ -198,7 +198,8 @@
                 "payment": "Payment",
                 "chargeDate": "Charge date",
                 "personal": "Your part",
-                "part": "Part"
+                "part": "Part",
+                "group": "Group"
             }
         },
         "account": {

@@ -198,7 +198,8 @@
                 "payment": "Pago",
                 "chargeDate": "Fecha de cargo",
                 "personal": "Tu parte",
-                "part": "Parte"
+                "part": "Parte",
+                "group": "Grupo"
             }
         },
         "account": {

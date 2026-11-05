@@ -30,21 +30,21 @@ Specs: `export.md`, `shared-expenses.md`, `groups.md`, `expense-counting.md`, `o
 2. **The suggestion reads your expenses.** `use-suggest-category.ts` takes `useYourExpenses`. Test first in
    `expenses.test.tsx`: a description used in a shared expense suggests the category of that row; a group whose switch is
    off suggests nothing. `categories.md`.
-3. **The groups in the files, in `core`.** `core/export.ts`: `BackupData.groups: readonly BackupLedger[]`
+3. **The groups in the files.** `core/export.ts`: `BackupData.groups: readonly BackupLedger[]`
    (`{ group: SharedGroup; entries: readonly LedgerEntry[] }`), `Backup.groups: BackupGroup[]`, `CsvLabels.groupName(groupId)`
    and ten columns; `expensesCsv` reads a `SharedExpenseRow` through `isSharedRow`; `buildBackup` leaves shared rows out
-   of `expenses`. Tests first in `core/export.test.ts`: a shared row in the CSV and never in `expenses`; the amount, the
-   payment, the charge date and your part of a row of another payer, of a credit card and of a restaurant card; a
-   settlement is not a row; names with commas, quotes, newlines and a leading `=`; an empty group; a closed group; a
-   member who left; a merged dummy; the order of groups, members and entries; no email or user id anywhere in the file.
-   `export.md`.
-4. **The page.** `src/features/export/use-export-groups.ts` (`useExportGroups(): { ledgers, titles, loading, missing }`),
-   `your-data.tsx` (the buttons off while `loading`, the two notices), `en.json` and `es.json`, `your-data.test.tsx`
-   (`open()` waits for the groups too). Tests first: a shared row in the CSV and not in the JSON `expenses`; the group
-   in the JSON with the switch off, closed, with a member who left and with a merged dummy; the group column; the file
-   names; no email or user id in either file; the buttons wait and the notice says so while the groups load; offline
-   with the groups on the device the files are made and nothing is sent; a group whose expenses cannot be had is left
-   out and said. `settings.md`, `shared-expenses.md`, `AGENTS.md`; this plan and item 27 of `TODO.md` deleted.
+   of `expenses`. `src/features/export/use-export-groups.ts` (`useExportGroups(): { ledgers, titles }`, every group with
+   its entries on the device), `your-data.tsx` passing them, `columns.group` in `en` and `es`. Tests first in
+   `core/export.test.ts` and `your-data.test.tsx` (`open()` waits for the groups too): a shared row in the CSV and never in
+   `expenses`; the amount, the payment, the charge date and your part of a row of another payer, of a credit card and of
+   a restaurant card; a settlement is not a row; a group with the switch off, a closed one, a friend, a member who left,
+   a merged dummy, an empty group; names with commas, quotes, newlines and a leading `=`; the order; the file names; no
+   email or user id anywhere in either file; offline. `export.md`.
+4. **Waiting.** `useExportGroups` also says `loading` and `missing`; `your-data.tsx` turns the buttons off while
+   `loading` and shows the two notices; copy in `en` and `es`. Tests first: the buttons wait and the notice says so while
+   the groups load; a group whose expenses cannot be had is left out and said; a device that never heard of its groups
+   says nothing. `export.md`, `settings.md`, `shared-expenses.md`, `AGENTS.md`; this plan and item 27 of `TODO.md`
+   deleted.
 
 ## Review Focus
 
