@@ -4,6 +4,7 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleGroup } from '@/lib/test/groups';
@@ -69,6 +70,28 @@ function rows() {
     return within(people())
         .getAllByRole('listitem')
         .map((row) => row.textContent);
+}
+
+function theForm() {
+    return screen.getByRole('form', { name: form.title });
+}
+
+function shareField(name: string, kind: 'percentOf' | 'amountOf') {
+    return within(people()).getByRole('textbox', { name: t(`groups.share.${kind}`, { name }) }) as HTMLInputElement;
+}
+
+function shareValues() {
+    return within(people())
+        .queryAllByRole('textbox')
+        .map((input) => (input as HTMLInputElement).value);
+}
+
+function pickMode(mode: 'equal' | 'percent' | 'exact') {
+    fireEvent.click(screen.getByRole('radio', { name: share.modes[mode] }));
+}
+
+function percent(basisPoints: number, locale = 'en') {
+    return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(basisPoints / 10_000);
 }
 
 function checkbox(name: string) {
@@ -297,5 +320,176 @@ describe('saving', () => {
         expect(field(form.amount).value).toBe('10');
         expect(forChoice(form.forShared).checked).toBe(true);
         expect(addButton().disabled).toBe(false);
+    });
+});
+
+describe('splitting by percent', () => {
+    it('starts from 100 split evenly to two decimals, and saves parts that add up to the amount', async () => {
+        const group = trip();
+        const { app } = await openHome([group]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        pickMode('percent');
+
+        expect(shareValues()).toEqual(['33.34', '33.33', '33.33']);
+        fireEvent.click(addButton());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]).toMatchObject({
+            amountCents: 1000,
+            split: 'percent',
+            shares: [
+                { memberId: ana.id, cents: 334 },
+                { memberId: bea.id, cents: 333 },
+                { memberId: cris.id, cents: 333 },
+            ],
+        });
+    });
+
+    it('rounds each part down and gives the cents left to the biggest fractions', async () => {
+        const { app } = await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '0.10' });
+        pickMode('percent');
+
+        fireEvent.change(shareField(share.you, 'percentOf'), { target: { value: '45' } });
+        fireEvent.change(shareField('Bea', 'percentOf'), { target: { value: '45' } });
+        fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '10' } });
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]!.shares).toEqual([
+            { memberId: ana.id, cents: 5 },
+            { memberId: bea.id, cents: 4 },
+            { memberId: cris.id, cents: 1 },
+        ]);
+    });
+
+    it('says what is left or over, and keeps Add off until it adds up to 100', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickMode('percent');
+
+        fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '30.83' } });
+        expect(within(theForm()).getByRole('status').textContent).toBe(
+            t('groups.share.percentLeft', { percent: percent(250) })
+        );
+        expect(addButton().disabled).toBe(true);
+
+        fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '40' } });
+        expect(screen.getByRole('alert').textContent).toBe(t('groups.share.percentOver', { percent: percent(667) }));
+        expect(addButton().disabled).toBe(true);
+
+        fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '33.33' } });
+        expect(screen.queryByRole('alert')).toBeNull();
+        expect(addButton().disabled).toBe(false);
+    });
+
+    it('says so when a percentage is not one from 0 to 100', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickMode('percent');
+
+        fireEvent.change(shareField('Bea', 'percentOf'), { target: { value: '33.333' } });
+
+        expect(screen.getByRole('alert').textContent).toBe(share.percentInvalid);
+        expect(shareField('Bea', 'percentOf').getAttribute('aria-invalid')).toBe('true');
+        expect(addButton().disabled).toBe(true);
+    });
+
+    it('reads the percentages with the decimal comma of Spanish', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const tEs = createTranslator({ locale: 'es', messages: es });
+        const api = createFakeApi({ groups: [trip()] });
+        stubApi(api.handler);
+        const spanish = renderApp();
+        await screen.findByRole('radio', { name: es.expenses.form.forShared });
+        await waitFor(() => expect(spanish.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
+        fireEvent.change(screen.getByLabelText(es.expenses.form.amount), { target: { value: '10' } });
+        fireEvent.click(screen.getByRole('radio', { name: es.groups.share.modes.percent }));
+
+        const fields = within(screen.getByRole('group', { name: es.groups.share.people })).getAllByRole('textbox');
+        expect(fields.map((input) => (input as HTMLInputElement).value)).toEqual(['33,34', '33,33', '33,33']);
+        fireEvent.change(fields[0]!, { target: { value: '50,5' } });
+        expect(screen.getByRole('alert').textContent).toBe(
+            tEs('groups.share.percentOver', { percent: percent(1716, 'es') })
+        );
+    });
+
+    it('keeps who is in, and starts again among them when somebody is left out', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        fireEvent.click(checkbox('Cris'));
+
+        pickMode('percent');
+        expect(shareValues()).toEqual(['50.00', '50.00']);
+        fireEvent.change(shareField('Bea', 'percentOf'), { target: { value: '30' } });
+        fireEvent.click(checkbox('Cris'));
+
+        expect(shareValues()).toEqual(['33.34', '33.33', '33.33']);
+    });
+});
+
+describe('splitting by amount', () => {
+    it('starts from the equal split and saves the amounts typed', async () => {
+        const { app } = await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        pickMode('exact');
+        expect(shareValues()).toEqual(['3.34', '3.33', '3.33']);
+        fireEvent.change(shareField(share.you, 'amountOf'), { target: { value: '5' } });
+        fireEvent.change(shareField('Bea', 'amountOf'), { target: { value: '5' } });
+        fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '0' } });
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]).toMatchObject({
+            split: 'exact',
+            shares: [
+                { memberId: ana.id, cents: 500 },
+                { memberId: bea.id, cents: 500 },
+            ],
+        });
+    });
+
+    it('says what is unassigned or over, and keeps Add off until it adds up', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickMode('exact');
+
+        fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '1' } });
+        expect(within(theForm()).getByRole('status').textContent).toBe(
+            t('groups.share.unassigned', { amount: euros(233) })
+        );
+        expect(addButton().disabled).toBe(true);
+
+        fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '4.83' } });
+        expect(screen.getByRole('alert').textContent).toBe(t('groups.share.over', { amount: euros(150) }));
+        expect(addButton().disabled).toBe(true);
+
+        fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: 'x' } });
+        expect(screen.getByRole('alert').textContent).toBe(share.amountInvalid);
+        expect(addButton().disabled).toBe(true);
+    });
+
+    it('keeps who is in when the mode changes back to equal', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        fireEvent.click(checkbox('Bea'));
+        pickMode('exact');
+
+        pickMode('equal');
+
+        expect(rows()).toEqual([`${share.you}${euros(500)}`, 'Bea', `Cris${euros(500)}`]);
     });
 });

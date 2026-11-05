@@ -336,9 +336,23 @@
             "with": "Con",
             "none": "Aún no tienes grupos ni amigos. Crea uno en Grupos para compartir un gasto.",
             "paidBy": "Pagado por",
+            "split": "Reparto",
+            "modes": {
+                "equal": "A partes iguales",
+                "percent": "Por porcentaje",
+                "exact": "Por importes"
+            },
             "you": "Tú",
             "people": "Quién participa",
-            "nobody": "Elige al menos a una persona."
+            "percentOf": "{name}, porcentaje",
+            "amountOf": "{name}, importe",
+            "nobody": "Elige al menos a una persona.",
+            "unassigned": "Faltan {amount} por asignar",
+            "over": "Sobran {amount} del total",
+            "percentLeft": "Falta un {percent}",
+            "percentOver": "Sobra un {percent}",
+            "amountInvalid": "Cada importe tiene que ser un número.",
+            "percentInvalid": "Cada porcentaje tiene que ser un número de 0 a 100, con dos decimales como mucho."
         },
         "group": {
             "missing": "Este grupo no está aquí. No existe o no formas parte de él.",

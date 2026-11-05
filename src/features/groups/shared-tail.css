@@ -26,3 +26,8 @@
     gap: var(--size-4);
     grid-template-columns: minmax(0, 1fr) auto;
 }
+
+/* Wide enough for an amount of nine characters with its padding and the notch */
+.shared-people__input {
+    width: calc(9ch + 2 * var(--size-3) + var(--size-1));
+}

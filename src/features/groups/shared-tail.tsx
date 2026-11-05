@@ -1,14 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Checkbox } from '@/components/checkbox/checkbox';
+import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useLocale } from '@/lib/i18n';
-import { formatAmount } from '@core/money';
-import { splitEqually } from '@core/split';
+import { splitEvenly } from '@core/installments';
+import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
+import { SPLIT_MODES } from '@core/shared-entry';
+import {
+    HUNDRED_PERCENT,
+    equalPercents,
+    percentLeft,
+    splitByPercent,
+    splitEqually,
+    splitExactly,
+    unassignedCents,
+} from '@core/split';
 
 import { groupTitle, memberNames } from './member-names';
 import { newEntry } from './new-entry';
@@ -17,7 +28,7 @@ import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
 
 import type { PaymentState } from '@/features/expenses/payment-fields';
-import type { SharedEntry, SplitMode } from '@core/shared-entry';
+import type { Share, SharedEntry, SplitMode } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
 import './shared-tail.css';
@@ -32,6 +43,14 @@ interface SharedDraft {
     mode: SplitMode;
     // The members left out
     out: readonly string[];
+    // What was typed in the percentages or the amounts since the mode was chosen
+    typed: TypedShares | null;
+}
+
+// The shares as typed, by member, valid only for the members who were in, and for amounts the total, when typed
+interface TypedShares {
+    key: string;
+    values: Readonly<Record<string, string>>;
 }
 
 // What the head of the form says of the expense
@@ -56,7 +75,46 @@ interface SharedPeopleProps {
 
 type SharedTailState = ReturnType<typeof useSharedTail>;
 
-const START: SharedDraft = { groupId: null, paidBy: null, mode: 'equal', out: [] };
+// Why the shares can't be saved yet. `left` is what is left to assign, or over it when negative: hundredths of a percent
+// by percent, cents by amount.
+type SplitProblem = { kind: 'nobody' } | { kind: 'invalid'; ids: readonly string[] } | { kind: 'left'; left: number };
+
+const START: SharedDraft = { groupId: null, paidBy: null, mode: 'equal', out: [], typed: null };
+
+// A percentage as typed, in hundredths of a percent, the way an amount is read in cents; none past 100 %
+const parsePercent = (text: string, locale: string): number | null => {
+    const basisPoints = parseAmount(text.replace(/%/g, ''), locale);
+    return basisPoints !== null && basisPoints <= HUNDRED_PERCENT ? basisPoints : null;
+};
+
+// The shares worked out in cents for the mode, or why they can't be yet
+const splitOf = (
+    mode: SplitMode,
+    amount: number | null,
+    values: ReadonlyArray<{ memberId: string; value: number | null }>
+): { shares: Share[] | null; problem: SplitProblem | null } => {
+    if (values.length === 0) return { shares: null, problem: { kind: 'nobody' } };
+    const ids = values.map((item) => item.memberId);
+    if (mode === 'equal') return { shares: amount === null ? null : splitEqually(amount, ids), problem: null };
+    // The amounts wait for the total they are typed against
+    if (mode === 'exact' && amount === null) return { shares: null, problem: null };
+
+    const invalid = values.filter((item) => item.value === null).map((item) => item.memberId);
+    if (invalid.length > 0) return { shares: null, problem: { kind: 'invalid', ids: invalid } };
+    const typed = values.map((item) => ({ memberId: item.memberId, value: item.value ?? 0 }));
+
+    if (mode === 'percent') {
+        const percents = typed.map((item) => ({ memberId: item.memberId, basisPoints: item.value }));
+        const left = percentLeft(percents);
+        if (left !== 0) return { shares: null, problem: { kind: 'left', left } };
+        return { shares: amount === null ? null : splitByPercent(amount, percents), problem: null };
+    }
+
+    const parts = typed.map((item) => ({ memberId: item.memberId, cents: item.value }));
+    const left = unassignedCents(amount ?? 0, parts);
+    if (left !== 0) return { shares: null, problem: { kind: 'left', left } };
+    return { shares: splitExactly(amount ?? 0, parts), problem: null };
+};
 
 // The open groups, then the open friends, as the Groups tab lists them
 const openChoices = (groups: readonly SharedGroup[]): SharedGroup[] => {
@@ -68,6 +126,7 @@ const openChoices = (groups: readonly SharedGroup[]): SharedGroup[] => {
 // shared there; otherwise in one of the person's open groups and friends.
 const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null, payment: PaymentState) => {
     const { groups } = useGroups();
+    const { locale } = useLocale();
     const [draft, setDraft] = useState<SharedDraft>(START);
     const [remembered] = useState(readSharedWith);
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
@@ -83,15 +142,42 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
     const payerIsMe = payer !== null && payer === me;
     const inIds = present.filter((member) => !draft.out.includes(member.id)).map((member) => member.id);
     const amount = totalCents !== null && totalCents >= 1 ? totalCents : null;
-    const shares = amount === null ? null : splitEqually(amount, inIds);
-    const problem = group && inIds.length === 0 ? 'nobody' : null;
+
+    // The percentages start from 100 % split evenly, the amounts from the equal split, until one is typed
+    const key = draft.mode === 'exact' ? `${amount}:${inIds.join()}` : inIds.join();
+    const startTexts = (): string[] => {
+        if (draft.mode === 'percent') {
+            return equalPercents(inIds).map((percent) => formatAmountInput(percent.basisPoints, locale));
+        }
+        if (amount === null) return inIds.map(() => '');
+        return splitEvenly(amount, inIds.length).map((cents) => formatAmountInput(cents, locale));
+    };
+    const texts: Readonly<Record<string, string>> =
+        draft.mode === 'equal'
+            ? {}
+            : draft.typed?.key === key
+              ? draft.typed.values
+              : Object.fromEntries(startTexts().map((text, index) => [inIds[index]!, text]));
+    const parse = draft.mode === 'percent' ? parsePercent : parseAmount;
+    const { shares, problem } = splitOf(
+        draft.mode,
+        amount,
+        inIds.map((memberId) => ({ memberId, value: parse(texts[memberId] ?? '', locale) }))
+    );
     const valid = group !== undefined && shares !== null && shares.length > 0 && problem === null;
 
-    // What each member who can take part shows: nothing when out, else their share once there is an amount
+    // What each member who can take part shows: nothing when out; else, split equally, their share once there is an
+    // amount, and otherwise what is typed for them
     const rows = present.map((member) => {
         const isIn = inIds.includes(member.id);
-        const cents = isIn && shares ? (shares.find((item) => item.memberId === member.id)?.cents ?? 0) : null;
-        return { id: member.id, isIn, cents };
+        const share = shares?.find((item) => item.memberId === member.id)?.cents ?? 0;
+        return {
+            id: member.id,
+            isIn,
+            cents: isIn && draft.mode === 'equal' && shares ? share : null,
+            text: isIn && draft.mode !== 'equal' ? (texts[member.id] ?? '') : null,
+            invalid: problem?.kind === 'invalid' && problem.ids.includes(member.id),
+        };
     });
 
     return {
@@ -100,6 +186,7 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
         present,
         payer,
         rows,
+        mode: draft.mode,
         problem,
         valid,
         // The day the payer's card charges it; only the payer says how they paid
@@ -109,6 +196,10 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
         pickPayer: (memberId: string) => {
             setDraft({ ...draft, paidBy: memberId });
             if (memberId !== me) payment.reset();
+        },
+        pickMode: (mode: SplitMode) => setDraft({ ...draft, mode, typed: null }),
+        type: (memberId: string, text: string) => {
+            setDraft({ ...draft, typed: { key, values: { ...texts, [memberId]: text } } });
         },
         take: (memberId: string, isIn: boolean) => {
             const out = draft.out.filter((id) => id !== memberId);
@@ -180,7 +271,15 @@ const SharedPeople = (props: SharedPeopleProps) => {
     const t = useTranslations('groups.share');
     const { locale } = useLocale();
     const words = useGroupWords(group);
+    const id = useId();
     const nameOf = (memberId: string) => (memberId === group.me ? t('you') : words.nameOf(memberId));
+    const { mode, problem } = tail;
+    const byPercent = mode === 'percent';
+    const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
+    const percent = (basisPoints: number) =>
+        new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
+            Math.abs(basisPoints) / HUNDRED_PERCENT
+        );
 
     return (
         <>
@@ -196,6 +295,14 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 )}
             </Field>
 
+            <ChoiceGroup
+                legend={t('split')}
+                name={`${id}-split`}
+                options={SPLIT_MODES.map((value) => ({ value, label: t(`modes.${value}`) }))}
+                value={mode}
+                onChange={tail.pickMode}
+            />
+
             <fieldset className="shared-people">
                 <legend className="shared-people__legend">{t('people')}</legend>
                 <ul className="shared-people__list">
@@ -206,19 +313,47 @@ const SharedPeople = (props: SharedPeopleProps) => {
                                 checked={row.isIn}
                                 onChange={(checked) => tail.take(row.id, checked)}
                             />
-                            {row.cents !== null && (
-                                <span className="shared-people__share">
-                                    {formatAmount(row.cents, group.currency, locale)}
-                                </span>
+                            {row.cents !== null && <span>{money(row.cents)}</span>}
+                            {row.text !== null && (
+                                <input
+                                    className="shared-people__input"
+                                    aria-describedby={row.invalid ? `${id}-invalid` : undefined}
+                                    aria-invalid={row.invalid}
+                                    aria-label={t(byPercent ? 'percentOf' : 'amountOf', { name: nameOf(row.id) })}
+                                    autoComplete="off"
+                                    inputMode="decimal"
+                                    type="text"
+                                    value={row.text}
+                                    onChange={(event) => tail.type(row.id, event.target.value)}
+                                />
                             )}
                         </li>
                     ))}
                 </ul>
             </fieldset>
 
-            {tail.problem === 'nobody' && (
+            {problem?.kind === 'nobody' && (
                 <Notice tone="danger" role="alert">
                     {t('nobody')}
+                </Notice>
+            )}
+            {problem?.kind === 'invalid' && (
+                <Notice tone="danger" role="alert" id={`${id}-invalid`}>
+                    {t(byPercent ? 'percentInvalid' : 'amountInvalid')}
+                </Notice>
+            )}
+            {problem?.kind === 'left' && problem.left > 0 && (
+                <p className="field__hint" role="status">
+                    {byPercent
+                        ? t('percentLeft', { percent: percent(problem.left) })
+                        : t('unassigned', { amount: money(problem.left) })}
+                </p>
+            )}
+            {problem?.kind === 'left' && problem.left < 0 && (
+                <Notice tone="danger" role="alert">
+                    {byPercent
+                        ? t('percentOver', { percent: percent(problem.left) })
+                        : t('over', { amount: money(problem.left) })}
                 </Notice>
             )}
         </>

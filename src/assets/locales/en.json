@@ -336,9 +336,23 @@
             "with": "With",
             "none": "You have no groups or friends yet. Make one in Groups to share an expense.",
             "paidBy": "Paid by",
+            "split": "Split",
+            "modes": {
+                "equal": "Equally",
+                "percent": "Percent",
+                "exact": "Amounts"
+            },
             "you": "You",
             "people": "Who's in",
-            "nobody": "Choose at least one person."
+            "percentOf": "{name}, percent",
+            "amountOf": "{name}, amount",
+            "nobody": "Choose at least one person.",
+            "unassigned": "{amount} unassigned",
+            "over": "{amount} over the total",
+            "percentLeft": "{percent} left",
+            "percentOver": "{percent} over",
+            "amountInvalid": "Each amount has to be a number.",
+            "percentInvalid": "Each percentage has to be a number from 0 to 100, with two decimals at most."
         },
         "group": {
             "missing": "This group isn't here. It doesn't exist, or you're not in it.",
