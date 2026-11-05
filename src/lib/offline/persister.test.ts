@@ -9,13 +9,17 @@ import {
     GROUPS_KEY,
     INCOME_KEY,
     PROFILE_KEY,
+    friendInvitationKey,
     groupEntriesKey,
+    invitationQuery,
 } from '@/lib/api';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
 import { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
 
 const state = { expenses: [], cursor: 7 };
+
+const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
 
 async function storeCopy(storage: ReturnType<typeof createMemoryStorage>, copy: { timestamp: number; buster: string }) {
     const source = new QueryClient();
@@ -48,6 +52,19 @@ describe('createPersistOptions', () => {
             groupEntriesKey('trip'),
             groupEntriesKey('friend'),
         ]);
+    });
+
+    it('never keeps a link of an invitation, nor what it shows', () => {
+        const client = new QueryClient();
+        client.setQueryData(GROUPS_KEY, []);
+        client.setQueryData(friendInvitationKey('friend'), { state: 'open', token: TOKEN, expiresAt: 1 });
+        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana' });
+        const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
+
+        const queries = dehydrate(client, dehydrateOptions).queries;
+
+        expect(queries.map((query) => query.queryKey)).toEqual([GROUPS_KEY]);
+        expect(JSON.stringify(queries)).not.toContain(TOKEN);
     });
 
     it('keeps the expenses when the latest sync failed, so a bad connection never wipes the local copy', async () => {
