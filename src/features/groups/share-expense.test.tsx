@@ -196,6 +196,16 @@ describe('splitting equally', () => {
         expect(rows()).toEqual([`${share.you}${euros(334)}`, `Bea${euros(333)}`, `Cris${euros(333)}`]);
     });
 
+    it('shows no amount for somebody who is in but whose part comes to nothing', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+
+        fill({ amount: '0.01' });
+
+        expect(rows()).toEqual([`${share.you}${euros(1)}`, 'Bea', 'Cris']);
+        expect([share.you, 'Bea', 'Cris'].map((name) => checkbox(name).checked)).toEqual([true, true, true]);
+    });
+
     it('saves the expense in the group on the device, offline too, and empties the form back to Just me', async () => {
         const group = trip();
         const { app } = await openHome([group]);

@@ -259,15 +259,15 @@ const useSharedTail = (
         problem === null &&
         !cardWithoutYou;
 
-    // What each member who can take part shows: nothing when out; else, split equally, their share once there is an
-    // amount, and otherwise what is typed for them
+    // What each member who can take part shows: nothing when out or when their part comes to nothing; else, split
+    // equally, their share once there is an amount, and otherwise what is typed for them
     const rows = present.map((member) => {
         const isIn = inIds.includes(member.id);
         const share = shares?.find((item) => item.memberId === member.id)?.cents ?? 0;
         return {
             id: member.id,
             isIn,
-            cents: isIn && draft.mode === 'equal' && shares ? share : null,
+            cents: isIn && draft.mode === 'equal' && share > 0 ? share : null,
             text: isIn && draft.mode !== 'equal' ? (texts[member.id] ?? '') : null,
             invalid: problem?.kind === 'invalid' && problem.ids.includes(member.id),
         };
