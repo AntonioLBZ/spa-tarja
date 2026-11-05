@@ -187,6 +187,22 @@ describe('the invitation of a friend', () => {
         expect(await linkField()).toBeDefined();
     });
 
+    it('catches up with a friend who accepted since the groups were read, instead of offering a link', async () => {
+        const friend = friendWithBruno();
+        const api = createFakeApi({ groups: [friend] });
+        stubApi(api.handler);
+        renderApp({ path: `/groups/${friend.id}` });
+        const link = await screen.findByRole('link', { name: en.groups.edit.linkFriend });
+        const claimed = api.groups[0]?.members.find((member) => member.id !== friend.me);
+        if (claimed) claimed.claimed = true;
+
+        fireEvent.click(link);
+
+        await screen.findByRole('heading', { name: en.groups.invite.title });
+        await waitFor(() => expect(screen.queryByRole('heading', { name: en.groups.invite.title })).toBeNull());
+        expect(api.requests.filter((request) => request === 'GET /api/groups')).toHaveLength(2);
+    });
+
     it('is off while offline', async () => {
         openSettings(friendWithBruno());
         const make = (await screen.findByRole('button', { name: en.groups.invite.make })) as HTMLButtonElement;

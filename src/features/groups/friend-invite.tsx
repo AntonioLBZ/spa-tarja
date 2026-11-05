@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
@@ -6,7 +6,7 @@ import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
-import { friendInvitationQuery } from '@/lib/api';
+import { GROUPS_KEY, friendInvitationQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { INVITATION_DAYS } from '@core/invitation';
@@ -41,11 +41,17 @@ const FriendInvite = (props: FriendInviteProps) => {
     const online = useOnline();
     const { locale } = useLocale();
     const { invite, revokeInvitation } = useGroupActions();
+    const queryClient = useQueryClient();
     const invitation = useQuery(friendInvitationQuery(group.id));
     const [failure, setFailure] = useState<InviteFailure | null>(null);
     const [copied, setCopied] = useState(false);
     const [busy, setBusy] = useState(false);
     const dayFormat = useMemo(() => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }), [locale]);
+
+    // No invitation for a friend that looks invitable: the other side may have taken its place since the groups were read
+    useEffect(() => {
+        if (invitation.data === null) void queryClient.invalidateQueries({ queryKey: GROUPS_KEY });
+    }, [invitation.data, invitation.dataUpdatedAt, queryClient]);
 
     // The control that replaces the one pressed takes the focus
     const linkField = useRef<HTMLInputElement>(null);
