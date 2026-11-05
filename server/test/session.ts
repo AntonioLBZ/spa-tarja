@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { testUtils } from 'better-auth/plugins';
 import { env } from 'cloudflare:workers';
 
+import { app } from '@server/app';
 import { authOptions } from '@server/auth';
 
 // What `app.request('/api/...')` uses as its origin
@@ -22,4 +23,14 @@ const signIn = async (email = 'ana@example.com', name = 'Ana'): Promise<TestSess
     return { userId: user.id, headers };
 };
 
-export { ORIGIN, signIn, type TestSession };
+// The same session with the cookie cache a browser gets once it has asked who is signed in, which the server trusts for
+// a few minutes without reading the session from the database
+const cachedSession = async (session: TestSession): Promise<TestSession> => {
+    const response = await app.request('/api/auth/get-session', { headers: session.headers }, env);
+    const cache = response.headers.getSetCookie().map((cookie) => cookie.split(';')[0]);
+    if (cache.length === 0) throw new Error('The session came without a cookie cache');
+    const headers = new Headers({ cookie: [session.headers.get('cookie'), ...cache].join('; ') });
+    return { userId: session.userId, headers };
+};
+
+export { ORIGIN, cachedSession, signIn, type TestSession };

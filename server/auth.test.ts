@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
-import { ORIGIN, signIn, type TestSession } from '@server/test/session';
+import { befriend, makeFriend, makeGroup, send } from '@server/test/groups';
+import { ORIGIN, cachedSession, signIn, type TestSession } from '@server/test/session';
 
 let session: TestSession;
 
@@ -132,6 +133,100 @@ describe('/api/auth', () => {
         const after = await request('/api/auth/get-session', asSession());
         expect(await after.json()).toBeNull();
         expect((await request('/api/expenses', asSession())).status).toBe(401);
+    });
+});
+
+describe('a user deleted while the session is cached', () => {
+    async function goneWithCache() {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(session.userId).run();
+        return cached;
+    }
+
+    async function rows(table: string) {
+        const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>();
+        return row?.n;
+    }
+
+    it('trusts the cached session of a user who is there, as it does for a few minutes', async () => {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "session" WHERE "userId" = ?1').bind(session.userId).run();
+
+        expect((await request('/api/expenses', asSession({}, cached))).status).toBe(200);
+    });
+
+    it.each(['/api/expenses', '/api/categories', '/api/income', '/api/budgets', '/api/profile', '/api/groups'])(
+        'answers 401 on %s',
+        async (path) => {
+            const cached = await goneWithCache();
+
+            expect((await request(path, asSession({}, cached))).status).toBe(401);
+        }
+    );
+
+    it('answers 401 to a write of an expense, and nothing is written', async () => {
+        const cached = await goneWithCache();
+        const expense = {
+            categoryId: 'food',
+            text: 'Lunch',
+            amountCents: 1250,
+            currency: 'EUR',
+            date: '2026-10-25',
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(cached, 'PUT', `/expenses/${crypto.randomUUID()}`, expense);
+
+        expect(response.status).toBe(401);
+        expect(await rows('expenses')).toBe(0);
+    });
+
+    it('answers 401 to a nickname, and nothing is written', async () => {
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'PUT', '/profile', { nickname: 'Anita' });
+
+        expect(response.status).toBe(401);
+        expect(await rows('profile')).toBe(0);
+    });
+
+    it('answers 401 to making a group, and nothing is made', async () => {
+        const cached = await goneWithCache();
+        const body = { kind: 'group', name: 'Trip', currency: 'EUR', me: { id: crypto.randomUUID() }, others: [] };
+
+        const response = await send(cached, 'PUT', `/groups/${crypto.randomUUID()}`, body);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_groups')).toBe(0);
+    });
+
+    it('answers 401 to adding a friend to a group', async () => {
+        const bruno = await signIn('bruno@example.com', 'Bruno');
+        const group = await makeGroup(session);
+        const friend = await befriend(session, bruno);
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, {
+            friend: friend.id,
+        });
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_members')).toBe(3);
+    });
+
+    it.each(['read', 'accept'])('answers 401 to %s a link', async (action) => {
+        const bruno = await signIn('bruno@example.com', 'Bruno');
+        const friend = await makeFriend(bruno, 'Ana');
+        const link = (await (await send(bruno, 'POST', `/groups/${friend.id}/invitations`)).json()) as {
+            invitation: { token: string };
+        };
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'POST', `/invitations/${action}`, { token: link.invitation.token });
+
+        expect(response.status).toBe(401);
     });
 });
 
