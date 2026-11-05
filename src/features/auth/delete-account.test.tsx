@@ -88,10 +88,24 @@ function confirm(dialog: HTMLElement, email = TEST_USER.email) {
     fireEvent.click(deleteButton(dialog));
 }
 
+// Like a browser: while a modal dialog is open, the rest of the page is inert and cannot take the focus
+function makePageInert() {
+    const focus = HTMLElement.prototype.focus;
+    vi.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function focusLikeABrowser(
+        this: HTMLElement,
+        options?: FocusOptions
+    ) {
+        const modal = document.querySelector('dialog[open]');
+        if (modal && !modal.contains(this)) return;
+        focus.call(this, options);
+    });
+}
+
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
 });
 
 describe('delete account', () => {
@@ -139,13 +153,26 @@ describe('delete account', () => {
         expect(emailField(await screen.findByRole('dialog', { name: text.title })).value).toBe('');
     });
 
-    it('leads to Your data to download it first', async () => {
+    it('leads to Your data to download it first, once the dialog has closed', async () => {
         const { dialog } = await openDialog();
+        makePageInert();
+        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
 
         fireEvent.click(within(dialog).getByRole('button', { name: text.export }));
 
         expect(screen.queryByRole('dialog')).toBeNull();
-        expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.settings.data.title }));
+        const heading = screen.getByRole('heading', { name: en.settings.data.title });
+        expect(document.activeElement).toBe(heading);
+        expect(scroll.mock.contexts).toContain(heading);
+    });
+
+    it('does not move the focus to Your data when the dialog is closed any other way', async () => {
+        const { dialog } = await openDialog();
+        makePageInert();
+
+        fireEvent.click(within(dialog).getByRole('button', { name: text.cancel }));
+
+        expect(document.activeElement).not.toBe(screen.getByRole('heading', { name: en.settings.data.title }));
     });
 
     it('is off offline, says it needs a connection and sends nothing', async () => {

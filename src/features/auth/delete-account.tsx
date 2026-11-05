@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -26,6 +26,8 @@ const DeleteAccount = () => {
     const [open, setOpen] = useState(false);
     const [typed, setTyped] = useState('');
     const [phase, setPhase] = useState<Phase>('idle');
+    // Set when the dialog closes to lead to Your data: the focus can only go there once it has closed
+    const leaving = useRef(false);
 
     const deleting = phase === 'deleting';
 
@@ -36,8 +38,17 @@ const DeleteAccount = () => {
     };
 
     const toYourData = () => {
+        leaving.current = true;
         setOpen(false);
-        document.getElementById(YOUR_DATA_ID)?.focus();
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+        if (!leaving.current) return;
+        leaving.current = false;
+        const heading = document.getElementById(YOUR_DATA_ID);
+        heading?.focus();
+        heading?.scrollIntoView({ block: 'start' });
     };
 
     const handleDelete = async () => {
@@ -83,7 +94,7 @@ const DeleteAccount = () => {
             <Button block variant="danger" disabled={!online} onClick={start}>
                 {t('open')}
             </Button>
-            <Dialog open={open} title={t('title')} actions={actions} onClose={() => setOpen(false)}>
+            <Dialog open={open} title={t('title')} actions={actions} onClose={handleClose}>
                 <p>{t('goes')}</p>
                 <p>{t('stays')}</p>
                 <p>{t('backups')}</p>
