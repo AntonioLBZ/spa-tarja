@@ -10,11 +10,11 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { formatAmount } from '@core/money';
 import { yourPart, type SharedExpenseEntry } from '@core/shared-expense';
-import { canonicalMember } from '@core/shared-member';
 
+import { namesSomeoneWhoLeft } from './names-someone-who-left';
 import { useEntryWords } from './use-entry-words';
 
-import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
+import type { LedgerEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 import type { RefCallback } from 'react';
 
@@ -35,16 +35,6 @@ interface LedgerRowProps {
     // What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open
     focusRef?: RefCallback<HTMLElement>;
 }
-
-// Whether an entry names somebody who left the group, as its payer or in a share, a merged placeholder read as its
-// target: the device doesn't offer to edit it, as an edit may not move what that person pays or owes
-const namesSomeoneWhoLeft = (entry: SharedEntry, group: SharedGroup): boolean => {
-    const left = (memberId: string) => {
-        const id = canonicalMember(group.members, memberId);
-        return group.members.some((member) => member.id === id && member.leftAt !== null);
-    };
-    return left(entry.paidBy) || entry.shares.some((share) => left(share.memberId));
-};
 
 // An entry of the ledger as a line of the ticket: an expense by its name with its total, who paid and your part, or a
 // settlement in words, and who wrote it last when it wasn't the person. Pressing it opens what can be done to it.

@@ -124,8 +124,9 @@ const useExpenseList = () => {
         grouping,
         leaving,
         pendingIds,
-        // The group and the entry of a shared row
+        // The group and the entry of a shared row, and the name the list gives the group
         sourceOf,
+        groupNameOf: context.groupNameOf,
         hasData,
         isError,
         isWaitingForNetwork,

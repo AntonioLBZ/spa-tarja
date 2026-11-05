@@ -7,6 +7,7 @@ import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { namesSomeoneWhoLeft } from '@/features/groups/names-someone-who-left';
 import { SharedRowDetails } from '@/features/groups/shared-row-details';
 import { useLocale } from '@/lib/i18n';
 import { countedCents, paymentOf } from '@core/counting';
@@ -47,6 +48,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     const { expenses, isPlan, pending, leaving, showDate, source, onEdit, onDuplicate, onDelete, toggleRef } = props;
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
+    const tLedger = useTranslations('groups.ledger');
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const { labelOf, styleOf } = useCategoryOptions();
@@ -54,8 +56,10 @@ const ExpenseRow = (props: ExpenseRowProps) => {
 
     const expense = expenses[0]!;
     const shared = source && isSharedRow(expense) ? { row: expense, group: source.group } : null;
-    // A plan is edited or duplicated whole, so every part of it has to be here
-    const editable = canEdit(expenses);
+    // A plan is edited or duplicated whole, so every part of it has to be here. A shared expense that names somebody who
+    // left is not offered to edit, as most edits of it would move what they pay or owe; a copy leaves them out.
+    const editable = source ? !namesSomeoneWhoLeft(source.entry, source.group) : canEdit(expenses);
+    const copyable = source !== undefined || editable;
     const category = labelOf(expense.categoryId);
     const name = expense.text || category;
     const lastCharge = expenses.at(-1)!.chargeDate;
@@ -93,8 +97,8 @@ const ExpenseRow = (props: ExpenseRowProps) => {
         </span>
     );
 
-    // The entry of a shared row is changed through its group
-    if (shared) {
+    // The entry of a closed group is read-only
+    if (shared && shared.group.closed !== null) {
         return (
             <li ref={toggleRef} className={clsx(expenseClsx, 'ledger-row')} tabIndex={-1}>
                 {body}
@@ -116,9 +120,9 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                 </Button>
                 <Button
                     ghost
-                    aria-describedby={editable ? undefined : reasonId}
+                    aria-describedby={copyable ? undefined : reasonId}
                     aria-label={t('duplicateItem', { name })}
-                    disabled={leaving || !editable}
+                    disabled={leaving || !copyable}
                     onClick={() => onDuplicate(expenses)}
                 >
                     {t('duplicate')}
@@ -135,7 +139,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
             </div>
             {!editable && (
                 <Notice tone="quiet" id={reasonId}>
-                    {t('editIncomplete')}
+                    {source ? tLedger('leftCantEdit') : t('editIncomplete')}
                 </Notice>
             )}
         </Disclosure>
