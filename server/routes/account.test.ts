@@ -98,6 +98,29 @@ describe('DELETE /api/account', () => {
         expect((await rowsOf(ana.userId)).flat()).toEqual([]);
     });
 
+    it('answers 204 when ending the cookies fails after the data is gone', async () => {
+        let reads = 0;
+        const brokenOnTheSecondRead = new Proxy(env, {
+            get(target, property) {
+                if (property === 'BETTER_AUTH_SECRET' && ++reads > 1) throw new Error('No more Better Auth');
+                return Reflect.get(target, property);
+            },
+        });
+        const headers = new Headers(ana.headers);
+        headers.set('content-type', 'application/json');
+
+        const response = await app.request(
+            '/api/account',
+            { method: 'DELETE', headers, body: JSON.stringify({ email: 'ana@example.com' }) },
+            brokenOnTheSecondRead
+        );
+
+        expect(reads).toBe(2);
+        expect(response.status).toBe(204);
+        expect(await response.text()).toBe('');
+        expect((await rowsOf(ana.userId)).flat()).toEqual([]);
+    });
+
     it('leaves every row of anybody else as it was', async () => {
         const before = await rowsOf(bruno.userId);
 

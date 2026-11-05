@@ -15,12 +15,17 @@ const accountRoutes = new Hono<AppEnv>().delete('/', sValidator('json', accountD
     if (!confirmsEmail(c.req.valid('json').email, email)) return c.json({ error: 'wrong-email' }, 422);
 
     await deleteAccount(c.env.DB, c.var.userId);
-    // Better Auth's own sign-out expires its cookies; the session itself is gone already
-    const { headers } = await createAuth(c.env, c.req.raw).api.signOut({
-        headers: c.req.raw.headers,
-        returnHeaders: true,
-    });
-    for (const cookie of headers.getSetCookie()) c.header('Set-Cookie', cookie, { append: true });
+    // Better Auth's own sign-out expires its cookies; the session itself is gone already. The account is gone whatever
+    // this does, so a failure here leaves a cookie of a session that answers 401, not a failed deletion.
+    try {
+        const { headers } = await createAuth(c.env, c.req.raw).api.signOut({
+            headers: c.req.raw.headers,
+            returnHeaders: true,
+        });
+        for (const cookie of headers.getSetCookie()) c.header('Set-Cookie', cookie, { append: true });
+    } catch {
+        // Nothing to expire
+    }
     return c.body(null, 204);
 });
 
