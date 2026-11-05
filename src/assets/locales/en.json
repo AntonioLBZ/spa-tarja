@@ -80,6 +80,11 @@
                 "any": "Any",
                 "plan": "Installments"
             },
+            "sharedWith": "Shared with",
+            "shared": {
+                "anyone": "Anyone",
+                "me": "Just me"
+            },
             "showing": "Showing {shown} of {total}",
             "clear": "Clear"
         },

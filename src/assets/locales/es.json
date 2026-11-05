@@ -80,6 +80,11 @@
                 "any": "Cualquiera",
                 "plan": "Plazos"
             },
+            "sharedWith": "Compartido con",
+            "shared": {
+                "anyone": "Cualquiera",
+                "me": "Solo yo"
+            },
             "showing": "Mostrando {shown} de {total}",
             "clear": "Limpiar"
         },

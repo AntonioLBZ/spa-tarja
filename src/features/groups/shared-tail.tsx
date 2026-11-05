@@ -4,7 +4,6 @@ import { useTranslations } from 'use-intl';
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Field } from '@/components/field/field';
-import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
@@ -22,10 +21,10 @@ import {
     unassignedCents,
 } from '@core/split';
 
-import { groupTitle, memberNames } from './member-names';
 import { newEntry } from './new-entry';
 import { NewPerson } from './new-person';
 import { readSharedWith } from './shared-with';
+import { groupsFirst, useGroupOptions } from './use-group-options';
 import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
 
@@ -125,8 +124,7 @@ const splitOf = (
 
 // The open groups, then the open friends, as the Groups tab lists them
 const openChoices = (groups: readonly SharedGroup[]): SharedGroup[] => {
-    const open = groups.filter((group) => group.closed === null);
-    return [...open.filter((group) => group.kind !== 'direct'), ...open.filter((group) => group.kind === 'direct')];
+    return groupsFirst(groups.filter((group) => group.closed === null));
 };
 
 // The tail of a shared expense: the group or friend, who paid and how it is split, in cents. Given a group, it is
@@ -245,18 +243,7 @@ const SharedTail = (props: SharedTailProps) => {
     const { tail, payment, fixed } = props;
     const t = useTranslations('groups');
     const { group } = tail;
-
-    const options = useMemo(() => {
-        const words = {
-            deleted: t('names.deleted'),
-            numbered: (name: string, number: number) => t('names.numbered', { name, number }),
-        };
-        return tail.choices.map((choice) => ({
-            value: choice.id,
-            label: groupTitle(choice, memberNames(choice.members, words)),
-            icon: <Icon name={choice.kind === 'direct' ? 'person' : 'groups'} />,
-        }));
-    }, [tail.choices, t]);
+    const options = useGroupOptions(tail.choices);
 
     if (tail.choices.length === 0) {
         return (

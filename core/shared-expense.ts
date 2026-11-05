@@ -30,6 +30,11 @@ interface SharedExpenseRow extends Expense {
     shared: SharedSource;
 }
 
+// Whether a row of the list is your part of a shared expense rather than an expense of yours alone
+const isSharedRow = (expense: Expense): expense is SharedExpenseRow => {
+    return 'shared' in expense;
+};
+
 // Your share of an entry, together with those of the placeholders merged into you
 const yourPart = (entry: SharedEntry, me: string, members: readonly SharedMember[]): number => {
     return entry.shares
@@ -76,4 +81,12 @@ const sharedExpenseRows = (ledgers: readonly SharedLedger[]): SharedExpenseRow[]
         );
 };
 
-export { sharedExpenseRows, yourPart, type SharedExpenseRow, type SharedLedger, type SharedSource };
+export {
+    isSharedRow,
+    sharedExpenseRows,
+    yourPart,
+    type SharedExpenseEntry,
+    type SharedExpenseRow,
+    type SharedLedger,
+    type SharedSource,
+};

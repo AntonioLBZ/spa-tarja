@@ -6,10 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { CATEGORIES_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, GROUPS_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
+import { person, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
@@ -2964,6 +2965,51 @@ describe('searching, filtering and grouping the list', () => {
                 en.expenses.payment.voucher,
                 f.paid.plan,
             ]);
+        });
+
+        it('offer who it is shared with after how it was paid: anyone, just you, then each group and friend in your expenses', async () => {
+            const me = person('Ana', { role: 'owner' });
+            const friend = sampleGroup({ kind: 'direct', name: null, members: [me, person('Bea')], me: me.id });
+            const trip = sampleGroup({ name: 'Trip', members: [me, person('Cris')], me: me.id });
+            const hidden = sampleGroup({
+                name: 'Work',
+                members: [me, person('Dani')],
+                me: me.id,
+                showInExpenses: false,
+            });
+            const closed = sampleGroup({ name: 'Rome', members: [me, person('Eva')], me: me.id, closed: 'deleted' });
+            stubApi(createFakeApi({ expenses: list, groups: [friend, trip, hidden, closed] }).handler);
+            const app = renderApp();
+            await screen.findByText(cafe.text);
+            await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+            fireEvent.click(filtersToggle());
+
+            const sharedWith = screen.getByRole('combobox', { name: f.sharedWith });
+            const paidWith = screen.getByRole('group', { name: f.paidWith });
+            expect(paidWith.compareDocumentPosition(sharedWith) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
+            expect(optionNames(f.sharedWith)).toEqual([f.shared.anyone, f.shared.me, 'Trip', 'Rome', 'Bea']);
+        });
+
+        it('count who it is shared with as a filter, and find no shared row of a group yet', async () => {
+            const me = person('Ana', { role: 'owner' });
+            const trip = sampleGroup({ name: 'Trip', members: [me, person('Cris')], me: me.id });
+            stubApi(createFakeApi({ expenses: list, groups: [trip] }).handler);
+            const app = renderApp();
+            await screen.findByText(cafe.text);
+            await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+            fireEvent.click(filtersToggle());
+
+            pickOption(f.sharedWith, f.shared.me);
+            expect(filtersToggle(1)).toBeDefined();
+            expect(rowNames()).toEqual(['Weekly shop', 'Café con leche', 'Cinema']);
+
+            pickOption(f.sharedWith, 'Trip');
+            expect(await screen.findByText(en.expenses.list.noMatch)).toBeDefined();
+
+            clear();
+            expect(filtersToggle(0)).toBeDefined();
+            expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
         });
 
         it('close again from the toggle', async () => {

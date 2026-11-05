@@ -3,6 +3,7 @@ import { countedCents, paymentOf } from './counting';
 import { endOfMonth } from './date';
 import { collapsePlans, planTotal, type ListItem } from './installments';
 import { monthOf } from './month';
+import { isSharedRow } from './shared-expense';
 import { normalizeText, searchWords } from './text';
 
 import type { Expense, Payment } from './expense';
@@ -20,6 +21,9 @@ const PAID_WITH = ['any', 'direct', 'credit', 'voucher', 'plan'] as const satisf
 
 type PaidWith = (typeof PAID_WITH)[number];
 
+// The value of Shared with that keeps the person's own expenses, apart from the ids of groups, which are UUIDs
+const JUST_ME = 'me';
+
 interface ListFilters {
     // What was typed in the search
     query: string;
@@ -29,9 +33,11 @@ interface ListFilters {
     from: string;
     to: string;
     paidWith: PaidWith;
+    // Who it is shared with: empty for anyone, `JUST_ME` for the person's own expenses, else the id of a group
+    sharedWith: string;
 }
 
-const NO_FILTERS: ListFilters = { query: '', categoryId: '', from: '', to: '', paidWith: 'any' };
+const NO_FILTERS: ListFilters = { query: '', categoryId: '', from: '', to: '', paidWith: 'any', sharedWith: '' };
 
 // What the list opens on: this month, and anything dated later
 const openingFilters = (today: string): ListFilters => {
@@ -101,14 +107,22 @@ const paidWithMatches = (item: ListItem, paidWith: PaidWith): boolean => {
     return item.kind === 'single' && paymentOf(item.expense) === paidWith;
 };
 
+// A plan is the person's own, as a shared row never forms one
+const sharedWithMatches = (expense: Expense, sharedWith: string): boolean => {
+    if (sharedWith === '') return true;
+    const groupId = isSharedRow(expense) ? expense.shared.groupId : null;
+    return sharedWith === JUST_ME ? groupId === null : groupId === sharedWith;
+};
+
 // Filters are applied to the row as it is shown, by the day it was made
 const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => boolean) => {
-    const { categoryId, from, to, paidWith } = filters;
+    const { categoryId, from, to, paidWith, sharedWith } = filters;
     const words = searchWords(filters.query);
 
     return (item) => {
         const expense = shownExpense(item);
         if (!paidWithMatches(item, paidWith)) return false;
+        if (!sharedWithMatches(expense, sharedWith)) return false;
         if (categoryId !== '' && ctx.categoryOf(expense.categoryId) !== categoryId) return false;
         if (from !== '' && expense.date < from) return false;
         if (to !== '' && expense.date > to) return false;
@@ -175,12 +189,14 @@ const limitRows = (groups: readonly ListGroup[], max: number): ListGroup[] => {
     return limited;
 };
 
-// How many of the filters of the panel are in use: the category, the dates and how it was paid, one each. The dates are
-// left out when they are the range the list opened with, or when both are empty.
+// How many of the filters of the panel are in use: the category, the dates, how it was paid and who it is shared with,
+// one each. The dates are left out when they are the range the list opened with, or when both are empty.
 const activeFilterCount = (filters: ListFilters, opening: ListFilters = NO_FILTERS): number => {
     const { from, to } = filters;
     const datesInUse = (from !== '' || to !== '') && (from !== opening.from || to !== opening.to);
-    return [filters.categoryId !== '', datesInUse, filters.paidWith !== 'any'].filter(Boolean).length;
+    return [filters.categoryId !== '', datesInUse, filters.paidWith !== 'any', filters.sharedWith !== ''].filter(
+        Boolean
+    ).length;
 };
 
 // Whether the search or any filter narrows the list
@@ -190,6 +206,7 @@ const hasFilters = (filters: ListFilters, opening: ListFilters = NO_FILTERS): bo
 
 export {
     DEFAULT_LIST_GROUPING,
+    JUST_ME,
     LIST_GROUPINGS,
     NO_FILTERS,
     PAID_WITH,

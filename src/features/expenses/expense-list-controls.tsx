@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -8,9 +8,12 @@ import { DateRangeFields } from '@/components/date-range-fields/date-range-field
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { Select } from '@/components/select/select';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
+import { groupsFirst, useGroupOptions } from '@/features/groups/use-group-options';
+import { useGroups } from '@/features/groups/use-ledgers';
+import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
 
 import type { ListFilters, ListGrouping } from '@core/expense-list';
 
@@ -40,6 +43,10 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const tList = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { options } = useCategoryOptions();
+    const { groups } = useGroups();
+    // The groups and friends whose expenses can be in the list, closed ones too
+    const listed = useMemo(() => groupsFirst(groups.filter((group) => group.showInExpenses)), [groups]);
+    const groupOptions = useGroupOptions(listed);
     const search = useRef<HTMLInputElement>(null);
 
     // The button goes with the filters, so the focus goes to the field
@@ -101,6 +108,21 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     value={filters.paidWith}
                     onChange={(paidWith) => onFiltersChange({ paidWith })}
                 />
+                <Field label={t('sharedWith')}>
+                    {(control) => (
+                        <Select
+                            {...control}
+                            label={t('sharedWith')}
+                            options={[
+                                { value: '', label: t('shared.anyone') },
+                                { value: JUST_ME, label: t('shared.me') },
+                                ...groupOptions,
+                            ]}
+                            value={filters.sharedWith}
+                            onChange={(sharedWith) => onFiltersChange({ sharedWith })}
+                        />
+                    )}
+                </Field>
             </Disclosure>
 
             <div className={statusClsx}>
