@@ -46,13 +46,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, 27, shared expenses in your own lists, and 28, simplified debts, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 29. Delete the account
-
-`DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. A user deleted while their session cache is still valid (up to 5 minutes) must get `401` from the profile routes, with a test: today `PUT /api/profile` answers `500` on the foreign key and `readProfile` throws a plain error, which making a group and adding a friend also call. What the tables of groups need from it, in its one batch: blank `shared_members.name` (and close the user's friends and hand over or close the groups they own, or a row keeps `role = 'owner'` with no user) before the `user` row is deleted, since `ON DELETE SET NULL` clears `user_id` then and the user's members can no longer be found; the indexes on `created_by` and `updated_by` keep that `SET NULL` from reading every row.
-
-- `/invitations/read` and `/accept` call `readProfile` for the inviter and the caller, which throws a plain error (500) when the user is gone: add them to the 401 test of the profile routes.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, 27, shared expenses in your own lists, 28, simplified debts, and 29, deleting the account, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 30. The privacy notice
 

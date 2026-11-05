@@ -211,7 +211,22 @@
             "signOut": "Cerrar sesión",
             "signingOut": "Cerrando sesión…",
             "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",
-            "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión."
+            "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión.",
+            "delete": {
+                "open": "Eliminar la cuenta",
+                "title": "¿Eliminar tu cuenta?",
+                "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre. No se puede deshacer.",
+                "stays": "Los gastos compartidos de tus grupos se quedan para los demás, a nombre de «Usuario eliminado».",
+                "backups": "Las copias de seguridad que se guardan para recuperar el servicio caducan solas.",
+                "export": "Descarga antes tus datos",
+                "label": "Tu correo",
+                "hint": "Escribe {email} para confirmar.",
+                "confirm": "Eliminar",
+                "deleting": "Eliminando…",
+                "cancel": "Cancelar",
+                "offline": "Para eliminar tu cuenta hace falta conexión.",
+                "failed": "No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo."
+            }
         }
     },
     "categoryManager": {

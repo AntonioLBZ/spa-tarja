@@ -17,4 +17,13 @@ const rememberSharedWith = (groupId: string): void => {
     }
 };
 
-export { readSharedWith, rememberSharedWith };
+// Once the account is deleted, the group no longer exists for anybody on this device
+const forgetSharedWith = (): void => {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch {
+        // Nothing stored, nothing to forget
+    }
+};
+
+export { forgetSharedWith, readSharedWith, rememberSharedWith };

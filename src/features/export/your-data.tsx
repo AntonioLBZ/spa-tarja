@@ -28,6 +28,9 @@ const COLUMNS = [
     'group',
 ] as const;
 
+// The heading of the section, where the focus goes to download the data before deleting the account
+const YOUR_DATA_ID = 'your-data';
+
 // All the data as JSON and the expenses as CSV, made on the device from what it holds: the cache with the outbox on top.
 // The JSON holds the groups and only the person's own expenses; the CSV adds their part of the shared ones. Nothing is
 // sent (ADR-0001).
@@ -68,7 +71,9 @@ const YourData = () => {
 
     return (
         <section className="your-data">
-            <h2 className="your-data__title">{t('title')}</h2>
+            <h2 className="your-data__title" id={YOUR_DATA_ID} tabIndex={-1}>
+                {t('title')}
+            </h2>
             <p className="your-data__hint">{t('description')}</p>
             {loading && <Notice role="status">{t('loading')}</Notice>}
             {!loading && missing && (
@@ -88,4 +93,4 @@ const YourData = () => {
     );
 };
 
-export { YourData };
+export { YOUR_DATA_ID, YourData };

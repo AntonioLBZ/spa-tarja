@@ -6,6 +6,8 @@ import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
 import { useGroupOutbox, useOutbox, useUserData } from '@/lib/offline';
 
+import { DeleteAccount } from './delete-account';
+
 import './account.css';
 
 const Account = () => {
@@ -48,6 +50,7 @@ const Account = () => {
             <Button block disabled={phase === 'signing-out'} onClick={handleSignOut}>
                 {phase === 'signing-out' ? t('signingOut') : t('signOut')}
             </Button>
+            <DeleteAccount />
         </section>
     );
 };

@@ -211,7 +211,22 @@
             "signOut": "Sign out",
             "signingOut": "Signing out…",
             "signOutFailed": "Couldn't sign out. Signing out needs a connection.",
-            "unsynced": "Some expenses haven't synced yet. They stay on this device until you sign in again."
+            "unsynced": "Some expenses haven't synced yet. They stay on this device until you sign in again.",
+            "delete": {
+                "open": "Delete account",
+                "title": "Delete your account?",
+                "goes": "Your expenses, categories, income, budgets and nickname go for good. This can't be undone.",
+                "stays": "The shared expenses in your groups stay for the others, under “Deleted user”.",
+                "backups": "The backups kept to recover the service expire on their own.",
+                "export": "Download your data first",
+                "label": "Your email",
+                "hint": "Type {email} to confirm.",
+                "confirm": "Delete",
+                "deleting": "Deleting…",
+                "cancel": "Cancel",
+                "offline": "Deleting your account needs a connection.",
+                "failed": "Couldn't delete your account. Check your connection and try again."
+            }
         }
     },
     "categoryManager": {
