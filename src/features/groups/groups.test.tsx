@@ -11,7 +11,7 @@ import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
-import { MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { Handler } from '@/lib/test/render-app';
@@ -344,6 +344,20 @@ describe('making a group', () => {
         expect(screen.queryByRole('list', { name: text.new.people })).toBeNull();
     });
 
+    it('says in words that the closed groups are the most there can be, and keeps what was typed', async () => {
+        const { api } = open();
+        await screen.findByText(text.empty);
+        api.state.groupRefusal = { status: 409, error: 'too-many-closed-groups' };
+        fireEvent.click(newGroupToggle());
+
+        makeGroup('Lisbon');
+
+        expect((await screen.findByRole('alert')).textContent).toBe(
+            t('groups.failure.tooManyClosedGroups', { max: MAX_CLOSED_GROUPS })
+        );
+        expect(field(text.new.name).value).toBe('Lisbon');
+    });
+
     it('says in words why the server refused it, and keeps what was typed', async () => {
         const { api } = open();
         await screen.findByText(text.empty);
@@ -505,6 +519,7 @@ describe('making a group with friends', () => {
         ['already-member', text.failure.alreadyMember],
         ['unknown-friend', text.failure.unknownFriend],
         ['too-many-groups', t('groups.failure.friendTooManyGroups', { max: MAX_OPEN_GROUPS })],
+        ['too-many-closed-groups', t('groups.failure.friendTooManyClosedGroups', { max: MAX_CLOSED_GROUPS })],
     ])(
         'says why a friend could not be added (%s), and finishes the same group when sent again',
         async (error, words) => {

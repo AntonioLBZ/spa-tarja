@@ -1,7 +1,13 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_FRIENDS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH, UNNAMED_PERSON } from '@core/shared-group';
+import {
+    MAX_CLOSED_GROUPS,
+    MAX_FRIENDS,
+    MAX_OPEN_GROUPS,
+    SHARED_NAME_MAX_LENGTH,
+    UNNAMED_PERSON,
+} from '@core/shared-group';
 import { app } from '@server/app';
 import {
     befriend,
@@ -11,6 +17,7 @@ import {
     makeFriend,
     makeGroup,
     memberNamed,
+    seedClosedGroups,
     seedEntry,
     send,
 } from '@server/test/groups';
@@ -308,6 +315,60 @@ describe('PUT /api/groups/:id, a new group', () => {
         expect(await response.json()).toEqual({ error: 'too-many-friends' });
         await makeGroup(ana);
         await makeFriend(bruno);
+    });
+});
+
+describe('PUT /api/groups/:id, over the closed groups of the maker', () => {
+    it(`makes a group for somebody with ${MAX_CLOSED_GROUPS - 1} closed groups, and not for one with ${MAX_CLOSED_GROUPS}`, async () => {
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS - 1);
+        await makeGroup(ana);
+        await seedClosedGroups(ana.userId, 1);
+        const id = crypto.randomUUID();
+
+        const response = await put(ana, id, trip());
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
+        expect(await rows('shared_groups', id)).toBe(0);
+    });
+
+    it('counts the groups they left as well as the ones that were deleted', async () => {
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS / 2, 'deleted');
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS / 2, 'left');
+
+        const response = await put(ana, crypto.randomUUID(), trip());
+
+        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
+    });
+
+    it('refuses a friend too', async () => {
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
+
+        const response = await put(ana, crypto.randomUUID(), {
+            kind: 'direct',
+            currency: 'EUR',
+            me: { id: crypto.randomUUID() },
+            others: [{ id: crypto.randomUUID(), name: 'Bruno' }],
+        });
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
+    });
+
+    it('leaves everybody else alone, and does not count the open groups', async () => {
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
+        for (let made = 0; made < 5; made++) await makeGroup(bruno);
+
+        await makeGroup(bruno);
+        await makeFriend(carla);
+
+        expect((await listGroups(bruno)).filter((group) => group.closed === null)).toHaveLength(6);
+    });
+
+    it('does not count a group that is somebody else’s closed group', async () => {
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        await makeGroup(ana);
     });
 });
 

@@ -1,4 +1,4 @@
-import { onlineManager } from '@tanstack/react-query';
+import { focusManager, onlineManager, useQueryClient } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -145,6 +145,102 @@ describe('useLedgers', () => {
         expect(result.current.outbox.getState().pending).toEqual([]);
         expect(api.requests.filter((request) => request.startsWith('PUT'))).toEqual([]);
         expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([entry]);
+    });
+});
+
+describe('useLedgers, with a closed group', () => {
+    const closed = sampleGroup({ closed: 'deleted', name: 'Old trip' });
+
+    function renderWithClient() {
+        return renderAppHook(() => ({ ...useLedgers(), client: useQueryClient(), outbox: useGroupOutbox() }));
+    }
+
+    function entryRequests(api: ReturnType<typeof createFakeApi>, of: { id: string }) {
+        return api.requests.filter((request) => request.startsWith(`GET /api/groups/${of.id}/entries`));
+    }
+
+    async function comeBack() {
+        if (!vi.isFakeTimers()) vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(Date.now() + 120_000);
+        await act(async () => {
+            focusManager.setFocused(false);
+            focusManager.setFocused(true);
+            onlineManager.setOnline(false);
+            onlineManager.setOnline(true);
+        });
+    }
+
+    it('asks once for its entries, and not again on focus or when the connection returns', async () => {
+        const api = createFakeApi({ groups: [group, closed], entries: [sampleEntry(group), sampleEntry(closed)] });
+        stubApi(api.handler);
+        const { result } = renderWithClient();
+        await waitFor(() => expect(result.current.ledgers.map((ledger) => ledger.hasData)).toEqual([true, true]));
+        expect(entryRequests(api, closed)).toHaveLength(1);
+
+        await comeBack();
+
+        await waitFor(() => expect(entryRequests(api, group).length).toBeGreaterThan(1));
+        expect(entryRequests(api, closed)).toHaveLength(1);
+        expect(result.current.ledgers[1]!.entries.map((entry) => entry.text)).toEqual(['Dinner']);
+    });
+
+    it('asks for no entries on open when the device holds them from a pull made once it was closed', async () => {
+        const first = createFakeApi({ groups: [group, closed], entries: [sampleEntry(closed)] });
+        stubApi(first.handler);
+        const storage = createMemoryStorage();
+        const opened = renderAppHook(() => useLedgers(), { storage });
+        await waitFor(() => expect(opened.result.current.ledgers[1]?.hasData).toBe(true));
+        await waitFor(async () => expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined());
+        opened.unmount();
+        vi.unstubAllGlobals();
+        const second = createFakeApi({ groups: [group, closed], entries: [sampleEntry(closed)] });
+        stubApi(second.handler);
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(Date.now() + 120_000);
+
+        const { result } = renderAppHook(() => useLedgers(), { storage });
+
+        await waitFor(() => expect(entryRequests(second, group)).toHaveLength(1));
+        expect(result.current.ledgers[1]!.entries).toHaveLength(1);
+        expect(entryRequests(second, closed)).toEqual([]);
+    });
+
+    it('asks once more, on the next focus, for a group that closed after the last pull, then stops', async () => {
+        const api = createFakeApi({ groups: [group, sampleGroup({ name: 'Porto' })], entries: [] });
+        const porto = api.groups[1]!;
+        stubApi(api.handler);
+        const { result } = renderWithClient();
+        await waitFor(() => expect(result.current.ledgers.map((ledger) => ledger.hasData)).toEqual([true, true]));
+        expect(entryRequests(api, porto)).toHaveLength(1);
+
+        api.serverWriteEntry(sampleEntry(porto, { text: 'Last one' }), porto.members[1]!.id);
+        porto.closed = 'deleted';
+        await act(() => result.current.client.invalidateQueries({ queryKey: ['groups'] }));
+        await waitFor(() => expect(result.current.ledgers[1]!.group.closed).toBe('deleted'));
+        expect(entryRequests(api, porto)).toHaveLength(1);
+
+        await comeBack();
+        await waitFor(() =>
+            expect(result.current.ledgers[1]!.entries.map((entry) => entry.text)).toEqual(['Last one'])
+        );
+        await comeBack();
+
+        await waitFor(() => expect(entryRequests(api, group).length).toBeGreaterThan(2));
+        expect(entryRequests(api, porto)).toHaveLength(2);
+    });
+
+    it('keeps sending a write of the person waiting for a closed group', async () => {
+        const api = createFakeApi({ groups: [group, closed], entries: [sampleEntry(closed)] });
+        stubApi(api.handler);
+        const { result } = renderWithClient();
+        await waitFor(() => expect(result.current.ledgers[1]?.hasData).toBe(true));
+        api.state.entryRefusal = { status: 503 };
+        vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+
+        await act(() => result.current.outbox.put(sampleEntry(closed)));
+        await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+        await vi.waitFor(() => expect(api.entryAttempts).toHaveLength(1));
     });
 });
 

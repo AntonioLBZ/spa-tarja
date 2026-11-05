@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH } from '@core/shared-group';
 import {
     befriend,
     groupOf,
@@ -9,6 +9,7 @@ import {
     makeFriend,
     makeGroup,
     memberNamed,
+    seedClosedGroups,
     seedEntry,
     send,
 } from '@server/test/groups';
@@ -840,6 +841,54 @@ describe('what is done already in an open group', () => {
         const again = await groupOf(await removeMember(bruno, group.id, brunoId));
 
         expect(again).toMatchObject({ closed: 'left', me: brunoId });
+    });
+});
+
+describe('PUT /api/groups/:groupId/members/:memberId, a friend with closed groups', () => {
+    it(`adds a friend with ${MAX_CLOSED_GROUPS - 1} closed groups, and refuses one with ${MAX_CLOSED_GROUPS}, to the one who adds`, async () => {
+        const group = await makeGroup(ana);
+        const toBruno = await befriend(ana, bruno);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS - 1);
+        await addFriend(ana, group.id, toBruno.id);
+        const other = await makeGroup(ana);
+        await seedClosedGroups(bruno.userId, 1, 'left');
+
+        const response = await putMember(ana, other.id, crypto.randomUUID(), { friend: toBruno.id });
+
+        expect(await error(response, 409)).toBe('too-many-closed-groups');
+        expect((await groupOfAna(other.id)).members).toHaveLength(1);
+    });
+
+    it('refuses to put a friend in place of a dummy, as it does to add one', async () => {
+        const group = await makeGroup(ana, ['Dani']);
+        const toBruno = await befriend(ana, bruno);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        const response = await putMember(ana, group.id, crypto.randomUUID(), {
+            friend: toBruno.id,
+            replaces: memberNamed(group, 'Dani'),
+        });
+
+        expect(await error(response, 409)).toBe('too-many-closed-groups');
+        expect(member(await groupOfAna(group.id), memberNamed(group, 'Dani'))).toMatchObject({ mergedInto: null });
+    });
+
+    it('does not stop the friend from being added by somebody else to a group they are in already, or a dummy from being added', async () => {
+        const group = await makeGroup(ana);
+        const toBruno = await befriend(ana, bruno);
+        const { id } = await addFriend(ana, group.id, toBruno.id);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        await groupOf(await putMember(ana, group.id, id, { friend: toBruno.id }));
+        await addDummy(ana, group.id, 'Dani');
+    });
+
+    it('does not stop a friend with closed groups of the adder', async () => {
+        const group = await makeGroup(ana);
+        const toBruno = await befriend(ana, bruno);
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS - 1);
+
+        await addFriend(ana, group.id, toBruno.id);
     });
 });
 

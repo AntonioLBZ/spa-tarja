@@ -1,7 +1,13 @@
-import { useQueries, useQuery, type QueryObserverResult } from '@tanstack/react-query';
+import {
+    useQueries,
+    useQuery,
+    useQueryClient,
+    type QueryClient,
+    type QueryObserverResult,
+} from '@tanstack/react-query';
 import { useMemo, useSyncExternalStore } from 'react';
 
-import { groupsQuery, type GroupEntriesState } from '@/lib/api';
+import { groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
 import { RETRY_EVERY_MS, groupEntriesQuery, useGroupOutbox, type PendingEntry } from '@/lib/offline';
 import { upsertById } from '@core/expense-merge';
 
@@ -35,10 +41,18 @@ interface Ledger {
     isWaitingForNetwork: boolean;
 }
 
+// Whether a group is synced by the triggers of Query. A closed group no longer changes, so once a pull has seen it closed
+// its entries are all on the device and it is left alone, but for a write of the person still waiting to be sent in it.
+const needsSync = (client: QueryClient, group: SharedGroup, waiting: boolean): boolean => {
+    if (group.closed === null || waiting) return true;
+    return client.getQueryData<GroupEntriesState>(groupEntriesKey(group.id))?.final !== true;
+};
+
 // What a ledger needs of each sync, kept by Query from one render to the next while it doesn't change
 const syncStates = (results: QueryObserverResult<GroupEntriesState>[]) => {
     return results.map((result) => ({
         entries: result.data?.entries,
+        final: result.data?.final === true,
         isError: result.isError,
         isWaitingForNetwork: result.fetchStatus === 'paused',
     }));
@@ -67,6 +81,7 @@ const IN_EXPENSES: LedgerChoice = (group, waiting) => group.showInExpenses || wa
 // every 30 s while it has a write waiting
 const useChosenLedgers = (choose: LedgerChoice) => {
     const outbox = useGroupOutbox();
+    const client = useQueryClient();
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const { groups } = useGroups();
     const chosen = useMemo(
@@ -80,10 +95,14 @@ const useChosenLedgers = (choose: LedgerChoice) => {
         [groups, pending, choose]
     );
     const states = useQueries({
-        queries: chosen.map((group) => ({
-            ...groupEntriesQuery(outbox, group.id),
-            refetchInterval: pending.some((write) => write.groupId === group.id) ? RETRY_EVERY_MS : false,
-        })),
+        queries: chosen.map((group) => {
+            const waiting = pending.some((write) => write.groupId === group.id);
+            return {
+                ...groupEntriesQuery(outbox, group.id),
+                enabled: needsSync(client, group, waiting),
+                refetchInterval: waiting ? RETRY_EVERY_MS : false,
+            };
+        }),
         combine: syncStates,
     });
 
@@ -118,13 +137,15 @@ const useExpenseLedgers = () => useChosenLedgers(IN_EXPENSES);
 // the device doesn't hold the group
 const useLedger = (groupId: string): Ledger | undefined => {
     const outbox = useGroupOutbox();
+    const client = useQueryClient();
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const { groups } = useGroups();
     const group = groups.find((item) => item.id === groupId);
+    const waiting = pending.some((write) => write.groupId === groupId);
     const query = useQuery({
         ...groupEntriesQuery(outbox, groupId),
-        enabled: group !== undefined,
-        refetchInterval: pending.some((write) => write.groupId === groupId) ? RETRY_EVERY_MS : false,
+        enabled: group !== undefined && needsSync(client, group, waiting),
+        refetchInterval: waiting ? RETRY_EVERY_MS : false,
     });
     const entries = query.data?.entries;
     const { isError } = query;

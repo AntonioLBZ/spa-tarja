@@ -4,7 +4,7 @@ import en from '@/assets/locales/en.json';
 import { ApiError } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
-import { MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
 import { LocalRefusal } from './local-refusal';
@@ -35,6 +35,7 @@ describe('failureOf', () => {
         ['not-a-user', 'notAUser'],
         ['not-placeholder', 'notPlaceholder'],
         ['too-many-groups', 'tooManyGroups'],
+        ['too-many-closed-groups', 'tooManyClosedGroups'],
         ['too-many-members', 'tooManyMembers'],
         ['too-many-friends', 'tooManyFriends'],
         ['already-member', 'alreadyMember'],
@@ -53,6 +54,7 @@ describe('failureOf', () => {
 describe('failureOfFriend', () => {
     it('reads a limit of groups as the friend reaching it', () => {
         expect(failureOfFriend(new ApiError(409, 'too-many-groups'))).toBe('friendTooManyGroups');
+        expect(failureOfFriend(new ApiError(409, 'too-many-closed-groups'))).toBe('friendTooManyClosedGroups');
     });
 
     it('reads anything else as failureOf does', () => {
@@ -84,5 +86,9 @@ describe('useFailureWords', () => {
         expect(words('tooManyMembers')).toBe(text.tooManyMembers.replace('{max}', String(MAX_GROUP_MEMBERS)));
         expect(words('tooManyFriends')).toBe(text.tooManyFriends.replace('{max}', String(MAX_FRIENDS)));
         expect(words('friendTooManyGroups')).toBe(text.friendTooManyGroups.replace('{max}', String(MAX_OPEN_GROUPS)));
+        expect(words('tooManyClosedGroups')).toBe(text.tooManyClosedGroups.replace('{max}', String(MAX_CLOSED_GROUPS)));
+        expect(words('friendTooManyClosedGroups')).toBe(
+            text.friendTooManyClosedGroups.replace('{max}', String(MAX_CLOSED_GROUPS))
+        );
     });
 });

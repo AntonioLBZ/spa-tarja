@@ -459,6 +459,8 @@
             "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
             "tooManyFriends": "You have {max} friends, the most there can be. Remove one first.",
             "friendTooManyGroups": "That friend is in {max} open groups, the most there can be.",
+            "tooManyClosedGroups": "You have {max} closed groups, the most there can be, so you can't make or join more.",
+            "friendTooManyClosedGroups": "That friend has {max} closed groups, the most there can be, so they can't join more.",
             "alreadyMember": "That friend is in the group already, or was in it before.",
             "unknownFriend": "That person is no longer your friend.",
             "tooManyMembers": "This group has {max} people, the most it can have.",

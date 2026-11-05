@@ -104,4 +104,23 @@ const seedEntry = async (groupId: string, entry: SeededEntry): Promise<number> =
     return row.seq;
 };
 
-export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, seedEntry, send };
+// Groups already closed for that person, written straight into the tables: deleted, or left by them
+const seedClosedGroups = async (userId: string, count: number, how: 'deleted' | 'left' = 'deleted'): Promise<void> => {
+    const statements: D1PreparedStatement[] = [];
+    for (let made = 0; made < count; made++) {
+        const groupId = crypto.randomUUID();
+        statements.push(
+            env.DB.prepare(
+                `INSERT INTO shared_groups (id, kind, name, currency, created_by, created_at, updated_at, deleted_at)
+                 VALUES (?1, 'group', 'Old', 'EUR', ?2, 1, 1, ?3)`
+            ).bind(groupId, userId, how === 'deleted' ? 2 : null),
+            env.DB.prepare(
+                `INSERT INTO shared_members (id, group_id, user_id, name, role, created_at, claimed_at, left_at, left_seq)
+                 VALUES (?1, ?2, ?3, 'Old', 'owner', 1, 1, ?4, ?5)`
+            ).bind(crypto.randomUUID(), groupId, userId, how === 'left' ? 2 : null, how === 'left' ? 0 : null)
+        );
+    }
+    for (let from = 0; from < statements.length; from += 50) await env.DB.batch(statements.slice(from, from + 50));
+};
+
+export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, seedClosedGroups, seedEntry, send };

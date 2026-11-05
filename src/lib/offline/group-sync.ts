@@ -51,12 +51,16 @@ const pullGroup = async (client: QueryClient, groupId: string): Promise<GroupEnt
     const known = client.getQueryData<GroupEntriesState>(groupEntriesKey(groupId)) ?? { entries: [], cursor: 0 };
     const byId = new Map(known.entries.map((entry) => [entry.id, entry]));
     let cursor = known.cursor;
+    // A closed group no longer changes: a pull that starts once it is known to be closed is the last one it needs
+    const closed = client
+        .getQueryData<SharedGroup[]>(GROUPS_KEY)
+        ?.some((group) => group.id === groupId && group.closed);
 
     for (;;) {
         const page = await fetchEntryChanges(groupId, cursor);
         for (const entry of page.entries) byId.set(entry.id, entry);
         cursor = page.cursor;
-        if (!page.hasMore) return { entries: [...byId.values()], cursor };
+        if (!page.hasMore) return { entries: [...byId.values()], cursor, ...(closed ? { final: true as const } : {}) };
     }
 };
 

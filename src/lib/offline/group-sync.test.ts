@@ -47,6 +47,24 @@ describe('pulling a group', () => {
         expect(state.cursor).toBe(2);
     });
 
+    it('marks the entries as all there will be only once a pull started with the group known to be closed', async () => {
+        const { client, sync } = setup({ entries: [sampleEntry(group)] });
+        expect((await sync()).final).toBeUndefined();
+
+        client.setQueryData<SharedGroup[]>(GROUPS_KEY, [{ ...group, closed: 'deleted' }, other]);
+        const state = await sync();
+
+        expect(state.final).toBe(true);
+        expect(state.entries).toHaveLength(1);
+    });
+
+    it('does not mark the entries of a group the device has no record of as final', async () => {
+        const { client, sync } = setup({ entries: [sampleEntry(group)] });
+        client.removeQueries({ queryKey: GROUPS_KEY });
+
+        expect((await sync()).final).toBeUndefined();
+    });
+
     it('asks only for what changed after its cursor and merges it, edits and deletes of others included', async () => {
         const [a, b] = [sampleEntry(group), sampleEntry(group)];
         const { api, sync } = setup({ entries: [a, b] });

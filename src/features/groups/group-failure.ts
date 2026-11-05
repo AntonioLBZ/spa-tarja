@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ApiError } from '@/lib/api';
-import { MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import { LocalRefusal } from './local-refusal';
 
@@ -20,6 +20,8 @@ type GroupFailure =
     | 'tooManyGroups'
     | 'tooManyFriends'
     | 'friendTooManyGroups'
+    | 'tooManyClosedGroups'
+    | 'friendTooManyClosedGroups'
     | 'alreadyMember'
     | 'unknownFriend'
     | 'tooManyMembers'
@@ -36,6 +38,7 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     'not-placeholder': 'notPlaceholder',
     'too-many-groups': 'tooManyGroups',
     'too-many-friends': 'tooManyFriends',
+    'too-many-closed-groups': 'tooManyClosedGroups',
     'already-member': 'alreadyMember',
     'unknown-friend': 'unknownFriend',
     'too-many-members': 'tooManyMembers',
@@ -51,7 +54,8 @@ const failureOf = (error: unknown): GroupFailure => {
 // A refusal of adding one of the person's friends to a group, where a limit of groups is the friend's
 const failureOfFriend = (error: unknown): GroupFailure => {
     const failure = failureOf(error);
-    return failure === 'tooManyGroups' ? 'friendTooManyGroups' : failure;
+    if (failure === 'tooManyGroups') return 'friendTooManyGroups';
+    return failure === 'tooManyClosedGroups' ? 'friendTooManyClosedGroups' : failure;
 };
 
 const useFailureWords = () => {
@@ -61,6 +65,9 @@ const useFailureWords = () => {
         (failure: GroupFailure) => {
             if (failure === 'tooManyGroups' || failure === 'friendTooManyGroups') {
                 return t(failure, { max: MAX_OPEN_GROUPS });
+            }
+            if (failure === 'tooManyClosedGroups' || failure === 'friendTooManyClosedGroups') {
+                return t(failure, { max: MAX_CLOSED_GROUPS });
             }
             if (failure === 'tooManyFriends') return t(failure, { max: MAX_FRIENDS });
             if (failure === 'tooManyMembers') return t(failure, { max: MAX_GROUP_MEMBERS });

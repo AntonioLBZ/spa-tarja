@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { MAX_CLOSED_GROUPS } from '@core/shared-group';
 import { app } from '@server/app';
 import {
     befriend,
@@ -10,6 +11,7 @@ import {
     makeFriend,
     makeGroup,
     memberNamed,
+    seedClosedGroups,
     seedEntry,
     send,
 } from '@server/test/groups';
@@ -402,6 +404,21 @@ describe('the groups of a deleted account', () => {
         });
         const [seen] = await listGroups(eva);
         expect(seen?.members.find((member) => member.id === evaId)?.role).toBe('owner');
+    });
+
+    it('hands a group over to a user who is at the limit of closed groups, and closes the ones nobody else uses', async () => {
+        const trip = await makeGroup(ana, ['Bruno']);
+        const deserted = await makeGroup(ana, ['Dan']);
+        const brunoId = memberNamed(trip, 'Bruno');
+        await joinAt(brunoId, bruno, 10);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        const response = await deleteAccount(ana);
+
+        expect(response.status).toBe(204);
+        expect(await isClosed(trip.id)).toBe(false);
+        expect(await ownerOf(trip.id)).toBe(brunoId);
+        expect(await isClosed(deserted.id)).toBe(true);
     });
 
     it('closes a group they owned where nobody else uses the app, and leaves it with no owner', async () => {

@@ -11,7 +11,13 @@ import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
-import { MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, type GroupMember, type SharedGroup } from '@core/shared-group';
+import {
+    MAX_CLOSED_GROUPS,
+    MAX_GROUP_MEMBERS,
+    MAX_OPEN_GROUPS,
+    type GroupMember,
+    type SharedGroup,
+} from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.people;
@@ -592,6 +598,7 @@ describe('adding a friend', () => {
         ['unknown-friend', en.groups.failure.unknownFriend],
         ['not-placeholder', en.groups.failure.notPlaceholder],
         ['too-many-groups', t('groups.failure.friendTooManyGroups', { max: MAX_OPEN_GROUPS })],
+        ['too-many-closed-groups', t('groups.failure.friendTooManyClosedGroups', { max: MAX_CLOSED_GROUPS })],
     ])('says in words why the server refused it (%s)', async (error, words) => {
         const { api } = await editWith(trip());
         api.state.groupRefusal = { status: 409, error };

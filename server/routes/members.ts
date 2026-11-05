@@ -4,6 +4,7 @@ import * as v from 'valibot';
 
 import { memberBalances } from '@core/balance';
 import {
+    MAX_CLOSED_GROUPS,
     MAX_OPEN_GROUPS,
     groupIdSchema,
     memberIdSchema,
@@ -12,7 +13,7 @@ import {
     personName,
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
-import { closedFor, countOpenGroups, manages, readGroup, readSharedGroup } from '@server/db/groups';
+import { closedFor, countClosedGroups, countOpenGroups, manages, readGroup, readSharedGroup } from '@server/db/groups';
 import { addFriend, addPlaceholder, findFriend, leaveGroup, mergeMember, renameMember } from '@server/db/members';
 import { readProfile } from '@server/db/profile';
 
@@ -79,6 +80,9 @@ const membersRoutes = new Hono<AppEnv>()
         }
         if ((await countOpenGroups(db, friendUser, 'group')) >= MAX_OPEN_GROUPS) {
             return c.json({ error: 'too-many-groups' }, 409);
+        }
+        if ((await countClosedGroups(db, friendUser)) >= MAX_CLOSED_GROUPS) {
+            return c.json({ error: 'too-many-closed-groups' }, 409);
         }
 
         const person = { userId: friendUser, name: personName(await readProfile(db, friendUser)) };

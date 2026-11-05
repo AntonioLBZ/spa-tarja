@@ -7,6 +7,8 @@ import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
 interface GroupEntriesState {
     entries: LedgerEntry[];
     cursor: number;
+    // The last pull was made once the group was closed for the person, so these are all its entries there will be
+    final?: true;
 }
 
 interface EntryChanges {

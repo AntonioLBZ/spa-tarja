@@ -11,6 +11,10 @@ const MAX_OPEN_GROUPS = 30;
 
 const MAX_FRIENDS = 100;
 
+// Per user, counting the groups and friends that are closed for them, deleted or left: they can't be removed, so a
+// person is not put in more of them than this, nor makes more
+const MAX_CLOSED_GROUPS = 100;
+
 // Counting only the members who haven't left
 const MAX_GROUP_MEMBERS = 30;
 
@@ -154,6 +158,7 @@ interface SharedGroup {
 }
 
 export {
+    MAX_CLOSED_GROUPS,
     MAX_FRIENDS,
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
