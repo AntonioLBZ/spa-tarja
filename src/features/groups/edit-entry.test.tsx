@@ -6,11 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames } from '@/lib/test/select';
 
 import type { PendingEntry } from '@/lib/offline';
+import type { SeededEntry } from '@/lib/test/fake-groups';
 import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
@@ -42,7 +43,7 @@ function dinner(group: SharedGroup, overrides: Partial<Extract<PendingEntry, { k
     });
 }
 
-async function open(group: SharedGroup, entries: PendingEntry[]) {
+async function open(group: SharedGroup, entries: SeededEntry[]) {
     const api = createFakeApi({ groups: [group], entries });
     stubApi(api.handler);
     const app = renderApp({ path: `/groups/${group.id}` });
@@ -394,5 +395,100 @@ describe('duplicating a shared expense', () => {
                 .getAllByRole('checkbox')
                 .map((box) => box.parentElement?.textContent)
         ).toEqual([share.you, 'Bea']);
+    });
+});
+
+describe('editing a settlement', () => {
+    const settle = en.groups.settle;
+
+    function paidYou() {
+        return t('groups.ledger.paidYou', { name: 'Bea' });
+    }
+
+    function settleField(label: string) {
+        return within(document.querySelector<HTMLElement>('.settle-up')!).getByLabelText(label) as HTMLInputElement;
+    }
+
+    it('fills Settle up with who paid whom, the amount and the day, under its own title, which takes the focus', async () => {
+        const group = trip();
+        await open(group, [{ ...sampleSettlement(group, bea.id, ana.id, 500), date: '2026-10-20' }]);
+
+        fireEvent.click(actionOf(paidYou(), 'editItem'));
+
+        const title = screen.getByRole('button', { name: settle.editTitle });
+        expect(title.getAttribute('aria-expanded')).toBe('true');
+        expect(document.activeElement).toBe(title);
+        expect(chosenOption(settle.from)).toBe('Bea');
+        expect(chosenOption(settle.to)).toBe(settle.you);
+        expect(settleField(settle.amount).value).toBe('5.00');
+        expect(settleField(settle.date).value).toBe('2026-10-20');
+        expect(screen.getByRole('button', { name: settle.cancel })).toBeDefined();
+    });
+
+    it('saves under the same id and day it was made, later, then closes with the focus back on the row', async () => {
+        const group = trip();
+        const saved = { ...sampleSettlement(group, bea.id, ana.id, 500), createdAt: 500, updatedAt: 1_000 };
+        const { api } = await open(group, [saved]);
+        fireEvent.click(actionOf(paidYou(), 'editItem'));
+
+        fireEvent.change(settleField(settle.amount), { target: { value: '7' } });
+        fireEvent.click(screen.getByRole('button', { name: settle.save }));
+
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+        expect(api.entryWrites[0]).toMatchObject({
+            id: saved.id,
+            kind: 'settlement',
+            amountCents: 700,
+            paidBy: bea.id,
+            shares: [{ memberId: ana.id, cents: 700 }],
+            createdAt: 500,
+            updatedAt: NOW,
+        });
+        await waitFor(() => expect(document.activeElement).toBe(toggle(paidYou())));
+        expect(screen.getByRole('button', { name: settle.title }).getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('writes nothing on Cancel, and Settle up starts over', async () => {
+        const group = trip();
+        const { api } = await open(group, [sampleSettlement(group, bea.id, ana.id, 500)]);
+        fireEvent.click(actionOf(paidYou(), 'editItem'));
+
+        fireEvent.click(screen.getByRole('button', { name: settle.cancel }));
+
+        await waitFor(() => expect(document.activeElement).toBe(toggle(paidYou())));
+        fireEvent.click(screen.getByRole('button', { name: settle.title }));
+        expect(settleField(settle.amount).value).toBe('');
+        expect(api.entryAttempts).toEqual([]);
+    });
+
+    it('leaves the settlement being edited out of what the hint says is owed', async () => {
+        const group = trip();
+        await open(group, [
+            dinner(group, {
+                amountCents: 2000,
+                shares: [
+                    { memberId: ana.id, cents: 1000 },
+                    { memberId: bea.id, cents: 1000 },
+                ],
+            }),
+            sampleSettlement(group, bea.id, ana.id, 400),
+        ]);
+
+        fireEvent.click(actionOf(paidYou(), 'editItem'));
+
+        const before = t('groups.debts.owesYou', { name: 'Bea', amount: '€10.00' });
+        const after = t('groups.settle.after.owesYou', { name: 'Bea', amount: '€6.00' });
+        expect(screen.getByText(`${before}. ${after}.`)).toBeDefined();
+    });
+
+    it('is off for a settlement with somebody who left', async () => {
+        const gone = person('Dani', { leftAt: 1 });
+        const group = trip({ members: [ana, bea, gone] });
+        await open(group, [sampleSettlement(group, gone.id, ana.id, 500)]);
+
+        expect(
+            actionOf(t('groups.ledger.paidYou', { name: t('groups.names.left', { name: 'Dani' }) }), 'editItem')
+                .disabled
+        ).toBe(true);
     });
 });

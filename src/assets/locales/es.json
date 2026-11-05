@@ -336,7 +336,9 @@
                 "owes": "Con esto, {from} debe {amount} a {to}",
                 "youSettled": "Con esto, quedas en paz con {name}",
                 "settled": "Con esto, {from} y {to} quedan en paz"
-            }
+            },
+            "editTitle": "Editar el pago",
+            "cancel": "Cancelar"
         },
         "share": {
             "with": "Con",

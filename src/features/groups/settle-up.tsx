@@ -7,9 +7,11 @@ import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useLocale } from '@/lib/i18n';
+import { readDuration } from '@/lib/motion';
 import { pairwiseDebts, type Debt } from '@core/balance';
 import { isCalendarDate, toDateString } from '@core/date';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
+import { canonicalMember } from '@core/shared-member';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { newEntry } from './new-entry';
@@ -20,6 +22,8 @@ import type { SharedEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
 import './settle-up.css';
+
+type SettlementEntry = Extract<SharedEntry, { kind: 'settlement' }>;
 
 // A settlement as the form holds it: who pays, who is paid, the amount as typed and the day
 interface SettleDraft {
@@ -35,6 +39,8 @@ interface SettleUpProps {
     group: SharedGroup;
     entries: readonly SharedEntry[];
     form: SettleForm;
+    // Once the edit of a settlement is saved or cancelled, with its id, for its row to take the focus back
+    onEditDone: (entryId: string) => void;
 }
 
 // What the first owes the second, negative when the second owes the first
@@ -58,14 +64,16 @@ const startDraft = (group: SharedGroup, debts: readonly Debt[]): SettleDraft => 
     };
 };
 
-// The state of the form, kept above the balances so that a line can fill it in. A draft of null is the start, which
-// follows the balances until something in it is changed.
+// The state of the form, kept above the balances so that a line can fill it in, or the ledger a settlement to edit. A
+// draft of null is the start, which follows the balances until something in it is changed.
 const useSettleUp = () => {
     const { locale } = useLocale();
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState<SettleDraft | null>(null);
     // How many debts were taken from a line: each one puts the focus on the amount
     const [taken, setTaken] = useState(0);
+    // The settlement the form changes; null while it records a new one
+    const [editing, setEditing] = useState<SettlementEntry | null>(null);
 
     const take = useCallback(
         (debt: Debt) => {
@@ -81,13 +89,44 @@ const useSettleUp = () => {
         [locale]
     );
 
-    return { open, setOpen, draft, setDraft, take, taken };
+    // Back to recording a new one, from the start, closed
+    const stopEditing = useCallback(() => {
+        setEditing(null);
+        setDraft(null);
+        setOpen(false);
+    }, []);
+
+    return {
+        open,
+        setOpen,
+        draft,
+        setDraft,
+        take,
+        taken,
+        editing,
+        // Fills the form with a settlement of the ledger, who paid and who was paid read as the members they are now
+        edit: (entry: SettlementEntry, members: SharedGroup['members']) => {
+            setEditing(entry);
+            setDraft({
+                from: canonicalMember(members, entry.paidBy),
+                to: canonicalMember(members, entry.shares[0]!.memberId),
+                amount: formatAmountInput(entry.amountCents, locale),
+                date: entry.date,
+            });
+            setOpen(true);
+        },
+        // The settlement was deleted: an edit of it is over
+        forget: (entryId: string) => {
+            if (editing?.id === entryId) stopEditing();
+        },
+        stopEditing,
+    };
 };
 
 // Records that one member paid another, through the outbox so that it works offline. It counts for nobody, only in the
 // balances.
 const SettleUp = (props: SettleUpProps) => {
-    const { group, entries, form } = props;
+    const { group, entries, form, onEditDone } = props;
     const t = useTranslations('groups.settle');
     const { locale } = useLocale();
     const words = useGroupWords(group);
@@ -97,11 +136,24 @@ const SettleUp = (props: SettleUpProps) => {
     const [busy, setBusy] = useState(false);
     const toggle = useRef<HTMLButtonElement>(null);
     const amountInput = useRef<HTMLInputElement>(null);
-    const debts = useMemo(() => pairwiseDebts(entries, group.members), [entries, group.members]);
+    const { editing } = form;
+    // What is owed apart from the settlement being changed
+    const debts = useMemo(
+        () => pairwiseDebts(editing ? entries.filter((entry) => entry.id !== editing.id) : entries, group.members),
+        [entries, editing, group.members]
+    );
 
     useEffect(() => {
         if (form.taken > 0) amountInput.current?.focus();
     }, [form.taken]);
+
+    // Editing a settlement brings the form into view and puts the focus on its title, never on a field
+    useEffect(() => {
+        if (!editing) return;
+        const behavior = readDuration('--duration-base') === 0 ? 'instant' : 'smooth';
+        toggle.current?.scrollIntoView({ behavior, block: 'start' });
+        toggle.current?.focus({ preventScroll: true });
+    }, [editing]);
 
     const people = group.members.filter((member) => member.leftAt === null);
     if (people.length < 2) return null;
@@ -161,22 +213,38 @@ const SettleUp = (props: SettleUpProps) => {
 
         setFailure(null);
         setBusy(true);
+        const fields = {
+            kind: 'settlement' as const,
+            text: '',
+            categoryId: null,
+            amountCents: cents,
+            date: draft.date,
+            paidBy: from,
+            split: 'exact' as const,
+            shares: [{ memberId: to, cents }],
+            payment: 'direct' as const,
+            chargeDate: null,
+        };
         try {
+            // An edit keeps the id and the day it was made, and is later than the version it replaces (ADR-0005)
             await save(
                 group.id,
-                newEntry(group, {
-                    kind: 'settlement',
-                    text: '',
-                    categoryId: null,
-                    amountCents: cents,
-                    date: draft.date,
-                    paidBy: from,
-                    split: 'exact',
-                    shares: [{ memberId: to, cents }],
-                    payment: 'direct',
-                    chargeDate: null,
-                })
+                editing
+                    ? {
+                          ...fields,
+                          id: editing.id,
+                          currency: editing.currency,
+                          createdAt: editing.createdAt,
+                          updatedAt: Math.max(Date.now(), editing.updatedAt + 1),
+                          deletedAt: null,
+                      }
+                    : newEntry(group, fields)
             );
+            if (editing) {
+                form.stopEditing();
+                onEditDone(editing.id);
+                return;
+            }
             form.setDraft(null);
             form.setOpen(false);
             toggle.current?.focus();
@@ -188,7 +256,13 @@ const SettleUp = (props: SettleUpProps) => {
     };
 
     return (
-        <Disclosure summary={t('title')} chevron open={form.open} toggleRef={toggle} onOpenChange={form.setOpen}>
+        <Disclosure
+            summary={editing ? t('editTitle') : t('title')}
+            chevron
+            open={form.open}
+            toggleRef={toggle}
+            onOpenChange={form.setOpen}
+        >
             <form className="settle-up" onSubmit={(event) => void handleSubmit(event)}>
                 <Field label={t('from')}>
                     {(control) => (
@@ -237,9 +311,22 @@ const SettleUp = (props: SettleUpProps) => {
                         />
                     )}
                 </Field>
-                <Button block variant="primary" disabled={!valid || busy} type="submit">
-                    {t('save')}
-                </Button>
+                <div className="settle-up__actions">
+                    <Button block variant="primary" disabled={!valid || busy} type="submit">
+                        {t('save')}
+                    </Button>
+                    {editing && (
+                        <Button
+                            block
+                            onClick={() => {
+                                form.stopEditing();
+                                onEditDone(editing.id);
+                            }}
+                        >
+                            {t('cancel')}
+                        </Button>
+                    )}
+                </div>
                 {failure && (
                     <Notice tone="danger" role="alert">
                         {failureWords(failure)}
@@ -250,4 +337,4 @@ const SettleUp = (props: SettleUpProps) => {
     );
 };
 
-export { SettleUp, useSettleUp, type SettleUpProps };
+export { SettleUp, useSettleUp, type SettleUpProps, type SettlementEntry };

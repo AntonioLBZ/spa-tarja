@@ -66,7 +66,7 @@ const GroupView = (props: GroupViewProps) => {
                 <>
                     <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
                     <GroupBalances group={group} entries={entries} onSettle={open ? settle.take : undefined} />
-                    {open && <SettleUp group={group} entries={entries} form={settle} />}
+                    {open && <SettleUp group={group} entries={entries} form={settle} onEditDone={form.setRefocus} />}
                 </>
             )}
             {/* Writing an expense needs no ledger on the device: it goes through the outbox */}
@@ -97,8 +97,12 @@ const GroupView = (props: GroupViewProps) => {
                 <GroupLedger
                     ledger={ledger}
                     onEdit={form.startEdit}
+                    onEditSettlement={(entry) => settle.edit(entry, group.members)}
                     onDuplicate={form.startCopy}
-                    onDeleted={form.forget}
+                    onDeleted={(entryId) => {
+                        form.forget(entryId);
+                        settle.forget(entryId);
+                    }}
                     refocus={form.refocus}
                     onRefocused={() => form.setRefocus(null)}
                 />

@@ -29,7 +29,7 @@ interface LedgerRowProps {
     // Deleted a moment ago, fading out
     leaving: boolean;
     // Without them, as in a closed group, the row has nothing to open
-    onEdit?: (entry: SharedExpenseEntry) => void;
+    onEdit?: (entry: LedgerEntry) => void;
     onDuplicate?: (entry: SharedExpenseEntry) => void;
     onDelete?: (entry: LedgerEntry) => void;
     // What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open
@@ -107,7 +107,7 @@ const LedgerRow = (props: LedgerRowProps) => {
     return (
         <Disclosure as="li" className={rowClsx} chevron toggleRef={focusRef} summary={body}>
             <div className="expense-item__actions">
-                {entry.kind === 'expense' && onEdit && (
+                {onEdit && (
                     <Button
                         ghost
                         aria-describedby={blocked ? reasonId : undefined}

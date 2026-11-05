@@ -336,7 +336,9 @@
                 "owes": "After this, {from} owes {to} {amount}",
                 "youSettled": "After this, you're settled with {name}",
                 "settled": "After this, {from} and {to} are settled"
-            }
+            },
+            "editTitle": "Edit the settlement",
+            "cancel": "Cancel"
         },
         "share": {
             "with": "With",
