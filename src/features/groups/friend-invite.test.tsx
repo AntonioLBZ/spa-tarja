@@ -172,6 +172,21 @@ describe('the invitation of a friend', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.notPlaceholder);
     });
 
+    it('offers to make a link when the one it had could not be read, while online', async () => {
+        const friend = friendWithBruno();
+        const api = createFakeApi({ groups: [friend] });
+        stubApi((url, init) => {
+            const reads = url.pathname === `/api/groups/${friend.id}/invitations` && (init?.method ?? 'GET') === 'GET';
+            return reads ? new Response(null, { status: 500 }) : api.handler(url, init);
+        });
+        renderApp({ path: `/groups/${friend.id}/edit` });
+
+        expect(await screen.findByText(en.groups.invite.loadFailed)).toBeDefined();
+        fireEvent.click(await screen.findByRole('button', { name: en.groups.invite.make }));
+
+        expect(await linkField()).toBeDefined();
+    });
+
     it('is off while offline', async () => {
         openSettings(friendWithBruno());
         const make = (await screen.findByRole('button', { name: en.groups.invite.make })) as HTMLButtonElement;

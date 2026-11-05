@@ -116,7 +116,7 @@ const FriendInvite = (props: FriendInviteProps) => {
                     {copied && <Notice role="status">{t('copied')}</Notice>}
                 </>
             ) : (
-                (invitation.data !== undefined || !online) && (
+                (invitation.data !== undefined || invitation.isError || !online) && (
                     <>
                         {invitation.data?.state === 'declined' && <Notice role="status">{t('declined')}</Notice>}
                         <Button
