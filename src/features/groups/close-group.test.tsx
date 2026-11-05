@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -92,6 +92,29 @@ describe('leaving', () => {
         expect(saved().closed).toBe('left');
     });
 
+    it('leaves once on a double tap', async () => {
+        let deletes = 0;
+        let release: () => void = () => undefined;
+        const held = new Promise<void>((resolve) => (release = resolve));
+        await edit(trip(bea), [], (handler) => async (url, init) => {
+            if (init?.method === 'DELETE') {
+                deletes += 1;
+                await held;
+            }
+            return handler(url, init);
+        });
+
+        fireEvent.click(button(text.leave.button));
+        fireEvent.click(button(text.leave.confirm));
+        fireEvent.click(button(text.leave.confirm));
+        await waitFor(() => expect(deletes).toBe(1));
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        release();
+
+        await closedRows();
+        expect(deletes).toBe(1);
+    });
+
     it('says to settle up first, with the way to do it, when your balance is not zero', async () => {
         const group = trip(bea);
         const { api } = await edit(group, [owed(group, bea)]);
@@ -165,6 +188,17 @@ describe('deleting', () => {
 
         expect(await closedRows()).toEqual([`Lisbon${en.groups.row.deleted}${en.groups.row.shown}`]);
         expect(saved().closed).toBe('deleted');
+    });
+
+    it('deletes once on a double tap', async () => {
+        const { api } = await edit(trip(ana));
+
+        fireEvent.click(button(text.delete.button));
+        fireEvent.click(button(text.delete.confirm));
+        fireEvent.click(button(text.delete.confirm));
+
+        await closedRows();
+        expect(api.groupRequests.filter((request) => request.startsWith('DELETE'))).toHaveLength(1);
     });
 
     it('says to settle up first while another person who uses the app has a balance', async () => {
