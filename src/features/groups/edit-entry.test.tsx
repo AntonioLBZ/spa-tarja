@@ -426,6 +426,18 @@ describe('duplicating a shared expense', () => {
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
     });
+
+    it('is over when the entry being copied is deleted', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
+        expect(heading(form.copyTitle)).toBeDefined();
+
+        fireEvent.click(actionOf('Dinner', 'deleteItem'));
+
+        expect(heading(form.title)).toBeDefined();
+        expect(field(form.amount).value).toBe('');
+    });
 });
 
 describe('editing a settlement', () => {

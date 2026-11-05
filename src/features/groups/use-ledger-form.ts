@@ -43,9 +43,10 @@ const useLedgerForm = () => {
             setEditing(null);
             setCopying(null);
         },
-        // The entry was deleted: an edit of it is over
+        // The entry was deleted: an edit or a copy of it is over
         forget: (entryId: string) => {
             if (editing?.id === entryId) setEditing(null);
+            if (copying?.entry.id === entryId) setCopying(null);
         },
         refocus,
         setRefocus,
