@@ -50,7 +50,7 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Brand size="hero" />
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
-            {deleted?.cleared === true && <Notice role="status">{t('deleted')}</Notice>}
+            {deleted?.cleared === true && <Notice role="alert">{t('deleted')}</Notice>}
             {deleted?.cleared === false && (
                 <Notice tone="danger" role="alert">
                     {t('deletedNotCleared')}

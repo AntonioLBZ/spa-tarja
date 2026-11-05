@@ -302,7 +302,7 @@ describe('delete account', () => {
         confirm(dialog);
 
         expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
-        expect(screen.getByRole('status').textContent).toBe(en.auth.deleted);
+        expect(screen.getByRole('alert').textContent).toBe(en.auth.deleted);
         expect(api.accountDeletions).toEqual([{ email: TEST_USER.email }]);
         for (const key of KEYS) {
             expect(await storage.get(`${key}:${TEST_USER.id}`)).toBeUndefined();

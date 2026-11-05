@@ -252,8 +252,8 @@ describe('sign-in gate', () => {
             act(() => fakeAuth.auth.forget({ cleared: true }));
 
             expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
-            expect(screen.getByRole('status').textContent).toBe(en.auth.deleted);
-            expect(screen.queryByRole('alert')).toBeNull();
+            expect(screen.getByRole('alert').textContent).toBe(en.auth.deleted);
+            expect(screen.queryByText(en.auth.deletedNotCleared)).toBeNull();
             expect(fakeAuth.calls.signOut).toBe(0);
         });
 
