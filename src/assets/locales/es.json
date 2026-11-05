@@ -551,7 +551,7 @@
         "join": {
             "title": "Invitación de amistad",
             "asks": "{name} quiere que seáis amigos.",
-            "what": "Como amigos compartís gastos y veis lo que os debéis, también lo que {name} ya ha apuntado contigo.",
+            "what": "Como amigos compartís gastos y veis lo que os debéis, también lo que {name} ya ha apuntado contigo. Tu parte de esos gastos cuenta en tus propios gastos, incluida la de los gastos anteriores, y puedes quitarla con Mostrar en mis gastos.",
             "accept": "Aceptar",
             "decline": "Rechazar",
             "loading": "Abriendo la invitación…",
