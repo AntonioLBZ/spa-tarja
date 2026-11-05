@@ -52,6 +52,8 @@ Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0
 
 The shared rows in the list, the summary, the charts, the budgets and their warnings (also the one a shared expense brings when it is added or duplicated, for your part, which the form doesn't ask for yet), the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). The filter Shared with is in the list already and keeps a group's rows once they are there; what comes with the rows: the search in the name of the group or the person, and Edit, Duplicate and Delete of a shared row from the list (the add form at home takes the entry through `editingEntry` and `copyingEntry`, with the group of the row as `group`). Nothing at home syncs the groups yet, so an expense shared from the home form is sent once Groups or the group is opened: the shared rows will mount `useLedgers` there. While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
 
+- After an invitation is accepted, every old entry of the claimed dummy becomes the accepter's derived rows, so past months of their summary and budgets change: check what the specs say and, if they are silent, take the smallest reading and tell the owner.
+
 ### 28. Simplified debts
 
 The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`), and so are the column and its change through `PUT /groups/:id` on the server.
@@ -62,6 +64,8 @@ The switch of the group and the simplified view of the balances ([balances](docs
 
 `DELETE /api/account` and the dialog in the settings ([authentication](docs/specs/authentication.md), [settings](docs/specs/settings.md)), tested against a user with expenses, groups they own, groups they are in, open invitations and balances. A user deleted while their session cache is still valid (up to 5 minutes) must get `401` from the profile routes, with a test: today `PUT /api/profile` answers `500` on the foreign key and `readProfile` throws a plain error, which making a group and adding a friend also call. What the tables of groups need from it, in its one batch: blank `shared_members.name` (and close the user's friends and hand over or close the groups they own, or a row keeps `role = 'owner'` with no user) before the `user` row is deleted, since `ON DELETE SET NULL` clears `user_id` then and the user's members can no longer be found; the indexes on `created_by` and `updated_by` keep that `SET NULL` from reading every row.
 
+- `/invitations/read` and `/accept` call `readProfile` for the inviter and the caller, which throws a plain error (500) when the user is gone: add them to the 401 test of the profile routes.
+
 ### 30. The privacy notice
 
 The `Dialog` with the notice, in `en` and `es`, from the settings and from the sign-in screen ([settings](docs/specs/settings.md), [authentication](docs/specs/authentication.md)). It carries the contact of the owner, and needs a read by someone who can judge it before the merge.
@@ -69,3 +73,5 @@ The `Dialog` with the notice, in `en` and `es`, from the settings and from the s
 ### 31. Before the merge
 
 A review of the whole branch by a separate reviewer on Opus 5.5, hunting functional and security failures (authorization on every group, friend, invitation, profile and account route, invitation tokens, account deletion, input validation, rounding, the outbox and `seq` races, leaks of the email or of other people's data), with every finding fixed test first. An accessibility and layout pass at 320 px in both languages and on a real phone (the totals and the notices of a ledger that failed to load have no `role`), the open questions of `DESIGN.md` §8 that the work raised, a run of the migrations on a copy of the production schema, `main` merged into the branch, the ADRs from `Proposed` to `Accepted`, the paragraph about the branch removed from `repository-structure.md`, a decision on a friend taken out of the list of New group and put back, which hits `already-member` for good since a member who left can't be re-added, and the owner's go-ahead. Then the pull request is merged with a merge commit (`gh pr merge --merge`).
+
+- A failed Google sign-in lands on `/?signin=failed` and loses the invitation link from the address bar; an accept answers 200 for a friend that was deleted since (closed group) instead of 410; a `Referrer-Policy` response header is sturdier than the meta tag.
