@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -51,6 +51,7 @@ const PersonRow = (props: PersonRowProps) => {
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
     const focus = useStepFocus(step, 'actions');
+    const questionId = useId();
 
     const name = words.nameOf(member.id);
     const isMe = member.id === group.me;
@@ -115,9 +116,14 @@ const PersonRow = (props: PersonRowProps) => {
         );
     };
 
-    // Cancel, which is where a step that only asks starts
-    const cancel = (asks: boolean) => (
-        <Button ghost ref={asks ? focus.start : undefined} onClick={() => goTo('actions')}>
+    // Cancel, which is where a step that only asks starts; a step with a question has Cancel read it
+    const cancel = (asks: boolean, question = false) => (
+        <Button
+            ghost
+            ref={asks ? focus.start : undefined}
+            aria-describedby={question ? questionId : undefined}
+            onClick={() => goTo('actions')}
+        >
             {t('people.cancel')}
         </Button>
     );
@@ -216,7 +222,9 @@ const PersonRow = (props: PersonRowProps) => {
             )}
             {step === 'merging' && (
                 <>
-                    <p className="person-row__question">{t('people.mergeQuestion', { name })}</p>
+                    <p id={questionId} className="person-row__question">
+                        {t('people.mergeQuestion', { name })}
+                    </p>
                     <Field label={t('people.mergeInto')}>
                         {(control) => (
                             <Select
@@ -238,13 +246,15 @@ const PersonRow = (props: PersonRowProps) => {
                         >
                             {t('people.mergeConfirm')}
                         </Button>
-                        {cancel(false)}
+                        {cancel(false, true)}
                     </div>
                 </>
             )}
             {step === 'handingOver' && (
                 <>
-                    <p className="person-row__question">{t('people.makeOwnerQuestion', { name })}</p>
+                    <p id={questionId} className="person-row__question">
+                        {t('people.makeOwnerQuestion', { name })}
+                    </p>
                     <div className="person-row__actions">
                         <Button
                             ghost
@@ -254,14 +264,14 @@ const PersonRow = (props: PersonRowProps) => {
                         >
                             {t('people.makeOwner')}
                         </Button>
-                        {cancel(true)}
+                        {cancel(true, true)}
                     </div>
                 </>
             )}
             {step === 'removing' && (
                 <>
                     {/* A balance that isn't zero is said before asking; the server still decides */}
-                    <p className="person-row__question">
+                    <p id={questionId} className="person-row__question">
                         {cents ? t('people.unsettled', { name }) : t('people.removeConfirm', { name })}
                     </p>
                     <div className="person-row__actions">
@@ -276,7 +286,7 @@ const PersonRow = (props: PersonRowProps) => {
                                 {t('people.remove')}
                             </Button>
                         )}
-                        {cancel(true)}
+                        {cancel(true, true)}
                     </div>
                 </>
             )}

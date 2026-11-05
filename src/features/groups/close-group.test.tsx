@@ -51,6 +51,14 @@ function button(name: string) {
     return screen.getByRole('button', { name }) as HTMLButtonElement;
 }
 
+function descriptionOf(control: HTMLElement) {
+    return control
+        .getAttribute('aria-describedby')
+        ?.split(' ')
+        .map((id) => document.getElementById(id)?.textContent)
+        .join(' ');
+}
+
 async function closedRows() {
     await screen.findByRole('heading', { level: 1, name: en.groups.title });
     fireEvent.click(await screen.findByRole('button', { name: en.groups.lists.closed }));
@@ -80,6 +88,14 @@ describe('leaving', () => {
         expect(screen.queryByText(text.leave.what)).toBeNull();
         expect(document.activeElement).toBe(button(text.leave.button));
         expect(api.groupRequests).toEqual([]);
+    });
+
+    it('describes Cancel by the question it answers', async () => {
+        await edit(trip(bea));
+
+        fireEvent.click(button(text.leave.button));
+
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.close.leave.question', { name: 'Lisbon' }));
     });
 
     it('opens Groups once it has left, with the group among the closed ones', async () => {
@@ -127,6 +143,16 @@ describe('leaving', () => {
         expect(screen.getByRole('link', { name: text.settleUp }).getAttribute('href')).toBe(`/groups/${group.id}`);
         expect(document.activeElement).toBe(button(text.cancel));
         expect(api.groupRequests).toEqual([]);
+    });
+
+    it('describes Cancel by what it says about the balance', async () => {
+        const group = trip(bea);
+        await edit(group, [owed(group, bea)]);
+        await screen.findByText(t('groups.balance.owe', { amount: euros(1000) }));
+
+        fireEvent.click(button(text.leave.button));
+
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.close.leave.unsettled', { name: 'Lisbon' }));
     });
 
     it('says to settle up first when the server finds a balance the device did not', async () => {
@@ -190,6 +216,14 @@ describe('deleting', () => {
         expect(saved().closed).toBe('deleted');
     });
 
+    it('describes Cancel by the question it answers', async () => {
+        await edit(trip(ana));
+
+        fireEvent.click(button(text.delete.button));
+
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.close.delete.question', { name: 'Lisbon' }));
+    });
+
     it('deletes once on a double tap', async () => {
         const { api } = await edit(trip(ana));
 
@@ -239,6 +273,7 @@ describe('removing a friend', () => {
 
         expect(screen.getByText(t('groups.close.deleteFriend.question', { name: 'Cris' }))).toBeDefined();
         expect(screen.getByText(text.deleteFriend.what)).toBeDefined();
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.close.deleteFriend.question', { name: 'Cris' }));
 
         fireEvent.click(button(text.deleteFriend.confirm));
 

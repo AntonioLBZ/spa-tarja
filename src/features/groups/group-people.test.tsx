@@ -70,6 +70,14 @@ function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement;
 }
 
+function descriptionOf(control: HTMLElement) {
+    return control
+        .getAttribute('aria-describedby')
+        ?.split(' ')
+        .map((id) => document.getElementById(id)?.textContent)
+        .join(' ');
+}
+
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
@@ -184,6 +192,7 @@ describe('removing', () => {
 
         expect(screen.getByText(t('groups.people.removeConfirm', { name: 'Cris' }))).toBeDefined();
         expect(document.activeElement).toBe(button(text.cancel));
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.people.removeConfirm', { name: 'Cris' }));
 
         fireEvent.click(button(t('groups.people.removeItem', { name: 'Cris' })));
 
@@ -222,6 +231,7 @@ describe('removing', () => {
         fireEvent.click(button(t('groups.people.removeItem', { name: 'Bea' })));
 
         expect(screen.getByText(t('groups.people.unsettled', { name: 'Bea' }))).toBeDefined();
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.people.unsettled', { name: 'Bea' }));
         expect(screen.queryByText(t('groups.people.removeConfirm', { name: 'Bea' }))).toBeNull();
         expect(screen.queryByRole('button', { name: t('groups.people.removeItem', { name: 'Bea' }) })).toBeNull();
         expect(api.groupRequests).toEqual([]);
@@ -299,6 +309,7 @@ describe('merging', () => {
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
 
         expect(screen.getByText(t('groups.people.mergeQuestion', { name: 'Cris' }))).toBeDefined();
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.people.mergeQuestion', { name: 'Cris' }));
         expect(document.activeElement).toBe(screen.getByRole('combobox', { name: text.mergeInto }));
         expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone);
         expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
@@ -388,6 +399,7 @@ describe('making someone owner', () => {
 
         expect(screen.getByText(t('groups.people.makeOwnerQuestion', { name: 'Bea' }))).toBeDefined();
         expect(document.activeElement).toBe(button(text.cancel));
+        expect(descriptionOf(button(text.cancel))).toBe(t('groups.people.makeOwnerQuestion', { name: 'Bea' }));
 
         fireEvent.click(button(t('groups.people.makeOwnerItem', { name: 'Bea' })));
 

@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -42,6 +42,7 @@ const CloseGroup = (props: CloseGroupProps) => {
     const [asking, setAsking] = useState<Asking | null>(null);
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
+    const textId = useId();
 
     const way: Way = group.kind === 'direct' ? 'deleteFriend' : isOwner(group) ? 'delete' : 'leave';
     // As the device sees it; a ledger never pulled asks, and the server decides
@@ -92,11 +93,15 @@ const CloseGroup = (props: CloseGroupProps) => {
                 <>
                     {asking === 'question' ? (
                         <>
-                            <p className="close-group__text">{t(`${way}.question`, { name: words.title })}</p>
+                            <p id={textId} className="close-group__text">
+                                {t(`${way}.question`, { name: words.title })}
+                            </p>
                             <p className="close-group__text">{t(`${way}.what`)}</p>
                         </>
                     ) : (
-                        <p className="close-group__text">{t(`${way}.unsettled`, { name: words.title })}</p>
+                        <p id={textId} className="close-group__text">
+                            {t(`${way}.unsettled`, { name: words.title })}
+                        </p>
                     )}
                     <div className="close-group__actions">
                         {asking === 'question' ? (
@@ -113,7 +118,7 @@ const CloseGroup = (props: CloseGroupProps) => {
                                 {t('settleUp')}
                             </ButtonLink>
                         )}
-                        <Button ghost ref={cancel} onClick={() => ask(null)}>
+                        <Button ghost ref={cancel} aria-describedby={textId} onClick={() => ask(null)}>
                             {t('cancel')}
                         </Button>
                     </div>
