@@ -51,6 +51,15 @@ Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0
 
 The add form split into its head and its two tails, the people with `Checkbox`, the three modes, how the payer paid (the card selector enabled only while the payer is the person using the form, as the server refuses a card set for somebody else), only default categories, the filter Shared with, the ledger of a group, edit, duplicate and delete with Undo ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). The ledger also lists the settlements that Settle up writes already ("You paid Bruno"), which are deleted there and never duplicated; the add form goes between the settle up form and the ledger on the screen of a group. `Checkbox` is there already. Entries are written with `useEntryActions`; the outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
 
+What the screens of groups hand on:
+
+- `SettleUp` builds a full `SharedEntry` literal inline; the add form needs the same builder, and a mistyped settlement must be deletable from the ledger.
+- The state of the add form, and of Edit and Duplicate, must be lifted next to `useSettleUp` in `GroupView`.
+- The notice for refused writes must cover settlements too (`member-left`, `closed`, `clock-ahead`).
+- A friend taken out of the list and put back hits `already-member` for good, since a member who left cannot be re-added.
+- The totals and the notices of a ledger that failed to load have no `role`.
+- No story exists for Settle up, the Leave and Delete panels or the steps of a person (to decide with the owner under item 17).
+
 ### 26. Friends by invitation
 
 Migration `0012` for `friend_invitations`, the routes, the join page, the invite button of a friend, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on the join page is worth a rule in Cloudflare.
@@ -62,6 +71,8 @@ The shared rows in the list, the summary, the charts, the budgets and their warn
 ### 28. Simplified debts
 
 The switch of the group and the simplified view of the balances ([balances](docs/specs/balances.md)). The maths is done (`simplifyDebts` in `core/simplify.ts`), and so are the column and its change through `PUT /groups/:id` on the server.
+
+`GroupBalances` and `SettleUp` each call `pairwiseDebts`; the debts of the view must be computed once in `GroupView` and fed to both.
 
 ### 29. Delete the account
 
