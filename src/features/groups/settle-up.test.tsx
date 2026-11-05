@@ -5,10 +5,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { GROUPS_KEY } from '@/lib/api';
+import { GROUPS_KEY, groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { PendingEntry } from '@/lib/offline';
@@ -89,6 +90,10 @@ function choose(label: string, option: string) {
 
 function amount() {
     return screen.getByLabelText(text.amount) as HTMLInputElement;
+}
+
+function date() {
+    return screen.getByLabelText(text.date) as HTMLInputElement;
 }
 
 function save() {
@@ -174,6 +179,104 @@ describe('settling up from a line', () => {
         );
     });
 
+    it('gives each of two settlements saved in a row an id of its own', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        onlineManager.setOnline(false);
+
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        fireEvent.change(amount(), { target: { value: '5' } });
+        fireEvent.click(save());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1000) })));
+        fireEvent.click(save());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(2));
+        const [first, second] = app.groupOutbox.getState().pending;
+        expect(first!.id).not.toBe(second!.id);
+    });
+
+    it('saves once on a double tap', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        onlineManager.setOnline(false);
+
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        fireEvent.click(save());
+        fireEvent.click(save());
+
+        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+        expect(app.groupOutbox.getState().pending).toHaveLength(1);
+    });
+
+    it('saves once when the form is sent twice before the first is kept', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        onlineManager.setOnline(false);
+
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        const form = amount().closest('form')!;
+        fireEvent.submit(form);
+        fireEvent.submit(form);
+
+        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+        expect(app.groupOutbox.getState().pending).toHaveLength(1);
+    });
+
+    it('keeps Save off while the settlement is being kept', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        let release: () => void = () => undefined;
+        const held = new Promise<void>((resolve) => (release = resolve));
+        vi.spyOn(app.groupOutbox, 'put').mockReturnValueOnce(held);
+
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        fireEvent.click(save());
+
+        expect(save().disabled).toBe(true);
+        release();
+        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+    });
+
+    it('saves nothing when the form is sent with a day that is not a day', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        onlineManager.setOnline(false);
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        fireEvent.change(date(), { target: { value: '' } });
+
+        fireEvent.submit(amount().closest('form')!);
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+        expect(amount().value).toBe('15.00');
+    });
+
+    it('keeps the form and says so when the device cannot keep the settlement', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        vi.spyOn(app.groupOutbox, 'put').mockRejectedValueOnce(new Error('Storage is full'));
+
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        fireEvent.click(save());
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.failed);
+        expect(amount().value).toBe('15.00');
+        expect(save().disabled).toBe(false);
+    });
+
+    it('says the group is closed, and keeps the settlement off the device, when it closed as Save was tapped', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+
+        app.queryClient.setQueryData(GROUPS_KEY, [{ ...group, closed: 'deleted' }]);
+        fireEvent.click(save());
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.readOnly);
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+    });
+
     it('may pay more than the debt, which turns it the other way round', async () => {
         const group = trip();
         await open(group, debts(group));
@@ -209,6 +312,68 @@ describe('the form', () => {
         expect(amount().value).toBe('');
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         expect(save().disabled).toBe(true);
+    });
+
+    it('starts on today', async () => {
+        const group = trip();
+        await open(group, debts(group));
+
+        fireEvent.click(toggle());
+
+        expect(date().value).toBe(toDateString(new Date()));
+    });
+
+    it('starts on the one you owe most among several', async () => {
+        const group = trip();
+        await open(group, [
+            expense(group, bea, [
+                [ana, 500],
+                [bea, 500],
+            ]),
+            expense(group, cris, [
+                [ana, 1500],
+                [cris, 1500],
+            ]),
+        ]);
+
+        fireEvent.click(toggle());
+
+        expect(select(text.to).textContent).toBe('Cris');
+        expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Cris', amount: euros(1500) })));
+    });
+
+    it('keeps Save off while the day is not a day', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        expect(save().disabled).toBe(false);
+
+        fireEvent.change(date(), { target: { value: '' } });
+
+        expect(save().disabled).toBe(true);
+    });
+
+    it('keeps what was typed while the balances change under it', async () => {
+        const group = trip();
+        const { api, app } = await open(group, debts(group));
+        fireEvent.click(toggle());
+        choose(text.to, 'Cris');
+        fireEvent.change(amount(), { target: { value: '3' } });
+
+        api.serverWriteEntry(
+            expense(group, bea, [
+                [bea, 800],
+                [cris, 800],
+            ]),
+            bea.id
+        );
+        await act(() => app.queryClient.invalidateQueries({ queryKey: groupEntriesKey(group.id) }));
+
+        await waitFor(() =>
+            expect(lines()).toContain(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(800) }))
+        );
+        expect(select(text.to).textContent).toBe('Cris');
+        expect(amount().value).toBe('3');
     });
 
     it('lists the people who have not left, and keeps what was typed when it is closed and opened again', async () => {
@@ -328,5 +493,34 @@ describe('in Spanish', () => {
         for (const button of buttons) {
             expect(button.getAttribute('aria-label')!.toLowerCase()).toContain(button.textContent!.toLowerCase());
         }
+    });
+});
+
+describe('settling up in Spanish', () => {
+    it('fills in the amount and reads what is typed the Spanish way', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const tEs = createTranslator({ locale: 'es', messages: es });
+        const amountEs = (cents: number) => formatAmount(cents, 'EUR', 'es');
+        const group = trip();
+        const api = createFakeApi({ groups: [group], entries: debts(group) });
+        stubApi(api.handler);
+        const app = renderApp({ path: `/groups/${group.id}` });
+        const debt = tEs('groups.debts.youOwe', { name: 'Bea', amount: amountEs(1500) });
+        const button = await screen.findByRole('button', { name: tEs('groups.settle.lineItem', { debt }) });
+
+        fireEvent.click(button);
+        const field = screen.getByLabelText(es.groups.settle.amount) as HTMLInputElement;
+        expect(field.value).toBe('15,00');
+        fireEvent.change(field, { target: { value: '12,50' } });
+        const hintEs = () =>
+            document.getElementById(field.getAttribute('aria-describedby')!.split(' ')[0]!)!.textContent;
+        expect(hintEs()).toContain(tEs('groups.settle.after.youOwe', { name: 'Bea', amount: amountEs(250) }));
+        fireEvent.change(field, { target: { value: '1.500' } });
+        expect(hintEs()).toContain(tEs('groups.settle.after.owesYou', { name: 'Bea', amount: amountEs(148500) }));
+        fireEvent.change(field, { target: { value: '12,50' } });
+        onlineManager.setOnline(false);
+        fireEvent.click(screen.getByRole('button', { name: es.groups.settle.save }));
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toMatchObject([{ amountCents: 1250 }]));
     });
 });
