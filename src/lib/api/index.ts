@@ -22,5 +22,21 @@ export {
     putMember,
     putMySwitches,
 } from './groups';
+export {
+    acceptInvitation,
+    declineInvitation,
+    deleteFriendInvitation,
+    friendInvitationKey,
+    postFriendInvitation,
+} from './invitations';
 export { PROFILE_KEY, fetchProfile, putProfile } from './profile';
-export { budgetsQuery, categoriesQuery, groupsQuery, healthQuery, incomeQuery, profileQuery } from './queries';
+export {
+    budgetsQuery,
+    categoriesQuery,
+    friendInvitationQuery,
+    groupsQuery,
+    healthQuery,
+    incomeQuery,
+    invitationQuery,
+    profileQuery,
+} from './queries';

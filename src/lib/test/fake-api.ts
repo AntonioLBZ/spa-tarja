@@ -5,7 +5,7 @@ import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-st
 import { profileInputSchema, type Profile } from '@core/profile';
 
 import { TEST_USER } from './fake-auth';
-import { createFakeGroups, type FakeGroupsOptions, type Refusal } from './fake-groups';
+import { createFakeGroups, type FakeGroupsOptions, type FakeGroupsState, type Refusal } from './fake-groups';
 
 import type { Handler } from './render-app';
 import type { Budget, BudgetLimitsInput } from '@core/budget';
@@ -72,6 +72,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         entryRefusal: null as Refusal | null,
         // An entry of a group lands, and then the connection drops before its answer arrives
         loseEntryAnswers: false,
+        // Answers reading, accepting or declining a link with these, instead of doing it
+        linkRefusals: {} as FakeGroupsState['linkRefusals'],
     };
 
     const fakeGroups = createFakeGroups(options, state, profile);
@@ -112,7 +114,9 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             });
         }
 
-        if (url.pathname.startsWith('/api/groups')) return fakeGroups.handle(url, method, init);
+        if (url.pathname.startsWith('/api/groups') || url.pathname.startsWith('/api/invitations/')) {
+            return fakeGroups.handle(url, method, init);
+        }
 
         if (url.pathname === '/api/categories' && method === 'GET') return Response.json({ categories });
 
@@ -238,6 +242,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         entryWrites: fakeGroups.entryWrites,
         entriesOf: fakeGroups.entriesOf,
         cursorOf: fakeGroups.cursorOf,
+        friendInvitations: fakeGroups.friendInvitations,
         serverWriteEntry: fakeGroups.serverWriteEntry,
     };
 };

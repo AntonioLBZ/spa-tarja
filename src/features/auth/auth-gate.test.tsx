@@ -142,6 +142,20 @@ describe('sign-in gate', () => {
             expect(screen.getByRole('button', { name: en.auth.opening })).toBeDefined();
         });
 
+        it('says that signing in opens the invitation the person was sent', async () => {
+            window.history.replaceState(null, '', `/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`);
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+            expect(await screen.findByText(en.auth.invited)).toBeDefined();
+        });
+
+        it('says nothing of an invitation on any other page', async () => {
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+            await screen.findByRole('heading', { name: en.auth.title });
+
+            expect(screen.queryByText(en.auth.invited)).toBeNull();
+        });
+
         it('says nothing of failure on a plain visit', async () => {
             renderApp({ fakeAuth: createFakeAuth({ session: null }) });
             await screen.findByRole('heading', { name: en.auth.title });

@@ -7,7 +7,20 @@ import { createAuthService } from './service';
 
 const ana = { id: 'user-1', name: 'Ana', email: 'ana@example.com' };
 
-afterEach(() => vi.unstubAllGlobals());
+const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+    window.history.replaceState(null, '', '/');
+});
+
+async function callbackFrom(pathname: string) {
+    window.history.replaceState(null, '', pathname);
+    const fetchMock = stubApi(() => Response.json({ url: 'https://accounts.google.com/o/oauth2/auth' }));
+    await createAuthService().startSignIn();
+    const [, init] = fetchMock.mock.calls[0] ?? [];
+    return JSON.parse(String(init?.body)).callbackURL;
+}
 
 describe('auth service', () => {
     describe('getSession', () => {
@@ -78,6 +91,16 @@ describe('auth service', () => {
                 callbackURL: '/',
                 errorCallbackURL: '/?signin=failed',
             });
+        });
+
+        it('comes back to the link of an invitation it was started from', async () => {
+            expect(await callbackFrom(`/join/${TOKEN}`)).toBe(`/join/${TOKEN}`);
+        });
+
+        it('comes back home from any other page, or from a link that is not an invitation', async () => {
+            expect(await callbackFrom('/settings')).toBe('/');
+            expect(await callbackFrom('/join/nonsense')).toBe('/');
+            expect(await callbackFrom(`/join//evil.example/${TOKEN}`)).toBe('/');
         });
 
         it('fails when the server refuses', async () => {

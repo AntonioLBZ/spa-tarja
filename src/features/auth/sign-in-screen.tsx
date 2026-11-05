@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Brand } from '@/components/brand/brand';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
-import { useAuth } from '@/lib/auth';
+import { invitationPath, useAuth } from '@/lib/auth';
 
 import './sign-in-screen.css';
 
@@ -48,6 +48,7 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Brand size="hero" />
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
+            {invitationPath(window.location.pathname) && <Notice>{t('invited')}</Notice>}
             {unreachable && (
                 <Notice tone="danger" role="alert">
                     {t('unreachable')}

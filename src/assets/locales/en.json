@@ -141,7 +141,8 @@
         "opening": "Opening Google…",
         "loading": "Checking your session…",
         "unreachable": "Can't reach Tarja. Check your connection and try again.",
-        "failed": "Couldn't sign you in. Try again."
+        "failed": "Couldn't sign you in. Try again.",
+        "invited": "Sign in to see the invitation you were sent."
     },
     "settings": {
         "title": "Settings",

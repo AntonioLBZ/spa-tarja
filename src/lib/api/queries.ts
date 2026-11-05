@@ -5,6 +5,7 @@ import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 import { GROUPS_KEY, fetchGroups } from './groups';
 import { INCOME_KEY, fetchIncome } from './income';
+import { fetchFriendInvitation, friendInvitationKey, readInvitation } from './invitations';
 import { PROFILE_KEY, fetchProfile } from './profile';
 
 const healthQuery = () => {
@@ -43,4 +44,23 @@ const profileQuery = () => {
     return queryOptions({ queryKey: PROFILE_KEY, queryFn: fetchProfile });
 };
 
-export { budgetsQuery, categoriesQuery, groupsQuery, healthQuery, incomeQuery, profileQuery };
+// The open link of a friend, or that it was declined, which needs a connection and is not kept offline
+const friendInvitationQuery = (groupId: string) => {
+    return queryOptions({ queryKey: friendInvitationKey(groupId), queryFn: () => fetchFriendInvitation(groupId) });
+};
+
+// What the link of an invitation shows, which needs a connection and is not kept offline
+const invitationQuery = (token: string) => {
+    return queryOptions({ queryKey: ['invitation', token], queryFn: () => readInvitation(token) });
+};
+
+export {
+    budgetsQuery,
+    categoriesQuery,
+    friendInvitationQuery,
+    groupsQuery,
+    healthQuery,
+    incomeQuery,
+    invitationQuery,
+    profileQuery,
+};

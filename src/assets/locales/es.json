@@ -141,7 +141,8 @@
         "opening": "Abriendo Google…",
         "loading": "Comprobando tu sesión…",
         "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
-        "failed": "No se pudo iniciar sesión. Inténtalo de nuevo."
+        "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+        "invited": "Inicia sesión para ver la invitación que te han enviado."
     },
     "settings": {
         "title": "Ajustes",
