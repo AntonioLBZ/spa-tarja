@@ -76,6 +76,16 @@ function deleteAccount(as: TestSession, email = 'ana@example.com') {
     return send(as, 'DELETE', '/account', { email });
 }
 
+async function linkOf(as: TestSession, friendId: string) {
+    const response = await send(as, 'POST', `/groups/${friendId}/invitations`);
+    return ((await response.json()) as { invitation: { token: string } }).invitation.token;
+}
+
+async function sharedRows() {
+    const read = async (table: string) => (await env.DB.prepare(`SELECT * FROM ${table} ORDER BY 1`).all()).results;
+    return Promise.all(['shared_groups', 'shared_members', 'shared_entries', 'friend_invitations'].map(read));
+}
+
 describe('DELETE /api/account', () => {
     it('deletes the user, their sessions, their Google account and everything of their own, and answers nothing', async () => {
         await signInAgain(ana);
@@ -165,7 +175,11 @@ describe('DELETE /api/account', () => {
     });
 
     it('is all or nothing: when its last step fails, everything stays as it was', async () => {
-        const before = await rowsOf(ana.userId);
+        const trip = await makeGroup(ana, ['Bruno', 'Dan']);
+        await claim(memberNamed(trip, 'Bruno'), bruno);
+        await seedEntry(trip.id, { paidBy: trip.me, shares: { [memberNamed(trip, 'Bruno')]: 700 } });
+        await linkOf(ana, (await makeFriend(ana, 'Dan')).id);
+        const before = [await rowsOf(ana.userId), await sharedRows()];
         await env.DB.prepare(
             `CREATE TRIGGER refuse_user_delete BEFORE DELETE ON "user" BEGIN SELECT RAISE(ABORT, 'refused'); END`
         ).run();
@@ -174,7 +188,7 @@ describe('DELETE /api/account', () => {
             const response = await deleteAccount(ana);
 
             expect(response.status).toBe(500);
-            expect(await rowsOf(ana.userId)).toEqual(before);
+            expect([await rowsOf(ana.userId), await sharedRows()]).toEqual(before);
         } finally {
             await env.DB.prepare('DROP TRIGGER refuse_user_delete').run();
         }
@@ -264,11 +278,6 @@ describe('the groups of a deleted account', () => {
             entries: await read('SELECT * FROM shared_entries WHERE group_id = ?1 ORDER BY seq'),
             invitations: await read('SELECT * FROM friend_invitations WHERE group_id = ?1 ORDER BY id'),
         };
-    }
-
-    async function linkOf(as: TestSession, friendId: string) {
-        const response = await send(as, 'POST', `/groups/${friendId}/invitations`);
-        return ((await response.json()) as { invitation: { token: string } }).invitation.token;
     }
 
     it('keeps every entry of the others as it was, with the member and the writer no longer anybody', async () => {
@@ -459,16 +468,80 @@ describe('the groups of a deleted account', () => {
         expect(owners?.n).toBe(0);
     });
 
-    it('leaves every group they are not in as it was', async () => {
+    it('leaves every group they are not in as it was, and the open links of others open', async () => {
         const trip = await makeGroup(bruno, ['Carla', 'Dan']);
         await claim(memberNamed(trip, 'Carla'), carla);
         await seedEntry(trip.id, { paidBy: trip.me, shares: { [memberNamed(trip, 'Carla')]: 700 } });
         const friend = await befriend(bruno, carla);
-        await linkOf(bruno, (await makeFriend(bruno, 'Ana')).id);
-        const before = await Promise.all([trip.id, friend.id].map(rowsOfGroup));
+        const waiting = await makeFriend(bruno, 'Ana');
+        await linkOf(bruno, waiting.id);
+        const ids = [trip.id, friend.id, waiting.id];
+        const before = await Promise.all(ids.map(rowsOfGroup));
 
         await deleteAccount(ana);
 
-        expect(await Promise.all([trip.id, friend.id].map(rowsOfGroup))).toEqual(before);
+        const after = await Promise.all(ids.map(rowsOfGroup));
+        expect(after).toEqual(before);
+        expect(after[2]?.invitations).toHaveLength(1);
+        expect(after[2]?.invitations[0]).toMatchObject({ created_by: bruno.userId, revoked_at: null });
+    });
+
+    it('hands a closed group to the user who joined first, and keeps every closed group as it was', async () => {
+        const trip = await makeGroup(ana, ['Carla', 'Bruno']);
+        const [carlaId, brunoId] = ['Carla', 'Bruno'].map((name) => memberNamed(trip, name));
+        await joinAt(carlaId!, carla, 20);
+        await joinAt(brunoId!, bruno, 10);
+        const deserted = await makeGroup(ana, ['Dan']);
+        for (const id of [trip.id, deserted.id]) {
+            await env.DB.prepare('UPDATE shared_groups SET deleted_at = 5, updated_at = 5 WHERE id = ?1')
+                .bind(id)
+                .run();
+        }
+
+        await deleteAccount(ana);
+
+        for (const id of [trip.id, deserted.id]) {
+            expect((await rowsOfGroup(id)).group[0]).toMatchObject({ deleted_at: 5, updated_at: 5 });
+        }
+        expect(await ownerOf(trip.id)).toBe(brunoId);
+        expect(await ownerOf(deserted.id)).toBeNull();
+    });
+
+    it('breaks a tie between members who joined at the same time by their id, not by their user', async () => {
+        const smaller = '00000000-0000-4000-8000-000000000001';
+        const larger = '00000000-0000-4000-8000-000000000002';
+        const body = {
+            kind: 'group',
+            name: 'Trip',
+            currency: 'EUR',
+            me: { id: crypto.randomUUID() },
+            others: [
+                { id: larger, name: 'Carla' },
+                { id: smaller, name: 'Bruno' },
+            ],
+        };
+        const trip = await groupOf(await send(ana, 'PUT', `/groups/${crypto.randomUUID()}`, body));
+        const [low, high] = [carla, bruno].sort((a, b) => (a.userId < b.userId ? -1 : 1));
+        await joinAt(larger, low!, 10);
+        await joinAt(smaller, high!, 10);
+
+        await deleteAccount(ana);
+
+        expect(await ownerOf(trip.id)).toBe(smaller);
+    });
+
+    it('leaves a group they had left as it was, without closing it or handing it over', async () => {
+        const trip = await makeGroup(bruno, ['Ana', 'Dan']);
+        const anaId = memberNamed(trip, 'Ana');
+        await claim(anaId, ana);
+        await leftAt(anaId);
+        await leftAt(trip.me);
+        const before = await rowsOfGroup(trip.id);
+
+        await deleteAccount(ana);
+
+        const after = await rowsOfGroup(trip.id);
+        expect(after.group).toEqual(before.group);
+        expect(await ownerOf(trip.id)).toBe(before.members.find((member) => member.role === 'owner')?.id);
     });
 });
