@@ -315,6 +315,44 @@ describe('a link that cannot be used', () => {
             },
         ],
         [
+            'of a dummy that was claimed',
+            async () => {
+                const { dummy, token } = await invitedFriend();
+                await env.DB.prepare('UPDATE shared_members SET claimed_at = 1 WHERE id = ?1').bind(dummy).run();
+                return token;
+            },
+        ],
+        [
+            'of a dummy that was merged into another member',
+            async () => {
+                const { friend, dummy, token } = await invitedFriend();
+                await env.DB.prepare('UPDATE shared_members SET merged_into = ?2 WHERE id = ?1')
+                    .bind(dummy, friend.me)
+                    .run();
+                return token;
+            },
+        ],
+        [
+            'of a dummy that left',
+            async () => {
+                const { dummy, token } = await invitedFriend();
+                await env.DB.prepare('UPDATE shared_members SET left_at = 1 WHERE id = ?1').bind(dummy).run();
+                return token;
+            },
+        ],
+        [
+            'of a dummy that is a user',
+            async () => {
+                const { dummy, token } = await invitedFriend();
+                await env.DB.batch([
+                    env.DB.prepare('PRAGMA ignore_check_constraints = ON'),
+                    env.DB.prepare('UPDATE shared_members SET user_id = ?2 WHERE id = ?1').bind(dummy, carla.userId),
+                    env.DB.prepare('PRAGMA ignore_check_constraints = OFF'),
+                ]);
+                return token;
+            },
+        ],
+        [
             'of a person who deleted their account',
             async () => {
                 const { token } = await invitedFriend();
