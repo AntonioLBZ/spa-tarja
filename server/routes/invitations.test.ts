@@ -49,7 +49,6 @@ function revoke(as: TestSession, friendId: string) {
     return send(as, 'DELETE', `/groups/${friendId}/invitations`);
 }
 
-// The link of a new invitation for that friend
 async function linkOf(as: TestSession, friendId: string): Promise<string> {
     const invitation = await invitationIn(await invite(as, friendId));
     if (invitation?.state !== 'open') throw new Error('No open invitation');
@@ -79,7 +78,6 @@ function dummyOf(friend: SharedGroup): string {
     return friend.members.find((member) => member.id !== friend.me)?.id ?? '';
 }
 
-// A friend of Ana's by name and the link she made for it
 async function invitedFriend(name = 'Bruno') {
     const friend = await makeFriend(ana, name);
     return { friend, dummy: dummyOf(friend), token: await linkOf(ana, friend.id) };

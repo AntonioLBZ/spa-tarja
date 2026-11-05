@@ -19,7 +19,6 @@ const t = createTranslator({ locale: 'en', messages: en });
 const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
 const PATH = `/join/${TOKEN}`;
 
-// The friend the test user becomes by accepting the link of Carla
 function friendOfCarla() {
     const carla = person('Carla Ruiz', { role: 'owner' });
     const me = person('Ana Pérez');

@@ -15,7 +15,6 @@ const t = createTranslator({ locale: 'en', messages: en });
 
 const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
 
-// A friend of the test user, Ana, whose other side is Bruno, a dummy unless told otherwise
 function friendWithBruno(overrides: Partial<SharedGroup> = {}, claimed = false) {
     const ana = person('Ana', { role: 'owner' });
     return sampleGroup({

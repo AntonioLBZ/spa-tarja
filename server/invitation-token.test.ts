@@ -7,7 +7,6 @@ import { readInvitationToken, signInvitation } from './invitation-token';
 const SECRET = 'a-secret-that-is-long-enough-for-the-tests';
 const ID = '0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f';
 
-// The token with the character at that position of its signature changed
 function altered(token: string, position: number) {
     const at = token.indexOf('.') + 1 + position;
     const replacement = token[at] === 'A' ? 'B' : 'A';
