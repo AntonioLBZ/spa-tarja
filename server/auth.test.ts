@@ -216,7 +216,50 @@ describe('a user deleted while the session is cached', () => {
         expect(await rows('shared_members')).toBe(3);
     });
 
-    it.each(['read', 'accept'])('answers 401 to %s a link', async (action) => {
+    it('answers 401 to reading the entries of a group', async () => {
+        const group = await makeGroup(session);
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'GET', `/groups/${group.id}/entries`);
+
+        expect(response.status).toBe(401);
+    });
+
+    it('answers 401 to writing an entry of a group, and nothing is written', async () => {
+        const group = await makeGroup(session, ['Dan']);
+        const dan = group.members.find((member) => member.id !== group.me)!;
+        const cached = await goneWithCache();
+        const settlement = {
+            kind: 'settlement',
+            text: '',
+            amountCents: 500,
+            currency: 'EUR',
+            date: '2026-10-26',
+            paidBy: dan.id,
+            shares: [{ memberId: group.me, cents: 500 }],
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(cached, 'PUT', `/groups/${group.id}/entries/${crypto.randomUUID()}`, settlement);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_entries')).toBe(0);
+    });
+
+    it('answers 401 to removing a member of a group, and nobody is removed', async () => {
+        const group = await makeGroup(session, ['Dan']);
+        const dan = group.members.find((member) => member.id !== group.me)!;
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'DELETE', `/groups/${group.id}/members/${dan.id}`);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_members')).toBe(2);
+    });
+
+    it.each(['read', 'accept', 'decline'])('answers 401 to %s a link', async (action) => {
         const bruno = await signIn('bruno@example.com', 'Bruno');
         const friend = await makeFriend(bruno, 'Ana');
         const link = (await (await send(bruno, 'POST', `/groups/${friend.id}/invitations`)).json()) as {
