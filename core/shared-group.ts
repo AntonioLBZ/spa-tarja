@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 
+import { DEFAULT_CURRENCY } from './money';
 import { isVisibleText } from './text';
 
 import type { Profile } from './profile';
@@ -52,7 +53,8 @@ const personName = ({ nickname, name }: Profile): string => {
     return UNNAMED_PERSON;
 };
 
-const currencySchema = v.pipe(v.string(), v.regex(/^[A-Z]{3}$/));
+// A group is in the currency of the app, so what the lists add up is always in one
+const currencySchema = v.literal(DEFAULT_CURRENCY);
 
 // The maker is named by the server, after their nickname or their account
 const makerSchema = v.object({ id: memberIdSchema });

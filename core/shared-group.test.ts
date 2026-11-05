@@ -89,6 +89,8 @@ describe('newGroupSchema', () => {
         ],
         ['the maker among the others', { others: [{ id: ANA, name: 'Ana' }] }],
         ['a currency that is not a code', { currency: 'euro' }],
+        ['a code that is not the app’s currency', { currency: 'XXX' }],
+        ['another real currency', { currency: 'USD' }],
         ['no currency', { currency: undefined }],
     ])('refuses %s', (_, overrides) => {
         expect(v.safeParse(newGroupSchema, { ...trip, ...overrides }).success).toBe(false);

@@ -237,6 +237,17 @@ describe('PUT /api/groups/:id, a new group', () => {
     it.each([
         ['a group without a name', trip({ name: undefined })],
         ['a name too long', trip({ name: 'x'.repeat(41) })],
+        ['a currency that is not the app’s', trip({ currency: 'XXX' })],
+        ['a currency that is another real one', trip({ currency: 'USD' })],
+        [
+            'a friend in a currency that is not the app’s',
+            {
+                kind: 'direct',
+                currency: 'XXX',
+                me: { id: crypto.randomUUID() },
+                others: [{ id: crypto.randomUUID(), name: 'Bruno' }],
+            },
+        ],
         [
             'a friend with a name',
             {
@@ -259,6 +270,11 @@ describe('PUT /api/groups/:id, a new group', () => {
 
         expect(response.status).toBe(400);
         expect(await rows('shared_groups', id)).toBe(0);
+    });
+
+    it('makes the group and the friend in the currency of the app', async () => {
+        expect((await makeGroup(ana)).currency).toBe('EUR');
+        expect((await makeFriend(ana)).currency).toBe('EUR');
     });
 
     it('refuses an id that is not a UUID with 400', async () => {
