@@ -49,6 +49,10 @@ The entries of a group on the screen of the group, newest first by day, on `Shee
 - A **settlement**: "Ana paid Bruno", "You paid Ana", "Ana paid you", with the amount, and no category.
 - The panel holds Edit, Duplicate (not for a settlement) and Delete as ghost buttons `--size-4` apart. Show more adds 100 rows at a time.
 
+### What the server refused
+
+A write the server refused for good ([offline sync](offline-sync.md)) is said in a `Notice` with `role="alert"` and a Dismiss beside it, one each: "A change to “Dinner” in Trip was discarded." and why, in words, for `closed`, `member-left`, `unknown-member`, `not-the-payer`, `kind-fixed`, `currency-mismatch`, `unknown-category`, `id-taken` and `clock-ahead` (the clock of the device is ahead: check its date and time), and "The server refused it." for any other. A settlement is named by who paid whom. They show at home under the sync status and on the Groups tab, all of them, and on the screen of a group under its title, those of that group. They live in memory only, so a reload forgets them.
+
 ### In your expenses
 
 - A shared row in the list ([expense list](expense-list.md)) shows your part as the amount, like a restaurant card shows yours, and says in the details the group (or the person, for a friend), who paid and the total when it isn't your part: "Trip to Lisbon · Ana paid €100.00". Its panel holds the same three buttons and they act on the entry of the group.

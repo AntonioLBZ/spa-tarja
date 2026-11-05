@@ -6,6 +6,7 @@ import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { ExpenseForm } from '@/features/expenses/expense-form';
 
+import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
 import { GroupGate } from './group-gate';
 import { myBalance } from './my-balance';
@@ -46,6 +47,7 @@ const GroupView = (props: GroupViewProps) => {
     return (
         <section className="group-screen">
             <h1 className="group-screen__title">{words.title}</h1>
+            <EntryRefusals groupId={group.id} />
             {hasData && (
                 <>
                     <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>

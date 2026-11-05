@@ -7,6 +7,7 @@ import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { AddFriend } from './add-friend';
+import { EntryRefusals } from './entry-refusals';
 import { GroupList } from './group-list';
 import { myBalance } from './my-balance';
 import { NewGroup } from './new-group';
@@ -36,6 +37,7 @@ const Groups = () => {
         <section className="groups">
             <h1 className="groups__title">{t('title')}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
+            <EntryRefusals />
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.loadFailed')}</Notice>}
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
             <NewGroup disabled={!online} />

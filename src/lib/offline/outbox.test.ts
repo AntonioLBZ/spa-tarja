@@ -122,6 +122,29 @@ describe('outbox', () => {
         expect(outbox.getState().rejected).toEqual([]);
     });
 
+    it('lets the user dismiss one refusal and keeps the others', async () => {
+        const { outbox } = await openOutbox();
+        const [first, second] = [expense('a'), expense('b')];
+        await outbox.putAll([first, second]);
+        await outbox.reject(first, 'closed');
+        await outbox.reject(second, 'clock-ahead');
+
+        outbox.dismissRejection(outbox.getState().rejected[0]!);
+
+        expect(outbox.getState().rejected).toEqual([{ item: second, code: 'clock-ahead' }]);
+    });
+
+    it('keeps no refusal on the device, so a reload forgets them', async () => {
+        const { outbox, storage } = await openOutbox();
+        const sent = expense('a');
+        await outbox.put(sent);
+        await outbox.reject(sent, 'closed');
+
+        const { outbox: reloaded } = await openOutbox(storage);
+
+        expect(reloaded.getState()).toEqual({ pending: [], rejected: [] });
+    });
+
     it('keeps a version edited while the older one was being refused, and counts nothing', async () => {
         const { outbox } = await openOutbox();
         const sent = expense('a', { updatedAt: 1 });

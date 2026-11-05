@@ -502,6 +502,29 @@
             },
             "cancel": "Cancel",
             "settleUp": "Settle up"
+        },
+        "ledger": {
+            "title": "Expenses",
+            "youPaidTo": "You paid {name}",
+            "paidYou": "{name} paid you",
+            "paid": "{from} paid {to}"
+        },
+        "refused": {
+            "change": "A change to “{name}” in {group} was discarded.",
+            "elsewhere": "A change to a group that isn't on this device was discarded.",
+            "reason": {
+                "closed": "The group is closed.",
+                "memberLeft": "Someone in it has left the group.",
+                "unknownMember": "Someone in it isn't in the group.",
+                "notThePayer": "Only the person who paid can say they paid by card.",
+                "kindFixed": "An expense can't become a settlement, nor a settlement an expense.",
+                "currencyMismatch": "Its currency isn't the group's.",
+                "unknownCategory": "Its category isn't one of the default ones.",
+                "idTaken": "It clashes with an entry of another group.",
+                "clockAhead": "The clock of this device is ahead. Check its date and time, then enter it again.",
+                "other": "The server refused it."
+            },
+            "dismiss": "Dismiss"
         }
     },
     "summary": {

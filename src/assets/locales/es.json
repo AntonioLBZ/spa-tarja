@@ -502,6 +502,29 @@
             },
             "cancel": "Cancelar",
             "settleUp": "Saldar cuentas"
+        },
+        "ledger": {
+            "title": "Gastos",
+            "youPaidTo": "Pagaste a {name}",
+            "paidYou": "{name} te pagó",
+            "paid": "{from} pagó a {to}"
+        },
+        "refused": {
+            "change": "Se descartó un cambio en «{name}» de {group}.",
+            "elsewhere": "Se descartó un cambio en un grupo que no está en este dispositivo.",
+            "reason": {
+                "closed": "El grupo está cerrado.",
+                "memberLeft": "Alguien que participa ha salido del grupo.",
+                "unknownMember": "Alguien que participa no está en el grupo.",
+                "notThePayer": "Solo quien pagó puede indicar que pagó con tarjeta.",
+                "kindFixed": "Un gasto no puede pasar a ser un pago, ni un pago a ser un gasto.",
+                "currencyMismatch": "Su moneda no es la del grupo.",
+                "unknownCategory": "Su categoría no es una de las predeterminadas.",
+                "idTaken": "Coincide con un apunte de otro grupo.",
+                "clockAhead": "El reloj de este dispositivo va adelantado. Revisa la fecha y la hora, y vuelve a introducirlo.",
+                "other": "El servidor lo rechazó."
+            },
+            "dismiss": "Cerrar"
         }
     },
     "summary": {

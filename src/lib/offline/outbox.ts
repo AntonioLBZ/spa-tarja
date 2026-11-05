@@ -41,6 +41,8 @@ interface Outbox<T extends OutboxItem> {
     // Forget a write the server refused for good, unless it was edited again meanwhile, and keep why
     reject: (sent: T, code: string | null) => Promise<void>;
     dismissRejected: () => void;
+    // Forget one of them, the others staying
+    dismissRejection: (rejection: Rejection<T>) => void;
 }
 
 const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: string): Outbox<T> => {
@@ -100,6 +102,8 @@ const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: strin
         settle: (sent) => forget(sent, null),
         reject: (sent, code) => forget(sent, { item: sent, code }),
         dismissRejected: () => commit({ ...state, rejected: [] }),
+        dismissRejection: (rejection) =>
+            commit({ ...state, rejected: state.rejected.filter((candidate) => candidate !== rejection) }),
     };
 };
 

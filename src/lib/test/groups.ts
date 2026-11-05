@@ -64,6 +64,28 @@ const sampleEntry = (group: SharedGroup, overrides: Partial<SharedExpense> = {})
     };
 };
 
+// A settlement of the group: the first member paid the second the amount
+const sampleSettlement = (group: SharedGroup, from: string, to: string, cents: number): PendingEntry => {
+    return {
+        id: crypto.randomUUID(),
+        groupId: group.id,
+        kind: 'settlement',
+        text: '',
+        categoryId: null,
+        amountCents: cents,
+        currency: group.currency,
+        date: '2026-10-25',
+        paidBy: from,
+        split: 'exact',
+        shares: [{ memberId: to, cents }],
+        payment: 'direct',
+        chargeDate: null,
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+    };
+};
+
 // What the test user's device kept of the groups and their entries the last time it heard from the server
 const leaveCopy = async (storage: KeyValueStorage, groups: SharedGroup[], entries: PendingEntry[]) => {
     const source = new QueryClient();
@@ -82,4 +104,4 @@ const leaveCopy = async (storage: KeyValueStorage, groups: SharedGroup[], entrie
     });
 };
 
-export { leaveCopy, person, sampleEntry, sampleGroup };
+export { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement };
