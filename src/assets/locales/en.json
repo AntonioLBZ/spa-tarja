@@ -335,7 +335,9 @@
         },
         "share": {
             "with": "With",
-            "none": "You have no groups or friends yet. Make one in Groups to share an expense.",
+            "newPerson": "New person…",
+            "newPersonOffline": "You're offline. Connect to add a person.",
+            "none": "You have no groups or friends yet. Add the person you share it with.",
             "paidBy": "Paid by",
             "split": "Split",
             "modes": {

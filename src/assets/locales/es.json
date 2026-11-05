@@ -335,7 +335,9 @@
         },
         "share": {
             "with": "Con",
-            "none": "Aún no tienes grupos ni amigos. Crea uno en Grupos para compartir un gasto.",
+            "newPerson": "Persona nueva…",
+            "newPersonOffline": "No tienes conexión. Conéctate para añadir a una persona.",
+            "none": "Aún no tienes grupos ni amigos. Añade a la persona con la que lo compartes.",
             "paidBy": "Pagado por",
             "split": "Reparto",
             "modes": {

@@ -144,7 +144,7 @@ describe('the choice For', () => {
 
         fireEvent.click(forChoice(form.forShared));
 
-        expect(optionNames(share.with)).toEqual(['Trip', 'Dani']);
+        expect(optionNames(share.with)).toEqual(['Trip', 'Dani', share.newPerson]);
     });
 
     it('starts With on the group used last on this device', async () => {
@@ -715,5 +715,78 @@ describe('a group that closes while the form is open', () => {
         expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.readOnly);
         expect(app.groupOutbox.getState().pending).toEqual([]);
         await waitFor(() => expect(screen.getByText(share.none)).toBeDefined());
+    });
+});
+
+describe('New person…', () => {
+    it('makes a friend by name on the spot and shares the expense with them', async () => {
+        const { api, app } = await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        pickOption(share.with, share.newPerson);
+        expect(addButton().disabled).toBe(true);
+        fireEvent.change(field(en.groups.friend.name), { target: { value: 'Dani' } });
+        fireEvent.click(screen.getByRole('button', { name: en.groups.friend.submit }));
+
+        await waitFor(() => expect(chosenOption(share.with)).toBe('Dani'));
+        expect(rows()).toEqual([`${share.you}${euros(500)}`, `Dani${euros(500)}`]);
+        const dani = api.groups.find((group) => group.kind === 'direct')!;
+        onlineManager.setOnline(false);
+        fireEvent.click(addButton());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toMatchObject([{ groupId: dani.id }]));
+    });
+
+    it('makes the friend with Enter in the name, and adds no expense', async () => {
+        const { api, app } = await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickOption(share.with, share.newPerson);
+
+        fireEvent.change(field(en.groups.friend.name), { target: { value: 'Dani' } });
+        fireEvent.keyDown(field(en.groups.friend.name), { key: 'Enter' });
+
+        await waitFor(() => expect(chosenOption(share.with)).toBe('Dani'));
+        expect(api.groups.filter((group) => group.kind === 'direct')).toHaveLength(1);
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+    });
+
+    it('refuses a name with nothing that shows before sending it', async () => {
+        const { api } = await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        pickOption(share.with, share.newPerson);
+
+        fireEvent.change(field(en.groups.friend.name), { target: { value: '   ' } });
+        fireEvent.click(screen.getByRole('button', { name: en.groups.friend.submit }));
+
+        expect(within(theForm()).getByRole('alert').textContent).toBe(en.groups.nameInvalid);
+        expect(api.groupRequests).toEqual([]);
+    });
+
+    it('is off offline and says why, while the groups on the device still work', async () => {
+        await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+
+        pickOption(share.with, share.newPerson);
+
+        expect(field(en.groups.friend.name).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: en.groups.friend.submit }) as HTMLButtonElement).disabled).toBe(
+            true
+        );
+        expect(screen.getByText(share.newPersonOffline)).toBeDefined();
+        pickOption(share.with, 'Trip');
+        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
+    });
+
+    it('is there under the hint when there is no group or friend yet', async () => {
+        await openHome([]);
+        fireEvent.click(forChoice(form.forShared));
+
+        fireEvent.change(field(en.groups.friend.name), { target: { value: 'Dani' } });
+        fireEvent.click(screen.getByRole('button', { name: en.groups.friend.submit }));
+
+        await waitFor(() => expect(chosenOption(share.with)).toBe('Dani'));
+        expect(screen.queryByText(share.none)).toBeNull();
     });
 });
