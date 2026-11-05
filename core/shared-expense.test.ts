@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
+import { TOTAL_SCOPE, spentFor } from './budget';
+import { budgetWarning } from './budget-warning';
+import { spendingTotal } from './charts';
 import { countedCents, countedOn, paidBackCents, voucherIncomeOn } from './counting';
 import { NO_FILTERS, buildList, type ListContext } from './expense-list';
-import { sharedExpenseRows, yourPart, type SharedLedger } from './shared-expense';
+import { sharedExpenseRows, yourPart, type SharedExpenseEntry, type SharedLedger } from './shared-expense';
 import { summarizeMonth } from './summary';
 import { seededRandom } from './test/random';
 import { mergeMember, randomGroup } from './test/random-group';
 
 import type { Expense, Payment } from './expense';
 import type { SharedEntry } from './shared-entry';
+import type { GroupMember } from './shared-group';
 
 const GROUPS = 500;
 
@@ -18,7 +22,7 @@ const members = [
     { id: 'carla', mergedInto: null },
 ];
 
-function dinner(paidBy: string, shares: Record<string, number>, payment: Payment = 'direct'): SharedEntry {
+function dinner(paidBy: string, shares: Record<string, number>, payment: Payment = 'direct'): SharedExpenseEntry {
     const list = Object.entries(shares).map(([memberId, cents]) => ({ memberId, cents }));
     return {
         id: 'dinner',
@@ -285,6 +289,137 @@ describe('sharedExpenseRows', () => {
                 `seed ${seed}`
             ).toBe(true);
         }
+    });
+});
+
+describe('your part of a shared expense in the summary, the charts, the budgets and the list', () => {
+    const categoryOf = (categoryId: string) => categoryId;
+    const ctx: ListContext = { categoryOf, labelOf: (id) => id };
+    const october = { from: '2026-10-01', to: '2026-10-31' };
+    const november = { from: '2026-11-01', to: '2026-11-30' };
+
+    function lastDayOfOctober(paidBy: string, payment: Payment, id: string): SharedExpenseEntry {
+        return { ...dinner(paidBy, thirds, payment), id, date: '2026-10-31', chargeDate: '2026-11-02' };
+    }
+
+    function month(name: string, rows: Expense[]) {
+        const { spentCents, voucherCents, paidBackCents } = summarizeMonth(name, rows, null);
+        return { spentCents, voucherCents, paidBackCents };
+    }
+
+    function counts(rows: Expense[]) {
+        return {
+            october: month('2026-10', rows),
+            november: month('2026-11', rows),
+            budgetOctober: spentFor(rows, TOTAL_SCOPE, '2026-10', categoryOf),
+            budgetNovember: spentFor(rows, TOTAL_SCOPE, '2026-11', categoryOf),
+            chartOctober: spendingTotal(rows, { range: october, categoryId: null }),
+            chartNovember: spendingTotal(rows, { range: november, categoryId: null }),
+            list: buildList(rows, NO_FILTERS, 'day', ctx).map((day) => [day.key, day.totalCents]),
+        };
+    }
+
+    it('counts on the day made when somebody else paid by credit card, and on the day charged when you did', () => {
+        const rows = sharedExpenseRows([
+            ledger([lastDayOfOctober('bruno', 'credit', 'theirs'), lastDayOfOctober('ana', 'credit', 'mine')]),
+        ]);
+
+        expect(counts(rows)).toEqual({
+            october: { spentCents: 3000, voucherCents: 0, paidBackCents: 0 },
+            november: { spentCents: 3000, voucherCents: 0, paidBackCents: 0 },
+            budgetOctober: 3000,
+            budgetNovember: 3000,
+            chartOctober: 3000,
+            chartNovember: 3000,
+            list: [['2026-10-31', 6000]],
+        });
+    });
+
+    it('counts your restaurant card part as spent on the day made, the rest paid back then, and income when charged', () => {
+        const rows = sharedExpenseRows([ledger([lastDayOfOctober('ana', 'voucher', 'card')])]);
+
+        expect(counts(rows)).toEqual({
+            october: { spentCents: 3000, voucherCents: 0, paidBackCents: 6000 },
+            november: { spentCents: 0, voucherCents: 3000, paidBackCents: 0 },
+            budgetOctober: 3000,
+            budgetNovember: 0,
+            chartOctober: 3000,
+            chartNovember: 0,
+            list: [['2026-10-31', 3000]],
+        });
+    });
+
+    it('counts nothing for an expense you are out of, for a settlement or from a group whose switch is off', () => {
+        const rows = sharedExpenseRows([
+            ledger([
+                dinner('bruno', { bruno: 4500, carla: 4500 }),
+                settlement('ana', 'bruno'),
+                { ...settlement('bruno', 'ana'), id: 'back' },
+            ]),
+            ledger([{ ...dinner('bruno', thirds), id: 'hidden' }], { groupId: 'work', showInExpenses: false }),
+        ]);
+
+        expect(counts(rows)).toEqual({
+            october: { spentCents: 0, voucherCents: 0, paidBackCents: 0 },
+            november: { spentCents: 0, voucherCents: 0, paidBackCents: 0 },
+            budgetOctober: 0,
+            budgetNovember: 0,
+            chartOctober: 0,
+            chartNovember: 0,
+            list: [],
+        });
+    });
+
+    it('keeps counting your part once the payer has left the group, or you have', () => {
+        const people = (left: string): GroupMember[] =>
+            members.map((member) => ({
+                ...member,
+                name: member.id,
+                role: member.id === 'ana' ? 'owner' : 'member',
+                claimed: true,
+                leftAt: member.id === left ? 9 : null,
+            }));
+
+        for (const left of ['bruno', 'ana']) {
+            const rows = sharedExpenseRows([ledger([dinner('bruno', thirds)], { members: people(left) })]);
+
+            expect(summarizeMonth('2026-10', rows, null).spentCents, left).toBe(3000);
+            expect(spentFor(rows, 'food', '2026-10', categoryOf), left).toBe(3000);
+        }
+    });
+
+    it('counts the part of a dummy merged into you, as yours', () => {
+        const rows = sharedExpenseRows([
+            ledger([dinner('bruno', { ana: 1000, dummy: 2000, bruno: 6000 })], {
+                members: [...members, { id: 'dummy', mergedInto: 'ana' }],
+            }),
+        ]);
+
+        expect(summarizeMonth('2026-10', rows, null).spentCents).toBe(3000);
+        expect(spendingTotal(rows, { range: october, categoryId: 'food' })).toBe(3000);
+    });
+
+    it('warns for your part alone, in the month it counts in', () => {
+        const before = [personal({ amountCents: 5000, date: '2026-11-01' })];
+        const limit = [{ month: '2026-10', scope: 'food', amountCents: 10_000, currency: 'EUR' }];
+        const warn = (entry: SharedEntry) =>
+            budgetWarning({
+                before,
+                added: sharedExpenseRows([ledger([entry])]),
+                budgets: limit,
+                income: [],
+                scopes: [TOTAL_SCOPE, 'food'],
+                categoryOf,
+            });
+
+        expect(warn(lastDayOfOctober('ana', 'credit', 'mine'))).toEqual({
+            kind: 'near',
+            month: '2026-11',
+            scope: 'food',
+            percent: 80,
+        });
+        expect(warn(lastDayOfOctober('bruno', 'credit', 'theirs'))).toBeNull();
+        expect(warn(settlement('ana', 'bruno'))).toBeNull();
     });
 });
 
