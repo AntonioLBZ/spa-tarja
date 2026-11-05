@@ -36,8 +36,8 @@ import type { SharedGroup } from '@core/shared-group';
 
 import './shared-tail.css';
 
-// The shared tail as the form holds it while it is open. The group, the payer and who is out are ids, which may stop
-// naming somebody who can take part: then they read as where the form starts.
+// The shared tail as the form holds it while it is open. The group and who is out are ids, which may stop naming
+// somebody who can take part: then they read as where the form starts. A payer who stops being there is not replaced.
 interface SharedDraft {
     // Picked in With; null is the one used last
     groupId: string | null;
@@ -215,7 +215,9 @@ const useSharedTail = (
     // Those who can take part: a member who left, or was merged, can't
     const present = group?.members.filter((member) => member.leftAt === null) ?? [];
     const me = group?.me ?? null;
-    const payer = present.find((member) => member.id === draft.paidBy)?.id ?? me;
+    // Null is nobody yet: the one who paid is gone, and a payer is never guessed
+    const payer = draft.paidBy === null ? me : (present.find((member) => member.id === draft.paidBy)?.id ?? null);
+    const payerGone = draft.paidBy !== null && payer === null;
     const payerIsMe = payer !== null && payer === me;
     const inIds = present.filter((member) => !draft.out.includes(member.id)).map((member) => member.id);
     const amount = totalCents !== null && totalCents >= 1 ? totalCents : null;
@@ -249,7 +251,13 @@ const useSharedTail = (
         payerIsMe &&
         payment.payment !== 'direct' &&
         (shares ? !shares.some((share) => share.memberId === me) : !inIds.includes(me));
-    const valid = group !== undefined && shares !== null && shares.length > 0 && problem === null && !cardWithoutYou;
+    const valid =
+        group !== undefined &&
+        payer !== null &&
+        shares !== null &&
+        shares.length > 0 &&
+        problem === null &&
+        !cardWithoutYou;
 
     // What each member who can take part shows: nothing when out; else, split equally, their share once there is an
     // amount, and otherwise what is typed for them
@@ -271,6 +279,7 @@ const useSharedTail = (
         asking: draft.asking,
         present,
         payer,
+        payerGone,
         payerIsMe,
         cardWithoutYou,
         rows,
@@ -374,6 +383,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
     const nameOf = (memberId: string) => (memberId === group.me ? t('you') : words.nameOf(memberId));
     const { mode, problem } = tail;
     const byPercent = mode === 'percent';
+    const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
     const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
     const percent = (basisPoints: number) =>
         new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
@@ -382,14 +392,19 @@ const SharedPeople = (props: SharedPeopleProps) => {
 
     return (
         <>
-            <Field label={t('paidBy')}>
+            <Field label={t('paidBy')} hint={tail.payerGone ? t('payerLeft') : undefined}>
                 {(control) => (
                     <Select
                         {...control}
                         label={t('paidBy')}
-                        options={tail.present.map((member) => ({ value: member.id, label: nameOf(member.id) }))}
-                        value={tail.payer ?? group.me}
-                        onChange={tail.pickPayer}
+                        options={[
+                            ...nobodyYet,
+                            ...tail.present.map((member) => ({ value: member.id, label: nameOf(member.id) })),
+                        ]}
+                        value={tail.payer ?? ''}
+                        onChange={(value) => {
+                            if (value !== '') tail.pickPayer(value);
+                        }}
                     />
                 )}
             </Field>

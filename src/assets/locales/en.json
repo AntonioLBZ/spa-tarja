@@ -346,6 +346,8 @@
             "newPersonOffline": "You're offline. Connect to add a person.",
             "none": "You have no groups or friends yet. Add the person you share it with.",
             "paidBy": "Paid by",
+            "paidByNone": "Choose who paid",
+            "payerLeft": "The person who paid has left the group.",
             "split": "Split",
             "modes": {
                 "equal": "Equally",

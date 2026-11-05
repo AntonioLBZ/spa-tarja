@@ -8,7 +8,7 @@ import { groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { chosenOption, optionNames } from '@/lib/test/select';
+import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -395,6 +395,36 @@ describe('duplicating a shared expense', () => {
                 .getAllByRole('checkbox')
                 .map((box) => box.parentElement?.textContent)
         ).toEqual([share.you, 'Bea']);
+    });
+
+    it('starts without a payer when the one who paid has left, and saves once somebody present is chosen', async () => {
+        const gone = person('Dani', { leftAt: 1 });
+        const group = trip({ members: [ana, bea, gone] });
+        const { api } = await open(group, [
+            dinner(group, {
+                paidBy: gone.id,
+                shares: [
+                    { memberId: ana.id, cents: 500 },
+                    { memberId: bea.id, cents: 500 },
+                ],
+            }),
+        ]);
+
+        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
+
+        expect(chosenOption(share.paidBy)).toBe(share.paidByNone);
+        expect(optionNames(share.paidBy)).toEqual([share.paidByNone, share.you, 'Bea']);
+        expect(screen.getByText(share.payerLeft)).toBeDefined();
+        const submit = screen.getByRole('button', { name: form.submit }) as HTMLButtonElement;
+        expect(submit.disabled).toBe(true);
+
+        pickOption(share.paidBy, 'Bea');
+
+        expect(screen.queryByText(share.payerLeft)).toBeNull();
+        expect(submit.disabled).toBe(false);
+        fireEvent.click(submit);
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+        expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
     });
 });
 

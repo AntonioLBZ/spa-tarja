@@ -346,6 +346,8 @@
             "newPersonOffline": "No tienes conexión. Conéctate para añadir a una persona.",
             "none": "Aún no tienes grupos ni amigos. Añade a la persona con la que lo compartes.",
             "paidBy": "Pagado por",
+            "paidByNone": "Elige quién pagó",
+            "payerLeft": "Quien pagó ha salido del grupo.",
             "split": "Reparto",
             "modes": {
                 "equal": "A partes iguales",
