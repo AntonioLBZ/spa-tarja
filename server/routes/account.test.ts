@@ -2,7 +2,17 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { send } from '@server/test/groups';
+import {
+    befriend,
+    claim,
+    groupOf,
+    listGroups,
+    makeFriend,
+    makeGroup,
+    memberNamed,
+    seedEntry,
+    send,
+} from '@server/test/groups';
 import { cachedSession, signIn, signInAgain, type TestSession } from '@server/test/session';
 
 // Where each table keeps the user a row belongs to
@@ -168,5 +178,297 @@ describe('DELETE /api/account', () => {
         } finally {
             await env.DB.prepare('DROP TRIGGER refuse_user_delete').run();
         }
+    });
+});
+
+describe('the groups of a deleted account', () => {
+    let carla: TestSession;
+    let eva: TestSession;
+
+    beforeEach(async () => {
+        carla = await signIn('carla@example.com', 'Carla');
+        eva = await signIn('eva@example.com', 'Eva');
+    });
+
+    function dinner(paidBy: string, shares: Record<string, number>) {
+        const list = Object.entries(shares).map(([memberId, cents]) => ({ memberId, cents }));
+        return {
+            kind: 'expense',
+            text: 'Dinner',
+            categoryId: 'food',
+            amountCents: list.reduce((sum, share) => sum + share.cents, 0),
+            currency: 'EUR',
+            date: '2026-10-25',
+            paidBy,
+            split: 'exact',
+            shares: list,
+            createdAt: 1_000,
+            updatedAt: 1_000,
+            deletedAt: null,
+        };
+    }
+
+    function settlement(paidBy: string, to: string, cents: number) {
+        return {
+            kind: 'settlement',
+            text: '',
+            amountCents: cents,
+            currency: 'EUR',
+            date: '2026-10-26',
+            paidBy,
+            shares: [{ memberId: to, cents }],
+            createdAt: 2_000,
+            updatedAt: 2_000,
+            deletedAt: null,
+        };
+    }
+
+    async function joinAt(memberId: string, as: TestSession, claimedAt: number) {
+        await env.DB.prepare(
+            `UPDATE shared_members SET user_id = ?2, claimed_at = ?3, name = (SELECT name FROM "user" WHERE id = ?2)
+             WHERE id = ?1`
+        )
+            .bind(memberId, as.userId, claimedAt)
+            .run();
+    }
+
+    async function leftAt(memberId: string) {
+        await env.DB.prepare('UPDATE shared_members SET left_at = 5, left_seq = 0 WHERE id = ?1').bind(memberId).run();
+    }
+
+    async function membersOf(groupId: string) {
+        const { results } = await env.DB.prepare(
+            'SELECT id, user_id, name, role FROM shared_members WHERE group_id = ?1 ORDER BY created_at, id'
+        )
+            .bind(groupId)
+            .all<{ id: string; user_id: string | null; name: string; role: string }>();
+        return results;
+    }
+
+    async function isClosed(groupId: string) {
+        const row = await env.DB.prepare('SELECT deleted_at FROM shared_groups WHERE id = ?1')
+            .bind(groupId)
+            .first<{ deleted_at: number | null }>();
+        return row?.deleted_at !== null;
+    }
+
+    async function ownerOf(groupId: string) {
+        return (await membersOf(groupId)).find((member) => member.role === 'owner')?.id ?? null;
+    }
+
+    async function rowsOfGroup(groupId: string) {
+        const read = async (sql: string) => (await env.DB.prepare(sql).bind(groupId).all()).results;
+        return {
+            group: await read('SELECT * FROM shared_groups WHERE id = ?1'),
+            members: await read('SELECT * FROM shared_members WHERE group_id = ?1 ORDER BY id'),
+            entries: await read('SELECT * FROM shared_entries WHERE group_id = ?1 ORDER BY seq'),
+            invitations: await read('SELECT * FROM friend_invitations WHERE group_id = ?1 ORDER BY id'),
+        };
+    }
+
+    async function linkOf(as: TestSession, friendId: string) {
+        const response = await send(as, 'POST', `/groups/${friendId}/invitations`);
+        return ((await response.json()) as { invitation: { token: string } }).invitation.token;
+    }
+
+    it('keeps every entry of the others as it was, with the member and the writer no longer anybody', async () => {
+        const trip = await makeGroup(bruno, ['Ana', 'Dan']);
+        const anaId = memberNamed(trip, 'Ana');
+        const dan = memberNamed(trip, 'Dan');
+        await claim(anaId, ana);
+        const written = await send(
+            ana,
+            'PUT',
+            `/groups/${trip.id}/entries/${crypto.randomUUID()}`,
+            dinner(anaId, { [anaId]: 1000, [trip.me]: 1000, [dan]: 1000 })
+        );
+        expect(written.status).toBe(200);
+        await seedEntry(trip.id, { paidBy: trip.me, shares: { [anaId]: 500, [trip.me]: 500 } });
+        const before = await rowsOfGroup(trip.id);
+
+        await deleteAccount(ana);
+
+        const after = await rowsOfGroup(trip.id);
+        expect(after.entries).toEqual(
+            before.entries.map((entry) => ({
+                ...entry,
+                created_by: entry.created_by === ana.userId ? null : entry.created_by,
+                updated_by: entry.updated_by === ana.userId ? null : entry.updated_by,
+            }))
+        );
+        const [group] = await listGroups(bruno);
+        expect(group?.closed).toBeNull();
+        expect(group?.members.find((member) => member.id === anaId)).toEqual({
+            id: anaId,
+            name: '',
+            role: 'member',
+            claimed: true,
+            leftAt: null,
+            mergedInto: null,
+        });
+        const ledger = await send(bruno, 'GET', `/groups/${trip.id}/entries`);
+        expect(ledger.status).toBe(200);
+        const { entries } = (await ledger.json()) as { entries: Array<{ paidBy: string; createdBy: string | null }> };
+        expect(entries.find((entry) => entry.paidBy === anaId)?.createdBy).toBeNull();
+    });
+
+    it('lets the others settle what that member owed, and remove them once it is zero', async () => {
+        const trip = await makeGroup(bruno, ['Ana']);
+        const anaId = memberNamed(trip, 'Ana');
+        await claim(anaId, ana);
+        await seedEntry(trip.id, { paidBy: trip.me, shares: { [anaId]: 1500 } });
+
+        await deleteAccount(ana);
+
+        const remove = () => send(bruno, 'DELETE', `/groups/${trip.id}/members/${anaId}`);
+        expect((await remove()).status).toBe(409);
+        const settled = await send(
+            bruno,
+            'PUT',
+            `/groups/${trip.id}/entries/${crypto.randomUUID()}`,
+            settlement(anaId, trip.me, 1500)
+        );
+        expect(settled.status).toBe(200);
+        await groupOf(await remove());
+    });
+
+    it('hands a group they owned to the user who joined first and is still in it', async () => {
+        const trip = await makeGroup(ana, ['Carla', 'Bruno', 'Eva', 'Dan']);
+        const [carlaId, brunoId, evaId] = ['Carla', 'Bruno', 'Eva'].map((name) => memberNamed(trip, name));
+        await joinAt(carlaId!, carla, 10);
+        await joinAt(brunoId!, bruno, 30);
+        await joinAt(evaId!, eva, 20);
+        await leftAt(carlaId!);
+
+        await deleteAccount(ana);
+
+        expect(await isClosed(trip.id)).toBe(false);
+        expect(await ownerOf(trip.id)).toBe(evaId);
+        expect((await membersOf(trip.id)).find((member) => member.id === trip.me)).toEqual({
+            id: trip.me,
+            user_id: null,
+            name: '',
+            role: 'member',
+        });
+        const [seen] = await listGroups(eva);
+        expect(seen?.members.find((member) => member.id === evaId)?.role).toBe('owner');
+    });
+
+    it('closes a group they owned where nobody else uses the app, and leaves it with no owner', async () => {
+        const dummies = await makeGroup(ana, ['Dan']);
+        const deserted = await makeGroup(ana, ['Bruno']);
+        const brunoId = memberNamed(deserted, 'Bruno');
+        await joinAt(brunoId, bruno, 10);
+        await leftAt(brunoId);
+
+        await deleteAccount(ana);
+
+        for (const group of [dummies, deserted]) {
+            expect(await isClosed(group.id)).toBe(true);
+            expect(await ownerOf(group.id)).toBeNull();
+        }
+        const [seen] = await listGroups(bruno);
+        expect(seen?.closed).toBe('left');
+    });
+
+    it('closes a friend whose other side is a dummy, and revokes its open link', async () => {
+        const friend = await makeFriend(ana, 'Dan');
+        const token = await linkOf(ana, friend.id);
+
+        await deleteAccount(ana);
+
+        expect(await isClosed(friend.id)).toBe(true);
+        const [invitation] = (await rowsOfGroup(friend.id)).invitations;
+        expect(invitation).toMatchObject({ created_by: null, accepted_at: null });
+        expect(invitation?.revoked_at).not.toBeNull();
+        expect((await send(bruno, 'POST', '/invitations/read', { token })).status).toBe(410);
+    });
+
+    it('keeps a friend with somebody who uses the app open, and that person owns it', async () => {
+        const made = await befriend(ana, bruno);
+        const joined = await befriend(carla, ana);
+
+        await deleteAccount(ana);
+
+        expect(await isClosed(made.id)).toBe(false);
+        expect(await ownerOf(made.id)).toBe(made.b);
+        expect(await isClosed(joined.id)).toBe(false);
+        expect(await ownerOf(joined.id)).toBe(joined.a);
+        const [friend] = await listGroups(bruno);
+        expect(friend?.members.find((member) => member.id === made.a)).toMatchObject({ name: '', role: 'member' });
+    });
+
+    it('closes a friend whose other side had deleted their account before', async () => {
+        const friend = await befriend(bruno, ana);
+        await deleteAccount(bruno, 'bruno@example.com');
+        expect(await isClosed(friend.id)).toBe(false);
+        expect(await ownerOf(friend.id)).toBe(friend.b);
+
+        await deleteAccount(ana);
+
+        expect(await isClosed(friend.id)).toBe(true);
+        expect(await ownerOf(friend.id)).toBeNull();
+        expect((await membersOf(friend.id)).map((member) => [member.user_id, member.name])).toEqual([
+            [null, ''],
+            [null, ''],
+        ]);
+    });
+
+    it('keeps an invitation they accepted as accepted, by nobody', async () => {
+        const friend = await makeFriend(bruno, 'Ana');
+        expect((await send(ana, 'POST', '/invitations/accept', { token: await linkOf(bruno, friend.id) })).status).toBe(
+            200
+        );
+
+        await deleteAccount(ana);
+
+        const [invitation] = (await rowsOfGroup(friend.id)).invitations;
+        expect(invitation).toMatchObject({ accepted_by: null, revoked_at: null });
+        expect(invitation?.accepted_at).not.toBeNull();
+        expect(await isClosed(friend.id)).toBe(false);
+    });
+
+    it('names them nowhere in the shared tables, and leaves no owner without a user', async () => {
+        const trip = await makeGroup(ana, ['Bruno', 'Dan']);
+        await claim(memberNamed(trip, 'Bruno'), bruno);
+        await send(
+            ana,
+            'PUT',
+            `/groups/${trip.id}/entries/${crypto.randomUUID()}`,
+            dinner(trip.me, { [trip.me]: 900 })
+        );
+        await linkOf(ana, (await makeFriend(ana, 'Dan')).id);
+        const theirs = await makeFriend(carla, 'Ana');
+        await send(ana, 'POST', '/invitations/accept', { token: await linkOf(carla, theirs.id) });
+        await makeGroup(ana);
+
+        await deleteAccount(ana);
+
+        const named = await env.DB.prepare(
+            `SELECT (SELECT COUNT(*) FROM shared_groups WHERE created_by = ?1)
+                + (SELECT COUNT(*) FROM shared_members WHERE user_id = ?1 OR created_by = ?1)
+                + (SELECT COUNT(*) FROM shared_entries WHERE created_by = ?1 OR updated_by = ?1)
+                + (SELECT COUNT(*) FROM friend_invitations WHERE created_by = ?1 OR accepted_by = ?1) AS n`
+        )
+            .bind(ana.userId)
+            .first<{ n: number }>();
+        expect(named?.n).toBe(0);
+        const owners = await env.DB.prepare(
+            "SELECT COUNT(*) AS n FROM shared_members WHERE role = 'owner' AND user_id IS NULL"
+        ).first<{ n: number }>();
+        expect(owners?.n).toBe(0);
+    });
+
+    it('leaves every group they are not in as it was', async () => {
+        const trip = await makeGroup(bruno, ['Carla', 'Dan']);
+        await claim(memberNamed(trip, 'Carla'), carla);
+        await seedEntry(trip.id, { paidBy: trip.me, shares: { [memberNamed(trip, 'Carla')]: 700 } });
+        const friend = await befriend(bruno, carla);
+        await linkOf(bruno, (await makeFriend(bruno, 'Ana')).id);
+        const before = await Promise.all([trip.id, friend.id].map(rowsOfGroup));
+
+        await deleteAccount(ana);
+
+        expect(await Promise.all([trip.id, friend.id].map(rowsOfGroup))).toEqual(before);
     });
 });
