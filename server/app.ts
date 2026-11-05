@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 
 import { createAuth } from '@server/auth';
+import { withFramingHeaders } from '@server/headers';
 import { withUser } from '@server/user';
 
 import { accountRoutes } from './routes/account';
@@ -19,6 +20,7 @@ import type { AppEnv } from '@server/env';
 // Chained so `typeof app` carries the route types to the SPA's `hc` client
 const app = new Hono<AppEnv>()
     .basePath('/api')
+    .use(withFramingHeaders)
     .get('/health', async (c) => {
         const row = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>();
         return c.json({ ok: row?.ok === 1 });

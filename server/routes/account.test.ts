@@ -136,6 +136,8 @@ describe('DELETE /api/account', () => {
         const response = await deleteAccount(ana);
 
         const cookies = response.headers.getSetCookie();
+        expect(cookies).toHaveLength(3);
+        expect(response.headers.get('x-frame-options')).toBe('DENY');
         for (const name of ['better-auth.session_token', 'better-auth.session_data']) {
             const cookie = cookies.find((candidate) => candidate.startsWith(`${name}=`));
             expect(cookie).toMatch(new RegExp(`^${name}=;`));
