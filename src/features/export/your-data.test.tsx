@@ -1,5 +1,5 @@
 import { QueryClient, dehydrate, onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
@@ -698,6 +698,61 @@ describe('while the groups are loading', () => {
 
         await waitFor(() => expect(csv().disabled).toBe(false));
         expect((await press(en.settings.data.csv)).text).toContain('Dinner');
+    });
+
+    const advance = (ms: number) => act(() => vi.advanceTimersByTimeAsync(ms));
+
+    const stall = async (path: (pathname: string) => boolean, options: Parameters<typeof createFakeApi>[0]) => {
+        const api = createFakeApi(options);
+        stubApi((url, init) => {
+            if (path(url.pathname)) return new Promise<Response>(() => undefined);
+            return api.handler(url, init);
+        });
+        vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+        const app = renderApp({ path: '/settings' });
+        await advance(1_000);
+        await vi.waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
+    };
+
+    it('stops waiting after ten seconds for a request that never answers, and says what is left out', async () => {
+        await stall((pathname) => pathname.endsWith('/entries'), {
+            expenses: [expense({ text: 'Mine' })],
+            groups: [trip()],
+        });
+
+        expect(screen.getByText(en.settings.data.loading)).toBeDefined();
+        expect(csv().disabled).toBe(true);
+
+        await advance(5_000);
+
+        expect(csv().disabled).toBe(true);
+
+        await advance(6_000);
+
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        expect(screen.getByText(en.settings.data.missing).getAttribute('role')).toBe('status');
+        expect(json().disabled).toBe(false);
+        expect(csv().disabled).toBe(false);
+
+        vi.useRealTimers();
+        const backup = JSON.parse((await press(en.settings.data.json)).text);
+        expect(backup.groups).toEqual([]);
+        expect(backup.expenses).toHaveLength(1);
+    });
+
+    it('stops waiting after ten seconds for the groups too', async () => {
+        await stall((pathname) => pathname === '/api/groups', {
+            expenses: [expense({ text: 'Mine' })],
+            groups: [trip()],
+        });
+
+        expect(json().disabled).toBe(true);
+
+        await advance(11_000);
+
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        expect(json().disabled).toBe(false);
+        expect(csv().disabled).toBe(false);
     });
 
     it('leaves out a group whose expenses cannot be had, says so, and exports the rest', async () => {
