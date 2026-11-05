@@ -375,7 +375,7 @@
         "friend": {
             "title": "Add a friend",
             "name": "Their name",
-            "nameHint": "They don't need the app. Once they're your friend, you can invite them.",
+            "nameHint": "By name. They don't need the app.",
             "submit": "Add the friend"
         },
         "nameInvalid": "Write a name with at least one character that shows.",

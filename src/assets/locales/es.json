@@ -375,7 +375,7 @@
         "friend": {
             "title": "Añadir un amigo",
             "name": "Su nombre",
-            "nameHint": "No necesita la app. Cuando sea tu amigo, podrás enviarle una invitación.",
+            "nameHint": "Por su nombre. No necesita la app.",
             "submit": "Añadir a tus amigos"
         },
         "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",
