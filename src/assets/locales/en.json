@@ -189,6 +189,8 @@
             "description": "Download a copy of your data: everything in a JSON file, or just the expenses in a CSV file that opens in a spreadsheet. They are made on this device, so they work offline.",
             "json": "All your data (JSON)",
             "csv": "Only the expenses (CSV)",
+            "loading": "Loading the expenses of your groups so they go in the files…",
+            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the files.",
             "columns": {
                 "date": "Date",
                 "text": "Text",

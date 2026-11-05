@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Notice } from '@/components/notice/notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
@@ -39,7 +40,7 @@ const YourData = () => {
     const { data: categories = [] } = useQuery(categoriesQuery());
     const { data: income = [] } = useQuery(incomeQuery());
     const { data: budgets = [] } = useQuery(budgetsQuery());
-    const { ledgers, titles } = useExportGroups();
+    const { ledgers, titles, loading, missing } = useExportGroups();
 
     const downloadJson = () => {
         const now = new Date();
@@ -69,11 +70,17 @@ const YourData = () => {
         <section className="your-data">
             <h2 className="your-data__title">{t('title')}</h2>
             <p className="your-data__hint">{t('description')}</p>
+            {loading && <Notice role="status">{t('loading')}</Notice>}
+            {!loading && missing && (
+                <Notice tone="danger" role="status">
+                    {t('missing')}
+                </Notice>
+            )}
             <div className="your-data__actions">
-                <Button block onClick={downloadJson}>
+                <Button block disabled={loading} onClick={downloadJson}>
                     {t('json')}
                 </Button>
-                <Button block onClick={downloadCsv}>
+                <Button block disabled={loading} onClick={downloadCsv}>
                     {t('csv')}
                 </Button>
             </div>

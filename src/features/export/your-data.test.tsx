@@ -1,10 +1,11 @@
-import { onlineManager } from '@tanstack/react-query';
+import { QueryClient, dehydrate, onlineManager } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, GROUPS_KEY, INCOME_KEY, groupEntriesKey } from '@/lib/api';
+import { PERSIST_BUSTER, createPersister, createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
@@ -642,6 +643,146 @@ describe('the shared expenses in the CSV file', () => {
             `2026-10-25;Cena;${es.categories.food};40,00;EUR;${es.expenses.payment.direct};;20,00;;Viaje`,
             '',
         ]);
+    });
+});
+
+describe('while the groups are loading', () => {
+    const json = () => screen.getByRole('button', { name: en.settings.data.json }) as HTMLButtonElement;
+    const csv = () => screen.getByRole('button', { name: en.settings.data.csv }) as HTMLButtonElement;
+
+    const settings = async (app: ReturnType<typeof renderApp>) => {
+        await screen.findByRole('heading', { name: en.settings.data.title });
+        await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
+    };
+
+    it('waits for the groups, with both buttons off and a notice that says what for', async () => {
+        const group = trip();
+        const api = createFakeApi({ groups: [group], entries: [sampleEntry(group, { text: 'Dinner' })] });
+        stubApi(api.handler);
+        const release = api.hold();
+        renderApp({ path: '/settings' });
+        await screen.findByRole('heading', { name: en.settings.data.title });
+
+        expect(screen.getByText(en.settings.data.loading).getAttribute('role')).toBe('status');
+        expect(json().disabled).toBe(true);
+        expect(csv().disabled).toBe(true);
+
+        release();
+
+        await waitFor(() => expect(json().disabled).toBe(false));
+        expect(csv().disabled).toBe(false);
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        const file = await press(en.settings.data.json);
+        expect(JSON.parse(file.text).groups).toHaveLength(1);
+    });
+
+    it('waits for the entries of a group too', async () => {
+        const group = trip();
+        const api = createFakeApi({ groups: [group], entries: [sampleEntry(group, { text: 'Dinner' })] });
+        let release: () => void = () => undefined;
+        const gate = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        stubApi(async (url, init) => {
+            if (url.pathname.endsWith('/entries')) await gate;
+            return api.handler(url, init);
+        });
+        const app = renderApp({ path: '/settings' });
+        await settings(app);
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+
+        expect(screen.getByText(en.settings.data.loading)).toBeDefined();
+        expect(csv().disabled).toBe(true);
+
+        release();
+
+        await waitFor(() => expect(csv().disabled).toBe(false));
+        expect((await press(en.settings.data.csv)).text).toContain('Dinner');
+    });
+
+    it('leaves out a group whose expenses cannot be had, says so, and exports the rest', async () => {
+        const lost = trip({ name: 'Lost' });
+        const found = trip({ name: 'Found' });
+        const api = createFakeApi({
+            expenses: [expense({ text: 'Mine' })],
+            groups: [lost, found],
+            entries: [sampleEntry(lost, { text: 'Lost dinner' }), sampleEntry(found, { text: 'Found dinner' })],
+        });
+        stubApi((url, init) => {
+            if (url.pathname === `/api/groups/${lost.id}/entries`) throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        const app = renderApp({ path: '/settings' });
+        await settings(app);
+        await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(lost.id))?.status).toBe('error'));
+        await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(found.id))?.status).toBe('success'));
+
+        expect(screen.getByText(en.settings.data.missing).getAttribute('role')).toBe('status');
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        const backup = JSON.parse((await press(en.settings.data.json)).text);
+        const sheet = (await press(en.settings.data.csv)).text;
+
+        expect(backup.groups.map((item: SharedGroup) => item.name)).toEqual(['Found']);
+        expect(backup.expenses).toHaveLength(1);
+        expect(sheet).toContain('Found dinner');
+        expect(sheet).not.toContain('Lost dinner');
+    });
+
+    it('says the same offline, when the device holds a group but never pulled its expenses', async () => {
+        const group = trip();
+        const storage = createMemoryStorage();
+        const source = new QueryClient();
+        source.setQueryData(GROUPS_KEY, [group]);
+        await createPersister(createUserStorage(storage, TEST_USER.id).storage).persistClient({
+            timestamp: Date.now(),
+            buster: PERSIST_BUSTER,
+            clientState: dehydrate(source),
+        });
+        onlineManager.setOnline(false);
+        stubApi(createFakeApi({ groups: [group] }).handler);
+        renderApp({ path: '/settings', storage });
+        await screen.findByRole('heading', { name: en.settings.data.title });
+
+        await screen.findByText(en.settings.data.missing);
+
+        expect(json().disabled).toBe(false);
+        expect(JSON.parse((await press(en.settings.data.json)).text).groups).toEqual([]);
+    });
+
+    it('says nothing when the device never heard of its groups, and exports what it has', async () => {
+        const api = createFakeApi({ expenses: [expense({ text: 'Mine' })], groups: [trip()] });
+        stubApi((url, init) => {
+            if (url.pathname === '/api/groups') throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        const app = renderApp({ path: '/settings' });
+        await settings(app);
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('error'));
+
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        expect(screen.queryByText(en.settings.data.missing)).toBeNull();
+        const backup = JSON.parse((await press(en.settings.data.json)).text);
+        expect(backup.groups).toEqual([]);
+        expect(backup.expenses).toHaveLength(1);
+    });
+
+    it('works from the copy the device kept, offline from the start', async () => {
+        const storage = createMemoryStorage();
+        const group = trip();
+        await leaveCopy(storage, [group], [sampleEntry(group, { text: 'Dinner', shares: halves(2000) })]);
+        onlineManager.setOnline(false);
+        const api = createFakeApi({ groups: [group] });
+        api.state.offline = true;
+        stubApi(api.handler);
+        const app = renderApp({ path: '/settings', storage });
+        await screen.findByRole('heading', { name: en.settings.data.title });
+        await waitFor(() => expect(app.queryClient.getQueryData(groupEntriesKey(group.id))).toBeDefined());
+
+        expect(json().disabled).toBe(false);
+        expect(screen.queryByText(en.settings.data.loading)).toBeNull();
+        expect(screen.queryByText(en.settings.data.missing)).toBeNull();
+        expect((await press(en.settings.data.csv)).text).toContain('Dinner');
+        expect(JSON.parse((await press(en.settings.data.json)).text).groups).toHaveLength(1);
     });
 });
 
