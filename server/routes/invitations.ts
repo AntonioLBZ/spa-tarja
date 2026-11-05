@@ -1,5 +1,6 @@
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
 import * as v from 'valibot';
 
 import { invitationTokenSchema } from '@core/invitation';
@@ -21,6 +22,12 @@ import { CLOSED, NOT_FOUND } from './groups';
 
 import type { FriendInvitation, InvitationView } from '@core/invitation';
 import type { AppEnv } from '@server/env';
+
+// What holds a link or its token is never kept by a cache on the way
+const noStore = createMiddleware<AppEnv>(async (c, next) => {
+    await next();
+    c.header('Cache-Control', 'no-store');
+});
 
 const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
 
@@ -55,6 +62,7 @@ const friendInvitation = async (env: Env, state: GroupState): Promise<FriendInvi
 
 // The invitations of a friend, for its members: the token is answered only to them, in a body, never in a URL
 const friendInvitationsRoutes = new Hono<AppEnv>()
+    .use('/:groupId/invitations', noStore)
     .get('/:groupId/invitations', groupParam, async (c) => {
         const state = await readGroup(c.env.DB, c.var.userId, c.req.valid('param').groupId);
         if (!state) return c.json(NOT_FOUND, 404);
@@ -97,6 +105,7 @@ const invitationOf = async (env: Env, token: string) => {
 
 // What the person who opened a link does with it. The token comes in the body, so that no URL holds it.
 const invitationsRoutes = new Hono<AppEnv>()
+    .use(noStore)
     .post('/read', tokenBody, async (c) => {
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);

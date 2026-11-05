@@ -188,6 +188,25 @@ describe('making an invitation', () => {
     });
 });
 
+describe('what carries a link', () => {
+    it('is never kept by a cache', async () => {
+        const friend = await makeFriend(ana);
+        const made = await invite(ana, friend.id);
+        const token = await linkOf(ana, friend.id);
+
+        const answers = [
+            made,
+            await listInvitation(ana, friend.id),
+            await revoke(ana, friend.id),
+            await readLink(bruno, token),
+            await accept(bruno, token),
+            await decline(bruno, token),
+        ];
+
+        expect(answers.map((response) => response.headers.get('cache-control'))).toEqual(answers.map(() => 'no-store'));
+    });
+});
+
 describe('the open link of a friend', () => {
     it('is listed until it expires, and then no more', async () => {
         const friend = await makeFriend(ana);
