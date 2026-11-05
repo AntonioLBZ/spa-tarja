@@ -46,11 +46,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, and 25, sharing an expense, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 26. Friends by invitation
-
-Migration `0012` for `friend_invitations`, the routes, the join page, the invite button of a friend, and the sign-in that comes back to the link ([invitations](docs/specs/invitations.md), [authentication](docs/specs/authentication.md)). Decide here whether a rate limit on the join page is worth a rule in Cloudflare.
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, and 26, friends by invitation, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 27. Shared expenses in your own lists
 
