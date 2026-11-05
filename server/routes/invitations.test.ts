@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { memberBalances } from '@core/balance';
 import { INVITATION_DAYS, isInvitationToken, type FriendInvitation } from '@core/invitation';
 import { MAX_FRIENDS, type SharedGroup } from '@core/shared-group';
+import { app } from '@server/app';
 import { signInvitation } from '@server/invitation-token';
 import { befriend, groupOf, listGroups, makeFriend, makeGroup, seedEntry, send } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
@@ -211,6 +212,24 @@ describe('what carries a link', () => {
         ];
 
         expect(answers.map((response) => response.headers.get('cache-control'))).toEqual(answers.map(() => 'no-store'));
+    });
+});
+
+describe('without a secret to sign with', () => {
+    it('makes and shows no link, and answers 5xx', async () => {
+        const friend = await makeFriend(ana);
+        await linkOf(ana, friend.id);
+        const bare = { ...env, BETTER_AUTH_SECRET: '' };
+        const path = `/api/groups/${friend.id}/invitations`;
+
+        const answers = [
+            await app.request(path, { method: 'POST', headers: ana.headers }, bare),
+            await app.request(path, { headers: ana.headers }, bare),
+        ];
+
+        expect((await app.request('/api/groups', { headers: ana.headers }, bare)).status).toBe(200);
+        expect(answers.map((answer) => answer.status)).toEqual([500, 500]);
+        expect((await Promise.all(answers.map((answer) => answer.text()))).join('')).not.toMatch(/\.[\w-]{43}/);
     });
 });
 

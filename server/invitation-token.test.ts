@@ -62,6 +62,16 @@ describe('invitation tokens', () => {
 
     it.each([
         ['empty', ''],
+        ['missing', undefined],
+    ])('cannot be signed or read under a secret that is %s', async (_, secret) => {
+        const token = await signInvitation(SECRET, ID);
+
+        await expect(signInvitation(secret as string, ID)).rejects.toThrow();
+        await expect(readInvitationToken(secret as string, token)).rejects.toThrow();
+    });
+
+    it.each([
+        ['empty', ''],
         ['only the id', ID],
         ['the id with a made-up signature', `${ID}.${'A'.repeat(43)}`],
     ])('are refused when %s', async (_, token) => {
