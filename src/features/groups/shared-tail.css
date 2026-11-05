@@ -1,0 +1,28 @@
+.shared-people {
+    border: 0;
+    margin: 0;
+    min-inline-size: 0;
+    padding: 0;
+}
+
+.shared-people__legend {
+    font-weight: 700;
+    margin-bottom: var(--size-2);
+    padding: 0;
+}
+
+.shared-people__list {
+    display: grid;
+    gap: var(--size-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* The person takes what the share leaves of the row */
+.shared-people__row {
+    align-items: center;
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr) auto;
+}

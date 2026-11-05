@@ -1,4 +1,4 @@
-import type { GroupMember } from '@core/shared-group';
+import type { GroupMember, SharedGroup } from '@core/shared-group';
 
 interface NameWords {
     // A member whose name is empty: a person who deleted their account
@@ -25,4 +25,11 @@ const memberNames = (members: readonly GroupMember[], words: NameWords): Map<str
     return names;
 };
 
-export { memberNames, type NameWords };
+// What the screens call a group: its name, or the other person's for a friend
+const groupTitle = (group: SharedGroup, names: ReadonlyMap<string, string>): string => {
+    if (group.kind !== 'direct') return group.name ?? '';
+    const other = group.members.find((member) => member.id !== group.me);
+    return (other && names.get(other.id)) ?? '';
+};
+
+export { groupTitle, memberNames, type NameWords };

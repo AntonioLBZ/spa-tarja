@@ -33,6 +33,9 @@
             "category": "Categoría",
             "suggested": "Sugerida según la descripción",
             "date": "Fecha",
+            "for": "Para",
+            "forMe": "Solo yo",
+            "forShared": "Compartido",
             "payment": "Pago",
             "chargeDate": "Se carga el",
             "personal": "Tu parte",
@@ -328,6 +331,14 @@
                 "youSettled": "Con esto, quedas en paz con {name}",
                 "settled": "Con esto, {from} y {to} quedan en paz"
             }
+        },
+        "share": {
+            "with": "Con",
+            "none": "Aún no tienes grupos ni amigos. Crea uno en Grupos para compartir un gasto.",
+            "paidBy": "Pagado por",
+            "you": "Tú",
+            "people": "Quién participa",
+            "nobody": "Elige al menos a una persona."
         },
         "group": {
             "missing": "Este grupo no está aquí. No existe o no formas parte de él.",

@@ -5,7 +5,7 @@ import { useLocale } from '@/lib/i18n';
 import { formatAmount } from '@core/money';
 import { canonicalMember } from '@core/shared-member';
 
-import { memberNames } from './member-names';
+import { groupTitle, memberNames } from './member-names';
 
 import type { Debt } from '@core/balance';
 import type { SharedGroup } from '@core/shared-group';
@@ -32,9 +32,7 @@ const useGroupWords = (group: SharedGroup) => {
             return left ? t('names.left', { name }) : name;
         };
 
-        const other = group.members.find((member) => member.id !== group.me);
-        // A friend is called by the other person's name
-        const title = (group.kind === 'direct' ? other && names.get(other.id) : group.name) ?? '';
+        const title = groupTitle(group, names);
 
         // What the person is owed or owes in the group
         const mine = (cents: number) => {

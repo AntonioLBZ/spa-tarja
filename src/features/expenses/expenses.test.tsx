@@ -2923,7 +2923,7 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(searchBox().type).toBe('search');
             expect(filtersToggle(0).getAttribute('aria-expanded')).toBe('false');
-            expect(screen.queryByRole('radio')).toBeNull();
+            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
             expect(screen.queryByLabelText(f.from)).toBeNull();
             expect(showing(3, 4)).toBeNull();
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
@@ -2973,7 +2973,7 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(filtersToggle());
 
             expect(filtersToggle().getAttribute('aria-expanded')).toBe('false');
-            expect(screen.queryByRole('radio')).toBeNull();
+            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
         });
 
         it('do not clash with the add form, which keeps its own category field and date', async () => {

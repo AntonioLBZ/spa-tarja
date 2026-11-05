@@ -33,6 +33,9 @@
             "category": "Category",
             "suggested": "Suggested from the description",
             "date": "Date",
+            "for": "For",
+            "forMe": "Just me",
+            "forShared": "Shared",
             "payment": "Payment",
             "chargeDate": "Charged on",
             "personal": "Your part",
@@ -328,6 +331,14 @@
                 "youSettled": "After this, you're settled with {name}",
                 "settled": "After this, {from} and {to} are settled"
             }
+        },
+        "share": {
+            "with": "With",
+            "none": "You have no groups or friends yet. Make one in Groups to share an expense.",
+            "paidBy": "Paid by",
+            "you": "You",
+            "people": "Who's in",
+            "nobody": "Choose at least one person."
         },
         "group": {
             "missing": "This group isn't here. It doesn't exist, or you're not in it.",
