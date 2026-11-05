@@ -11,9 +11,10 @@ const isInvitationToken = (token: string): boolean => {
     return TOKEN_SHAPE.test(token);
 };
 
-// The body of the routes that take a link. Its shape is checked when it is read, so that a token of another shape gets
-// the same refusal as one that doesn't exist.
-const invitationTokenSchema = v.object({ token: v.pipe(v.string(), v.maxLength(200)) });
+// The body of the routes that take a link. Only that it holds a token key is checked here: what the token is, its type,
+// shape and length, is checked when it is read, so that any token that is not a link gets the same refusal as one that
+// doesn't exist.
+const invitationTokenSchema = v.object({ token: v.unknown() });
 
 // The latest invitation of a friend as its members see it: open, with the token of its link, or declined
 type FriendInvitation = { state: 'open'; token: string; expiresAt: number } | { state: 'declined' };

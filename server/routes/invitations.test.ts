@@ -62,15 +62,15 @@ function respelled(token: string) {
     return `${token.slice(0, -1)}${next}`;
 }
 
-function readLink(as: TestSession, token: string) {
+function readLink(as: TestSession, token: unknown) {
     return send(as, 'POST', '/invitations/read', { token });
 }
 
-function accept(as: TestSession, token: string) {
+function accept(as: TestSession, token: unknown) {
     return send(as, 'POST', '/invitations/accept', { token });
 }
 
-function decline(as: TestSession, token: string) {
+function decline(as: TestSession, token: unknown) {
     return send(as, 'POST', '/invitations/decline', { token });
 }
 
@@ -282,14 +282,17 @@ describe('opening a link', () => {
         }
     });
 
-    it('refuses a body without a token', async () => {
-        expect((await send(bruno, 'POST', '/invitations/read', {})).status).toBe(400);
-        expect((await send(bruno, 'POST', '/invitations/accept', { token: 7 })).status).toBe(400);
+    it('answers 400 only when the body is not an object with a token key, as no link was asked about', async () => {
+        for (const action of ['read', 'accept', 'decline']) {
+            for (const body of [{}, [], 'nonsense']) {
+                expect((await send(bruno, 'POST', `/invitations/${action}`, body)).status).toBe(400);
+            }
+        }
     });
 });
 
 describe('a link that cannot be used', () => {
-    const cases: Array<[string, () => Promise<string>]> = [
+    const cases: Array<[string, () => Promise<unknown>]> = [
         ['that was never made', () => signInvitation(env.BETTER_AUTH_SECRET, crypto.randomUUID())],
         [
             'signed with another secret',
@@ -300,6 +303,9 @@ describe('a link that cannot be used', () => {
         ],
         ['with a signature made up', async () => `${(await invitedFriend()).token.slice(0, 36)}.${'A'.repeat(43)}`],
         ['of another shape', async () => 'nonsense'],
+        ['that is a number', async () => 7],
+        ['that is null', async () => null],
+        ['that is far too long', async () => 'x'.repeat(5000)],
         [
             'spelled another way, which decodes to the same signature',
             async () => respelled((await invitedFriend()).token),

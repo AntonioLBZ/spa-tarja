@@ -30,15 +30,19 @@ describe('isInvitationToken', () => {
 });
 
 describe('invitationTokenSchema', () => {
-    it('takes any string as the token, whose shape is checked when it is read', () => {
-        expect(v.parse(invitationTokenSchema, { token: 'nonsense' })).toEqual({ token: 'nonsense' });
+    it.each([
+        ['a string of the wrong shape', 'nonsense'],
+        ['a string far too long', 'x'.repeat(5000)],
+        ['a number', 7],
+        ['null', null],
+    ])('takes %s as the token, whose shape is checked when it is read', (_, token) => {
+        expect(v.parse(invitationTokenSchema, { token })).toEqual({ token });
     });
 
     it.each([
         ['missing', {}],
-        ['not a string', { token: 7 }],
-        ['far too long', { token: 'x'.repeat(201) }],
-    ])('refuses a token that is %s', (_, body) => {
+        ['not an object', 'nonsense'],
+    ])('refuses a body that is %s', (_, body) => {
         expect(v.safeParse(invitationTokenSchema, body).success).toBe(false);
     });
 });

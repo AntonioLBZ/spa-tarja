@@ -98,8 +98,8 @@ const friendInvitationsRoutes = new Hono<AppEnv>()
     });
 
 // The invitation a link names, when the server signed its token
-const invitationOf = async (env: Env, token: string) => {
-    const id = await readInvitationToken(env.BETTER_AUTH_SECRET, token);
+const invitationOf = async (env: Env, token: unknown) => {
+    const id = typeof token === 'string' ? await readInvitationToken(env.BETTER_AUTH_SECRET, token) : null;
     return id === null ? null : readInvitation(env.DB, id);
 };
 
