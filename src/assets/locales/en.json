@@ -225,7 +225,8 @@
                 "deleting": "Deleting…",
                 "cancel": "Cancel",
                 "offline": "Deleting your account needs a connection.",
-                "failed": "Couldn't delete your account. Check your connection and try again."
+                "failed": "Couldn't delete your account. Check your connection and try again.",
+                "wrongEmail": "That email doesn't match your account. Sign in again and try once more."
             }
         }
     },

@@ -225,7 +225,8 @@
                 "deleting": "Eliminando…",
                 "cancel": "Cancelar",
                 "offline": "Para eliminar tu cuenta hace falta conexión.",
-                "failed": "No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo."
+                "failed": "No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo.",
+                "wrongEmail": "Ese correo no coincide con tu cuenta. Vuelve a iniciar sesión e inténtalo de nuevo."
             }
         }
     },

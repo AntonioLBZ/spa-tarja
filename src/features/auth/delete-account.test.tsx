@@ -221,6 +221,37 @@ describe('delete account', () => {
         expect((await within(dialog).findByRole('alert')).textContent).toBe(text.failed);
     });
 
+    it('tells a refused email from a lost connection, and stays signed in', async () => {
+        const { api, dialog } = await openDialog();
+        api.state.accountEmail = 'changed@example.com';
+
+        confirm(dialog);
+
+        const notice = await within(dialog).findByRole('alert');
+        expect(notice.textContent).toBe(text.wrongEmail);
+        expect(text.wrongEmail).not.toBe(text.failed);
+        expect(deleteButton(dialog).disabled).toBe(false);
+        expect(readCachedUser()).toEqual(TEST_USER);
+    });
+
+    it('stays open on Escape while the server answers, so that a failure is seen', async () => {
+        const { api, dialog } = await openDialog();
+        api.state.accountDeleteStatus = 503;
+        const release = api.hold();
+        confirm(dialog);
+        await waitFor(() => expect(within(dialog).getByRole('button', { name: text.deleting })).toBeDefined());
+
+        const escape = new Event('cancel', { cancelable: true });
+        dialog.dispatchEvent(escape);
+        release();
+
+        expect(escape.defaultPrevented).toBe(true);
+        expect((await within(dialog).findByRole('alert')).textContent).toBe(text.failed);
+        const again = new Event('cancel', { cancelable: true });
+        dialog.dispatchEvent(again);
+        expect(again.defaultPrevented).toBe(false);
+    });
+
     it('says it is deleting while the server answers', async () => {
         const { api, dialog } = await openDialog();
         const release = api.hold();
@@ -264,6 +295,7 @@ describe('delete account', () => {
                 throw new Error('The storage is blocked');
             },
         };
+        rememberSharedWith(crypto.randomUUID());
         const { dialog } = await openDialog(failing);
 
         confirm(dialog);
@@ -271,5 +303,6 @@ describe('delete account', () => {
         expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
         expect(screen.getByRole('alert').textContent).toBe(en.auth.deletedNotCleared);
         expect(readCachedUser()).toBeNull();
+        expect(readSharedWith()).toBeNull();
     });
 });

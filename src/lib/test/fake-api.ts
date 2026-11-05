@@ -71,6 +71,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         unauthorized: false,
         // An HTTP status to answer the deletion of the account with, or null to delete it
         accountDeleteStatus: null as number | null,
+        // The email the server holds for the account, which the deletion has to be confirmed with
+        accountEmail: TEST_USER.email as string,
         // Answers every change of a group or of its people with it, or null to accept them
         groupRefusal: null as Refusal | null,
         // Answers every write of an entry of a group with it, or null to accept them
@@ -217,7 +219,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
 
             const parsed = v.safeParse(accountDeletionSchema, body);
             if (!parsed.success) return Response.json({ error: 'invalid' }, { status: 400 });
-            if (!confirmsEmail(parsed.output.email, TEST_USER.email)) {
+            if (!confirmsEmail(parsed.output.email, state.accountEmail)) {
                 return Response.json({ error: 'wrong-email' }, { status: 422 });
             }
             // The account and its sessions are gone

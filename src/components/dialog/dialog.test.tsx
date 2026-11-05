@@ -91,6 +91,32 @@ describe('Dialog', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
+    it('lets Escape cancel it', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const cancel = new Event('cancel', { cancelable: true });
+
+        screen.getByRole('dialog').dispatchEvent(cancel);
+
+        expect(cancel.defaultPrevented).toBe(false);
+    });
+
+    it('stays open on Escape when it is told it cannot be dismissed', () => {
+        render(
+            <Dialog open title="Moved" dismissible={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const cancel = new Event('cancel', { cancelable: true });
+
+        screen.getByRole('dialog').dispatchEvent(cancel);
+
+        expect(cancel.defaultPrevented).toBe(true);
+    });
+
     it('puts its actions apart, after what it holds', () => {
         render(
             <Dialog open title="Moved" onClose={vi.fn()} actions={<button type="button">Go</button>}>

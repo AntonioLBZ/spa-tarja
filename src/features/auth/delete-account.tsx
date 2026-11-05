@@ -14,7 +14,7 @@ import { EMAIL_MAX_LENGTH, confirmsEmail } from '@core/account';
 
 import './delete-account.css';
 
-type Phase = 'idle' | 'deleting' | 'failed';
+type Phase = 'idle' | 'deleting' | 'failed' | 'wrong-email';
 
 // Deletes the account for good, once the person has typed its email in the dialog. It needs a connection.
 const DeleteAccount = () => {
@@ -56,7 +56,9 @@ const DeleteAccount = () => {
         try {
             await deleteAccount(typed);
         } catch (error) {
-            setPhase('failed');
+            // The email the server holds is not the one the device knows; the connection is not what failed
+            const refused = error instanceof ApiError && error.status === 422 && error.code === 'wrong-email';
+            setPhase(refused ? 'wrong-email' : 'failed');
             // A session that ended is asked again, as after any other 401
             if (error instanceof ApiError && error.status === 401) void check();
             return;
@@ -65,10 +67,10 @@ const DeleteAccount = () => {
         let cleared = true;
         try {
             await discard();
-            forgetSharedWith();
         } catch {
             cleared = false;
         }
+        forgetSharedWith();
         forget({ cleared });
     };
 
@@ -94,7 +96,7 @@ const DeleteAccount = () => {
             <Button block variant="danger" disabled={!online} onClick={start}>
                 {t('open')}
             </Button>
-            <Dialog open={open} title={t('title')} actions={actions} onClose={handleClose}>
+            <Dialog open={open} title={t('title')} dismissible={!deleting} actions={actions} onClose={handleClose}>
                 <p>{t('goes')}</p>
                 <p>{t('stays')}</p>
                 <p>{t('backups')}</p>
@@ -119,9 +121,9 @@ const DeleteAccount = () => {
                     </Field>
                 </div>
                 {!online && <Notice role="status">{t('offline')}</Notice>}
-                {phase === 'failed' && (
+                {(phase === 'failed' || phase === 'wrong-email') && (
                     <Notice tone="danger" role="alert">
-                        {t('failed')}
+                        {phase === 'failed' ? t('failed') : t('wrongEmail')}
                     </Notice>
                 )}
             </Dialog>
