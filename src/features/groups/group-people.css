@@ -9,6 +9,11 @@
     gap: var(--size-1);
 }
 
+.group-people__friend {
+    display: grid;
+    gap: var(--size-4);
+}
+
 .group-people__row {
     align-items: center;
     display: flex;

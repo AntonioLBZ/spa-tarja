@@ -187,7 +187,7 @@ const AddFriendMember = (props: AddPersonProps) => {
     };
 
     return (
-        <form className="group-people__add" onSubmit={(event) => void handleSubmit(event)}>
+        <form className="group-people__friend" onSubmit={(event) => void handleSubmit(event)}>
             <Field label={t('people.friend')}>
                 {(control) => (
                     <Select
