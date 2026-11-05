@@ -9,7 +9,7 @@ import { entriesRoutes } from './routes/entries';
 import { expensesRoutes } from './routes/expenses';
 import { groupsRoutes } from './routes/groups';
 import { incomeRoutes } from './routes/income';
-import { friendInvitationsRoutes } from './routes/invitations';
+import { friendInvitationsRoutes, invitationsRoutes } from './routes/invitations';
 import { membersRoutes } from './routes/members';
 import { profileRoutes } from './routes/profile';
 
@@ -29,6 +29,7 @@ const app = new Hono<AppEnv>()
     .use('/budgets/*', withUser)
     .use('/profile/*', withUser)
     .use('/groups/*', withUser)
+    .use('/invitations/*', withUser)
     .route('/budgets', budgetsRoutes)
     .route('/categories', categoriesRoutes)
     .route('/expenses', expensesRoutes)
@@ -37,6 +38,7 @@ const app = new Hono<AppEnv>()
     .route('/groups', entriesRoutes)
     .route('/groups', friendInvitationsRoutes)
     .route('/income', incomeRoutes)
+    .route('/invitations', invitationsRoutes)
     .route('/profile', profileRoutes);
 
 type AppType = typeof app;

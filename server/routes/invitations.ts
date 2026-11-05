@@ -2,17 +2,37 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { groupIdSchema } from '@core/shared-group';
-import { closedFor, readGroup, type GroupState } from '@server/db/groups';
-import { createInvitation, latestInvitation, revokeInvitations } from '@server/db/invitations';
-import { signInvitation } from '@server/invitation-token';
+import { invitationTokenSchema } from '@core/invitation';
+import { MAX_FRIENDS, groupIdSchema, personName } from '@core/shared-group';
+import { closedFor, countOpenGroups, readGroup, readSharedGroup, type GroupState } from '@server/db/groups';
+import {
+    acceptInvitation,
+    areFriends,
+    createInvitation,
+    declineInvitation,
+    latestInvitation,
+    readInvitation,
+    revokeInvitations,
+} from '@server/db/invitations';
+import { readProfile } from '@server/db/profile';
+import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
 import { CLOSED, NOT_FOUND } from './groups';
 
-import type { FriendInvitation } from '@core/invitation';
+import type { FriendInvitation, InvitationView } from '@core/invitation';
 import type { AppEnv } from '@server/env';
 
 const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
+
+const tokenBody = sValidator('json', invitationTokenSchema);
+
+// A link that doesn't exist, was forged, expired, was revoked, answered or used, or whose friend or dummy is gone: the
+// same answer for all of them, so that a token can't be told from a missing one
+const GONE = { error: 'gone' } as const;
+
+const YOURSELF = { error: 'yourself' } as const;
+
+const ALREADY_FRIENDS = { error: 'already-friends' } as const;
 
 // The dummy an invitation of this friend is for: the other side of an open friend, while nobody has taken its place
 const dummyOf = (state: GroupState) => {
@@ -69,4 +89,53 @@ const friendInvitationsRoutes = new Hono<AppEnv>()
         return c.json({ invitation: await friendInvitation(c.env, state) }, 200);
     });
 
-export { friendInvitationsRoutes };
+// The invitation a link names, when the server signed its token
+const invitationOf = async (env: Env, token: string) => {
+    const id = await readInvitationToken(env.BETTER_AUTH_SECRET, token);
+    return id === null ? null : readInvitation(env.DB, id);
+};
+
+// What the person who opened a link does with it. The token comes in the body, so that no URL holds it.
+const invitationsRoutes = new Hono<AppEnv>()
+    .post('/read', tokenBody, async (c) => {
+        const invitation = await invitationOf(c.env, c.req.valid('json').token);
+        if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);
+        if (invitation.inviter === c.var.userId) return c.json(YOURSELF, 409);
+        const view: InvitationView = { name: personName(await readProfile(c.env.DB, invitation.inviter)) };
+        return c.json(view, 200);
+    })
+    .post('/accept', tokenBody, async (c) => {
+        const db = c.env.DB;
+        const userId = c.var.userId;
+        const invitation = await invitationOf(c.env, c.req.valid('json').token);
+        if (!invitation) return c.json(GONE, 410);
+        const answer = async () => c.json(await readSharedGroup(db, userId, invitation.groupId), 200);
+
+        // Sent again after an answer that never came
+        if (invitation.acceptedBy === userId) return answer();
+        if (!invitation.open || invitation.inviter === null) return c.json(GONE, 410);
+        if (invitation.inviter === userId) return c.json(YOURSELF, 409);
+        if (await areFriends(db, invitation.inviter, userId)) return c.json(ALREADY_FRIENDS, 409);
+        if ((await countOpenGroups(db, userId, 'direct')) >= MAX_FRIENDS) {
+            return c.json({ error: 'too-many-friends' }, 409);
+        }
+
+        const taker = { userId, name: personName(await readProfile(db, userId)) };
+        if (await acceptInvitation(db, invitation.id, taker)) return answer();
+        // Taken, revoked or closed meanwhile, or the two made friends through another link at the same moment
+        const now = await readInvitation(db, invitation.id);
+        if (now?.acceptedBy === userId) return answer();
+        if (now?.open && now.inviter !== null && (await areFriends(db, now.inviter, userId))) {
+            return c.json(ALREADY_FRIENDS, 409);
+        }
+        return c.json(GONE, 410);
+    })
+    .post('/decline', tokenBody, async (c) => {
+        const invitation = await invitationOf(c.env, c.req.valid('json').token);
+        if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);
+        if (invitation.inviter === c.var.userId) return c.json(YOURSELF, 409);
+        const declined = await declineInvitation(c.env.DB, invitation.id, c.var.userId);
+        return declined ? c.body(null, 204) : c.json(GONE, 410);
+    });
+
+export { friendInvitationsRoutes, invitationsRoutes };
