@@ -140,6 +140,36 @@ describe('expense list', () => {
     });
 });
 
+describe('the list when the first pull fails', () => {
+    const withASentExpense = async (pull: 'fails' | 'works') => {
+        const storage = createMemoryStorage();
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:outbox', [expense({ text: 'Sent' })]);
+        const api = createFakeApi({ expenses: [expense({ text: 'Older' })] });
+        stubApi((url, init) => {
+            if (pull === 'fails' && url.pathname === '/api/expenses' && (init?.method ?? 'GET') === 'GET')
+                throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        return renderApp({ storage });
+    };
+
+    it('says the expenses could not be loaded when only the one that was sent is here', async () => {
+        await withASentExpense('fails');
+
+        expect(await screen.findByText(en.expenses.list.loadFailed)).toBeDefined();
+        expect(screen.getByText('Sent')).toBeDefined();
+        expect(screen.queryByText('Older')).toBeNull();
+    });
+
+    it('says nothing when the pull after the one that was sent works', async () => {
+        await withASentExpense('works');
+
+        expect(await screen.findByText('Older')).toBeDefined();
+        expect(screen.getByText('Sent')).toBeDefined();
+        expect(screen.queryByText(en.expenses.list.loadFailed)).toBeNull();
+    });
+});
+
 describe('expense form', () => {
     it('starts on today', async () => {
         stubApi(createFakeApi().handler);

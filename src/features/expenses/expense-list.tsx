@@ -51,7 +51,7 @@ const ExpenseList = () => {
         clearRefocus,
     } = useAddForm();
     const list = useExpenseList();
-    const { groups, grouping, leaving, pendingIds, hasData, isError, isWaitingForNetwork } = list;
+    const { groups, grouping, leaving, pendingIds, hasData, neverPulled, isError, isWaitingForNetwork } = list;
     const { labelOf, styleOf } = useCategoryOptions();
     // Why a delete of a shared expense, or its Undo, didn't happen
     const [failure, setFailure] = useState<GroupFailure | null>(null);
@@ -189,7 +189,7 @@ const ExpenseList = () => {
                     {failureWords(failure)}
                 </Notice>
             )}
-            {isError && !hasData && (
+            {isError && (!hasData || neverPulled) && (
                 <Notice tone="quiet" role="alert">
                     {t('loadFailed')}
                 </Notice>

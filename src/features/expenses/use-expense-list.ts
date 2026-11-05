@@ -31,7 +31,7 @@ const PAGE_SIZE = 100;
 // The expenses of the home screen, narrowed by the filters and grouped. The filters are state of the screen; the
 // grouping is a stored preference.
 const useExpenseList = () => {
-    const { expenses, pendingIds, hasData, isError, isWaitingForNetwork, sourceOf } = useYourExpenses();
+    const { expenses, pendingIds, hasData, neverPulled, isError, isWaitingForNetwork, sourceOf } = useYourExpenses();
     const { options, labelOf } = useCategoryOptions();
     const { groups: sharedGroups } = useGroups();
     const titles = useGroupTitles(sharedGroups);
@@ -128,6 +128,7 @@ const useExpenseList = () => {
         sourceOf,
         groupNameOf: context.groupNameOf,
         hasData,
+        neverPulled,
         isError,
         isWaitingForNetwork,
         changeFilters,

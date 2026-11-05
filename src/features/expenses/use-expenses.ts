@@ -20,6 +20,8 @@ const useExpenses = () => {
         pendingIds,
         // Whether this device has ever heard from the server
         hasData: query.data !== undefined,
+        // Whether what is here is only what the device sent, since no pull ever worked (the cursor is still 0)
+        neverPulled: query.data !== undefined && query.data.cursor === 0 && query.data.expenses.length > 0,
         isError: query.isError,
         // Waiting for the connection rather than loading
         isWaitingForNetwork: query.fetchStatus === 'paused',
