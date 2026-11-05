@@ -1,6 +1,7 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createContext, use, useState, type ReactNode } from 'react';
+import { createContext, use, useLayoutEffect, useState, type ReactNode } from 'react';
 
+import { bindApiUser } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { createQueryClient } from '@/lib/query-client';
 
@@ -39,6 +40,18 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             userData: { discard: mine.discard },
         };
     });
+
+    // Every call says it is for this user, and what this window had waiting to be sent stops with it
+    useLayoutEffect(() => {
+        const unbind = bindApiUser(user.id);
+        data.outbox.resume();
+        data.groupOutbox.resume();
+        return () => {
+            unbind();
+            data.outbox.pause();
+            data.groupOutbox.pause();
+        };
+    }, [user.id, data]);
 
     return (
         <UserDataContext value={data.userData}>

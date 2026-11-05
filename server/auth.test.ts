@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
 import { befriend, makeFriend, makeGroup, send } from '@server/test/groups';
-import { ORIGIN, cachedSession, signIn, type TestSession } from '@server/test/session';
+import { ORIGIN, cachedSession, sentAs, signIn, type TestSession } from '@server/test/session';
 
 let session: TestSession;
 
@@ -270,6 +270,107 @@ describe('a user deleted while the session is cached', () => {
         const response = await send(cached, 'POST', `/invitations/${action}`, { token: link.invitation.token });
 
         expect(response.status).toBe(401);
+    });
+});
+
+describe('a window opened for another user', () => {
+    let bruno: TestSession;
+
+    beforeEach(async () => {
+        bruno = await signIn('bruno@example.com', 'Bruno');
+    });
+
+    async function rows(table: string) {
+        const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>();
+        return row?.n;
+    }
+
+    it('serves a window opened for the user of the session', async () => {
+        const response = await send(sentAs(session, session.userId), 'GET', '/expenses');
+
+        expect(response.status).toBe(200);
+    });
+
+    it('serves a request that names nobody, like curl or an older app', async () => {
+        const response = await send(session, 'GET', '/expenses');
+
+        expect(response.status).toBe(200);
+    });
+
+    it.each(['/expenses', '/categories', '/income', '/budgets', '/profile', '/groups'])(
+        'answers 401 other-user on %s',
+        async (path) => {
+            const response = await send(sentAs(bruno, session.userId), 'GET', path);
+
+            expect(response.status).toBe(401);
+            expect(await response.json()).toEqual({ error: 'other-user' });
+        }
+    );
+
+    it('answers 401 other-user on a group route, and reads nothing of the group', async () => {
+        const group = await makeGroup(bruno);
+
+        const response = await send(sentAs(bruno, session.userId), 'GET', `/groups/${group.id}/entries`);
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'other-user' });
+    });
+
+    it('answers 401 other-user to a write of an expense, and nothing is written', async () => {
+        const expense = {
+            categoryId: 'food',
+            text: 'Lunch',
+            amountCents: 1250,
+            currency: 'EUR',
+            date: '2026-10-25',
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(sentAs(bruno, session.userId), 'PUT', `/expenses/${crypto.randomUUID()}`, expense);
+
+        expect(response.status).toBe(401);
+        expect(await rows('expenses')).toBe(0);
+    });
+
+    it('answers 401 other-user to making a group, and nothing is made', async () => {
+        const body = { kind: 'group', name: 'Trip', currency: 'EUR', me: { id: crypto.randomUUID() }, others: [] };
+
+        const response = await send(sentAs(bruno, session.userId), 'PUT', `/groups/${crypto.randomUUID()}`, body);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_groups')).toBe(0);
+    });
+
+    it('answers 401 other-user to an empty name', async () => {
+        const response = await send(sentAs(session, ''), 'GET', '/expenses');
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'other-user' });
+    });
+
+    it('answers unauthorized, not other-user, when the account of the session is gone', async () => {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(session.userId).run();
+
+        const response = await send(sentAs(cached, bruno.userId), 'GET', '/expenses');
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'unauthorized' });
+    });
+
+    it('leaves the session routes alone: the window may ask who is signed in whoever it was opened for', async () => {
+        const response = await send(sentAs(bruno, session.userId), 'GET', '/auth/get-session');
+
+        expect(response.status).toBe(200);
+        expect(((await response.json()) as { user: { id: string } }).user.id).toBe(bruno.userId);
+    });
+
+    it('does not ask for the user on the health check', async () => {
+        const response = await send(sentAs(bruno, session.userId), 'GET', '/health');
+
+        expect(response.status).toBe(200);
     });
 });
 

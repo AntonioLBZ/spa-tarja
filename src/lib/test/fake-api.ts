@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { accountDeletionSchema, confirmsEmail } from '@core/account';
+import { USER_HEADER, accountDeletionSchema, confirmsEmail } from '@core/account';
 import { categoryNameKey, type Category } from '@core/category';
 import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
 import { profileInputSchema, type Profile } from '@core/profile';
@@ -54,6 +54,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
+    // The user each request said it was made for, by request, null when it named nobody
+    const requestUsers: Array<{ request: string; user: string | null }> = [];
     const state = {
         // An HTTP status to answer every write with, or null to accept them
         writeStatus: null as number | null,
@@ -69,6 +71,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         profileWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
+        // The user the browser's cookie carries, who a request that names another user is refused for. Null accepts any.
+        cookieUser: null as string | null,
         // An HTTP status to answer the deletion of the account with, or null to delete it
         accountDeleteStatus: null as number | null,
         // The email the server holds for the account, which the deletion has to be confirmed with
@@ -100,7 +104,9 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
 
     const handler: Handler = async (url, init) => {
         const method = init?.method ?? 'GET';
-        requests.push(`${method} ${url.pathname}${url.search}`);
+        const request = `${method} ${url.pathname}${url.search}`;
+        requests.push(request);
+        requestUsers.push({ request, user: new Headers(init?.headers).get(USER_HEADER) });
         if (gate) await gate;
 
         if (state.offline) throw new TypeError('Failed to fetch');
@@ -108,6 +114,11 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         if (url.pathname === '/api/health') return Response.json({ ok: true });
 
         if (state.unauthorized) return Response.json({ error: 'unauthorized' }, { status: 401 });
+
+        const named = new Headers(init?.headers).get(USER_HEADER);
+        if (state.cookieUser !== null && named !== null && named !== state.cookieUser) {
+            return Response.json({ error: 'other-user' }, { status: 401 });
+        }
 
         if (url.pathname === '/api/expenses' && method === 'GET') {
             const after = Number(url.searchParams.get('after') ?? 0);
@@ -245,6 +256,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         writes,
         attempts,
         requests,
+        requestUsers,
         state,
         // Something another device wrote
         serverWrite: store,

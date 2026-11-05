@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth';
 import { testUtils } from 'better-auth/plugins';
 import { env } from 'cloudflare:workers';
 
+import { USER_HEADER } from '@core/account';
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
 
@@ -41,4 +42,11 @@ const cachedSession = async (session: TestSession): Promise<TestSession> => {
     return { userId: session.userId, headers };
 };
 
-export { ORIGIN, cachedSession, signIn, signInAgain, type TestSession };
+// The same session sent from a window that was opened for another user, as the web app does
+const sentAs = (session: TestSession, windowUserId: string): TestSession => {
+    const headers = new Headers(session.headers);
+    headers.set(USER_HEADER, windowUserId);
+    return { userId: session.userId, headers };
+};
+
+export { ORIGIN, cachedSession, sentAs, signIn, signInAgain, type TestSession };

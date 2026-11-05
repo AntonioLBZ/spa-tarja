@@ -13,7 +13,7 @@ import {
     seedEntry,
     send,
 } from '@server/test/groups';
-import { cachedSession, signIn, signInAgain, type TestSession } from '@server/test/session';
+import { cachedSession, sentAs, signIn, signInAgain, type TestSession } from '@server/test/session';
 
 // Where each table keeps the user a row belongs to
 const OWN_ROWS = [
@@ -165,6 +165,24 @@ describe('DELETE /api/account', () => {
 
         expect(response.status).toBe(401);
         expect(await rowsOf(ana.userId)).toEqual(before);
+    });
+
+    it('deletes nothing from a window opened for another user, whose email it names', async () => {
+        const before = await rowsOf(bruno.userId);
+
+        const response = await deleteAccount(sentAs(bruno, ana.userId), 'bruno@example.com');
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'other-user' });
+        expect(await rowsOf(bruno.userId)).toEqual(before);
+        expect((await send(bruno, 'GET', '/expenses')).status).toBe(200);
+    });
+
+    it('deletes the account from a window opened for it', async () => {
+        const response = await deleteAccount(sentAs(ana, ana.userId));
+
+        expect(response.status).toBe(204);
+        expect((await rowsOf(ana.userId)).flat()).toEqual([]);
     });
 
     it('deletes nobody with an email that is not of the account, not even the one it names', async () => {
