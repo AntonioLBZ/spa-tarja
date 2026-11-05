@@ -13,6 +13,7 @@ import { GroupGate } from './group-gate';
 import { GroupLedger } from './group-ledger';
 import { myBalance } from './my-balance';
 import { SettleUp, useSettleUp } from './settle-up';
+import { useGroupDebts } from './use-group-debts';
 import { useGroupWords } from './use-group-words';
 import { useLedgerForm } from './use-ledger-form';
 
@@ -44,6 +45,7 @@ const GroupView = (props: GroupViewProps) => {
     const words = useGroupWords(group);
     const settle = useSettleUp();
     const form = useLedgerForm();
+    const { debts, formEntries, formDebts } = useGroupDebts(group, entries, settle.editing?.id ?? null);
     const { editing, copying } = form;
     const heading = useRef<HTMLButtonElement>(null);
     const open = group.closed === null;
@@ -65,8 +67,21 @@ const GroupView = (props: GroupViewProps) => {
             {hasData && (
                 <>
                     <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
-                    <GroupBalances group={group} entries={entries} onSettle={open ? settle.take : undefined} />
-                    {open && <SettleUp group={group} entries={entries} form={settle} onEditDone={form.setRefocus} />}
+                    <GroupBalances
+                        group={group}
+                        entries={entries}
+                        debts={debts}
+                        onSettle={open ? settle.take : undefined}
+                    />
+                    {open && (
+                        <SettleUp
+                            group={group}
+                            entries={formEntries}
+                            debts={formDebts}
+                            form={settle}
+                            onEditDone={form.setRefocus}
+                        />
+                    )}
                 </>
             )}
             {/* Writing an expense needs no ledger on the device: it goes through the outbox */}

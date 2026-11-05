@@ -325,6 +325,7 @@
             "owesYou": "{name} owes you {amount}",
             "owes": "{from} owes {to} {amount}",
             "none": "Nobody owes anybody.",
+            "simplified": "Simplified debts: the fewest payments that settle the group. A payment may name someone you didn't share with.",
             "everyone": "Everyone's balance"
         },
         "settle": {

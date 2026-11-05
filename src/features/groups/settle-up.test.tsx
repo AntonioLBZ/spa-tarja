@@ -298,6 +298,127 @@ describe('settling up from a line', () => {
     });
 });
 
+describe('settling up in the simplified view', () => {
+    const dani = person('Dani');
+    const youOweBea = t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) });
+    const crisOwesBea = t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(1000) });
+
+    function simplified(overrides: Partial<SharedGroup> = {}) {
+        return trip({ simplifyDebts: true, ...overrides });
+    }
+
+    function reroutes(group: SharedGroup) {
+        return [
+            expense(group, bea, [[ana, 2000]]),
+            expense(group, cris, [
+                [ana, 1000],
+                [dani, 1000],
+            ]),
+        ];
+    }
+
+    it('offers the payments of the view as the lines to settle, and takes one as it is', async () => {
+        const group = simplified();
+        await open(group, debts(group));
+
+        expect(lines()).toEqual([youOweBea, crisOwesBea]);
+        fireEvent.click(lineButton(crisOwesBea));
+
+        expect(select(text.from).textContent).toBe('Cris');
+        expect(select(text.to).textContent).toBe('Bea');
+        expect(amount().value).toBe('10.00');
+        expect(document.activeElement).toBe(amount());
+        expect(hint()).toBe(sentences(crisOwesBea, t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' })));
+    });
+
+    it('starts on you and on the one the view says you owe', async () => {
+        const group = simplified();
+        await open(group, debts(group));
+
+        fireEvent.click(toggle());
+
+        expect(select(text.from).textContent).toBe(text.you);
+        expect(select(text.to).textContent).toBe('Bea');
+        expect(hint()).toBe(sentences(youOweBea));
+    });
+
+    it('saves a plain settlement between the two of the line, and the lines change at once, offline too', async () => {
+        const group = simplified();
+        const { app } = await open(group, debts(group));
+        onlineManager.setOnline(false);
+
+        fireEvent.click(lineButton(youOweBea));
+        fireEvent.click(save());
+
+        await waitFor(() => expect(lines()).toEqual([crisOwesBea]));
+        expect(within(screen.getByRole('main')).getByRole('status').textContent).toBe(t('groups.balance.allSettled'));
+        expect(app.groupOutbox.getState().pending).toMatchObject([
+            {
+                groupId: group.id,
+                kind: 'settlement',
+                text: '',
+                amountCents: 500,
+                paidBy: ana.id,
+                split: 'exact',
+                shares: [{ memberId: bea.id, cents: 500 }],
+            },
+        ]);
+    });
+
+    it('says in the hint what the lines will show after a partial payment re-routes them, and they do', async () => {
+        const group = simplified({ members: [ana, bea, cris, dani] });
+        await open(group, reroutes(group));
+        const toBea = t('groups.debts.youOwe', { name: 'Bea', amount: euros(2000) });
+        expect(lines()).toEqual([
+            toBea,
+            t('groups.debts.youOwe', { name: 'Cris', amount: euros(1000) }),
+            t('groups.debts.owes', { from: 'Dani', to: 'Cris', amount: euros(1000) }),
+        ]);
+
+        fireEvent.click(lineButton(toBea));
+        fireEvent.change(amount(), { target: { value: '5' } });
+
+        const after = t('groups.settle.after.youOwe', { name: 'Bea', amount: euros(500) });
+        expect(hint()).toBe(sentences(toBea, after));
+        fireEvent.click(save());
+
+        await waitFor(() =>
+            expect(lines()).toEqual([
+                t('groups.debts.youOwe', { name: 'Cris', amount: euros(2000) }),
+                t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) }),
+                t('groups.debts.owes', { from: 'Dani', to: 'Bea', amount: euros(1000) }),
+            ])
+        );
+    });
+
+    it('says what follows a partial payment on the line of two other people', async () => {
+        const group = simplified();
+        await open(group, debts(group));
+        fireEvent.click(lineButton(crisOwesBea));
+
+        fireEvent.change(amount(), { target: { value: '4' } });
+
+        expect(hint()).toBe(
+            sentences(crisOwesBea, t('groups.settle.after.owes', { from: 'Cris', to: 'Bea', amount: euros(600) }))
+        );
+    });
+
+    it('follows the view when the owner switches it while the form holds a debt', async () => {
+        const group = trip();
+        const { api, app } = await open(group, debts(group));
+        fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
+        expect(amount().value).toBe('15.00');
+
+        api.groups[0]!.simplifyDebts = true;
+        await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
+
+        await waitFor(() => expect(lines()).toEqual([youOweBea, crisOwesBea]));
+        expect(select(text.to).textContent).toBe('Bea');
+        expect(amount().value).toBe('15.00');
+        expect(hint()).toBe(sentences(youOweBea, t('groups.settle.after.youSettled', { name: 'Bea' })));
+    });
+});
+
 describe('the form', () => {
     it('starts on you and on the one you owe most, with no amount and the debt as a hint', async () => {
         const group = trip();

@@ -523,6 +523,35 @@ describe('editing a settlement', () => {
         expect(screen.getByText(`${before}. ${after}.`)).toBeDefined();
     });
 
+    it('leaves the settlement being edited out of the debts of the simplified view', async () => {
+        const group = trip({ simplifyDebts: true });
+        await open(group, [
+            dinner(group, {
+                amountCents: 2000,
+                shares: [
+                    { memberId: ana.id, cents: 1000 },
+                    { memberId: bea.id, cents: 1000 },
+                ],
+            }),
+            dinner(group, {
+                text: 'Taxi',
+                paidBy: bea.id,
+                amountCents: 1000,
+                shares: [
+                    { memberId: bea.id, cents: 500 },
+                    { memberId: cris.id, cents: 500 },
+                ],
+            }),
+            sampleSettlement(group, bea.id, ana.id, 400),
+        ]);
+
+        fireEvent.click(actionOf(paidYou(), 'editItem'));
+
+        const before = t('groups.debts.owesYou', { name: 'Bea', amount: '€5.00' });
+        const after = t('groups.settle.after.owesYou', { name: 'Bea', amount: '€1.00' });
+        expect(screen.getByText(`${before}. ${after}.`)).toBeDefined();
+    });
+
     it('is off for a settlement with somebody who left', async () => {
         const gone = person('Dani', { leftAt: 1 });
         const group = trip({ members: [ana, bea, gone] });

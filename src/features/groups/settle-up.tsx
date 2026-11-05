@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -8,8 +8,8 @@ import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useLocale } from '@/lib/i18n';
 import { readDuration } from '@/lib/motion';
-import { pairwiseDebts, type Debt } from '@core/balance';
 import { isCalendarDate, toDateString } from '@core/date';
+import { groupDebts } from '@core/group-debts';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
 import { canonicalMember } from '@core/shared-member';
 
@@ -18,6 +18,7 @@ import { newEntry } from './new-entry';
 import { useEntryActions } from './use-entry-actions';
 import { useGroupWords } from './use-group-words';
 
+import type { Debt } from '@core/balance';
 import type { SharedEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
@@ -37,7 +38,10 @@ type SettleForm = ReturnType<typeof useSettleUp>;
 
 interface SettleUpProps {
     group: SharedGroup;
+    // Apart from the settlement being edited, which the form is about to replace
     entries: readonly SharedEntry[];
+    // The debts of `entries` as the group shows them
+    debts: readonly Debt[];
     form: SettleForm;
     // Once the edit of a settlement is saved or cancelled, with its id, for its row to take the focus back
     onEditDone: (entryId: string) => void;
@@ -49,6 +53,20 @@ const debtBetween = (debts: readonly Debt[], from: string, to: string): number =
     if (!debt) return 0;
     return debt.from === from ? debt.cents : -debt.cents;
 };
+
+// A settlement: the member who pays is the payer, and the only share is the one who is paid
+const settlementFields = (from: string, to: string, cents: number, date: string) => ({
+    kind: 'settlement' as const,
+    text: '',
+    categoryId: null,
+    amountCents: cents,
+    date,
+    paidBy: from,
+    split: 'exact' as const,
+    shares: [{ memberId: to, cents }],
+    payment: 'direct' as const,
+    chargeDate: null,
+});
 
 // From the person to whoever they owe most, else to the first other member who hasn't left, with the amount to type
 const startDraft = (group: SharedGroup, debts: readonly Debt[]): SettleDraft => {
@@ -126,7 +144,7 @@ const useSettleUp = () => {
 // Records that one member paid another, through the outbox so that it works offline. It counts for nobody, only in the
 // balances.
 const SettleUp = (props: SettleUpProps) => {
-    const { group, entries, form, onEditDone } = props;
+    const { group, entries, debts, form, onEditDone } = props;
     const t = useTranslations('groups.settle');
     const { locale } = useLocale();
     const words = useGroupWords(group);
@@ -137,11 +155,6 @@ const SettleUp = (props: SettleUpProps) => {
     const toggle = useRef<HTMLButtonElement>(null);
     const amountInput = useRef<HTMLInputElement>(null);
     const { editing } = form;
-    // What is owed apart from the settlement being changed
-    const debts = useMemo(
-        () => pairwiseDebts(editing ? entries.filter((entry) => entry.id !== editing.id) : entries, group.members),
-        [entries, editing, group.members]
-    );
 
     useEffect(() => {
         if (form.taken > 0) amountInput.current?.focus();
@@ -186,7 +199,7 @@ const SettleUp = (props: SettleUpProps) => {
         return t('after.owes', { from: words.nameOf(debtor), to: words.nameOf(creditor), amount });
     };
 
-    // What the two would owe each other: what is paid comes off what the payer owes, as the one share of a settlement
+    // What the two would owe each other once this is saved, as the group would show it
     const after = (net: number) => {
         if (net > 0) return afterDebt(from, to, net);
         if (net < 0) return afterDebt(to, from, -net);
@@ -197,11 +210,14 @@ const SettleUp = (props: SettleUpProps) => {
     };
 
     const before = debtBetween(debts, from, to);
+    const fields = settlementFields(from, to, cents, draft.date);
+    // The debts once this is saved, which a payment that is not the whole of a line can change for other lines
+    const debtsAfter = () => groupDebts([...entries, newEntry(group, fields)], group.members, group.simplifyDebts);
     // Each a sentence of its own, so that they are never read as one
     const hint = [
         before > 0 && words.debt({ from, to, cents: before }),
         before < 0 && words.debt({ from: to, to: from, cents: -before }),
-        cents >= 1 && !same && after(before - cents),
+        cents >= 1 && !same && after(debtBetween(debtsAfter(), from, to)),
     ]
         .filter((text) => text !== false)
         .map((text) => t('sentence', { text }))
@@ -213,18 +229,6 @@ const SettleUp = (props: SettleUpProps) => {
 
         setFailure(null);
         setBusy(true);
-        const fields = {
-            kind: 'settlement' as const,
-            text: '',
-            categoryId: null,
-            amountCents: cents,
-            date: draft.date,
-            paidBy: from,
-            split: 'exact' as const,
-            shares: [{ memberId: to, cents }],
-            payment: 'direct' as const,
-            chargeDate: null,
-        };
         try {
             // An edit keeps the id and the day it was made, and is later than the version it replaces (ADR-0005)
             await save(

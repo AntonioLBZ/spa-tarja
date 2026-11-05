@@ -4,8 +4,9 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
-import { memberBalances, pairwiseDebts, type Debt } from '@core/balance';
+import { memberBalances, type Debt } from '@core/balance';
 
 import { useGroupWords } from './use-group-words';
 
@@ -18,6 +19,8 @@ interface GroupBalancesProps {
     group: SharedGroup;
     // Deleted ones included, which count for nothing
     entries: readonly SharedEntry[];
+    // The debts the group shows, pair by pair or simplified
+    debts: readonly Debt[];
     // Takes a debt to settle up; without it, as in a closed group, no line offers it
     onSettle?: (debt: Debt) => void;
 }
@@ -28,12 +31,12 @@ const yoursFirst = (debts: readonly Debt[], me: string): Debt[] => {
     return [...debts.filter(yours), ...debts.filter((debt) => !yours(debt))];
 };
 
-// Who owes whom in a group, pair by pair, each with the way to settle it, and under it what each member is owed or owes
+// The debts of a group, each with the way to settle it, and under them what each member is owed or owes
 const GroupBalances = (props: GroupBalancesProps) => {
-    const { group, entries, onSettle } = props;
+    const { group, entries, debts, onSettle } = props;
     const t = useTranslations('groups');
     const words = useGroupWords(group);
-    const debts = useMemo(() => yoursFirst(pairwiseDebts(entries, group.members), group.me), [entries, group]);
+    const lines = useMemo(() => yoursFirst(debts, group.me), [debts, group.me]);
     const balances = useMemo(() => memberBalances(entries, group.members), [entries, group.members]);
     // A settlement is only between two members who haven't left
     const present = (memberId: string) =>
@@ -41,11 +44,12 @@ const GroupBalances = (props: GroupBalancesProps) => {
 
     return (
         <Sheet label={t('debts.label')}>
-            {debts.length === 0 ? (
+            {group.simplifyDebts && <Notice tone="quiet">{t('debts.simplified')}</Notice>}
+            {lines.length === 0 ? (
                 <p className="group-balances__line">{t('debts.none')}</p>
             ) : (
                 <CardList flush>
-                    {debts.map((debt) => {
+                    {lines.map((debt) => {
                         const sentence = words.debt(debt);
 
                         return (

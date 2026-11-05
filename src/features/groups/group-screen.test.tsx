@@ -1,10 +1,11 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
+import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
@@ -250,6 +251,187 @@ describe('a group', () => {
         open([friend]);
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Bea' })).toBeDefined();
+    });
+});
+
+describe('a group with simplified debts', () => {
+    const ledger = (group: SharedGroup) => [
+        expense(group, bea, [
+            [ana, 1500],
+            [bea, 1500],
+        ]),
+        expense(group, ana, [
+            [ana, 1000],
+            [cris, 1000],
+        ]),
+    ];
+
+    function settleButtons() {
+        return within(balancesSheet()).queryAllByRole('button', { name: /^Settle up/ });
+    }
+
+    it.each([
+        [
+            false,
+            [
+                t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) }),
+                t('groups.debts.owesYou', { name: 'Cris', amount: euros(1000) }),
+            ],
+        ],
+        [
+            true,
+            [
+                t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) }),
+                t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(1000) }),
+            ],
+        ],
+    ])(
+        'lists the same ledger with simplified debts %s, and the balances are the same',
+        async (simplifyDebts, lines) => {
+            const group = groupOf([ana, bea, cris], ana, { simplifyDebts });
+            open([group], ledger(group));
+
+            expect(await screen.findByText(t('groups.balance.owe', { amount: euros(500) }))).toBeDefined();
+            expect(debtLines()).toEqual(lines);
+            expect(everyone()).toEqual([
+                t('groups.balance.owe', { amount: euros(500) }),
+                t('groups.balance.memberOwed', { name: 'Bea', amount: euros(1500) }),
+                t('groups.balance.memberOwes', { name: 'Cris', amount: euros(1000) }),
+            ]);
+        }
+    );
+
+    it.each([true, false])('says it in a quiet notice with no role only when it is on (%s)', async (simplifyDebts) => {
+        const group = groupOf([ana, bea, cris], ana, { simplifyDebts });
+        open([group], ledger(group));
+        await screen.findByText(t('groups.balance.owe', { amount: euros(500) }));
+
+        const notice = within(balancesSheet()).queryByText(text.debts.simplified);
+
+        expect(notice !== null).toBe(simplifyDebts);
+        if (notice) {
+            expect(notice.className).toContain('notice--quiet');
+            expect(notice.hasAttribute('role')).toBe(false);
+            expect(notice.compareDocumentPosition(within(balancesSheet()).getAllByRole('listitem')[0]!)).toBe(
+                Node.DOCUMENT_POSITION_FOLLOWING
+            );
+        }
+    });
+
+    it('says it when nobody owes anything', async () => {
+        const group = groupOf([ana, bea], ana, { simplifyDebts: true });
+        open([group]);
+
+        expect(await screen.findByText(text.debts.none)).toBeDefined();
+        expect(within(balancesSheet()).getByText(text.debts.simplified)).toBeDefined();
+    });
+
+    it('says it in a closed group, which offers no settling up', async () => {
+        const group = groupOf([ana, bea, cris], ana, { simplifyDebts: true, closed: 'left' });
+        open([group], ledger(group));
+
+        await screen.findByText(t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) }));
+        expect(within(balancesSheet()).getByText(text.debts.simplified)).toBeDefined();
+        expect(settleButtons()).toEqual([]);
+    });
+
+    it.each([
+        [
+            false,
+            [
+                t('groups.debts.youOwe', { name: t('groups.names.left', { name: 'Dani' }), amount: euros(1000) }),
+                t('groups.debts.owes', {
+                    from: t('groups.names.left', { name: 'Dani' }),
+                    to: 'Bea',
+                    amount: euros(1000),
+                }),
+            ],
+            0,
+        ],
+        [true, [t('groups.debts.youOwe', { name: 'Bea', amount: euros(1000) })], 1],
+    ])(
+        'routes the payments around a member who left with nothing to pay or to receive (%s)',
+        async (simplifyDebts, lines, buttons) => {
+            const dani = person('Dani', { leftAt: 1 });
+            const group = groupOf([ana, bea, dani], ana, { simplifyDebts });
+            open(
+                [group],
+                [
+                    expense(group, dani, [
+                        [ana, 1000],
+                        [dani, 1000],
+                    ]),
+                    expense(group, bea, [
+                        [bea, 1000],
+                        [dani, 1000],
+                    ]),
+                ]
+            );
+
+            await screen.findByText(t('groups.balance.owe', { amount: euros(1000) }));
+
+            expect(debtLines()).toEqual(lines);
+            expect(settleButtons()).toHaveLength(buttons);
+            expect(everyone()).toContain(
+                t('groups.balance.memberSettled', { name: t('groups.names.left', { name: 'Dani' }) })
+            );
+        }
+    );
+
+    it('reads a merged dummy as the member it was merged into, adding what each owed', async () => {
+        const dummy = person('Bee', { claimed: false, mergedInto: bea.id, leftAt: 1 });
+        const group = groupOf([ana, bea, dummy], ana, { simplifyDebts: true });
+        open(
+            [group],
+            [
+                expense(group, ana, [
+                    [ana, 500],
+                    [bea, 750],
+                    [dummy, 750],
+                ]),
+            ]
+        );
+
+        expect(await screen.findByText(t('groups.balance.owed', { amount: euros(1500) }))).toBeDefined();
+        expect(debtLines()).toEqual([t('groups.debts.owesYou', { name: 'Bea', amount: euros(1500) })]);
+    });
+
+    it('keeps every cent of an amount that does not divide, in the payments and in the balance', async () => {
+        const group = groupOf([ana, bea, cris], ana, { simplifyDebts: true });
+        open(
+            [group],
+            [
+                expense(group, ana, [
+                    [ana, 334],
+                    [bea, 333],
+                    [cris, 333],
+                ]),
+            ]
+        );
+
+        expect(await screen.findByText(t('groups.balance.owed', { amount: euros(666) }))).toBeDefined();
+        expect(debtLines()).toEqual([
+            t('groups.debts.owesYou', { name: 'Bea', amount: euros(333) }),
+            t('groups.debts.owesYou', { name: 'Cris', amount: euros(333) }),
+        ]);
+    });
+
+    it('shows the pairs again when the owner turns it off, without any entry having changed', async () => {
+        const group = groupOf([ana, bea, cris], ana, { simplifyDebts: true });
+        const { api, app } = open([group], ledger(group));
+        await screen.findByText(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(1000) }));
+
+        api.groups[0]!.simplifyDebts = false;
+        await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
+
+        await waitFor(() =>
+            expect(debtLines()).toEqual([
+                t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) }),
+                t('groups.debts.owesYou', { name: 'Cris', amount: euros(1000) }),
+            ])
+        );
+        expect(within(balancesSheet()).queryByText(text.debts.simplified)).toBeNull();
+        expect(api.entryWrites).toEqual([]);
     });
 });
 
