@@ -27,7 +27,11 @@ const send = async (path: string, init?: RequestInit): Promise<unknown> => {
 
 const createAuthService = (): AuthService => {
     return {
-        getSession: async () => v.parse(sessionSchema, await send('/api/auth/get-session'))?.user ?? null,
+        // Past the cookie cache, which would still vouch for an account deleted from another device
+        getSession: async () => {
+            const answer = await send('/api/auth/get-session?disableCookieCache=true');
+            return v.parse(sessionSchema, answer)?.user ?? null;
+        },
         startSignIn: async () => {
             const callbackURL = invitationPath(window.location.pathname) ?? '/';
             const body = { provider: 'google', callbackURL, errorCallbackURL: '/?signin=failed' };

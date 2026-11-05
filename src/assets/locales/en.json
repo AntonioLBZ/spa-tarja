@@ -146,7 +146,9 @@
         "loading": "Checking your session…",
         "unreachable": "Can't reach Tarja. Check your connection and try again.",
         "failed": "Couldn't sign you in. Try again.",
-        "invited": "Sign in to see the invitation you were sent."
+        "invited": "Sign in to see the invitation you were sent.",
+        "deleted": "Your account was deleted.",
+        "deletedNotCleared": "Your account was deleted, but this device couldn't delete its copy of your data. To remove it, clear the data of this site in your browser's settings."
     },
     "settings": {
         "title": "Settings",

@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 
+import { accountDeletionSchema, confirmsEmail } from '@core/account';
 import { categoryNameKey, type Category } from '@core/category';
 import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
 import { profileInputSchema, type Profile } from '@core/profile';
@@ -48,6 +49,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
     const profile: Profile = { nickname: options.nickname ?? null, name: TEST_USER.name };
     const profileBodies: unknown[] = [];
 
+    const accountDeletions: unknown[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
@@ -66,6 +69,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         profileWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
+        // An HTTP status to answer the deletion of the account with, or null to delete it
+        accountDeleteStatus: null as number | null,
         // Answers every change of a group or of its people with it, or null to accept them
         groupRefusal: null as Refusal | null,
         // Answers every write of an entry of a group with it, or null to accept them
@@ -205,6 +210,21 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             return Response.json(profile);
         }
 
+        if (url.pathname === '/api/account' && method === 'DELETE') {
+            const body: unknown = JSON.parse(String(init?.body));
+            accountDeletions.push(body);
+            if (state.accountDeleteStatus !== null) return new Response(null, { status: state.accountDeleteStatus });
+
+            const parsed = v.safeParse(accountDeletionSchema, body);
+            if (!parsed.success) return Response.json({ error: 'invalid' }, { status: 400 });
+            if (!confirmsEmail(parsed.output.email, TEST_USER.email)) {
+                return Response.json({ error: 'wrong-email' }, { status: 422 });
+            }
+            // The account and its sessions are gone
+            state.unauthorized = true;
+            return new Response(null, { status: 204 });
+        }
+
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
@@ -235,6 +255,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgetBodies,
         profile,
         profileBodies,
+        accountDeletions,
         hold,
         groups: fakeGroups.groups,
         groupRequests: fakeGroups.groupRequests,

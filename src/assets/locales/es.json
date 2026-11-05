@@ -146,7 +146,9 @@
         "loading": "Comprobando tu sesión…",
         "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
         "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
-        "invited": "Inicia sesión para ver la invitación que te han enviado."
+        "invited": "Inicia sesión para ver la invitación que te han enviado.",
+        "deleted": "Tu cuenta se ha eliminado.",
+        "deletedNotCleared": "Tu cuenta se ha eliminado, pero este dispositivo no ha podido borrar su copia de tus datos. Para quitarla, borra los datos de este sitio en los ajustes del navegador."
     },
     "settings": {
         "title": "Ajustes",

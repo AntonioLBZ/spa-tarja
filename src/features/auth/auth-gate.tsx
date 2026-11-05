@@ -23,7 +23,9 @@ const AuthGate = (props: AuthGateProps) => {
             </p>
         );
     }
-    if (state.status === 'signed-out') return <SignInScreen unreachable={state.unreachable} />;
+    if (state.status === 'signed-out') {
+        return <SignInScreen unreachable={state.unreachable} deleted={state.deleted ?? null} />;
+    }
 
     // Keyed by user, so another account starts with nothing of the previous one's state
     return (

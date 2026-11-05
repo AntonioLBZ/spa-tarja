@@ -242,4 +242,30 @@ describe('sign-in gate', () => {
             expect(screen.getByRole('heading', { name: en.expenses.form.title })).toBeDefined();
         });
     });
+
+    describe('once the account is deleted', () => {
+        it('says so on the sign-in screen', async () => {
+            stubApi(createFakeApi().handler);
+            const { fakeAuth } = renderApp();
+            await screen.findByRole('heading', { name: en.expenses.form.title });
+
+            act(() => fakeAuth.auth.forget({ cleared: true }));
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(screen.getByRole('status').textContent).toBe(en.auth.deleted);
+            expect(screen.queryByRole('alert')).toBeNull();
+            expect(fakeAuth.calls.signOut).toBe(0);
+        });
+
+        it('says so, and that the device still holds its copy, when it could not delete it', async () => {
+            stubApi(createFakeApi().handler);
+            const { fakeAuth } = renderApp();
+            await screen.findByRole('heading', { name: en.expenses.form.title });
+
+            act(() => fakeAuth.auth.forget({ cleared: false }));
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(screen.getByRole('alert').textContent).toBe(en.auth.deletedNotCleared);
+        });
+    });
 });

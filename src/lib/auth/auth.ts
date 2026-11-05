@@ -3,10 +3,16 @@ import { clearCachedUser, readCachedUser, writeCachedUser } from './session-cach
 import type { AuthService } from './service';
 import type { AuthUser } from './user';
 
+// An account deleted from this device, and whether the device deleted its own copy of the data too
+interface DeletedAccount {
+    cleared: boolean;
+}
+
 type AuthState =
     | { status: 'loading' }
-    // `unreachable`: the server couldn't be asked, which is not the same as nobody being signed in
-    | { status: 'signed-out'; unreachable: boolean }
+    // `unreachable`: the server couldn't be asked, which is not the same as nobody being signed in. `deleted`: the
+    // account was deleted from here.
+    | { status: 'signed-out'; unreachable: boolean; deleted?: DeletedAccount }
     | { status: 'signed-in'; user: AuthUser };
 
 interface Auth {
@@ -19,6 +25,8 @@ interface Auth {
     signIn: () => Promise<void>;
     // Needs the server, because only it can end the cookie; a failure leaves the user signed in
     signOut: () => Promise<void>;
+    // Signs out on this device alone, once the server has deleted the account and ended its cookie
+    forget: (deleted: DeletedAccount) => void;
 }
 
 const goTo = (url: string) => {
@@ -74,7 +82,11 @@ const createAuth = (service: AuthService, navigate: (url: string) => void = goTo
             await service.signOut();
             signedOut(false);
         },
+        forget: (deleted) => {
+            clearCachedUser();
+            commit({ status: 'signed-out', unreachable: false, deleted });
+        },
     };
 };
 
-export { createAuth, type Auth, type AuthState };
+export { createAuth, type Auth, type AuthState, type DeletedAccount };

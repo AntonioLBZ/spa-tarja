@@ -32,7 +32,17 @@ describe('auth service', () => {
             const user = await createAuthService().getSession();
 
             expect(user).toEqual(ana);
-            expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/auth/get-session');
+            expect(new URL(String(fetchMock.mock.calls[0]?.[0]), 'http://localhost').pathname).toBe(
+                '/api/auth/get-session'
+            );
+        });
+
+        it('asks past the cookie cache of the session, so that a deleted account is told at once', async () => {
+            const fetchMock = stubApi(() => Response.json(null));
+
+            await createAuthService().getSession();
+
+            expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/auth/get-session?disableCookieCache=true');
         });
 
         it('is null when nobody is signed in', async () => {

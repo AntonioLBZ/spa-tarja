@@ -1,3 +1,4 @@
+export { deleteAccount } from './account';
 export { ApiError } from './api-error';
 export { BUDGETS_KEY, fetchBudgets, putBudgets } from './budgets';
 export { CATEGORIES_KEY, deleteCategory, fetchCategories, putCategory } from './categories';
