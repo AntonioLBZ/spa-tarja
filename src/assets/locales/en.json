@@ -505,6 +505,13 @@
         },
         "ledger": {
             "title": "Expenses",
+            "empty": "No expenses yet.",
+            "youPaid": "You paid",
+            "paidBy": "Paid by {name}",
+            "yourPart": "Your part {amount}",
+            "notIn": "Not in this one",
+            "addedBy": "Added by {name}",
+            "editedBy": "Edited by {name}",
             "youPaidTo": "You paid {name}",
             "paidYou": "{name} paid you",
             "paid": "{from} paid {to}"

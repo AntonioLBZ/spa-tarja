@@ -9,6 +9,7 @@ import { ExpenseForm } from '@/features/expenses/expense-form';
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
 import { GroupGate } from './group-gate';
+import { GroupLedger } from './group-ledger';
 import { myBalance } from './my-balance';
 import { SettleUp, useSettleUp } from './settle-up';
 import { useGroupWords } from './use-group-words';
@@ -25,8 +26,8 @@ interface GroupViewProps {
     ledger: Ledger;
 }
 
-// A group or a friend: what the person is owed or owes, who owes whom and settling up, adding an expense, and the way to
-// its settings
+// A group or a friend: what the person is owed or owes, who owes whom and settling up, adding an expense, its entries,
+// and the way to its settings
 const GroupScreen = (props: GroupScreenProps) => {
     const { groupId } = props;
 
@@ -71,6 +72,7 @@ const GroupView = (props: GroupViewProps) => {
             )}
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.entriesFailed')}</Notice>}
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
+            {hasData && <GroupLedger ledger={ledger} />}
             <ButtonLink ghost className="group-screen__edit" to="/groups/$groupId/edit" params={{ groupId: group.id }}>
                 {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
             </ButtonLink>

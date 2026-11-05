@@ -19,7 +19,7 @@ const useEntryWords = (group: SharedGroup) => {
     return useMemo(() => {
         const isMe = (memberId: string) => canonicalMember(group.members, memberId) === group.me;
 
-        const nameOf = (entry: SharedEntry) => {
+        const entryName = (entry: SharedEntry) => {
             if (entry.kind === 'expense') return entry.text || labelOf(entry.categoryId);
             const from = entry.paidBy;
             const to = entry.shares[0]!.memberId;
@@ -28,7 +28,7 @@ const useEntryWords = (group: SharedGroup) => {
             return t('paid', { from: words.nameOf(from), to: words.nameOf(to) });
         };
 
-        return { ...words, isMe, nameOf };
+        return { ...words, isMe, entryName };
     }, [group, labelOf, t, words]);
 };
 

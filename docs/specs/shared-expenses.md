@@ -43,11 +43,12 @@ The add form is the one at home ([expenses](expenses.md)), and it is also the on
 
 ### The ledger
 
-The entries of a group on the screen of the group, newest first by day, on `Sheet`s as the expenses are ([the ticket](../../design-system/DESIGN.md#3-shape)), with the total of the day's expenses at the foot. A row is a `Disclosure`:
+The entries of a group on the screen of the group, under the add form and titled "Expenses", newest first by day and, within a day, the latest made first, on `Sheet`s as the expenses are ([the ticket](../../design-system/DESIGN.md#3-shape)): the long weekday date as the label (with the year when the ledger goes over a New Year), and at the foot the total of the day's expenses, which a day of settlements only doesn't have, as nothing was spent. Deleted entries aren't there, and with no entry a quiet `Notice` says "No expenses yet." A row is a `Disclosure`:
 
-- An **expense**: the badge of its category, the name (the text, else the category), the total as the amount, and in the details who paid ("Paid by Ana", "You paid") and your part ("Your part €25.00", or "Not in this one" when you are out). Edited by someone else, or not synced yet, it says so.
-- A **settlement**: "Ana paid Bruno", "You paid Ana", "Ana paid you", with the amount, and no category.
-- The panel holds Edit, Duplicate (not for a settlement) and Delete as ghost buttons `--size-4` apart. Show more adds 100 rows at a time.
+- An **expense**: the badge of its category, the name (the text, else the category), the total as the amount, and in the details who paid ("Paid by Ana", "You paid") and your part ("Your part €25.00", or "Not in this one" when you are out). Written last by someone else, it says "Added by Ana" while it was never edited (`updatedAt` is `createdAt`) and "Edited by Ana" after, "Deleted user" for a person who deleted their account; not synced yet, it says so.
+- A **settlement**: "Ana paid Bruno", "You paid Ana", "Ana paid you", with the amount, and no category; who wrote it and whether it is synced, as for an expense.
+- The panel holds Edit, Duplicate (not for a settlement) and Delete as ghost buttons `--size-4` apart. Show more adds 100 rows at a time and puts the focus on the first row it brings in.
+- In a closed group the rows have nothing to open: no chevron and no panel.
 
 ### What the server refused
 

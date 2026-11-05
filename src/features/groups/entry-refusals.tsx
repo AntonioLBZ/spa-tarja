@@ -87,7 +87,7 @@ const GroupRefusal = (props: GroupRefusalProps) => {
     const { rejection, group } = props;
     const t = useTranslations('groups.refused');
     const words = useEntryWords(group);
-    const change = t('change', { name: words.nameOf(rejection.item), group: words.title });
+    const change = t('change', { name: words.entryName(rejection.item), group: words.title });
 
     return <RefusalNotice rejection={rejection} message={`${change} ${t(`reason.${reasonOf(rejection.code)}`)}`} />;
 };

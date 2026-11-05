@@ -75,7 +75,11 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
 
     for (const { groupId, createdBy, updatedBy, ...entry } of options.entries ?? []) {
         const me = groupOf(groupId)?.me ?? null;
-        storeEntry(groupId, { ...entry, createdBy: createdBy ?? me, updatedBy: updatedBy ?? me });
+        storeEntry(groupId, {
+            ...entry,
+            createdBy: createdBy === undefined ? me : createdBy,
+            updatedBy: updatedBy === undefined ? me : updatedBy,
+        });
     }
 
     const newGroup = (groupId: string, body: unknown): SharedGroup | Refusal => {
