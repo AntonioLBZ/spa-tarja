@@ -343,7 +343,7 @@
             "owesYou": "{name} te debe {amount}",
             "owes": "{from} debe {amount} a {to}",
             "none": "Nadie debe nada.",
-            "simplified": "Deudas simplificadas: los menos pagos que saldan el grupo. Algún pago puede ser para alguien con quien no compartiste gastos.",
+            "simplified": "Deudas simplificadas: el menor número de pagos que salda el grupo. Algún pago puede ser para alguien con quien no compartiste gastos.",
             "everyone": "El saldo de cada persona"
         },
         "settle": {
@@ -474,7 +474,7 @@
             "unarchive": "Recuperar",
             "name": "Nombre",
             "simplify": "Simplificar deudas",
-            "simplifyHint": "Muestra los menos pagos que saldan el grupo. No cambia ningún gasto.",
+            "simplifyHint": "Muestra el menor número de pagos que salda el grupo. No cambia ningún gasto.",
             "save": "Guardar"
         },
         "people": {
