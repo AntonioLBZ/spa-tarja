@@ -21,6 +21,7 @@ Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con dif
 The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What is left of this item, with the owner. Done on 2026-11-01: the update toast, the swatch pickers, the rings of `ChoiceGroup`, `Select` and `Dialog`, the ghost buttons, the hints and the categories screen on sheets.
 
 - **The same component, another variant.** Not answered yet: the row of actions copied in `category-row`, `expense-row`, `expense-form` and `dialog` (a component or leave it), and the titles and hints repeated in eight CSS files (`:where(h1)` and `:where(h2)` in `base.css`, or leave them).
+- **Stories of the groups.** None yet for Settle up, the Leave and Delete panels or the steps of a person; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
 ## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
@@ -45,20 +46,7 @@ The repo side:
 
 ## Shared expenses
 
-Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, and 24, the screens of groups and friends, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
-
-### 25. Sharing an expense, second half
-
-The form is done, at home and on the screen of a group: the head, For, the Shared tail (With and New person…, Paid by, the three modes, How you paid) and the default categories only. What is left: the ledger of a group, Edit, Duplicate and Delete with Undo of shared entries, and the filter Shared with ([shared expenses](docs/specs/shared-expenses.md), [expenses](docs/specs/expenses.md), [expense list](docs/specs/expense-list.md)). The ledger also lists the settlements that Settle up writes already ("You paid Bruno"), which are deleted there and never duplicated; it goes under the add form on the screen of a group. The outbox of groups keeps what the server refused for good with the `code` of the answer (`useGroupOutbox().getState().rejected`), which needs its notice, like the sync status of the expenses: `clock-ahead` tells the person to check the clock of their device. The refusals of the group outbox live in memory only; decide on the screen whether they must survive a reload.
-
-What the first half hands on:
-
-- `ExpenseForm` takes `group`, the group of the screen (For and With are left out). Edit and Duplicate of a shared entry need it to take the entry too: `useSharedTail` starts from `START` and has to start from the entry (its payer, mode and who is in, the percentages through `percentsOf`, the amounts as saved, and its cents kept when nothing of the split is touched); `newEntry` builds a copy, and an edit keeps the id and `createdAt` with an `updatedAt` later than the version it replaces, through `useEntryActions().save`.
-- Whether the form of a group is open is `adding` in `GroupView`, next to `useSettleUp`: the state of Edit and Duplicate goes there too.
-- The notice for refused writes must cover settlements too (`member-left`, `closed`, `clock-ahead`).
-- A friend taken out of the list and put back hits `already-member` for good, since a member who left cannot be re-added.
-- The totals and the notices of a ledger that failed to load have no `role`.
-- No story exists for Settle up, the Leave and Delete panels or the steps of a person (to decide with the owner under item 17).
+Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, and 25, sharing an expense, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
 
 ### 26. Friends by invitation
 
@@ -66,7 +54,7 @@ Migration `0012` for `friend_invitations`, the routes, the join page, the invite
 
 ### 27. Shared expenses in your own lists
 
-The shared rows in the list, the summary, the charts, the budgets and their warnings (also the one a shared expense brings when it is added or duplicated, for your part, which the form doesn't ask for yet), the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
+The shared rows in the list, the summary, the charts, the budgets and their warnings (also the one a shared expense brings when it is added or duplicated, for your part, which the form doesn't ask for yet), the history suggestion and the exports ([when an expense counts](docs/specs/expense-counting.md), [export](docs/specs/export.md)). The filter Shared with is in the list already and keeps a group's rows once they are there; what comes with the rows: the search in the name of the group or the person, and Edit, Duplicate and Delete of a shared row from the list (the add form at home takes the entry through `editingEntry` and `copyingEntry`, with the group of the row as `group`). Nothing at home syncs the groups yet, so an expense shared from the home form is sent once Groups or the group is opened: the shared rows will mount `useLedgers` there. While in the sync of expenses: when none were ever pulled and the pull fails, a sent expense is not put in the cache and disappears until the next sync (the sync of groups seeds it already); fix it with a test.
 
 ### 28. Simplified debts
 
@@ -84,4 +72,4 @@ The `Dialog` with the notice, in `en` and `es`, from the settings and from the s
 
 ### 31. Before the merge
 
-A review of the whole branch by a separate reviewer on Opus 5.5, hunting functional and security failures (authorization on every group, friend, invitation, profile and account route, invitation tokens, account deletion, input validation, rounding, the outbox and `seq` races, leaks of the email or of other people's data), with every finding fixed test first. An accessibility and layout pass at 320 px in both languages and on a real phone, the open questions of `DESIGN.md` §8 that the work raised, a run of the migrations on a copy of the production schema, `main` merged into the branch, the ADRs from `Proposed` to `Accepted`, the paragraph about the branch removed from `repository-structure.md`, and the owner's go-ahead. Then the pull request is merged with a merge commit (`gh pr merge --merge`).
+A review of the whole branch by a separate reviewer on Opus 5.5, hunting functional and security failures (authorization on every group, friend, invitation, profile and account route, invitation tokens, account deletion, input validation, rounding, the outbox and `seq` races, leaks of the email or of other people's data), with every finding fixed test first. An accessibility and layout pass at 320 px in both languages and on a real phone (the totals and the notices of a ledger that failed to load have no `role`), the open questions of `DESIGN.md` §8 that the work raised, a run of the migrations on a copy of the production schema, `main` merged into the branch, the ADRs from `Proposed` to `Accepted`, the paragraph about the branch removed from `repository-structure.md`, a decision on a friend taken out of the list of New group and put back, which hits `already-member` for good since a member who left can't be re-added, and the owner's go-ahead. Then the pull request is merged with a merge commit (`gh pr merge --merge`).
