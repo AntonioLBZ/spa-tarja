@@ -79,6 +79,10 @@ function toggle() {
     return screen.getByRole('button', { name: text.title }) as HTMLButtonElement;
 }
 
+function settleUp() {
+    return toggle().closest('.disclosure') as HTMLElement;
+}
+
 function select(label: string) {
     return screen.getByRole('combobox', { name: label });
 }
@@ -89,11 +93,11 @@ function choose(label: string, option: string) {
 }
 
 function amount() {
-    return screen.getByLabelText(text.amount) as HTMLInputElement;
+    return within(settleUp()).getByLabelText(text.amount) as HTMLInputElement;
 }
 
 function date() {
-    return screen.getByLabelText(text.date) as HTMLInputElement;
+    return within(settleUp()).getByLabelText(text.date) as HTMLInputElement;
 }
 
 function save() {
@@ -157,7 +161,7 @@ describe('settling up from a line', () => {
                 deletedAt: null,
             },
         ]);
-        expect(screen.queryByLabelText(text.amount)).toBeNull();
+        expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull();
         expect(document.activeElement).toBe(toggle());
     });
 
@@ -205,7 +209,7 @@ describe('settling up from a line', () => {
         fireEvent.click(save());
         fireEvent.click(save());
 
-        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
         expect(app.groupOutbox.getState().pending).toHaveLength(1);
     });
 
@@ -219,7 +223,7 @@ describe('settling up from a line', () => {
         fireEvent.submit(form);
         fireEvent.submit(form);
 
-        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
         expect(app.groupOutbox.getState().pending).toHaveLength(1);
     });
 
@@ -235,7 +239,7 @@ describe('settling up from a line', () => {
 
         expect(save().disabled).toBe(true);
         release();
-        await waitFor(() => expect(screen.queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
     });
 
     it('saves nothing when the form is sent with a day that is not a day', async () => {
@@ -509,7 +513,10 @@ describe('settling up in Spanish', () => {
         const button = await screen.findByRole('button', { name: tEs('groups.settle.lineItem', { debt }) });
 
         fireEvent.click(button);
-        const field = screen.getByLabelText(es.groups.settle.amount) as HTMLInputElement;
+        const panel = screen
+            .getByRole('button', { name: es.groups.settle.title })
+            .closest('.disclosure') as HTMLElement;
+        const field = within(panel).getByLabelText(es.groups.settle.amount) as HTMLInputElement;
         expect(field.value).toBe('15,00');
         fireEvent.change(field, { target: { value: '12,50' } });
         const hintEs = () =>

@@ -1,11 +1,11 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { CATEGORIES_KEY, GROUPS_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, GROUPS_KEY, groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
@@ -44,6 +44,19 @@ async function openHome(groups: SharedGroup[], options: Parameters<typeof create
     await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
     await waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success'));
     return { api, app };
+}
+
+async function openGroup(group: SharedGroup) {
+    const api = createFakeApi({ groups: [group] });
+    stubApi(api.handler);
+    const app = renderApp({ path: `/groups/${group.id}` });
+    await screen.findByRole('heading', { name: 'Trip' });
+    await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(group.id))?.status).toBe('success'));
+    return { api, app };
+}
+
+function balance() {
+    return within(screen.getByRole('main')).getByRole('status').textContent;
 }
 
 function forChoice(name: string) {
@@ -626,5 +639,81 @@ describe('the category of a shared expense', () => {
 
         expect(chosenOption(form.category)).toBe(en.categories.food);
         expect(screen.getByText(form.suggested)).toBeDefined();
+    });
+});
+
+describe('on the screen of a group', () => {
+    it('has the form collapsed under its heading, shared in the group with nothing to choose', async () => {
+        await openGroup(trip());
+        const toggle = screen.getByRole('button', { name: form.title });
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+        fireEvent.click(toggle);
+
+        expect(screen.queryByRole('radio', { name: form.forShared })).toBeNull();
+        expect(screen.queryByRole('combobox', { name: share.with })).toBeNull();
+        expect(chosenOption(share.paidBy)).toBe(share.you);
+        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
+    });
+
+    it('adds the expense to the group, offline too, and the balances change at once', async () => {
+        const group = trip();
+        const { app } = await openGroup(group);
+        expect(balance()).toBe(en.groups.balance.allSettled);
+        onlineManager.setOnline(false);
+        fireEvent.click(screen.getByRole('button', { name: form.title }));
+
+        fill({ amount: '30', text: 'Dinner' });
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(balance()).toBe(t('groups.balance.owed', { amount: euros(2000) })));
+        expect(app.groupOutbox.getState().pending).toMatchObject([{ groupId: group.id, amountCents: 3000 }]);
+        expect(field(form.amount).value).toBe('');
+        expect(chosenOption(share.paidBy)).toBe(share.you);
+    });
+
+    it.each([
+        ['deleted', 'deleted'],
+        ['the person left', 'left'],
+    ] as const)('offers no form in a group that is closed because it was %s', async (_, closed) => {
+        await openGroup(trip({ closed }));
+
+        expect(screen.queryByRole('button', { name: form.title })).toBeNull();
+        expect(screen.queryByRole('form', { name: form.title })).toBeNull();
+    });
+
+    it('sends an expense again once when its answer was lost, and the group has it once', async () => {
+        const group = trip();
+        const { api, app } = await openGroup(group);
+        api.state.loseEntryAnswers = true;
+        fireEvent.click(screen.getByRole('button', { name: form.title }));
+
+        fill({ amount: '30', text: 'Dinner' });
+        fireEvent.click(addButton());
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending).toHaveLength(1);
+        api.state.loseEntryAnswers = false;
+        await act(() => app.queryClient.invalidateQueries({ queryKey: groupEntriesKey(group.id) }));
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
+        expect(api.entriesOf(group.id)).toHaveLength(1);
+        expect(new Set(api.entryAttempts.map((entry) => entry.id)).size).toBe(1);
+        expect(balance()).toBe(t('groups.balance.owed', { amount: euros(2000) }));
+    });
+});
+
+describe('a group that closes while the form is open', () => {
+    it('keeps the expense off the device and says why', async () => {
+        const group = trip();
+        const { app } = await openHome([group]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        app.queryClient.setQueryData(GROUPS_KEY, [{ ...group, closed: 'deleted' }]);
+        fireEvent.click(addButton());
+
+        expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.readOnly);
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+        await waitFor(() => expect(screen.getByText(share.none)).toBeDefined());
     });
 });
