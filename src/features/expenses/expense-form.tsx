@@ -17,6 +17,7 @@ import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories';
 import { toDateString } from '@core/date';
 import { TEXT_MAX_LENGTH, type Payment } from '@core/expense';
 import { formatAmountInput, parseAmount } from '@core/money';
+import { canonicalMember } from '@core/shared-member';
 
 import { createExpenses, draftOf, reviseExpenses, type Draft } from './create-expenses';
 import { usePayment } from './payment-fields';
@@ -25,6 +26,7 @@ import { useSaveExpense } from './use-save-expense';
 import { useSuggestCategory } from './use-suggest-category';
 
 import type { Expense } from '@core/expense';
+import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 
 import './expense-form.css';
@@ -41,6 +43,9 @@ interface ExpenseFormProps {
     editing?: readonly Expense[] | null;
     // The expense, or every part of its plan, to start a new one from
     copying?: readonly Expense[] | null;
+    // A shared expense of the group to change, or to start a new one from
+    editingEntry?: SharedExpenseEntry | null;
+    copyingEntry?: SharedExpenseEntry | null;
     // After an edit or a copy is saved or cancelled
     onDone?: () => void;
     // Called once a new expense is saved, not an edit, with the day it was made
@@ -99,10 +104,36 @@ const startingFields = (draft: Draft | null, locale: string, copy: boolean): Sta
     };
 };
 
+// What the fields start with for a shared expense of the group: a copy is made today, and only the payer's card is
+// theirs to keep, its charge date proposed again for the copy
+const entryFields = (group: SharedGroup, entry: SharedExpenseEntry, locale: string, copy: boolean): StartingFields => {
+    const payerIsMe = canonicalMember(group.members, entry.paidBy) === group.me;
+    return {
+        amount: formatAmountInput(entry.amountCents, locale),
+        text: entry.text,
+        categoryId: entry.categoryId,
+        date: copy ? toDateString(new Date()) : entry.date,
+        payment: payerIsMe ? entry.payment : 'direct',
+        chargeDate: payerIsMe && !copy ? entry.chargeDate : null,
+        personal: '',
+        installments: 1,
+        parts: null,
+    };
+};
+
 // The head (amount, description, category, day) is common; under it, For chooses the tail. Each tail keeps what was
 // typed in it while the form is open, so switching back and forth loses nothing.
 const ExpenseForm = (props: ExpenseFormProps) => {
-    const { title, group, editing = null, copying = null, onDone, onAdded } = props;
+    const {
+        title,
+        group,
+        editing = null,
+        copying = null,
+        editingEntry = null,
+        copyingEntry = null,
+        onDone,
+        onAdded,
+    } = props;
     const t = useTranslations('expenses.form');
     const { locale } = useLocale();
     const save = useSaveExpense();
@@ -114,9 +145,16 @@ const ExpenseForm = (props: ExpenseFormProps) => {
 
     // A form edits or copies one expense for its whole life: a new one is mounted for another (AddExpense)
     const source = editing ?? copying;
-    const [start] = useState(() => startingFields(source && draftOf(source), locale, copying !== null));
+    const entry = editingEntry ?? copyingEntry;
+    const [entrySource] = useState(() => (entry ? { entry, copy: copyingEntry !== null } : null));
+    const [start] = useState(() =>
+        group && entry
+            ? entryFields(group, entry, locale, copyingEntry !== null)
+            : startingFields(source && draftOf(source), locale, copying !== null)
+    );
+    const isEdit = editing !== null || editingEntry !== null;
     const startFor: ForWhom = group ? 'shared' : 'me';
-    const suggest = useSuggestCategory(source === null);
+    const suggest = useSuggestCategory(source === null && entry === null);
     const [amount, setAmount] = useState(start.amount);
     const [text, setText] = useState(start.text);
     const [picked, setPicked] = useState<string | null>(null);
@@ -129,7 +167,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const totalCents = parseAmount(amount, locale);
     const payment = usePayment(start, date);
     const personal = usePersonalTail(start, totalCents, date, payment.payment);
-    const shared = useSharedTail(group, totalCents, payment);
+    const shared = useSharedTail(group, totalCents, payment, entrySource);
     const isShared = forWhom === 'shared';
 
     // A new expense's category follows the description until the user picks one (the keywords, else the person's own
@@ -194,8 +232,16 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         if (!write) return;
         try {
             await saveEntry(write.groupId, write.entry);
+            if (editingEntry) {
+                onDone?.();
+                return;
+            }
             rememberSharedWith(write.groupId);
             onAdded?.(date);
+            if (copyingEntry) {
+                onDone?.();
+                return;
+            }
             resetForm();
         } catch (error) {
             setFailure(failureOf(error) === 'readOnly' ? 'readOnly' : 'saveFailed');
@@ -322,9 +368,9 @@ const ExpenseForm = (props: ExpenseFormProps) => {
 
             <div className="expense-form__actions">
                 <Button className="expense-form__submit" variant="primary" disabled={saving || !canSave} type="submit">
-                    {editing ? t('save') : t('submit')}
+                    {isEdit ? t('save') : t('submit')}
                 </Button>
-                {(editing || copying) && <Button onClick={onDone}>{t('cancel')}</Button>}
+                {(source || entry) && <Button onClick={onDone}>{t('cancel')}</Button>}
             </div>
         </form>
     );

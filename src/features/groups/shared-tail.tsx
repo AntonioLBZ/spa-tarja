@@ -11,10 +11,12 @@ import { useLocale } from '@/lib/i18n';
 import { splitEvenly } from '@core/installments';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
 import { SPLIT_MODES } from '@core/shared-entry';
+import { canonicalMember } from '@core/shared-member';
 import {
     HUNDRED_PERCENT,
     equalPercents,
     percentLeft,
+    percentsOf,
     splitByPercent,
     splitEqually,
     splitExactly,
@@ -29,6 +31,7 @@ import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
 
 import type { Share, SharedEntry, SplitMode } from '@core/shared-entry';
+import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 
 import './shared-tail.css';
@@ -47,6 +50,21 @@ interface SharedDraft {
     out: readonly string[];
     // What was typed in the percentages or the amounts since the mode was chosen
     typed: TypedShares | null;
+    // The shares of the entry it started from, kept while nothing of the split is touched, as splitting its percentages
+    // again may move a cent
+    saved: SavedShares | null;
+}
+
+// The shares of an entry, for the total they add up to
+interface SavedShares {
+    amountCents: number;
+    shares: Share[];
+}
+
+// An expense of the group that the form edits, or copies into a new one
+interface EntrySource {
+    entry: SharedExpenseEntry;
+    copy: boolean;
 }
 
 // The shares as typed, by member, valid only for the members who were in, and for amounts the total, when typed
@@ -82,7 +100,15 @@ type SharedTailState = ReturnType<typeof useSharedTail>;
 // by percent, cents by amount.
 type SplitProblem = { kind: 'nobody' } | { kind: 'invalid'; ids: readonly string[] } | { kind: 'left'; left: number };
 
-const START: SharedDraft = { groupId: null, asking: false, paidBy: null, mode: 'equal', out: [], typed: null };
+const START: SharedDraft = {
+    groupId: null,
+    asking: false,
+    paidBy: null,
+    mode: 'equal',
+    out: [],
+    typed: null,
+    saved: null,
+};
 
 // The value of New person… among the groups of With, whose ids are UUIDs
 const NEW_PERSON = 'new-person';
@@ -122,17 +148,62 @@ const splitOf = (
     return { shares: splitExactly(amount ?? 0, parts), problem: null };
 };
 
+// Where the tail of an entry starts: its payer, its mode and who is in, with the percentages as its shares over the
+// amount and the amounts as saved. A merged placeholder is read as its target, and somebody who left can't take part,
+// so the saved shares are kept only when everybody in them still can.
+const draftOfEntry = (group: SharedGroup, entry: SharedExpenseEntry, locale: string): SharedDraft => {
+    const present = group.members.filter((member) => member.leftAt === null).map((member) => member.id);
+    const cents = new Map<string, number>();
+    for (const share of entry.shares) {
+        const memberId = canonicalMember(group.members, share.memberId);
+        cents.set(memberId, (cents.get(memberId) ?? 0) + share.cents);
+    }
+    const inIds = present.filter((memberId) => cents.has(memberId));
+    const shares = inIds.map((memberId) => ({ memberId, cents: cents.get(memberId)! }));
+    const keptCents = shares.reduce((sum, share) => sum + share.cents, 0);
+    const texts = (values: readonly number[]) =>
+        Object.fromEntries(inIds.map((memberId, index) => [memberId, formatAmountInput(values[index]!, locale)]));
+
+    const typed: TypedShares | null =
+        entry.split === 'percent'
+            ? {
+                  key: inIds.join(),
+                  values: texts(percentsOf(keptCents, shares).map((percent) => percent.basisPoints)),
+              }
+            : entry.split === 'exact'
+              ? { key: `${entry.amountCents}:${inIds.join()}`, values: texts(shares.map((share) => share.cents)) }
+              : null;
+
+    return {
+        groupId: group.id,
+        asking: false,
+        paidBy: canonicalMember(group.members, entry.paidBy),
+        mode: entry.split,
+        out: present.filter((memberId) => !cents.has(memberId)),
+        typed,
+        saved: keptCents === entry.amountCents ? { amountCents: entry.amountCents, shares } : null,
+    };
+};
+
 // The open groups, then the open friends, as the Groups tab lists them
 const openChoices = (groups: readonly SharedGroup[]): SharedGroup[] => {
     return groupsFirst(groups.filter((group) => group.closed === null));
 };
 
 // The tail of a shared expense: the group or friend, who paid and how it is split, in cents. Given a group, it is
-// shared there; otherwise in one of the person's open groups and friends.
-const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null, payment: PaymentState) => {
+// shared there; otherwise in one of the person's open groups and friends. Given an entry of that group too, it starts
+// from it.
+const useSharedTail = (
+    fixed: SharedGroup | undefined,
+    totalCents: number | null,
+    payment: PaymentState,
+    source: EntrySource | null = null
+) => {
     const { groups } = useGroups();
     const { locale } = useLocale();
-    const [draft, setDraft] = useState<SharedDraft>(START);
+    const [draft, setDraft] = useState<SharedDraft>(() =>
+        fixed && source ? draftOfEntry(fixed, source.entry, locale) : START
+    );
     const [remembered] = useState(readSharedWith);
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
 
@@ -165,11 +236,14 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
               ? draft.typed.values
               : Object.fromEntries(startTexts().map((text, index) => [inIds[index]!, text]));
     const parse = draft.mode === 'percent' ? parsePercent : parseAmount;
-    const { shares, problem } = splitOf(
+    const split = splitOf(
         draft.mode,
         amount,
         inIds.map((memberId) => ({ memberId, value: parse(texts[memberId] ?? '', locale) }))
     );
+    const kept = draft.saved !== null && draft.saved.amountCents === amount ? draft.saved.shares : null;
+    const shares = kept ?? split.shares;
+    const problem = kept ? null : split.problem;
     // The schema's rule: whoever pays by card has a share
     const cardWithoutYou =
         payerIsMe &&
@@ -212,26 +286,38 @@ const useSharedTail = (fixed: SharedGroup | undefined, totalCents: number | null
             setDraft({ ...draft, paidBy: memberId });
             if (memberId !== me) payment.reset();
         },
-        pickMode: (mode: SplitMode) => setDraft({ ...draft, mode, typed: null }),
+        pickMode: (mode: SplitMode) => setDraft({ ...draft, mode, typed: null, saved: null }),
         type: (memberId: string, text: string) => {
-            setDraft({ ...draft, typed: { key, values: { ...texts, [memberId]: text } } });
+            setDraft({ ...draft, typed: { key, values: { ...texts, [memberId]: text } }, saved: null });
         },
         take: (memberId: string, isIn: boolean) => {
             const out = draft.out.filter((id) => id !== memberId);
-            setDraft({ ...draft, out: isIn ? out : [...out, memberId] });
+            setDraft({ ...draft, out: isIn ? out : [...out, memberId], saved: null });
         },
-        // The entry, with the group to write it in, while it can be saved
+        // The entry, with the group to write it in, while it can be saved. An edit keeps the id, the day it was made and
+        // the card of a payer who isn't the person, and is later than the version it replaces (ADR-0005).
         entryOf: (head: SharedHead): { groupId: string; entry: SharedEntry } | null => {
             if (!group || !valid || payer === null || shares === null) return null;
-            const entry = newEntry(group, {
-                kind: 'expense',
+            const edited = source && !source.copy ? source.entry : null;
+            const theirCard = edited !== null && !payerIsMe && payer === canonicalMember(group.members, edited.paidBy);
+            const fields = {
+                kind: 'expense' as const,
                 ...head,
                 paidBy: payer,
                 split: draft.mode,
                 shares,
-                payment: payerIsMe ? payment.payment : 'direct',
-                chargeDate: payerIsMe ? payment.chargeDate : null,
-            });
+                payment: payerIsMe ? payment.payment : theirCard ? edited.payment : 'direct',
+                chargeDate: payerIsMe ? payment.chargeDate : theirCard ? edited.chargeDate : null,
+            };
+            if (!edited) return { groupId: group.id, entry: newEntry(group, fields) };
+            const entry = {
+                ...fields,
+                id: edited.id,
+                currency: edited.currency,
+                createdAt: edited.createdAt,
+                updatedAt: Math.max(Date.now(), edited.updatedAt + 1),
+                deletedAt: null,
+            };
             return { groupId: group.id, entry };
         },
         // Back to where it starts, in the same group
@@ -382,4 +468,4 @@ const SharedPeople = (props: SharedPeopleProps) => {
     );
 };
 
-export { SharedTail, useSharedTail, type SharedTailProps, type SharedTailState };
+export { SharedTail, useSharedTail, type EntrySource, type SharedTailProps, type SharedTailState };

@@ -19,12 +19,21 @@ import { useEntryWords } from './use-entry-words';
 
 import type { Ledger } from './use-ledgers';
 import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
+import type { SharedExpenseEntry } from '@core/shared-expense';
 
 import '@/features/expenses/expense-list.css';
 import './group-ledger.css';
 
 interface GroupLedgerProps {
     ledger: Ledger;
+    // Load an expense of the group into the add form, to change it or to start a new one from it
+    onEdit: (entry: SharedExpenseEntry) => void;
+    onDuplicate: (entry: SharedExpenseEntry) => void;
+    // An entry was deleted, so that an edit of it is over
+    onDeleted: (entryId: string) => void;
+    // The entry whose row takes the focus back once an edit or a copy is over, until it has it
+    refocus: string | null;
+    onRefocused: () => void;
 }
 
 // The entries of one day, with what its expenses add up to; settlements count for nobody
@@ -72,7 +81,7 @@ const firstRows = (days: readonly LedgerDay[], max: number): LedgerDay[] => {
 // The entries of a group, newest first, a day on each sheet like the expenses at home. In an open group a row opens
 // on what can be done to it; deleting asks nothing and can be taken back (ADR-0010).
 const GroupLedger = (props: GroupLedgerProps) => {
-    const { ledger } = props;
+    const { ledger, onEdit, onDuplicate, onDeleted, refocus, onRefocused } = props;
     const { group, entries } = ledger;
     const t = useTranslations('groups.ledger');
     const tList = useTranslations('expenses.list');
@@ -99,6 +108,11 @@ const GroupLedger = (props: GroupLedgerProps) => {
         (targets.current.get(moreFocus.current) ?? title.current)?.focus();
         moreFocus.current = null;
     });
+    useEffect(() => {
+        if (refocus === null) return;
+        (targets.current.get(refocus) ?? title.current)?.focus();
+        onRefocused();
+    }, [refocus, onRefocused]);
     // The entry that Undo brought back, whose row takes the focus once it is there
     const [restored, setRestored] = useState<string | null>(null);
 
@@ -155,6 +169,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const remove = async (entry: LedgerEntry) => {
         const neighbour = neighbourOf(entry.id);
         fadeOut([entry]);
+        onDeleted(entry.id);
         setRestored(null);
         setFailure(null);
         ((neighbour && targets.current.get(neighbour)) || title.current)?.focus();
@@ -196,6 +211,8 @@ const GroupLedger = (props: GroupLedgerProps) => {
                                 entry={entry}
                                 pending={pendingIds.has(entry.id)}
                                 leaving={leaving.has(entry.id)}
+                                onEdit={open ? onEdit : undefined}
+                                onDuplicate={open ? onDuplicate : undefined}
                                 onDelete={open ? (item) => void remove(item) : undefined}
                                 focusRef={(node) => {
                                     if (node) targets.current.set(entry.id, node);

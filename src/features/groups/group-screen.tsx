@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { ExpenseForm } from '@/features/expenses/expense-form';
+import { readDuration } from '@/lib/motion';
 
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
@@ -13,6 +14,7 @@ import { GroupLedger } from './group-ledger';
 import { myBalance } from './my-balance';
 import { SettleUp, useSettleUp } from './settle-up';
 import { useGroupWords } from './use-group-words';
+import { useLedgerForm } from './use-ledger-form';
 
 import type { Ledger } from './use-ledgers';
 
@@ -41,9 +43,20 @@ const GroupView = (props: GroupViewProps) => {
     const tForm = useTranslations('expenses.form');
     const words = useGroupWords(group);
     const settle = useSettleUp();
-    // Whether the add form is open; it starts collapsed under its heading
-    const [adding, setAdding] = useState(false);
+    const form = useLedgerForm();
+    const { editing, copying } = form;
+    const heading = useRef<HTMLButtonElement>(null);
     const open = group.closed === null;
+    const formTitle = editing ? tForm('editTitle') : copying ? tForm('copyTitle') : tForm('title');
+
+    // Edit and Duplicate bring the form into view and put the focus on its heading, never on a field: a phone would
+    // open its keyboard
+    useEffect(() => {
+        if (!editing && !copying) return;
+        const behavior = readDuration('--duration-base') === 0 ? 'instant' : 'smooth';
+        heading.current?.scrollIntoView({ behavior, block: 'start' });
+        heading.current?.focus({ preventScroll: true });
+    }, [editing, copying]);
 
     return (
         <section className="group-screen">
@@ -61,18 +74,35 @@ const GroupView = (props: GroupViewProps) => {
                 <Disclosure
                     as="section"
                     heading="h2"
-                    summary={tForm('title')}
+                    summary={formTitle}
                     chevron
                     keepMounted
-                    open={adding}
-                    onOpenChange={setAdding}
+                    open={form.open}
+                    onOpenChange={form.setOpen}
+                    toggleRef={heading}
                 >
-                    <ExpenseForm title={tForm('title')} group={group} />
+                    <ExpenseForm
+                        key={form.key}
+                        title={formTitle}
+                        group={group}
+                        editingEntry={editing}
+                        copyingEntry={copying}
+                        onDone={form.end}
+                    />
                 </Disclosure>
             )}
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.entriesFailed')}</Notice>}
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
-            {hasData && <GroupLedger ledger={ledger} />}
+            {hasData && (
+                <GroupLedger
+                    ledger={ledger}
+                    onEdit={form.startEdit}
+                    onDuplicate={form.startCopy}
+                    onDeleted={form.forget}
+                    refocus={form.refocus}
+                    onRefocused={() => form.setRefocus(null)}
+                />
+            )}
             <ButtonLink ghost className="group-screen__edit" to="/groups/$groupId/edit" params={{ groupId: group.id }}>
                 {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
             </ButtonLink>

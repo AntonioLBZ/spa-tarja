@@ -1,17 +1,20 @@
 import clsx from 'clsx';
+import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useLocale } from '@/lib/i18n';
 import { formatAmount } from '@core/money';
-import { yourPart } from '@core/shared-expense';
+import { yourPart, type SharedExpenseEntry } from '@core/shared-expense';
+import { canonicalMember } from '@core/shared-member';
 
 import { useEntryWords } from './use-entry-words';
 
-import type { LedgerEntry } from '@core/shared-entry';
+import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 import type { RefCallback } from 'react';
 
@@ -25,21 +28,34 @@ interface LedgerRowProps {
     pending: boolean;
     // Deleted a moment ago, fading out
     leaving: boolean;
-    // Without it, as in a closed group, the row has nothing to open
+    // Without them, as in a closed group, the row has nothing to open
+    onEdit?: (entry: SharedExpenseEntry) => void;
+    onDuplicate?: (entry: SharedExpenseEntry) => void;
     onDelete?: (entry: LedgerEntry) => void;
     // What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open
     focusRef?: RefCallback<HTMLElement>;
 }
 
+// Whether an entry names somebody who left the group, as its payer or in a share, a merged placeholder read as its
+// target: the device doesn't offer to edit it, as an edit may not move what that person pays or owes
+const namesSomeoneWhoLeft = (entry: SharedEntry, group: SharedGroup): boolean => {
+    const left = (memberId: string) => {
+        const id = canonicalMember(group.members, memberId);
+        return group.members.some((member) => member.id === id && member.leftAt !== null);
+    };
+    return left(entry.paidBy) || entry.shares.some((share) => left(share.memberId));
+};
+
 // An entry of the ledger as a line of the ticket: an expense by its name with its total, who paid and your part, or a
 // settlement in words, and who wrote it last when it wasn't the person. Pressing it opens what can be done to it.
 const LedgerRow = (props: LedgerRowProps) => {
-    const { group, entry, pending, leaving, onDelete, focusRef } = props;
+    const { group, entry, pending, leaving, onEdit, onDuplicate, onDelete, focusRef } = props;
     const t = useTranslations('groups');
     const tList = useTranslations('expenses.list');
     const { locale } = useLocale();
     const { styleOf } = useCategoryOptions();
     const words = useEntryWords(group);
+    const reasonId = useId();
     const money = (cents: number) => formatAmount(cents, entry.currency, locale);
 
     const writer = entry.updatedBy === null ? t('names.deleted') : words.nameOf(entry.updatedBy);
@@ -78,6 +94,7 @@ const LedgerRow = (props: LedgerRowProps) => {
         </span>
     );
     const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
+    const blocked = namesSomeoneWhoLeft(entry, group);
 
     if (!onDelete) {
         return (
@@ -90,6 +107,27 @@ const LedgerRow = (props: LedgerRowProps) => {
     return (
         <Disclosure as="li" className={rowClsx} chevron toggleRef={focusRef} summary={body}>
             <div className="expense-item__actions">
+                {entry.kind === 'expense' && onEdit && (
+                    <Button
+                        ghost
+                        aria-describedby={blocked ? reasonId : undefined}
+                        aria-label={tList('editItem', { name })}
+                        disabled={leaving || blocked}
+                        onClick={() => onEdit(entry)}
+                    >
+                        {tList('edit')}
+                    </Button>
+                )}
+                {entry.kind === 'expense' && onDuplicate && (
+                    <Button
+                        ghost
+                        aria-label={tList('duplicateItem', { name })}
+                        disabled={leaving}
+                        onClick={() => onDuplicate(entry)}
+                    >
+                        {tList('duplicate')}
+                    </Button>
+                )}
                 <Button
                     ghost
                     variant="danger"
@@ -100,6 +138,11 @@ const LedgerRow = (props: LedgerRowProps) => {
                     {tList('delete')}
                 </Button>
             </div>
+            {blocked && (
+                <Notice tone="quiet" id={reasonId}>
+                    {t('ledger.leftCantEdit')}
+                </Notice>
+            )}
         </Disclosure>
     );
 };
