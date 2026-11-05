@@ -540,6 +540,22 @@
                 "other": "The server refused it."
             },
             "dismiss": "Dismiss"
+        },
+        "join": {
+            "title": "Friend invitation",
+            "asks": "{name} wants to be your friend.",
+            "what": "As friends you share expenses and see what you owe each other, including what {name} has already written down with you.",
+            "accept": "Accept",
+            "decline": "Decline",
+            "loading": "Opening the invitation…",
+            "offline": "You're offline. Opening an invitation needs a connection.",
+            "gone": "This link can't be used. It may have expired, been used or been withdrawn. Ask for a new one.",
+            "yourself": "This is your own invitation. Send the link to the person you want as a friend.",
+            "alreadyFriends": "You and {name} are friends already.",
+            "loadFailed": "Couldn't open the invitation. Try again.",
+            "failed": "Couldn't answer the invitation. Try again.",
+            "retry": "Try again",
+            "declined": "You declined the invitation."
         }
     },
     "summary": {

@@ -540,6 +540,22 @@
                 "other": "El servidor lo rechazó."
             },
             "dismiss": "Cerrar"
+        },
+        "join": {
+            "title": "Invitación de amistad",
+            "asks": "{name} quiere que seáis amigos.",
+            "what": "Como amigos compartís gastos y veis lo que os debéis, también lo que {name} ya ha apuntado contigo.",
+            "accept": "Aceptar",
+            "decline": "Rechazar",
+            "loading": "Abriendo la invitación…",
+            "offline": "No tienes conexión. Para abrir una invitación hace falta conexión.",
+            "gone": "Este enlace ya no sirve. Puede que haya caducado, que ya se haya usado o que lo hayan retirado. Pide uno nuevo.",
+            "yourself": "Es tu propia invitación. Envía el enlace a la persona con quien quieras compartir gastos.",
+            "alreadyFriends": "{name} y tú ya sois amigos.",
+            "loadFailed": "No se pudo abrir la invitación. Inténtalo de nuevo.",
+            "failed": "No se pudo responder a la invitación. Inténtalo de nuevo.",
+            "retry": "Reintentar",
+            "declined": "Has rechazado la invitación."
         }
     },
     "summary": {

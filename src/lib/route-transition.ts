@@ -11,14 +11,15 @@ const DEPTHS: Record<string, number> = {
     '/budgets': 2,
 };
 
-// The screens of one group, by the shape of their path
-const GROUP_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
+// The screens of one group, and the page of an invitation, by the shape of their path
+const PATH_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
     [/^\/groups\/[^/]+$/, 2],
     [/^\/groups\/[^/]+\/edit$/, 3],
+    [/^\/join\/[^/]+$/, 1],
 ];
 
 const routeDepth = (pathname: string): number => {
-    return DEPTHS[pathname] ?? GROUP_DEPTHS.find(([shape]) => shape.test(pathname))?.[1] ?? 0;
+    return DEPTHS[pathname] ?? PATH_DEPTHS.find(([shape]) => shape.test(pathname))?.[1] ?? 0;
 };
 
 type NavSection = '/' | '/groups' | '/summary' | '/settings';
@@ -35,7 +36,8 @@ const SECTIONS: Record<string, NavSection> = {
 };
 
 const navSection = (pathname: string): NavSection => {
-    return SECTIONS[pathname] ?? (pathname.startsWith('/groups/') ? '/groups' : '/');
+    const underGroups = pathname.startsWith('/groups/') || pathname.startsWith('/join/');
+    return SECTIONS[pathname] ?? (underGroups ? '/groups' : '/');
 };
 
 interface LocationChange {

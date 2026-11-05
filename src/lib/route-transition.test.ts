@@ -30,6 +30,11 @@ describe('routeDepth', () => {
         expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe(3);
     });
 
+    it('puts the page of an invitation level with Groups', () => {
+        expect(routeDepth('/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.token')).toBe(1);
+        expect(routeDepth('/join/a/b')).toBe(0);
+    });
+
     it('takes a page it does not know for the home screen', () => {
         expect(routeDepth('/nowhere')).toBe(0);
         expect(routeDepth('/groups/a/b/c')).toBe(0);
@@ -47,7 +52,8 @@ describe('navSection', () => {
         expect(navSection('/categories')).toBe('/settings');
     });
 
-    it('puts a group and its settings under Groups', () => {
+    it('puts a group, its settings and the page of an invitation under Groups', () => {
+        expect(navSection('/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.token')).toBe('/groups');
         expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe('/groups');
         expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe('/groups');
     });
