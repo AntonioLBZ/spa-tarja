@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 async function callbackFrom(pathname: string) {
-    window.history.replaceState(null, '', pathname);
+    window.history.replaceState(null, '', `${window.location.origin}${pathname}`);
     const fetchMock = stubApi(() => Response.json({ url: 'https://accounts.google.com/o/oauth2/auth' }));
     await createAuthService().startSignIn();
     const [, init] = fetchMock.mock.calls[0] ?? [];
@@ -97,10 +97,19 @@ describe('auth service', () => {
             expect(await callbackFrom(`/join/${TOKEN}`)).toBe(`/join/${TOKEN}`);
         });
 
-        it('comes back home from any other page, or from a link that is not an invitation', async () => {
-            expect(await callbackFrom('/settings')).toBe('/');
-            expect(await callbackFrom('/join/nonsense')).toBe('/');
-            expect(await callbackFrom(`/join//evil.example/${TOKEN}`)).toBe('/');
+        it.each([
+            ['another page', '/settings'],
+            ['the join page with nothing after it', '/join/'],
+            ['a token of the wrong shape', '/join/nonsense'],
+            ['a signature that is too short', `/join/${TOKEN.slice(0, -1)}`],
+            ['a path after the token', `/join/${TOKEN}/more`],
+            ['an address on another origin', '//evil.example'],
+            ['an address on another origin after the prefix', `/join//evil.example/${TOKEN}`],
+            ['an encoded dot in the token', `/join/${TOKEN.replace('.', '%2E')}`],
+            ['an encoded slash in front of the token', `/join/%2Fevil.example%2F${TOKEN}`],
+            ['the token under another prefix', `/groups/join/${TOKEN}`],
+        ])('comes back home from %s', async (_, pathname) => {
+            expect(await callbackFrom(pathname)).toBe('/');
         });
 
         it('fails when the server refuses', async () => {
