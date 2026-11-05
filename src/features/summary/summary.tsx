@@ -8,7 +8,7 @@ import { Card, CardList } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
-import { useExpenses } from '@/features/expenses/use-expenses';
+import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -26,7 +26,7 @@ const Summary = () => {
     const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
     const online = useOnline();
-    const { expenses } = useExpenses();
+    const { expenses } = useYourExpenses();
     const income = useQuery(incomeQuery());
     const [month, setMonth] = useState(() => monthOf(toDateString(new Date())));
 

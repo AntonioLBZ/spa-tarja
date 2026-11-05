@@ -4,12 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { BUDGETS_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
+import { BUDGETS_KEY, EXPENSES_KEY, GROUPS_KEY, INCOME_KEY, groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import type { Budget } from '@core/budget';
 import type { Expense } from '@core/expense';
+import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 
@@ -186,5 +188,73 @@ describe('the warning after adding an expense', () => {
 
         await waitFor(() => expect(toastText()).toBe('Comida de octubre ha superado su límite'));
         localStorage.clear();
+    });
+});
+
+describe('the warning after sharing an expense', () => {
+    const food = [limit('2026-10', 'food', 10_000)];
+    const ana = person('Ana', { role: 'owner' });
+    const bea = person('Bea');
+
+    function trip(overrides: Partial<SharedGroup> = {}) {
+        return sampleGroup({ members: [ana, bea], me: ana.id, ...overrides });
+    }
+
+    async function openHome(options: Parameters<typeof createFakeApi>[0]) {
+        const opened = await open(options);
+        await waitFor(() => expect(opened.app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        return opened;
+    }
+
+    function share(amount: string) {
+        fireEvent.click(screen.getByRole('radio', { name: en.expenses.form.forShared }));
+        add(amount);
+    }
+
+    it('says a limit is near for your part of it, with what the groups already hold', async () => {
+        const group = trip();
+        const { app } = await openHome({
+            expenses: [expense({ amountCents: 5_000 })],
+            budgets: food,
+            groups: [group],
+            entries: [sampleEntry(group, { paidBy: bea.id })],
+        });
+        await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(group.id))?.status).toBe('success'));
+
+        share('30');
+
+        await waitFor(() => expect(toastText()).toBe('Food of October is at 85 % of its limit'));
+    });
+
+    it('says nothing for a group whose switch is off', async () => {
+        await openHome({
+            expenses: [expense({ amountCents: 7_000 })],
+            budgets: food,
+            groups: [trip({ showInExpenses: false })],
+        });
+
+        share('30');
+
+        await formCleared();
+        expect(toastText()).toBe('');
+    });
+
+    it('says it when a shared expense is duplicated from its group', async () => {
+        const group = trip();
+        await open(
+            {
+                expenses: [expense({ amountCents: 5_000 })],
+                budgets: food,
+                groups: [group],
+                entries: [sampleEntry(group)],
+            },
+            `/groups/${group.id}`
+        );
+        fireEvent.click((await screen.findByText('Dinner')).closest('button')!);
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.duplicateItem', { name: 'Dinner' }) }));
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+
+        await waitFor(() => expect(toastText()).toBe('Food of October is at 90 % of its limit'));
     });
 });

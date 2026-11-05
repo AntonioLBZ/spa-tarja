@@ -12,6 +12,7 @@ import { failureOf, useFailureWords } from '@/features/groups/group-failure';
 import { SharedTail, useSharedTail } from '@/features/groups/shared-tail';
 import { rememberSharedWith } from '@/features/groups/shared-with';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
+import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories';
 import { toDateString } from '@core/date';
@@ -231,12 +232,13 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         const write = shared.entryOf({ text: text.trim(), categoryId, amountCents, date });
         if (!write) return;
         try {
-            await saveEntry(write.groupId, write.entry);
+            await saveEntry(write.group.id, write.entry);
             if (editingEntry) {
                 onDone?.();
                 return;
             }
-            rememberSharedWith(write.groupId);
+            warn(sharedRowsOf(write.group, [write.entry]));
+            rememberSharedWith(write.group.id);
             onAdded?.(date);
             if (copyingEntry) {
                 onDone?.();

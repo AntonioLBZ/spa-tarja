@@ -305,7 +305,7 @@ const useSharedTail = (
         },
         // The entry, with the group to write it in, while it can be saved. An edit keeps the id, the day it was made and
         // the card of a payer who isn't the person, and is later than the version it replaces (ADR-0005).
-        entryOf: (head: SharedHead): { groupId: string; entry: SharedEntry } | null => {
+        entryOf: (head: SharedHead): { group: SharedGroup; entry: SharedEntry } | null => {
             if (!group || !valid || payer === null || shares === null) return null;
             const edited = source && !source.copy ? source.entry : null;
             const theirCard = edited !== null && !payerIsMe && payer === canonicalMember(group.members, edited.paidBy);
@@ -318,7 +318,7 @@ const useSharedTail = (
                 payment: payerIsMe ? payment.payment : theirCard ? edited.payment : 'direct',
                 chargeDate: payerIsMe ? payment.chargeDate : theirCard ? edited.chargeDate : null,
             };
-            if (!edited) return { groupId: group.id, entry: newEntry(group, fields) };
+            if (!edited) return { group, entry: newEntry(group, fields) };
             const entry = {
                 ...fields,
                 id: edited.id,
@@ -327,7 +327,7 @@ const useSharedTail = (
                 updatedAt: Math.max(Date.now(), edited.updatedAt + 1),
                 deletedAt: null,
             };
-            return { groupId: group.id, entry };
+            return { group, entry };
         },
         // Back to where it starts, in the same group
         reset: () => setDraft({ ...START, groupId: group?.id ?? null }),

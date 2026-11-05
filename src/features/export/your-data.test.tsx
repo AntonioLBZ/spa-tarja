@@ -4,8 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
+import { BUDGETS_KEY, CATEGORIES_KEY, EXPENSES_KEY, INCOME_KEY, groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import type { Category } from '@core/category';
@@ -155,6 +157,21 @@ describe('the JSON file', () => {
         const file = await press(en.settings.data.json);
 
         expect(JSON.parse(file.text).expenses.map((item: Expense) => item.text)).toEqual(['Synced', 'Waiting']);
+    });
+
+    it('holds only your own expenses, never your part of a shared one', async () => {
+        const storage = createMemoryStorage();
+        const group = sampleGroup();
+        await leaveCopy(storage, [group], [sampleEntry(group, { text: 'Shared dinner' })]);
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Mine' })], groups: [group] }).handler);
+        const app = renderApp({ path: '/settings', storage });
+        await screen.findByRole('heading', { name: en.settings.data.title });
+        await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
+        expect(app.queryClient.getQueryData(groupEntriesKey(group.id))).toBeDefined();
+
+        const file = await press(en.settings.data.json);
+
+        expect(JSON.parse(file.text).expenses.map((item: Expense) => item.text)).toEqual(['Mine']);
     });
 
     it('leaves out an expense deleted on this device that the server has not heard of yet', async () => {

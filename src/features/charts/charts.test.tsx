@@ -6,6 +6,7 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
@@ -1338,5 +1339,23 @@ describe('in Spanish', () => {
                 period: days.formatRange(new Date(2026, 8, 6), new Date(2026, 8, 30)),
             })}`
         );
+    });
+});
+
+describe('your part of the shared expenses', () => {
+    it('is in the columns and the total on the day it was made, and a settlement is not', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const bea = person('Bea');
+        const group = sampleGroup({ members: [ana, bea], me: ana.id });
+        await open([], {
+            groups: [group],
+            entries: [
+                sampleEntry(group, { paidBy: bea.id, date: '2026-10-24', payment: 'credit', chargeDate: '2026-11-02' }),
+                sampleSettlement(group, ana.id, bea.id, 2000),
+            ],
+        });
+
+        await waitFor(() => expect(rowOf('Oct 24').textContent).toContain('€20.00'));
+        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€20.00');
     });
 });
