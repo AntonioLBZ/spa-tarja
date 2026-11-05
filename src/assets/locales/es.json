@@ -519,7 +519,7 @@
             "youPaidTo": "Pagaste a {name}",
             "paidYou": "{name} te pagó",
             "paid": "{from} pagó a {to}",
-            "deleted": "Eliminado de {group}: {name}",
+            "deleted": "Se eliminó «{name}» de {group}",
             "deletedSettlement": "Eliminado de {group}: el pago «{name}»",
             "leftCantEdit": "Alguien de este apunte ha salido del grupo, así que no se puede editar. Si hay que cambiarlo, elimínalo y añádelo de nuevo."
         },
