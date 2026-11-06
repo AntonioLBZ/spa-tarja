@@ -160,25 +160,31 @@ describe('the names of groups and people', () => {
 });
 
 describe('the names of groups and people, and the direction of the text', () => {
-    it.each([
-        '\u200E',
-        '\u200F',
-        '\u202A',
-        '\u202B',
-        '\u202C',
-        '\u202D',
-        '\u202E',
-        '\u2066',
-        '\u2067',
-        '\u2068',
-        '\u2069',
-    ])('refuse a name with %j among visible characters', (control) => {
-        const name = `${control}uoy sewo Ana`;
+    it.each(['\u202A', '\u202B', '\u202C', '\u202D', '\u202E', '\u2066', '\u2067', '\u2068', '\u2069'])(
+        'refuse a name with %j among visible characters',
+        (control) => {
+            const name = `${control}uoy sewo Ana`;
 
-        expect(v.safeParse(groupChangeSchema, { name }).success).toBe(false);
-        expect(v.safeParse(memberWriteSchema, { name }).success).toBe(false);
-        expect(v.safeParse(newGroupSchema, { ...trip, name }).success).toBe(false);
-        expect(v.safeParse(newGroupSchema, { ...trip, others: [{ id: BRUNO, name }] }).success).toBe(false);
+            expect(v.safeParse(groupChangeSchema, { name }).success).toBe(false);
+            expect(v.safeParse(memberWriteSchema, { name }).success).toBe(false);
+            expect(v.safeParse(newGroupSchema, { ...trip, name }).success).toBe(false);
+            expect(v.safeParse(newGroupSchema, { ...trip, others: [{ id: BRUNO, name }] }).success).toBe(false);
+        }
+    );
+});
+
+describe('the plain direction marks in a name', () => {
+    it.each(['\u200E', '\u200F'])('are taken in a name with %j among visible characters', (mark) => {
+        const name = `${mark}\u05D0\u05E0\u05D4 Ana${mark}`;
+
+        expect(v.safeParse(groupChangeSchema, { name }).success).toBe(true);
+        expect(v.safeParse(memberWriteSchema, { name }).success).toBe(true);
+        expect(v.safeParse(newGroupSchema, { ...trip, name }).success).toBe(true);
+        expect(v.safeParse(newGroupSchema, { ...trip, others: [{ id: BRUNO, name }] }).success).toBe(true);
+    });
+
+    it('are not enough to make a name', () => {
+        expect(v.safeParse(memberWriteSchema, { name: '\u200E\u200F' }).success).toBe(false);
     });
 });
 

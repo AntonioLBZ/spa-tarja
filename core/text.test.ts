@@ -43,9 +43,9 @@ describe('isVisibleText', () => {
     );
 });
 
-const DIRECTION_CONTROLS = [
-    '\u200E',
-    '\u200F',
+const MARKS = ['\u200E', '\u200F'];
+
+const OVERRIDES_AND_ISOLATES = [
     '\u202A',
     '\u202B',
     '\u202C',
@@ -58,12 +58,22 @@ const DIRECTION_CONTROLS = [
 ];
 
 describe('direction controls', () => {
-    it.each(DIRECTION_CONTROLS)('are found, and taken out, in a name with %j in it', (control) => {
+    it.each(OVERRIDES_AND_ISOLATES)('are found, and taken out, in a name with %j in it', (control) => {
         const name = `An${control}a`;
 
         expect(hasDirectionControls(name)).toBe(true);
         expect(stripDirectionControls(name)).toBe('Ana');
     });
+
+    it.each(MARKS)(
+        'are not found in a name with the plain mark %j, which is still taken out of an account name',
+        (mark) => {
+            const name = `An${mark}a`;
+
+            expect(hasDirectionControls(name)).toBe(false);
+            expect(stripDirectionControls(name)).toBe('Ana');
+        }
+    );
 
     it('are not found in a name that sets none, joiners and emoji included', () => {
         const name = 'Ana \u{1F469}\u200D\u{1F4BB} Mar\u00EDa';

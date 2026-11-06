@@ -225,7 +225,7 @@
             "save": "Save",
             "remove": "Remove",
             "offline": "You're offline. Connect to change your nickname.",
-            "invalid": "Your nickname needs at least one character that shows.",
+            "invalid": "A nickname needs at least one visible character and no text-direction controls.",
             "saveFailed": "Couldn't save your nickname. Try again.",
             "removeFailed": "Couldn't remove your nickname. Try again."
         },
@@ -499,7 +499,7 @@
             "nameHint": "For someone who won't use the app: you keep track of what you share. If they join later, invite them from the friend.",
             "submit": "Add the friend"
         },
-        "nameInvalid": "Write a name with at least one character that shows.",
+        "nameInvalid": "A name needs at least one visible character and no text-direction controls.",
         "failure": {
             "offline": "You're offline. Connect and try again.",
             "readOnly": "This group is closed, so nothing in it can change.",

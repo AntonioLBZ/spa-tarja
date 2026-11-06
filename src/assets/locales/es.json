@@ -225,7 +225,7 @@
             "save": "Guardar",
             "remove": "Quitar",
             "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
-            "invalid": "Tu apodo necesita al menos un carácter que se vea.",
+            "invalid": "Un apodo necesita al menos un carácter visible y ningún control de dirección del texto.",
             "saveFailed": "No se pudo guardar tu apodo. Inténtalo de nuevo.",
             "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
         },
@@ -499,7 +499,7 @@
             "nameHint": "Para quien no va a usar la app: tú llevas la cuenta de lo que compartís. Si más adelante se une, invítalo desde el amigo.",
             "submit": "Añadir a tus amigos"
         },
-        "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",
+        "nameInvalid": "Un nombre necesita al menos un carácter visible y ningún control de dirección del texto.",
         "failure": {
             "offline": "Estás sin conexión. Conéctate e inténtalo de nuevo.",
             "readOnly": "Este grupo está cerrado, así que no se puede cambiar nada.",

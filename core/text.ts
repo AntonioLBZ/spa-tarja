@@ -22,16 +22,19 @@ const isVisibleText = (text: string): boolean => {
     return VISIBLE.test(text);
 };
 
-// The marks, embeddings, overrides and isolates that set the direction of the text around them: in a name they could
-// reverse the rest of the line the name sits in
+// The embeddings, overrides and isolates: in a name they could reverse the rest of the line the name sits in
+const DIRECTION_OVERRIDES = /[\u202A-\u202E\u2066-\u2069]/u;
+
+// Those and the plain marks (U+200E, U+200F), which text pasted from right-to-left scripts often carries
 const DIRECTION_CONTROLS = /[\u200E\u200F\u202A-\u202E\u2066-\u2069]/gu;
 
 const stripDirectionControls = (text: string): string => {
     return text.replace(DIRECTION_CONTROLS, '');
 };
 
+// Whether a name has a control that overrides or isolates the direction of the text; the plain marks are let through
 const hasDirectionControls = (text: string): boolean => {
-    return stripDirectionControls(text) !== text;
+    return DIRECTION_OVERRIDES.test(text);
 };
 
 export { hasDirectionControls, isVisibleText, normalizeText, searchWords, stripDirectionControls };

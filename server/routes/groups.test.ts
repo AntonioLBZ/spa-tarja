@@ -773,6 +773,17 @@ describe('the names of people', () => {
         expect((await listGroups(ana)).map((candidate) => candidate.name)).toEqual(['Trip']);
     });
 
+    it('take a name that carries a plain direction mark among visible characters', async () => {
+        const marked = '\u200E\u05D0\u05E0\u05D4 Ana\u200F';
+        const group = await makeGroup(ana, ['Bruno']);
+
+        const made = await put(ana, crypto.randomUUID(), { ...trip(), name: marked });
+        const renamed = await put(ana, group.id, { name: marked });
+        const added = await send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { name: marked });
+
+        for (const response of [made, renamed, added]) expect(response.status).toBe(200);
+    });
+
     it('start a maker whose account name reverses the text with the name without it', async () => {
         const dani = await signIn('dani@example.com', '\u202Euoy sewo Dani');
 

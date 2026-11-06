@@ -49,21 +49,18 @@ describe('profileInputSchema', () => {
         expect(v.safeParse(profileInputSchema, { nickname }).success).toBe(false);
     });
 
-    it.each([
-        '\u200E',
-        '\u200F',
-        '\u202A',
-        '\u202B',
-        '\u202C',
-        '\u202D',
-        '\u202E',
-        '\u2066',
-        '\u2067',
-        '\u2068',
-        '\u2069',
-    ])('rejects a nickname with a direction control among visible characters: %j', (control) => {
-        expect(v.safeParse(profileInputSchema, { nickname: `${control}uoy sewo Ana` }).success).toBe(false);
-        expect(v.safeParse(profileInputSchema, { nickname: `Ana${control}` }).success).toBe(false);
+    it.each(['\u202A', '\u202B', '\u202C', '\u202D', '\u202E', '\u2066', '\u2067', '\u2068', '\u2069'])(
+        'rejects a nickname with a direction control among visible characters: %j',
+        (control) => {
+            expect(v.safeParse(profileInputSchema, { nickname: `${control}uoy sewo Ana` }).success).toBe(false);
+            expect(v.safeParse(profileInputSchema, { nickname: `Ana${control}` }).success).toBe(false);
+        }
+    );
+
+    it.each(['\u200E', '\u200F'])('keeps a nickname with the plain mark %j among visible characters', (mark) => {
+        const nickname = `${mark}\u05D0\u05E0\u05D4 Ana${mark}`;
+
+        expect(v.parse(profileInputSchema, { nickname })).toEqual({ nickname });
     });
 
     it('keeps a nickname whose invisible characters sit among visible ones', () => {
