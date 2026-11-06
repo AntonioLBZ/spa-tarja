@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -78,6 +78,21 @@ describe('inviting a friend from the Groups tab', () => {
 
         await waitFor(() => expect(linkFields()).toHaveLength(2));
         expect(linkFields().map((field) => field.value)).toEqual([urlOf(newer), urlOf(older)]);
+    });
+
+    it('names the buttons of each link after the day it stops working, so two links can be told apart', async () => {
+        const dayMs = 24 * 60 * 60 * 1000;
+        const [soon, later] = [pendingLink(Date.now() + 2 * dayMs), pendingLink(Date.now() + 9 * dayMs)];
+        const api = openGroups([soon, later]);
+        const groupOf = (link: PendingInvitation) =>
+            screen.findByRole('group', { name: t('groups.invite.until', { date: day(link.expiresAt) }) });
+
+        const laterGroup = await groupOf(later);
+
+        expect(within(await groupOf(soon)).getByRole<HTMLInputElement>('textbox').value).toBe(urlOf(soon));
+        expect(within(laterGroup).getByRole<HTMLInputElement>('textbox').value).toBe(urlOf(later));
+        fireEvent.click(within(laterGroup).getByRole('button', { name: en.groups.invite.revoke }));
+        await waitFor(() => expect(api.groupRequests).toEqual([`DELETE /api/invitations/${later.id}`]));
     });
 
     it('copies a link', async () => {

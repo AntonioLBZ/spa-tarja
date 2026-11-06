@@ -1,4 +1,4 @@
-import { useMemo, useState, type Ref } from 'react';
+import { useId, useMemo, useState, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -21,9 +21,10 @@ interface InvitationLinkProps {
 
 const canShare = () => typeof navigator.share === 'function';
 
-// An open link of an invitation, in a field to copy it by hand, with the day it stops working. It is sent by the person
-// themselves, as the app sends no message, and it is made before it is sent, as a share or a copy that waits for the
-// network can be refused for want of a press of the person's own.
+// An open link of an invitation, in a field to copy it by hand, with the day it stops working, which names the group of
+// its buttons so that several links can be told apart. It is sent by the person themselves, as the app sends no message,
+// and it is made before it is sent, as a share or a copy that waits for the network can be refused for want of a press
+// of the person's own.
 const InvitationLink = (props: InvitationLinkProps) => {
     const { token, expiresAt, disabled, busy, onRevoke, fieldRef } = props;
     const t = useTranslations('groups.invite');
@@ -31,6 +32,7 @@ const InvitationLink = (props: InvitationLinkProps) => {
     const [sent, setSent] = useState<'copied' | 'failed' | null>(null);
     const dayFormat = useMemo(() => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }), [locale]);
     const url = `${window.location.origin}/join/${token}`;
+    const untilId = useId();
 
     const send = async () => {
         setSent(null);
@@ -47,8 +49,11 @@ const InvitationLink = (props: InvitationLinkProps) => {
     };
 
     return (
-        <div className="invitation-link">
-            <Field label={t('link')} hint={t('until', { date: dayFormat.format(new Date(expiresAt)) })}>
+        <div className="invitation-link" role="group" aria-labelledby={untilId}>
+            <Field
+                label={t('link')}
+                hint={<span id={untilId}>{t('until', { date: dayFormat.format(new Date(expiresAt)) })}</span>}
+            >
                 {(control) => (
                     <input
                         {...control}
