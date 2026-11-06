@@ -9,6 +9,7 @@ import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { AddFriend } from './add-friend';
 import { EntryRefusals } from './entry-refusals';
 import { GroupList } from './group-list';
+import { InviteFriend } from './invite-friend';
 import { myBalance } from './my-balance';
 import { NewGroup } from './new-group';
 import { useGroups, useLedgers, type Ledger } from './use-ledgers';
@@ -19,8 +20,8 @@ interface GroupTotalsProps {
     ledgers: readonly Ledger[];
 }
 
-// The Groups tab: what the person is owed and owes across their open groups and friends, making a group or a friend,
-// the groups and the friends, and at the end the closed and the archived ones
+// The Groups tab: what the person is owed and owes across their open groups and friends, making a group, inviting a
+// friend with a link or adding one by name, the groups and the friends, and at the end the closed and the archived ones
 const Groups = () => {
     const t = useTranslations('groups');
     const online = useOnline();
@@ -41,6 +42,7 @@ const Groups = () => {
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.loadFailed')}</Notice>}
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
             <NewGroup disabled={!online} />
+            <InviteFriend disabled={!online} />
             <AddFriend disabled={!online} />
             {groups.length > 0 && <GroupList label={t('lists.groups')} ledgers={groups} />}
             {friends.length > 0 && <GroupList label={t('lists.friends')} ledgers={friends} />}

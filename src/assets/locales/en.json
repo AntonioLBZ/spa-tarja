@@ -407,8 +407,8 @@
                 "left": "You left this group. It stays as it was the day you left."
             }
         },
-        "offline": "You're offline. Connect to make or change a group.",
-        "empty": "You have no groups or friends yet.",
+        "offline": "You're offline. Connect to make or change a group, or to invite a friend.",
+        "empty": "You have no groups or friends yet. Invite a friend who uses Tarja with a link, or add by name someone who won't use it.",
         "totalsWait": "Couldn't load the expenses of every group, so there are no totals yet. Connect to see them.",
         "lists": {
             "groups": "Groups",
@@ -439,10 +439,16 @@
             "submit": "Make the group",
             "full": "A group takes {max} people at most, you included."
         },
+        "links": {
+            "make": "Invite a friend",
+            "hint": "For someone who uses Tarja or will. You get a link to send them, and you become friends when they accept. It works once, for {days} days. If you added them by name, invite them from that friend instead.",
+            "title": "Invitation links",
+            "loadFailed": "Couldn't load your invitation links."
+        },
         "friend": {
-            "title": "Add a friend",
+            "title": "Add a friend by name",
             "name": "Their name",
-            "nameHint": "By name. They don't need the app.",
+            "nameHint": "For someone who won't use the app: you keep track of what you share. If they join later, invite them from the friend.",
             "submit": "Add the friend"
         },
         "nameInvalid": "Write a name with at least one character that shows.",

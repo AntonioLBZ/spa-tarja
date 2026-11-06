@@ -1,0 +1,10 @@
+.invitation-link {
+    display: grid;
+    gap: var(--size-2);
+}
+
+.invitation-link__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}

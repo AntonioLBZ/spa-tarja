@@ -407,8 +407,8 @@
                 "left": "Saliste de este grupo. Se queda como estaba el día que saliste."
             }
         },
-        "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo.",
-        "empty": "Aún no tienes grupos ni amigos.",
+        "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo, o para invitar a un amigo.",
+        "empty": "Aún no tienes grupos ni amigos. Invita con un enlace a quien usa Tarja, o añade por su nombre a quien no la vaya a usar.",
         "totalsWait": "No se pudieron cargar los gastos de todos los grupos, así que aún no hay totales. Conéctate para verlos.",
         "lists": {
             "groups": "Grupos",
@@ -439,10 +439,16 @@
             "submit": "Crear el grupo",
             "full": "Un grupo admite {max} personas como máximo, contándote a ti."
         },
+        "links": {
+            "make": "Invitar a un amigo",
+            "hint": "Para quien usa Tarja o la va a usar. Obtienes un enlace para enviárselo y seréis amigos cuando lo acepte. Sirve una vez, durante {days} días. Si ya lo añadiste por su nombre, invítalo desde ese amigo.",
+            "title": "Enlaces de invitación",
+            "loadFailed": "No se pudieron cargar tus enlaces de invitación."
+        },
         "friend": {
-            "title": "Añadir un amigo",
+            "title": "Añadir un amigo por su nombre",
             "name": "Su nombre",
-            "nameHint": "Por su nombre. No necesita la app.",
+            "nameHint": "Para quien no va a usar la app: tú llevas la cuenta de lo que compartís. Si más adelante se une, invítalo desde el amigo.",
             "submit": "Añadir a tus amigos"
         },
         "nameInvalid": "Escribe un nombre con al menos un carácter que se vea.",

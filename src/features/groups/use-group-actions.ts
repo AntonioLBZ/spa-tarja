@@ -91,13 +91,13 @@ const useGroupActions = () => {
             return invitation;
         };
 
-        // A read of the links on its way would put an older list over the one this change leaves. A list never read
-        // is read again instead, so the device never holds one that leaves out links it hasn't seen.
+        // A read of the links on its way would put an older list over the one this change leaves. A list never read is
+        // read again behind it, as the change alone would leave out the links already there.
         const keepLinks = async (change: (links: PendingInvitation[]) => PendingInvitation[]) => {
             await queryClient.cancelQueries({ queryKey: PENDING_INVITATIONS_KEY });
-            const links = queryClient.getQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY);
-            if (links) queryClient.setQueryData(PENDING_INVITATIONS_KEY, change(links));
-            else void queryClient.invalidateQueries({ queryKey: PENDING_INVITATIONS_KEY });
+            const read = queryClient.getQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY) !== undefined;
+            queryClient.setQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY, (links = []) => change(links));
+            if (!read) void queryClient.invalidateQueries({ queryKey: PENDING_INVITATIONS_KEY });
         };
 
         return {

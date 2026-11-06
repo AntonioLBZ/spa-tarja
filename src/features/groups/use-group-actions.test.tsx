@@ -183,12 +183,14 @@ describe('the links to be friends of the person', () => {
         expect(app.api.groupRequests).toEqual(['POST /api/invitations', `DELETE /api/invitations/${made.id}`]);
     });
 
-    it('keeps no list made only of the new link when the list was never read', async () => {
+    it('keeps the new link and reads the list again when it was never read', async () => {
         const app = await setup([], { pending: [older] });
 
-        await act(() => app.result.current.actions.inviteFriend());
+        const made = await act(() => app.result.current.actions.inviteFriend());
 
-        expect(app.result.current.client.getQueryData(PENDING_INVITATIONS_KEY)).toBeUndefined();
+        const { client } = app.result.current;
+        expect(client.getQueryData(PENDING_INVITATIONS_KEY)).toEqual([made]);
+        expect(client.getQueryState(PENDING_INVITATIONS_KEY)?.isInvalidated).toBe(true);
     });
 
     it.each([
