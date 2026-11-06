@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
-import { befriend, makeFriend, makeGroup, send } from '@server/test/groups';
+import { befriend, makeGroup, send } from '@server/test/groups';
 import { ORIGIN, cachedSession, sentAs, signIn, type TestSession } from '@server/test/session';
 
 let session: TestSession;
@@ -261,10 +261,7 @@ describe('a user deleted while the session is cached', () => {
 
     it.each(['read', 'accept', 'decline'])('answers 401 to %s a link', async (action) => {
         const bruno = await signIn('bruno@example.com', 'Bruno');
-        const friend = await makeFriend(bruno, 'Ana');
-        const link = (await (await send(bruno, 'POST', `/groups/${friend.id}/invitations`)).json()) as {
-            invitation: { token: string };
-        };
+        const link = (await (await send(bruno, 'POST', '/invitations')).json()) as { invitation: { token: string } };
         const cached = await goneWithCache();
 
         const response = await send(cached, 'POST', `/invitations/${action}`, { token: link.invitation.token });

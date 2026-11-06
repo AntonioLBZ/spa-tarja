@@ -4,6 +4,7 @@ import { expect } from 'vitest';
 import { app } from '@server/app';
 
 import type { TestSession } from './session';
+import type { PendingInvitation } from '@core/invitation';
 import type { SharedGroup } from '@core/shared-group';
 
 // A request to the API as that person, with a JSON body when there is one
@@ -93,7 +94,7 @@ const makeFriend = async (as: TestSession, name = 'Bruno'): Promise<SharedGroup>
     return groupOf(await send(as, 'PUT', `/groups/${crypto.randomUUID()}`, body));
 };
 
-// What accepting an invitation does to the dummy of a friend: the person takes its place, under their account's name
+// A placeholder of a group made a real member, as adding a friend in its place leaves it, under their account's name
 const claim = async (memberId: string, by: TestSession): Promise<void> => {
     await env.DB.prepare(
         `UPDATE shared_members SET user_id = ?2, claimed_at = 1, name = (SELECT name FROM "user" WHERE id = ?2) WHERE id = ?1`
@@ -102,13 +103,16 @@ const claim = async (memberId: string, by: TestSession): Promise<void> => {
         .run();
 };
 
-// `a` and `b` made friends: a friend of `a` claimed by `b`, and the member of each in it
+// `a` and `b` made friends as people do: `a` made a link and `b` accepted it. The id of the friend and the member of
+// each in it.
 const befriend = async (a: TestSession, b: TestSession): Promise<{ id: string; a: string; b: string }> => {
-    const friend = await makeFriend(a);
+    const made = await send(a, 'POST', '/invitations');
+    expect(made.status).toBe(200);
+    const { invitation } = (await made.json()) as { invitation: PendingInvitation };
+    const friend = await groupOf(await send(b, 'POST', '/invitations/accept', { token: invitation.token }));
     const other = friend.members.find((member) => member.id !== friend.me);
     if (!other) throw new Error('A friend has two members');
-    await claim(other.id, b);
-    return { id: friend.id, a: friend.me, b: other.id };
+    return { id: friend.id, a: other.id, b: friend.me };
 };
 
 // The member named so in a group

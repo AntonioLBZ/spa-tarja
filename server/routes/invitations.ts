@@ -4,34 +4,23 @@ import { createMiddleware } from 'hono/factory';
 import * as v from 'valibot';
 
 import { invitationIdSchema, invitationTokenSchema } from '@core/invitation';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS, groupIdSchema, personName } from '@core/shared-group';
-import {
-    closedFor,
-    countClosedGroups,
-    countOpenGroups,
-    readGroup,
-    readSharedGroup,
-    type GroupState,
-} from '@server/db/groups';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, personName } from '@core/shared-group';
+import { countClosedGroups, countOpenGroups, readSharedGroup } from '@server/db/groups';
 import {
     acceptDirectInvitation,
-    acceptInvitation,
     areFriends,
     createDirectInvitation,
-    createInvitation,
     declineInvitation,
-    latestInvitation,
     listPendingInvitations,
     readInvitation,
     revokeDirectInvitation,
-    revokeInvitations,
 } from '@server/db/invitations';
 import { readProfile } from '@server/db/profile';
 import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
-import { CLOSED, NOT_FOUND } from './groups';
+import { NOT_FOUND } from './groups';
 
-import type { FriendInvitation, InvitationView, PendingInvitation } from '@core/invitation';
+import type { InvitationView, PendingInvitation } from '@core/invitation';
 import type { AppEnv } from '@server/env';
 
 // What holds a link or its token is never kept by a cache on the way
@@ -40,14 +29,12 @@ const noStore = createMiddleware<AppEnv>(async (c, next) => {
     c.header('Cache-Control', 'no-store');
 });
 
-const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));
-
 const tokenBody = sValidator('json', invitationTokenSchema);
 
 const invitationParam = sValidator('param', v.object({ invitationId: invitationIdSchema }));
 
-// A link that doesn't exist, was forged, expired, was revoked, answered or used, or whose friend or dummy is gone: the
-// same answer for all of them, so that a token can't be told from a missing one
+// A link that doesn't exist, was forged, expired, was revoked, answered or used, or whose maker is gone: the same answer
+// for all of them, so that a token can't be told from a missing one
 const GONE = { error: 'gone' } as const;
 
 const YOURSELF = { error: 'yourself' } as const;
@@ -56,62 +43,6 @@ const ALREADY_FRIENDS = { error: 'already-friends' } as const;
 
 // Who asks can't take another friend now: one answer for every limit of theirs, so that it tells no more than that
 const INVITER_AT_LIMIT = { error: 'inviter-at-limit' } as const;
-
-// The dummy an invitation of this friend is for: the other side of an open friend, while nobody has taken its place
-const dummyOf = (state: GroupState) => {
-    if (closedFor(state) !== null || state.group.kind !== 'direct') return null;
-    return state.members.find((member) => member.id !== state.me.id && !member.claimed) ?? null;
-};
-
-// The invitation of a friend made last as its members see it: its link while it can be used, or that it was declined
-const friendInvitation = async (env: Env, state: GroupState): Promise<FriendInvitation | null> => {
-    if (!dummyOf(state)) return null;
-    const latest = await latestInvitation(env.DB, state.group.id);
-    if (latest?.ended === 'declined') return { state: 'declined' };
-    if (!latest || latest.ended !== null || latest.expiresAt <= Date.now()) return null;
-    return {
-        state: 'open',
-        token: await signInvitation(env.BETTER_AUTH_SECRET, latest.id),
-        expiresAt: latest.expiresAt,
-    };
-};
-
-// The invitations of a friend, for its members: the token is answered only to them, in a body, never in a URL
-const friendInvitationsRoutes = new Hono<AppEnv>()
-    .use('/:groupId/invitations', noStore)
-    .get('/:groupId/invitations', groupParam, async (c) => {
-        const state = await readGroup(c.env.DB, c.var.userId, c.req.valid('param').groupId);
-        if (!state) return c.json(NOT_FOUND, 404);
-        return c.json({ invitation: await friendInvitation(c.env, state) }, 200);
-    })
-    .post('/:groupId/invitations', groupParam, async (c) => {
-        const state = await readGroup(c.env.DB, c.var.userId, c.req.valid('param').groupId);
-        if (!state) return c.json(NOT_FOUND, 404);
-        if (closedFor(state)) return c.json(CLOSED, 409);
-        if (state.group.kind !== 'direct') return c.json({ error: 'not-a-friend' }, 409);
-        const dummy = dummyOf(state);
-        if (!dummy) return c.json({ error: 'not-placeholder' }, 409);
-
-        const at = Date.now();
-        const made = await createInvitation(c.env.DB, {
-            groupId: state.group.id,
-            memberId: dummy.id,
-            by: c.var.userId,
-            at,
-        });
-        const token = await signInvitation(c.env.BETTER_AUTH_SECRET, made.id);
-        return c.json(
-            { invitation: { state: 'open', token, expiresAt: made.expiresAt } satisfies FriendInvitation },
-            200
-        );
-    })
-    // Revoking what is there already, or a friend's that is gone with the friend, changes nothing
-    .delete('/:groupId/invitations', groupParam, async (c) => {
-        const state = await readGroup(c.env.DB, c.var.userId, c.req.valid('param').groupId);
-        if (!state) return c.json(NOT_FOUND, 404);
-        if (dummyOf(state)) await revokeInvitations(c.env.DB, state.group.id);
-        return c.json({ invitation: await friendInvitation(c.env, state) }, 200);
-    });
 
 // Why a person can't take another friend: as many open as there can be, or as many closed groups
 const friendLimitOf = async (
@@ -122,7 +53,7 @@ const friendLimitOf = async (
     return (await countClosedGroups(db, userId)) >= MAX_CLOSED_GROUPS ? 'too-many-closed-groups' : null;
 };
 
-// The direct invitations of the person that can still be used, each with its link
+// The invitations of the person that can still be used, each with its link
 const pendingOf = async (env: Env, userId: string): Promise<PendingInvitation[]> => {
     const pending = await listPendingInvitations(env.DB, userId);
     return Promise.all(
@@ -140,8 +71,8 @@ const invitationOf = async (env: Env, token: unknown) => {
     return id === null ? null : readInvitation(env.DB, id);
 };
 
-// The person's own links to be friends, with nobody behind them, and what the person who opened a link does with it.
-// The token comes in the body, so that no URL holds it.
+// The person's own links to be friends, and what the person who opened a link does with it. The token comes in the
+// body, so that no URL holds it.
 const invitationsRoutes = new Hono<AppEnv>()
     .use(noStore)
     .get('/', async (c) => c.json({ invitations: await pendingOf(c.env, c.var.userId) }, 200))
@@ -158,7 +89,7 @@ const invitationsRoutes = new Hono<AppEnv>()
         };
         return c.json({ invitation }, 200);
     })
-    // Another person's invitation, or one for a dummy, is not found, as one that doesn't exist
+    // Another person's invitation is not found, as one that doesn't exist
     .delete('/:invitationId', invitationParam, async (c) => {
         const userId = c.var.userId;
         const own = await revokeDirectInvitation(c.env.DB, userId, c.req.valid('param').invitationId);
@@ -169,10 +100,7 @@ const invitationsRoutes = new Hono<AppEnv>()
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation?.open || invitation.inviter === null) return c.json(GONE, 410);
         if (invitation.inviter === c.var.userId) return c.json(YOURSELF, 409);
-        const view: InvitationView = {
-            name: personName(await readProfile(c.env.DB, invitation.inviter)),
-            forDummy: invitation.memberId !== null,
-        };
+        const view: InvitationView = { name: personName(await readProfile(c.env.DB, invitation.inviter)) };
         return c.json(view, 200);
     })
     .post('/accept', tokenBody, async (c) => {
@@ -189,24 +117,17 @@ const invitationsRoutes = new Hono<AppEnv>()
         if (inviter === userId) return c.json(YOURSELF, 409);
         if (await areFriends(db, inviter, userId)) return c.json(ALREADY_FRIENDS, 409);
 
+        // A friend needs room on both sides
+        const limit = await friendLimitOf(db, userId);
+        if (limit) return c.json({ error: limit }, 409);
+        if (await friendLimitOf(db, inviter)) return c.json(INVITER_AT_LIMIT, 409);
+
         const taker = { userId, name: personName(await readProfile(db, userId)) };
-        let friendId: string | null;
-        if (invitation.memberId === null) {
-            // A direct invitation makes a friend, which both sides need room for
-            const limit = await friendLimitOf(db, userId);
-            if (limit) return c.json({ error: limit }, 409);
-            if (await friendLimitOf(db, inviter)) return c.json(INVITER_AT_LIMIT, 409);
-            const inviterName = personName(await readProfile(db, inviter));
-            friendId = await acceptDirectInvitation(db, invitation.id, taker, inviterName);
-        } else {
-            if ((await countOpenGroups(db, userId, 'direct')) >= MAX_FRIENDS) {
-                return c.json({ error: 'too-many-friends' }, 409);
-            }
-            friendId = (await acceptInvitation(db, invitation.id, taker)) ? invitation.groupId : null;
-        }
+        const inviterName = personName(await readProfile(db, inviter));
+        const friendId = await acceptDirectInvitation(db, invitation.id, taker, inviterName);
         if (friendId !== null) return answer(friendId);
 
-        // Taken, revoked or closed meanwhile, or the two made friends through another link at the same moment
+        // Taken or revoked meanwhile, or the two made friends through another link at the same moment
         const now = await readInvitation(db, invitation.id);
         if (now?.acceptedBy === userId && now.groupId !== null) return answer(now.groupId);
         if (now?.open && now.inviter !== null && (await areFriends(db, now.inviter, userId))) {
@@ -222,4 +143,4 @@ const invitationsRoutes = new Hono<AppEnv>()
         return declined ? c.body(null, 204) : c.json(GONE, 410);
     });
 
-export { friendInvitationsRoutes, invitationsRoutes };
+export { invitationsRoutes };

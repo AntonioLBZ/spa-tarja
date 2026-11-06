@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { makeFriend } from '@server/test/groups';
+import { makeGroup } from '@server/test/groups';
 import { ORIGIN, signIn, type TestSession } from '@server/test/session';
 
 const SIBLING = 'https://evil.albz.app';
@@ -34,14 +34,13 @@ describe('a write from another origin', () => {
     it.each([SIBLING, 'null', 'http://localhost:5173', 'https://localhost', ''])(
         'is refused on a body-less POST and a JSON PUT when it says it comes from %j',
         async (origin) => {
-            const friend = await makeFriend(ana);
+            const group = await makeGroup(ana);
 
-            const direct = await from(origin)('POST', '/invitations');
-            const forFriend = await from(origin)('POST', `/groups/${friend.id}/invitations`);
+            const invitation = await from(origin)('POST', '/invitations');
             const profile = await from(origin, { nickname: 'Anita' })('PUT', '/profile');
-            const remove = await from(origin)('DELETE', `/groups/${friend.id}`);
+            const remove = await from(origin)('DELETE', `/groups/${group.id}`);
 
-            for (const response of [direct, forFriend, profile, remove]) {
+            for (const response of [invitation, profile, remove]) {
                 expect(response.status).toBe(403);
                 expect(await response.json()).toEqual({ error: 'bad-origin' });
             }

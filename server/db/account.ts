@@ -7,8 +7,8 @@ const OTHER_USER = `
     WHERE o.group_id = m.group_id AND o.user_id IS NOT NULL AND o.user_id <> ?1 AND o.left_at IS NULL`;
 
 // The groups they are in where nobody else has an account (a member who left keeps theirs, one who deleted theirs has
-// none): a friend by name, a group of placeholders, a group the others deleted their accounts from. Nobody could read
-// them once the account is gone.
+// none): a group of placeholders, a group or a friend the others deleted their accounts from. Nobody could read them
+// once the account is gone.
 const ERASABLE = `
     SELECT m.group_id FROM shared_members m
     WHERE m.user_id = ?1 AND NOT EXISTS (
@@ -16,8 +16,7 @@ const ERASABLE = `
 
 // In foreign key order
 const ERASE_GROUP_ROWS = [
-    `DELETE FROM friend_invitations WHERE group_id IN (${ERASABLE})
-        OR member_id IN (SELECT id FROM shared_members WHERE group_id IN (${ERASABLE}))`,
+    `DELETE FROM friend_invitations WHERE group_id IN (${ERASABLE})`,
     `UPDATE shared_members SET merged_into = NULL WHERE group_id IN (${ERASABLE})`,
     `DELETE FROM shared_entries WHERE group_id IN (${ERASABLE})`,
     `DELETE FROM shared_members WHERE group_id IN (${ERASABLE})`,

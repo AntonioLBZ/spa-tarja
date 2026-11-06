@@ -3,19 +3,17 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { acceptDirectInvitation } from '@server/db/invitations';
-import { makeFriend } from '@server/test/groups';
+import { makeGroup, memberNamed } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
 import type { SharedGroup } from '@core/shared-group';
 
 let ana: TestSession;
-let friend: SharedGroup;
-let dummy: string;
+let shared: SharedGroup;
 
 beforeEach(async () => {
     ana = await signIn('ana@example.com', 'Ana García');
-    friend = await makeFriend(ana);
-    dummy = friend.members.find((member) => member.id !== friend.me)?.id ?? '';
+    shared = await makeGroup(ana, ['Bruno']);
 });
 
 interface Row {
@@ -38,8 +36,8 @@ function insert(row: Row = {}) {
     )
         .bind(
             row.id ?? crypto.randomUUID(),
-            row.groupId === undefined ? friend.id : row.groupId,
-            row.memberId === undefined ? dummy : row.memberId,
+            row.groupId ?? null,
+            row.memberId ?? null,
             ana.userId,
             row.createdAt ?? 1,
             row.expiresAt ?? 2,
@@ -52,68 +50,45 @@ function insert(row: Row = {}) {
 }
 
 describe('the table of invitations', () => {
-    it('holds one open invitation per friend, next to any number that ended', async () => {
+    it('holds any number of open invitations of one person, with no friend until one is accepted', async () => {
+        const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
+        await insert();
+        await insert();
         await insert({ revokedAt: 3 });
-        await insert({ declinedAt: 3 });
-        await insert({ acceptedAt: 3, acceptedBy: ana.userId });
-        await insert();
 
-        await expect(insert()).rejects.toThrow(/UNIQUE/);
-    });
-
-    it('lets another friend have an open one of its own', async () => {
-        const other = await makeFriend(ana, 'Carla');
-        const otherDummy = other.members.find((member) => member.id !== other.me)?.id ?? '';
-        await insert();
-
-        await insert({ groupId: other.id, memberId: otherDummy });
+        await insert({ groupId: shared.id, acceptedBy: bruno.userId, acceptedAt: 3 });
 
         const { results } = await env.DB.prepare('SELECT id FROM friend_invitations').all();
-        expect(results).toHaveLength(2);
+        expect(results).toHaveLength(4);
     });
 
-    it.each([
-        ['accepted and declined', { acceptedAt: 3, declinedAt: 3 }],
-        ['accepted and revoked', { acceptedAt: 3, revokedAt: 3 }],
-        ['declined and revoked', { declinedAt: 3, revokedAt: 3 }],
-        ['over before it was made', { createdAt: 5, expiresAt: 5 }],
+    it.each<[string, () => Row]>([
+        ['accepted and declined', () => ({ groupId: shared.id, acceptedAt: 3, declinedAt: 3 })],
+        ['accepted and revoked', () => ({ groupId: shared.id, acceptedAt: 3, revokedAt: 3 })],
+        ['declined and revoked', () => ({ declinedAt: 3, revokedAt: 3 })],
+        ['over before it was made', () => ({ createdAt: 5, expiresAt: 5 })],
     ])('refuses an invitation %s', async (_, row) => {
-        await expect(insert(row)).rejects.toThrow(/CHECK/);
+        await expect(insert(row())).rejects.toThrow(/CHECK/);
     });
 
     it('refuses an invitation accepted by somebody but never accepted', async () => {
         await expect(insert({ acceptedBy: ana.userId })).rejects.toThrow(/CHECK/);
     });
 
-    it('refuses an invitation for a friend or a member that does not exist', async () => {
-        await expect(insert({ groupId: crypto.randomUUID() })).rejects.toThrow(/FOREIGN KEY/);
-        await expect(insert({ memberId: crypto.randomUUID() })).rejects.toThrow(/FOREIGN KEY/);
+    it('refuses an invitation for a friend that does not exist', async () => {
+        await expect(insert({ groupId: crypto.randomUUID(), acceptedAt: 3 })).rejects.toThrow(/FOREIGN KEY/);
     });
 
-    it('takes direct invitations, any number of them open, with no friend or dummy until one is accepted', async () => {
-        const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
-        await insert({ groupId: null, memberId: null });
-        await insert({ groupId: null, memberId: null });
-        await insert({ groupId: null, memberId: null, revokedAt: 3 });
-
-        await insert({ groupId: friend.id, memberId: null, acceptedBy: bruno.userId, acceptedAt: 3 });
-
-        const { results } = await env.DB.prepare('SELECT id FROM friend_invitations').all();
-        expect(results).toHaveLength(4);
-    });
-
-    it.each([
-        ['a friend but no dummy', { memberId: null }],
-        ['a dummy but no friend', { groupId: null }],
-        ['no dummy and a friend before it was accepted', { memberId: null, declinedAt: 3 }],
-        ['no dummy and no friend once accepted', { groupId: null, memberId: null, acceptedAt: 3 }],
+    it.each<[string, () => Row]>([
+        ['a friend before it was accepted', () => ({ groupId: shared.id, declinedAt: 3 })],
+        ['no friend once accepted', () => ({ acceptedAt: 3 })],
     ])('refuses an invitation with %s', async (_, row) => {
-        await expect(insert(row)).rejects.toThrow(/CHECK/);
+        await expect(insert(row())).rejects.toThrow(/CHECK/);
     });
 
     it('keeps the invitations of a person who deleted their account, without them', async () => {
         const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
-        await insert({ acceptedBy: bruno.userId, acceptedAt: 3 });
+        await insert({ groupId: shared.id, acceptedBy: bruno.userId, acceptedAt: 3 });
 
         await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(bruno.userId).run();
 
@@ -122,11 +97,16 @@ describe('the table of invitations', () => {
     });
 });
 
-describe('taking a direct invitation', () => {
-    it('writes nothing when the invitation is the one of a dummy', async () => {
+describe('taking an invitation', () => {
+    it('writes nothing when the invitation names a member of a group', async () => {
         const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
         const id = crypto.randomUUID();
-        await insert({ id, expiresAt: Date.now() + 60_000 });
+        await insert({
+            id,
+            groupId: shared.id,
+            memberId: memberNamed(shared, 'Bruno'),
+            expiresAt: Date.now() + 60_000,
+        });
         const count = async () =>
             await env.DB.prepare(
                 'SELECT (SELECT COUNT(*) FROM shared_groups) AS groups, (SELECT COUNT(*) FROM shared_members) AS members'

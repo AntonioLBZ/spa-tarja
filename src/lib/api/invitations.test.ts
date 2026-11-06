@@ -63,8 +63,8 @@ describe('a link', () => {
     it('is read, accepted and declined with its token in the body, never in the URL', async () => {
         const group = sampleGroup({ kind: 'direct', name: null });
 
-        const read = answering({ name: 'Ana', forDummy: false });
-        expect(await readInvitation(TOKEN)).toEqual({ name: 'Ana', forDummy: false });
+        const read = answering({ name: 'Ana' });
+        expect(await readInvitation(TOKEN)).toEqual({ name: 'Ana' });
         expect(sent(read)).toEqual({ url: '/api/invitations/read', method: 'POST', body: { token: TOKEN } });
 
         const accepted = answering(group);

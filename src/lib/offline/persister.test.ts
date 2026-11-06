@@ -57,7 +57,7 @@ describe('createPersistOptions', () => {
     it('never keeps a link of an invitation, nor what it shows', () => {
         const client = new QueryClient();
         client.setQueryData(GROUPS_KEY, []);
-        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana', forDummy: false });
+        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana' });
         client.setQueryData(pendingInvitationsQuery().queryKey, [{ id: 'link', token: TOKEN, expiresAt: 1 }]);
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
 

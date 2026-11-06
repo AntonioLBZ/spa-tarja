@@ -240,7 +240,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         if (refusal) return refuse(refusal);
         const link = links.get((json(init) as { token: string }).token);
         if (!link) return refuse({ status: 410, error: 'gone' });
-        if (action === 'read') return Response.json({ name: link.name, forDummy: false });
+        if (action === 'read') return Response.json({ name: link.name });
         links.delete(link.token);
         if (action === 'decline') return new Response(null, { status: 204 });
         const friend = structuredClone(link.friend);

@@ -22,9 +22,6 @@ const invitationTokenSchema = v.object({ token: v.unknown() });
 // In lower case, as the server makes them
 const invitationIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());
 
-// The latest invitation of a friend as its members see it: open, with the token of its link, or declined
-type FriendInvitation = { state: 'open'; token: string; expiresAt: number } | { state: 'declined' };
-
 // A direct invitation of the person's that is still open, with the token of its link, so it can be copied again
 interface PendingInvitation {
     id: string;
@@ -32,11 +29,9 @@ interface PendingInvitation {
     expiresAt: number;
 }
 
-// What a link shows the person who opens it: the name of who asks, whether it is for a dummy whose place they would
-// take, and nothing else
+// What a link shows the person who opens it: the name of who asks, and nothing else
 interface InvitationView {
     name: string;
-    forDummy: boolean;
 }
 
 export {
@@ -45,7 +40,6 @@ export {
     invitationIdSchema,
     invitationTokenSchema,
     isInvitationToken,
-    type FriendInvitation,
     type InvitationView,
     type PendingInvitation,
 };
