@@ -14,13 +14,6 @@
             "message": "Hay una versión nueva",
             "apply": "Actualizar",
             "dismiss": "Después"
-        },
-        "moved": {
-            "title": "Tarja se ha mudado",
-            "message": "La app ahora está en {address}.",
-            "reinstall": "Si la tienes instalada en tu dispositivo, desinstálala e instálala de nuevo desde la nueva dirección.",
-            "open": "Ir a {address}",
-            "stay": "Seguir aquí por ahora"
         }
     },
     "expenses": {
