@@ -100,25 +100,33 @@ interface LedgerRowStoryProps extends Pick<LedgerRowProps, 'pending' | 'leaving'
     kind: keyof typeof ENTRIES;
     // Whether the group is open, so that the row opens on what can be done to it
     open: boolean;
+    // Whether the details start with the day, as in the ledger in the order they were added
+    withDate: boolean;
 }
 
 const Story: Meta<LedgerRowStoryProps> = {
     title: 'Features/LedgerRow',
-    args: { kind: 'yours', open: true, pending: false, leaving: false },
+    args: { kind: 'yours', open: true, withDate: false, pending: false, leaving: false },
     argTypes: { kind: { control: 'select', options: Object.keys(ENTRIES) } },
 };
 
 const actions = { onEdit: fn(), onDuplicate: fn(), onDelete: fn() };
 
 export const LedgerRow = (args: LedgerRowStoryProps) => {
-    const { kind, open, ...props } = args;
+    const { kind, open, withDate, ...props } = args;
 
     return (
         <AppData>
             {() => (
                 <Sheet label="Sunday 25 October" level="h3">
                     <CardList flush>
-                        <LedgerRowComponent {...props} {...(open ? actions : {})} group={GROUP} entry={ENTRIES[kind]} />
+                        <LedgerRowComponent
+                            {...props}
+                            {...(open ? actions : {})}
+                            date={withDate ? 'Oct 25' : undefined}
+                            group={GROUP}
+                            entry={ENTRIES[kind]}
+                        />
                     </CardList>
                 </Sheet>
             )}

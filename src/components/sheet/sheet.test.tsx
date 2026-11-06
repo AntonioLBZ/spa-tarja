@@ -21,6 +21,17 @@ describe('Sheet', () => {
         expect(screen.getByRole('heading', { level: 3, name: 'Monday' })).toBeDefined();
     });
 
+    it('has no heading when it has no label, and still holds what it is given', () => {
+        render(
+            <Sheet>
+                <p>Rows</p>
+            </Sheet>
+        );
+
+        expect(screen.queryByRole('heading')).toBeNull();
+        expect(screen.getByText('Rows').parentElement!.classList.contains('sheet')).toBe(true);
+    });
+
     it('lets the screen put the focus on its label, out of the tab order', () => {
         const labelRef = createRef<HTMLHeadingElement>();
         render(

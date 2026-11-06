@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
+import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
@@ -39,12 +40,18 @@ interface GroupLedgerProps {
     onRefocused: () => void;
 }
 
-// The entries of one day, with what its expenses add up to; settlements count for nobody
-interface LedgerDay {
-    day: string;
+// The entries of one sheet: a day, with what its expenses add up to (settlements count for nobody), or all of them
+// when the ledger isn't by day
+interface LedgerSheet {
+    day: string | null;
     entries: LedgerEntry[];
     expenseCents: number;
 }
+
+// Which entry comes first: the one made last, or the one of the latest day
+const LEDGER_ORDERS = ['added', 'date'] as const;
+
+type LedgerOrder = (typeof LEDGER_ORDERS)[number];
 
 // How many rows the ledger draws, and how many more each "Show more" adds
 const PAGE_SIZE = 100;
@@ -54,10 +61,20 @@ const newestFirst = (a: LedgerEntry, b: LedgerEntry): number => {
     return b.createdAt - a.createdAt;
 };
 
-// The entries that aren't deleted, newest day first and the latest made first within a day, a day at a time
-const ledgerDays = (entries: readonly LedgerEntry[]): LedgerDay[] => {
-    const days: LedgerDay[] = [];
-    for (const entry of entries.filter((item) => item.deletedAt === null).toSorted(newestFirst)) {
+// An edit never moves an entry, and the id keeps entries made at the same time from swapping places
+const addedLastFirst = (a: LedgerEntry, b: LedgerEntry): number => {
+    return b.createdAt - a.createdAt || a.id.localeCompare(b.id);
+};
+
+// The entries that aren't deleted: all on one sheet, the latest made first, or newest day first and the latest made
+// first within a day, a day at a time
+const ledgerSheets = (entries: readonly LedgerEntry[], order: LedgerOrder): LedgerSheet[] => {
+    const live = entries.filter((item) => item.deletedAt === null);
+    if (order === 'added') {
+        return live.length === 0 ? [] : [{ day: null, entries: live.toSorted(addedLastFirst), expenseCents: 0 }];
+    }
+    const days: LedgerSheet[] = [];
+    for (const entry of live.toSorted(newestFirst)) {
         let last = days.at(-1);
         if (last?.day !== entry.date) {
             last = { day: entry.date, entries: [], expenseCents: 0 };
@@ -69,20 +86,20 @@ const ledgerDays = (entries: readonly LedgerEntry[]): LedgerDay[] => {
     return days;
 };
 
-// The first `max` rows of the days, in order; a day cut short keeps the total of all its expenses
-const firstRows = (days: readonly LedgerDay[], max: number): LedgerDay[] => {
-    const limited: LedgerDay[] = [];
+// The first `max` rows of the sheets, in order; a day cut short keeps the total of all its expenses
+const firstRows = (sheets: readonly LedgerSheet[], max: number): LedgerSheet[] => {
+    const limited: LedgerSheet[] = [];
     let left = max;
-    for (const day of days) {
+    for (const sheet of sheets) {
         if (left <= 0) break;
-        limited.push(day.entries.length <= left ? day : { ...day, entries: day.entries.slice(0, left) });
-        left -= day.entries.length;
+        limited.push(sheet.entries.length <= left ? sheet : { ...sheet, entries: sheet.entries.slice(0, left) });
+        left -= sheet.entries.length;
     }
     return limited;
 };
 
-// The entries of a group, newest first, a day on each sheet like the expenses at home. In an open group a row opens
-// on what can be done to it; deleting asks nothing and can be taken back (ADR-0010).
+// The entries of a group, the latest added first on one sheet or by date with a day on each sheet like the expenses at
+// home. In an open group a row opens on what can be done to it; deleting asks nothing and can be taken back (ADR-0010).
 const GroupLedger = (props: GroupLedgerProps) => {
     const { ledger, onEdit, onEditSettlement, onDuplicate, onDeleted, refocus, onRefocused } = props;
     const { group, entries } = ledger;
@@ -98,6 +115,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const pendingIds = useMemo(() => new Set(pending.map((write) => write.id)), [pending]);
     const { leaving, fadeOut } = useFadeOut<LedgerEntry>();
     const [limit, setLimit] = useState(PAGE_SIZE);
+    const [order, setOrder] = useState<LedgerOrder>('added');
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const open = group.closed === null;
 
@@ -120,24 +138,25 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const [restored, setRestored] = useState<string | null>(null);
 
     // The rows fading out stay where they were until they are gone
-    const days = useMemo(() => {
-        if (leaving.size === 0) return ledgerDays(entries);
+    const sheets = useMemo(() => {
+        if (leaving.size === 0) return ledgerSheets(entries, order);
         const live = new Set(entries.filter((entry) => entry.deletedAt === null).map((entry) => entry.id));
-        return ledgerDays([...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))]);
-    }, [entries, leaving]);
+        return ledgerSheets([...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))], order);
+    }, [entries, leaving, order]);
     useEffect(() => {
         if (restored === null) return;
         const target = targets.current.get(restored);
         if (!target) return;
         target.focus();
         setRestored(null);
-    }, [restored, days]);
-    const total = days.reduce((sum, day) => sum + day.entries.length, 0);
-    const drawn = firstRows(days, limit);
-    const hidden = total - drawn.reduce((sum, day) => sum + day.entries.length, 0);
+    }, [restored, sheets]);
+    const total = sheets.reduce((sum, sheet) => sum + sheet.entries.length, 0);
+    const drawn = firstRows(sheets, limit);
+    const hidden = total - drawn.reduce((sum, sheet) => sum + sheet.entries.length, 0);
 
     // The days say the year only when the ledger goes over a New Year
-    const spansYears = days.length > 0 && days[0]!.day.slice(0, 4) !== days.at(-1)!.day.slice(0, 4);
+    const spansYears =
+        order === 'date' && sheets.length > 0 && sheets[0]!.day!.slice(0, 4) !== sheets.at(-1)!.day!.slice(0, 4);
     const dayFormat = useMemo(
         () =>
             new Intl.DateTimeFormat(locale, {
@@ -148,11 +167,18 @@ const GroupLedger = (props: GroupLedgerProps) => {
             }),
         [locale, spansYears]
     );
+    // Without a day over them, the rows say their own, with the year unless it is this one
+    const shortDay = useMemo(() => {
+        const bare = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' });
+        const withYear = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+        const thisYear = String(new Date().getFullYear());
+        return (day: string) => (day.startsWith(thisYear) ? bare : withYear).format(fromDateString(day));
+    }, [locale]);
 
     // The row the focus goes to when a row is deleted: the next one that stays, else the one before it
     const neighbourOf = (entryId: string): string | undefined => {
         const staying = drawn
-            .flatMap((day) => day.entries.map((entry) => entry.id))
+            .flatMap((sheet) => sheet.entries.map((entry) => entry.id))
             .filter((id) => id === entryId || !leaving.has(id));
         const at = staying.indexOf(entryId);
         return staying[at + 1] ?? (at > 0 ? staying[at - 1] : undefined);
@@ -195,7 +221,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
     };
 
     const showMore = () => {
-        moreFocus.current = days.flatMap((day) => day.entries)[total - hidden]?.id ?? null;
+        moreFocus.current = sheets.flatMap((sheet) => sheet.entries)[total - hidden]?.id ?? null;
         setLimit((current) => current + PAGE_SIZE);
     };
 
@@ -210,14 +236,28 @@ const GroupLedger = (props: GroupLedgerProps) => {
                 </Notice>
             )}
             {total === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
-            {drawn.map((day) => (
-                <Sheet key={day.day} label={dayFormat.format(fromDateString(day.day))} level="h3">
+            {total > 0 && (
+                <ChoiceGroup
+                    legend={t('order.legend')}
+                    name="ledger-order"
+                    options={LEDGER_ORDERS.map((value) => ({ value, label: t(`order.${value}`) }))}
+                    value={order}
+                    onChange={setOrder}
+                />
+            )}
+            {drawn.map((sheet) => (
+                <Sheet
+                    key={sheet.day ?? 'added'}
+                    label={sheet.day === null ? undefined : dayFormat.format(fromDateString(sheet.day))}
+                    level="h3"
+                >
                     <CardList flush>
-                        {day.entries.map((entry) => (
+                        {sheet.entries.map((entry) => (
                             <LedgerRow
                                 key={entry.id}
                                 group={group}
                                 entry={entry}
+                                date={sheet.day === null ? shortDay(entry.date) : undefined}
                                 pending={pendingIds.has(entry.id)}
                                 leaving={leaving.has(entry.id)}
                                 onEdit={open ? edit : undefined}
@@ -232,11 +272,11 @@ const GroupLedger = (props: GroupLedgerProps) => {
                             />
                         ))}
                     </CardList>
-                    {day.entries.some((entry) => entry.kind === 'expense') && (
+                    {sheet.day !== null && sheet.entries.some((entry) => entry.kind === 'expense') && (
                         <p className="expense-list__total">
                             <span className="expense-list__total-label">{tList('total')}</span>{' '}
                             <span className="expense-list__subtotal">
-                                {formatAmount(day.expenseCents, group.currency, locale)}
+                                {formatAmount(sheet.expenseCents, group.currency, locale)}
                             </span>
                         </p>
                     )}

@@ -582,6 +582,11 @@
         "ledger": {
             "title": "Expenses",
             "empty": "No expenses yet.",
+            "order": {
+                "legend": "Order",
+                "added": "Recently added",
+                "date": "By date"
+            },
             "youPaid": "You paid",
             "paidBy": "Paid by {name}",
             "yourPart": "Your part {amount}",

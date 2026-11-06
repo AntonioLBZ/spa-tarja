@@ -28,6 +28,8 @@ interface LedgerRowProps {
     pending: boolean;
     // Deleted a moment ago, fading out
     leaving: boolean;
+    // The day it was made, said first in the details, for a ledger that isn't by day
+    date?: string;
     // Without them, as in a closed group, the row has nothing to open
     onEdit?: (entry: LedgerEntry) => void;
     onDuplicate?: (entry: SharedExpenseEntry) => void;
@@ -39,7 +41,7 @@ interface LedgerRowProps {
 // An entry of the ledger as a line of the ticket: an expense by its name with its total, who paid and your part, or a
 // settlement in words, and who wrote it last when it wasn't the person. Pressing it opens what can be done to it.
 const LedgerRow = (props: LedgerRowProps) => {
-    const { group, entry, pending, leaving, onEdit, onDuplicate, onDelete, focusRef } = props;
+    const { group, entry, pending, leaving, date, onEdit, onDuplicate, onDelete, focusRef } = props;
     const t = useTranslations('groups');
     const tList = useTranslations('expenses.list');
     const { locale } = useLocale();
@@ -72,8 +74,9 @@ const LedgerRow = (props: LedgerRowProps) => {
                 <span className="expense-item__text">{name}</span>
             </span>
             <span className="expense-item__amount">{money(entry.amountCents)}</span>
-            {(details.length > 0 || wrote || pending) && (
+            {(date || details.length > 0 || wrote || pending) && (
                 <span className="expense-item__meta">
+                    {date && <span>{date}</span>}
                     {details.map((detail) => (
                         <span key={detail}>{detail}</span>
                     ))}

@@ -85,6 +85,26 @@ function longDay(isoDay: string, locale = 'en') {
     );
 }
 
+function shortDay(isoDay: string, withYear: boolean) {
+    return new Intl.DateTimeFormat('en', {
+        day: 'numeric',
+        month: 'short',
+        ...(withYear ? { year: 'numeric' } : {}),
+    }).format(new Date(`${isoDay}T12:00:00`));
+}
+
+function orderGroup() {
+    return within(theLedger()).getByRole('group', { name: ledger.order.legend });
+}
+
+function orderRadio(name: string) {
+    return within(orderGroup()).getByRole('radio', { name });
+}
+
+function chooseOrder(name: string) {
+    fireEvent.click(orderRadio(name));
+}
+
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
@@ -92,7 +112,7 @@ afterEach(() => {
 });
 
 describe('the ledger of a group', () => {
-    it('lists the newest day first and, within a day, the latest made first, with the total of its expenses', async () => {
+    it('by date lists the newest day first and, within a day, the latest made first, with the total of its expenses', async () => {
         const group = trip();
         await open(group, [
             dinner(group, { text: 'Dinner', date: '2026-10-24', createdAt: 1 }),
@@ -106,6 +126,7 @@ describe('the ledger of a group', () => {
             dinner(group, { text: 'Museum', date: '2026-10-25', createdAt: 3 }),
             { ...sampleSettlement(group, bea.id, ana.id, 500), createdAt: 2 },
         ]);
+        chooseOrder(ledger.order.date);
 
         expect(days()).toEqual([longDay('2026-10-25'), longDay('2026-10-24')]);
         expect(rowNames()).toEqual(['Museum', t('groups.ledger.paidYou', { name: 'Bea' }), 'Taxi', 'Dinner']);
@@ -128,6 +149,7 @@ describe('the ledger of a group', () => {
                 ],
             }),
         ]);
+        chooseOrder(ledger.order.date);
 
         expect(within(rowOf('Dinner')).getByText(euros(3000))).toBeDefined();
         expect(details('Dinner')).toEqual([ledger.youPaid, t('groups.ledger.yourPart', { amount: euros(1000) })]);
@@ -243,6 +265,14 @@ describe('the ledger of a group', () => {
         const tEs = createTranslator({ locale: 'es', messages: es });
         const group = trip();
         await open(group, [dinner(group, { text: 'Cena', paidBy: bea.id })]);
+        const order = within(theLedger()).getByRole('group', { name: es.groups.ledger.order.legend });
+
+        expect(
+            within(order)
+                .getAllByRole('radio')
+                .map((radio) => (radio as HTMLInputElement).labels?.[0]?.textContent)
+        ).toEqual([es.groups.ledger.order.added, es.groups.ledger.order.date]);
+        fireEvent.click(within(order).getByRole('radio', { name: es.groups.ledger.order.date }));
 
         const amount = formatAmount(1000, 'EUR', 'es');
         expect(screen.getByRole('heading', { level: 2, name: es.groups.ledger.title })).toBeDefined();
@@ -252,6 +282,185 @@ describe('the ledger of a group', () => {
         ]);
         expect(days()).toEqual([longDay('2026-10-25', 'es')]);
     });
+});
+
+describe('the order of the ledger', () => {
+    const NOW = new Date(2026, 10, 6, 12).getTime();
+
+    beforeEach(() => {
+        vi.useFakeTimers({ toFake: ['Date'] });
+        vi.setSystemTime(NOW);
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    function twoDays(group: SharedGroup) {
+        return [
+            dinner(group, { text: 'Yesterday', date: '2026-11-05', createdAt: 1 }),
+            dinner(group, { text: 'Months ago', date: '2026-08-01', createdAt: 2 }),
+        ];
+    }
+
+    it('is a labelled choice of two, with the most recently added first', async () => {
+        const group = trip();
+        await open(group, twoDays(group));
+
+        const radios = within(orderGroup()).getAllByRole('radio') as HTMLInputElement[];
+        expect(radios.map((radio) => radio.labels?.[0]?.textContent)).toEqual([ledger.order.added, ledger.order.date]);
+        expect(new Set(radios.map((radio) => radio.name)).size).toBe(1);
+        expect(radios.every((radio) => !radio.disabled && radio.tabIndex !== -1)).toBe(true);
+        expect(radios.map((radio) => radio.checked)).toEqual([true, false]);
+    });
+
+    it('is under the title and over the first row', async () => {
+        const group = trip();
+        await open(group, twoDays(group));
+
+        const title = within(theLedger()).getByRole('heading', { level: 2, name: ledger.title });
+        expect(title.compareDocumentPosition(orderGroup()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(
+            orderGroup().compareDocumentPosition(rowOf('Yesterday')) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+    });
+
+    it('is not there while the group has no entry', async () => {
+        await open(trip());
+
+        expect(within(theLedger()).queryByRole('group', { name: ledger.order.legend })).toBeNull();
+        expect(within(theLedger()).getByText(ledger.empty)).toBeDefined();
+    });
+
+    it('puts the expense added last first, however old its date, over one of yesterday added before', async () => {
+        const group = trip();
+        await open(group, twoDays(group));
+
+        expect(rowNames()).toEqual(['Months ago', 'Yesterday']);
+    });
+
+    it('keeps an edit from moving an entry, as the order is the one they were made in', async () => {
+        const group = trip();
+        await open(group, [
+            ...twoDays(group),
+            dinner(group, { text: 'Edited', date: '2026-10-01', createdAt: 0, updatedAt: 99 }),
+        ]);
+
+        expect(rowNames()).toEqual(['Months ago', 'Yesterday', 'Edited']);
+    });
+
+    it.each([false, true])(
+        'breaks a tie of the time made by the id, so the order is stable (reversed %s)',
+        async (reversed) => {
+            const group = trip();
+            const made = [
+                dinner(group, { id: '00000000-0000-4000-8000-000000000001', text: 'One', createdAt: 5 }),
+                dinner(group, { id: '00000000-0000-4000-8000-000000000002', text: 'Two', createdAt: 5 }),
+                dinner(group, { id: '00000000-0000-4000-8000-000000000003', text: 'Three', createdAt: 5 }),
+            ];
+            await open(group, reversed ? made.toReversed() : made);
+
+            expect(rowNames()).toEqual(['One', 'Two', 'Three']);
+        }
+    );
+
+    it('is one sheet with no day and no total, settlements among the rows', async () => {
+        const group = trip();
+        await open(group, [...twoDays(group), { ...sampleSettlement(group, bea.id, ana.id, 500), createdAt: 3 }]);
+
+        expect(days()).toEqual([]);
+        expect(theLedger().querySelectorAll('.sheet')).toHaveLength(1);
+        expect(theLedger().querySelector('.sheet__label')).toBeNull();
+        expect(theLedger().querySelector('.expense-list__total')).toBeNull();
+        expect(rowNames()).toEqual([t('groups.ledger.paidYou', { name: 'Bea' }), 'Months ago', 'Yesterday']);
+    });
+
+    it('says the date of each row first in its details, with the year when it is not this year', async () => {
+        const group = trip();
+        await open(group, [
+            dinner(group, { text: 'Recent', date: '2026-10-25', createdAt: 3 }),
+            dinner(group, { text: 'Old', date: '2025-12-31', createdAt: 2 }),
+            { ...sampleSettlement(group, bea.id, ana.id, 500), date: '2026-01-02', createdAt: 1 },
+        ]);
+
+        expect(details('Recent')[0]).toBe(shortDay('2026-10-25', false));
+        expect(details('Old')[0]).toBe(shortDay('2025-12-31', true));
+        const settlement = t('groups.ledger.paidYou', { name: 'Bea' });
+        expect(details(settlement)).toEqual([shortDay('2026-01-02', false)]);
+        expect(details('Recent')).toContain(ledger.youPaid);
+    });
+
+    it('says the date in the language of the app', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const group = trip();
+        await open(group, [dinner(group, { text: 'Cena', date: '2025-12-31' })]);
+
+        const spanish = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
+        expect(details('Cena')[0]).toBe(spanish.format(new Date('2025-12-31T12:00:00')));
+    });
+
+    it('by date gives back the days with their totals and no date in the rows', async () => {
+        const group = trip();
+        await open(group, twoDays(group));
+
+        chooseOrder(ledger.order.date);
+
+        expect(orderRadio(ledger.order.date)).toHaveProperty('checked', true);
+        expect(days()).toEqual([longDay('2026-11-05'), longDay('2026-08-01')]);
+        expect(rowNames()).toEqual(['Yesterday', 'Months ago']);
+        const yesterday = screen.getByRole('heading', { level: 3, name: longDay('2026-11-05') }).closest('section')!;
+        expect(yesterday.querySelector('.expense-list__subtotal')?.textContent).toBe(euros(3000));
+        expect(details('Yesterday')).not.toContain(shortDay('2026-11-05', false));
+    });
+
+    it('goes back to the flat list when recently added is chosen again', async () => {
+        const group = trip();
+        await open(group, twoDays(group));
+
+        chooseOrder(ledger.order.date);
+        chooseOrder(ledger.order.added);
+
+        expect(days()).toEqual([]);
+        expect(rowNames()).toEqual(['Months ago', 'Yesterday']);
+    });
+
+    it('keeps the choice when the ledger is refreshed, and a new entry goes where the order puts it', async () => {
+        const group = trip();
+        const { app } = await open(group, twoDays(group));
+        chooseOrder(ledger.order.date);
+        onlineManager.setOnline(false);
+
+        await act(() => app.groupOutbox.put(dinner(group, { text: 'Newest', date: '2026-07-01', createdAt: 9 })));
+
+        expect(await within(theLedger()).findByText('Newest')).toBeDefined();
+        expect(orderRadio(ledger.order.date)).toHaveProperty('checked', true);
+        expect(rowNames()).toEqual(['Yesterday', 'Months ago', 'Newest']);
+    });
+
+    it.each(['added', 'date'] as const)(
+        'in %s draws 100 rows and adds the rest with Show more, the focus on the first new row',
+        async (order) => {
+            const group = trip();
+            const many = Array.from({ length: 150 }, (_, index) =>
+                dinner(group, {
+                    text: `Row ${index}`,
+                    date: `2026-10-${String(1 + (index % 28)).padStart(2, '0')}`,
+                    createdAt: 1_000 + index,
+                })
+            );
+            await open(group, many);
+            chooseOrder(order === 'added' ? ledger.order.added : ledger.order.date);
+            const firstOrder = rowNames();
+
+            expect(firstOrder).toHaveLength(100);
+            fireEvent.click(within(theLedger()).getByRole('button', { name: en.expenses.list.showMore }));
+
+            expect(rowNames()).toHaveLength(150);
+            const firstNew = rowNames()[100]!;
+            expect(firstOrder).not.toContain(firstNew);
+            await waitFor(() => expect(rowOf(firstNew).contains(document.activeElement)).toBe(true));
+        }
+    );
 });
 
 describe('deleting an entry of the ledger', () => {
@@ -354,6 +563,40 @@ describe('deleting an entry of the ledger', () => {
 
         remove('First');
         expect(document.activeElement).toBe(screen.getByRole('heading', { level: 2, name: ledger.title }));
+    });
+
+    it('moves the focus on to the next day when it was the last row of its own, in the ledger by date', async () => {
+        const group = trip();
+        await open(group, [
+            dinner(group, { text: 'Today', date: '2026-10-25', createdAt: 1 }),
+            dinner(group, { text: 'Before', date: '2026-10-24', createdAt: 2 }),
+        ]);
+        chooseOrder(ledger.order.date);
+
+        remove('Today');
+
+        expect(document.activeElement).toBe(toggle('Before'));
+        await waitFor(() => expect(within(theLedger()).queryByText('Today')).toBeNull());
+        expect(days()).toEqual([longDay('2026-10-24')]);
+    });
+
+    it('follows the order of the list, not the dates, to the next row and back to the one that returns', async () => {
+        const group = trip();
+        const { api } = await open(group, [
+            dinner(group, { text: 'First', date: '2026-01-01', createdAt: 3 }),
+            dinner(group, { text: 'Second', date: '2026-10-01', createdAt: 2 }),
+            dinner(group, { text: 'Third', date: '2026-05-01', createdAt: 1 }),
+        ]);
+
+        remove('First');
+        expect(document.activeElement).toBe(toggle('Second'));
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+        await waitFor(() => expect(within(theLedger()).queryByText('First')).toBeNull());
+
+        undo();
+
+        await waitFor(() => expect(document.activeElement).toBe(toggle('First')));
+        expect(rowNames()).toEqual(['First', 'Second', 'Third']);
     });
 
     it('sends only the entry as it was when the delete was taken back before it was sent', async () => {

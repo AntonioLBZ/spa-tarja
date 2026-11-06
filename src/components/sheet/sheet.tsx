@@ -5,8 +5,8 @@ import type { ReactNode, Ref } from 'react';
 import './sheet.css';
 
 interface SheetProps {
-    // Centered in capitals over a dashed rule
-    label: ReactNode;
+    // Centered in capitals over a dashed rule; a sheet without one has no heading
+    label?: ReactNode;
     // The heading that holds the label
     level?: 'h2' | 'h3';
     className?: string;
@@ -24,9 +24,11 @@ const Sheet = (props: SheetProps) => {
 
     return (
         <section className={sheetClsx}>
-            <Heading ref={labelRef} className={labelClsx} tabIndex={labelRef ? -1 : undefined}>
-                {label}
-            </Heading>
+            {label ? (
+                <Heading ref={labelRef} className={labelClsx} tabIndex={labelRef ? -1 : undefined}>
+                    {label}
+                </Heading>
+            ) : null}
             {children}
         </section>
     );
