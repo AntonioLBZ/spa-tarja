@@ -46,13 +46,12 @@ afterEach(() => {
 });
 
 describe('inviting a friend from the Groups tab', () => {
-    it('tells a friend who uses the app from one added by name, also before there is any group', async () => {
+    it('is there with its hint also before there is any group', async () => {
         openGroups();
 
         expect(await screen.findByText(en.groups.empty)).toBeDefined();
         expect(await inviteButton()).toBeDefined();
         expect(screen.getByText(t('groups.links.hint', { days: INVITATION_DAYS }))).toBeDefined();
-        expect(screen.getByRole('button', { name: en.groups.friend.title })).toBeDefined();
     });
 
     it('makes a link at once and shows it, with the day it stops working and the focus on it', async () => {

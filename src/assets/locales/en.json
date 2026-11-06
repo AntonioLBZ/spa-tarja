@@ -410,9 +410,7 @@
         },
         "share": {
             "with": "With",
-            "newPerson": "New person…",
-            "newPersonOffline": "You're offline. Connect to add a person.",
-            "none": "You have no groups or friends yet. Add the person you share it with.",
+            "none": "You have no groups or friends yet. Make a group or invite a friend from the Groups tab.",
             "paidBy": "Paid by",
             "paidByNone": "Choose who paid",
             "payerLeft": "The person who paid has left the group.",
@@ -448,7 +446,7 @@
             }
         },
         "offline": "You're offline. Connect to make or change a group, or to invite a friend.",
-        "empty": "You have no groups or friends yet. Invite a friend who uses Tarja with a link, or add by name someone who won't use it.",
+        "empty": "You have no groups or friends yet. Make a group, or invite a friend who uses Tarja with a link.",
         "totalsWait": "Couldn't load the expenses of every group, so there are no totals yet. Connect to see them.",
         "lists": {
             "groups": "Groups",
@@ -481,15 +479,9 @@
         },
         "links": {
             "make": "Invite a friend",
-            "hint": "For someone who uses Tarja or will. You get a link to send them, and you become friends when they accept. It works once, for {days} days. If you added them by name, invite them from that friend instead.",
+            "hint": "For someone who uses Tarja or will. You get a link to send them, and you become friends when they accept. It works once, for {days} days.",
             "title": "Invitation links",
             "loadFailed": "Couldn't load your invitation links."
-        },
-        "friend": {
-            "title": "Add a friend by name",
-            "name": "Their name",
-            "nameHint": "For someone who won't use the app: you keep track of what you share. If they join later, invite them from the friend.",
-            "submit": "Add the friend"
         },
         "nameInvalid": "A name needs at least one visible character and no text-direction controls.",
         "failure": {

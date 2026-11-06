@@ -6,7 +6,6 @@ import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
-import { AddFriend } from './add-friend';
 import { EntryRefusals } from './entry-refusals';
 import { GroupList } from './group-list';
 import { InviteFriend } from './invite-friend';
@@ -21,7 +20,7 @@ interface GroupTotalsProps {
 }
 
 // The Groups tab: what the person is owed and owes across their open groups and friends, making a group, inviting a
-// friend with a link or adding one by name, the groups and the friends, and at the end the closed and the archived ones
+// friend with a link, the groups and the friends, and at the end the closed and the archived ones
 const Groups = () => {
     const t = useTranslations('groups');
     const online = useOnline();
@@ -43,7 +42,6 @@ const Groups = () => {
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
             <NewGroup disabled={!online} />
             <InviteFriend disabled={!online} />
-            <AddFriend disabled={!online} />
             {groups.length > 0 && <GroupList label={t('lists.groups')} ledgers={groups} />}
             {friends.length > 0 && <GroupList label={t('lists.friends')} ledgers={friends} />}
             {closed.length > 0 && (

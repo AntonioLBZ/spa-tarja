@@ -58,7 +58,7 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-describe('making groups and friends', () => {
+describe('making groups', () => {
     it('makes a group with its dummies in the currency of the app, owned by the person, and keeps it', async () => {
         const app = await setup([]);
         const [id, me, cris] = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
@@ -74,19 +74,6 @@ describe('making groups and friends', () => {
         ]);
         await waitFor(() => expect(app.groupOf(id)).toEqual(group));
         expect(app.api.groups.find((item) => item.id === id)).toEqual(group);
-    });
-
-    it('makes a friend of a person by name', async () => {
-        const app = await setup([]);
-        const [id, me, ines] = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
-
-        const made = await act(() =>
-            app.result.current.actions.createFriend({ id, me, other: { id: ines, name: 'Inés' } })
-        );
-
-        expect(made).toMatchObject({ id, kind: 'direct', name: null, me, currency: DEFAULT_CURRENCY });
-        expect(made.members.map((member) => member.name)).toEqual([TEST_USER.name, 'Inés']);
-        await waitFor(() => expect(app.groupOf(id)).toEqual(made));
     });
 
     it('makes one group when the same make is sent again after its answer was lost', async () => {
@@ -116,15 +103,6 @@ describe('a change needs a connection', () => {
             'making a group',
             (actions) =>
                 actions.createGroup({ id: crypto.randomUUID(), name: 'Lisbon', me: crypto.randomUUID(), others: [] }),
-        ],
-        [
-            'making a friend',
-            (actions) =>
-                actions.createFriend({
-                    id: crypto.randomUUID(),
-                    me: crypto.randomUUID(),
-                    other: { id: crypto.randomUUID(), name: 'Inés' },
-                }),
         ],
         ['switching Show in my expenses', (actions) => actions.setSwitches(group.id, { showInExpenses: false })],
     ];

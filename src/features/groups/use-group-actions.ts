@@ -45,12 +45,6 @@ interface NewGroupInput {
     others: readonly Placeholder[];
 }
 
-interface NewFriendInput {
-    id: string;
-    me: string;
-    other: Placeholder;
-}
-
 // One of the person's friends who is a real person, by the id of that friend, as a new member or in place of a dummy
 interface FriendInput {
     friend: string;
@@ -110,18 +104,6 @@ const useGroupActions = () => {
                         currency: DEFAULT_CURRENCY,
                         me: { id: me },
                         others: [...others],
-                    })
-                );
-            },
-            async createFriend({ id, me, other }: NewFriendInput) {
-                online();
-                return keep(
-                    await putGroup(id, {
-                        kind: 'direct',
-                        name: null,
-                        currency: DEFAULT_CURRENCY,
-                        me: { id: me },
-                        others: [other],
                     })
                 );
             },
@@ -216,4 +198,4 @@ const useGroupActions = () => {
     }, [queryClient, outbox]);
 };
 
-export { useGroupActions, type FriendInput, type NewFriendInput, type NewGroupInput, type Placeholder };
+export { useGroupActions, type FriendInput, type NewGroupInput, type Placeholder };

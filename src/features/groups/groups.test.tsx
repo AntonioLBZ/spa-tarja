@@ -11,7 +11,7 @@ import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { Handler } from '@/lib/test/render-app';
@@ -590,108 +590,16 @@ describe('making a group with friends', () => {
     });
 });
 
-describe('adding a friend', () => {
-    function friendToggle() {
-        return screen.getByRole('button', { name: text.friend.title });
-    }
+describe('making a friend', () => {
+    it.each([
+        ['with groups', [sampleGroup({ name: 'Lisbon' })], text.balance.allSettled],
+        ['with nothing in them', [], text.empty],
+    ])('has no control to add one by name, %s', async (_, groups, ready) => {
+        open(groups);
+        await screen.findByText(ready);
 
-    function addFriend(name: string) {
-        fireEvent.change(field(text.friend.name), { target: { value: name } });
-        fireEvent.click(screen.getByRole('button', { name: text.friend.submit }));
-    }
-
-    it('makes a friend with that name, who has not joined, and opens it', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(friendToggle());
-
-        addFriend(' Cris ');
-
-        expect(await screen.findByRole('heading', { level: 1, name: 'Cris' })).toBeDefined();
-        expect(api.groups).toHaveLength(1);
-        expect(api.groups[0]).toMatchObject({ kind: 'direct', name: null, currency: 'EUR' });
-        expect(api.groups[0]!.members.map((member) => [member.name, member.role, member.claimed])).toEqual([
-            [TEST_USER.name, 'owner', true],
-            ['Cris', 'member', false],
-        ]);
-    });
-
-    it('refuses a name with nothing that shows, without sending it', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(friendToggle());
-
-        addFriend('​ ');
-
-        expect((await screen.findByRole('alert')).textContent).toBe(text.nameInvalid);
-        expect(field(text.friend.name).getAttribute('aria-invalid')).toBe('true');
-        expect(api.groupRequests).toEqual([]);
-    });
-
-    it('says in words why the server refused it, and keeps what was typed', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        api.state.groupRefusal = { status: 409, error: 'too-many-friends' };
-        fireEvent.click(friendToggle());
-
-        addFriend('Cris');
-
-        expect((await screen.findByRole('alert')).textContent).toBe(
-            t('groups.failure.tooManyFriends', { max: MAX_FRIENDS })
-        );
-        expect(field(text.friend.name).value).toBe('Cris');
-    });
-
-    it('sends the same friend again after a failure, so a friend that was made is not made twice', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        api.state.groupRefusal = { status: 503 };
-        fireEvent.click(friendToggle());
-        addFriend('Cris');
-        expect((await screen.findByRole('alert')).textContent).toBe(text.failure.failed);
-        api.state.groupRefusal = null;
-
-        fireEvent.click(screen.getByRole('button', { name: text.friend.submit }));
-
-        await screen.findByRole('heading', { level: 1, name: 'Cris' });
-        const [first, second] = api.groupRequests;
-        expect(second).toBe(first);
-    });
-
-    it('gives the friend the name typed last when the first answer was lost', async () => {
-        const api = createFakeApi();
-        let loseNext = true;
-        const losing: Handler = async (url, init) => {
-            const answer = await api.handler(url, init);
-            if (init?.method === 'PUT' && loseNext) {
-                loseNext = false;
-                throw new TypeError('Failed to fetch');
-            }
-            return answer;
-        };
-        stubApi(losing);
-        renderApp({ path: '/groups' });
-        await screen.findByText(text.empty);
-        fireEvent.click(friendToggle());
-        addFriend('Cris');
-        expect((await screen.findByRole('alert')).textContent).toBe(text.failure.failed);
-
-        addFriend('Cristina');
-
-        expect(await screen.findByRole('heading', { level: 1, name: 'Cristina' })).toBeDefined();
-        expect(api.groups).toHaveLength(1);
-        expect(api.groups[0]!.members.map((member) => member.name)).toEqual([TEST_USER.name, 'Cristina']);
-    });
-
-    it('is off without a connection', async () => {
-        open([sampleGroup({ name: 'Lisbon' })]);
-        await screen.findByText(text.balance.allSettled);
-
-        onlineManager.setOnline(false);
-
-        await screen.findByText(text.offline);
-        fireEvent.click(friendToggle());
-        expect(field(text.friend.name).disabled).toBe(true);
-        expect((screen.getByRole('button', { name: text.friend.submit }) as HTMLButtonElement).disabled).toBe(true);
+        expect(screen.queryByRole('button', { name: /by name/i })).toBeNull();
+        expect(screen.queryByLabelText(/their name/i)).toBeNull();
+        expect(screen.queryByRole('button', { name: /add the friend/i })).toBeNull();
     });
 });

@@ -410,9 +410,7 @@
         },
         "share": {
             "with": "Con",
-            "newPerson": "Persona nueva…",
-            "newPersonOffline": "No tienes conexión. Conéctate para añadir a una persona.",
-            "none": "Aún no tienes grupos ni amigos. Añade a la persona con la que lo compartes.",
+            "none": "Aún no tienes grupos ni amigos. Crea un grupo o invita a un amigo desde la pestaña Grupos.",
             "paidBy": "Pagado por",
             "paidByNone": "Elige quién pagó",
             "payerLeft": "Quien pagó ha salido del grupo.",
@@ -448,7 +446,7 @@
             }
         },
         "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo, o para invitar a un amigo.",
-        "empty": "Aún no tienes grupos ni amigos. Invita con un enlace a quien usa Tarja, o añade por su nombre a quien no la vaya a usar.",
+        "empty": "Aún no tienes grupos ni amigos. Crea un grupo, o invita con un enlace a un amigo que use Tarja.",
         "totalsWait": "No se pudieron cargar los gastos de todos los grupos, así que aún no hay totales. Conéctate para verlos.",
         "lists": {
             "groups": "Grupos",
@@ -481,15 +479,9 @@
         },
         "links": {
             "make": "Invitar a un amigo",
-            "hint": "Para quien usa Tarja o la va a usar. Obtienes un enlace para enviárselo y seréis amigos cuando lo acepte. Sirve una vez, durante {days} días. Si ya lo añadiste por su nombre, invítalo desde ese amigo.",
+            "hint": "Para quien usa Tarja o la va a usar. Obtienes un enlace para enviárselo y seréis amigos cuando lo acepte. Sirve una vez, durante {days} días.",
             "title": "Enlaces de invitación",
             "loadFailed": "No se pudieron cargar tus enlaces de invitación."
-        },
-        "friend": {
-            "title": "Añadir un amigo por su nombre",
-            "name": "Su nombre",
-            "nameHint": "Para quien no va a usar la app: tú llevas la cuenta de lo que compartís. Si más adelante se une, invítalo desde el amigo.",
-            "submit": "Añadir a tus amigos"
         },
         "nameInvalid": "Un nombre necesita al menos un carácter visible y ningún control de dirección del texto.",
         "failure": {

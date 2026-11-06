@@ -26,7 +26,6 @@ import {
 } from '@core/split';
 
 import { newEntry } from './new-entry';
-import { NewPerson } from './new-person';
 import { groupsFirst, useGroupOptions } from './use-group-options';
 import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
@@ -42,8 +41,6 @@ import './shared-tail.css';
 interface SharedDraft {
     // Picked in With; null is the one used last
     groupId: string | null;
-    // New person… is chosen in With, so there is no group until the friend is made
-    asking: boolean;
     // Null is the person
     paidBy: string | null;
     mode: SplitMode;
@@ -103,16 +100,12 @@ type SplitProblem = { kind: 'nobody' } | { kind: 'invalid'; ids: readonly string
 
 const START: SharedDraft = {
     groupId: null,
-    asking: false,
     paidBy: null,
     mode: 'equal',
     out: [],
     typed: null,
     saved: null,
 };
-
-// The value of New person… among the groups of With, whose ids are UUIDs
-const NEW_PERSON = 'new-person';
 
 // A percentage as typed, in hundredths of a percent, the way an amount is read in cents; none past 100 %
 const parsePercent = (text: string, locale: string): number | null => {
@@ -178,7 +171,6 @@ const draftOfEntry = (group: SharedGroup, entry: SharedExpenseEntry, locale: str
 
     return {
         groupId: group.id,
-        asking: false,
         paidBy: canonicalMember(group.members, entry.paidBy),
         mode: entry.split,
         out: present.filter((memberId) => !cents.has(memberId)),
@@ -212,11 +204,10 @@ const useSharedTail = (
     const [remembered] = useState(() => readSharedWith(user.id));
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
 
-    const group = draft.asking
-        ? undefined
-        : (choices.find((item) => item.id === draft.groupId) ??
-          choices.find((item) => item.id === remembered) ??
-          choices[0]);
+    const group =
+        choices.find((item) => item.id === draft.groupId) ??
+        choices.find((item) => item.id === remembered) ??
+        choices[0];
     // Those who can take part: a member who left, or was merged, can't
     const present = group?.members.filter((member) => member.leftAt === null) ?? [];
     const me = group?.me ?? null;
@@ -285,7 +276,6 @@ const useSharedTail = (
     return {
         choices,
         group,
-        asking: draft.asking,
         present,
         payer,
         payerGone,
@@ -298,7 +288,6 @@ const useSharedTail = (
         // The day the payer's card charges it; only the payer says how they paid
         chargeDate: payerIsMe ? payment.chargeDate : null,
         pickGroup: (groupId: string) => setDraft({ ...START, mode: draft.mode, groupId }),
-        ask: () => setDraft({ ...draft, asking: true }),
         // Somebody else pays now: only the payer says how they paid
         pickPayer: (memberId: string) => {
             setDraft({ ...draft, paidBy: memberId });
@@ -353,12 +342,7 @@ const SharedTail = (props: SharedTailProps) => {
     const options = useGroupOptions(tail.choices);
 
     if (tail.choices.length === 0) {
-        return (
-            <>
-                <Notice tone="quiet">{t('share.none')}</Notice>
-                <NewPerson onMade={tail.pickGroup} />
-            </>
-        );
+        return <Notice tone="quiet">{t('share.none')}</Notice>;
     }
 
     return (
@@ -369,18 +353,14 @@ const SharedTail = (props: SharedTailProps) => {
                         <Select
                             {...control}
                             label={t('share.with')}
-                            options={[...options, { value: NEW_PERSON, label: t('share.newPerson') }]}
-                            value={group?.id ?? NEW_PERSON}
-                            onChange={(value) => (value === NEW_PERSON ? tail.ask() : tail.pickGroup(value))}
+                            options={options}
+                            value={group?.id ?? ''}
+                            onChange={tail.pickGroup}
                         />
                     )}
                 </Field>
             )}
-            {group ? (
-                <SharedPeople group={group} tail={tail} payment={payment} />
-            ) : (
-                <NewPerson onMade={tail.pickGroup} />
-            )}
+            {group && <SharedPeople group={group} tail={tail} payment={payment} />}
         </>
     );
 };
