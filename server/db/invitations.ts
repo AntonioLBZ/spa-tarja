@@ -130,7 +130,8 @@ const CLAIM = `
 // can be taken; nothing runs between the statements of a batch, so the mark that follows reads the same
 const INSERT_FRIEND = `
     INSERT INTO shared_groups (id, kind, name, currency, created_by, created_at, updated_at)
-    SELECT ?4, 'direct', NULL, ?5, i.created_by, ?2, ?2 FROM friend_invitations i WHERE i.id IN (${TAKEABLE})`;
+    SELECT ?4, 'direct', NULL, ?5, i.created_by, ?2, ?2 FROM friend_invitations i
+    WHERE i.member_id IS NULL AND i.id IN (${TAKEABLE})`;
 
 const TAKE_DIRECT = `
     UPDATE friend_invitations SET accepted_by = ?3, accepted_at = ?2, group_id = ?4

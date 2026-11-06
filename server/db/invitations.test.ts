@@ -2,6 +2,7 @@ import { applyD1Migrations, type D1Migration } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { acceptDirectInvitation } from '@server/db/invitations';
 import { makeFriend } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
@@ -118,6 +119,24 @@ describe('the table of invitations', () => {
 
         const row = await env.DB.prepare('SELECT accepted_by, accepted_at FROM friend_invitations').first();
         expect(row).toEqual({ accepted_by: null, accepted_at: 3 });
+    });
+});
+
+describe('taking a direct invitation', () => {
+    it('writes nothing when the invitation is the one of a dummy', async () => {
+        const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
+        const id = crypto.randomUUID();
+        await insert({ id, expiresAt: Date.now() + 60_000 });
+        const count = async () =>
+            await env.DB.prepare(
+                'SELECT (SELECT COUNT(*) FROM shared_groups) AS groups, (SELECT COUNT(*) FROM shared_members) AS members'
+            ).first();
+        const before = await count();
+
+        const friendId = await acceptDirectInvitation(env.DB, id, { userId: bruno.userId, name: 'Bruno' }, 'Ana');
+
+        expect(friendId).toBeNull();
+        expect(await count()).toEqual(before);
     });
 });
 
