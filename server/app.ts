@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 
 import { createAuth } from '@server/auth';
 import { withFramingHeaders } from '@server/headers';
+import { withOwnOrigin } from '@server/origin';
 import { withUser } from '@server/user';
 
 import { accountRoutes } from './routes/account';
@@ -21,6 +22,7 @@ import type { AppEnv } from '@server/env';
 const app = new Hono<AppEnv>()
     .basePath('/api')
     .use(withFramingHeaders)
+    .use(withOwnOrigin)
     .get('/health', async (c) => {
         const row = await c.env.DB.prepare('SELECT 1 AS ok').first<{ ok: number }>();
         return c.json({ ok: row?.ok === 1 });
