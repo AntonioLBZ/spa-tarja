@@ -413,7 +413,7 @@ describe('the groups of a deleted account', () => {
         expect(seen?.members.find((member) => member.id === evaId)?.role).toBe('owner');
     });
 
-    it('hands a group over to a user who is at the limit of closed groups, and closes the ones nobody else uses', async () => {
+    it('hands a group over to a user who is at the limit of closed groups, and erases the ones nobody else uses', async () => {
         const trip = await makeGroup(ana, ['Bruno']);
         const deserted = await makeGroup(ana, ['Dan']);
         const brunoId = memberNamed(trip, 'Bruno');
@@ -425,7 +425,7 @@ describe('the groups of a deleted account', () => {
         expect(response.status).toBe(204);
         expect(await isClosed(trip.id)).toBe(false);
         expect(await ownerOf(trip.id)).toBe(brunoId);
-        expect(await isClosed(deserted.id)).toBe(true);
+        expect(Object.values(await rowsOfGroup(deserted.id)).flat()).toEqual([]);
     });
 
     it('closes a group they owned where somebody else used the app and left, and leaves it with no owner', async () => {
@@ -468,7 +468,7 @@ describe('the groups of a deleted account', () => {
         expect(friend?.members.find((member) => member.id === made.a)).toMatchObject({ name: '', role: 'member' });
     });
 
-    it('closes a friend whose other side had deleted their account before', async () => {
+    it('erases a friend whose other side had deleted their account before', async () => {
         const friend = await befriend(bruno, ana);
         await deleteAccount(bruno, 'bruno@example.com');
         expect(await isClosed(friend.id)).toBe(false);
@@ -476,12 +476,7 @@ describe('the groups of a deleted account', () => {
 
         await deleteAccount(ana);
 
-        expect(await isClosed(friend.id)).toBe(true);
-        expect(await ownerOf(friend.id)).toBeNull();
-        expect((await membersOf(friend.id)).map((member) => [member.user_id, member.name])).toEqual([
-            [null, ''],
-            [null, ''],
-        ]);
+        expect(Object.values(await rowsOfGroup(friend.id)).flat()).toEqual([]);
     });
 
     it('keeps an invitation they accepted as accepted, by nobody', async () => {
@@ -719,16 +714,45 @@ describe('the groups of a deleted account', () => {
         expect(await foreignKeyViolations()).toEqual([]);
     });
 
-    it('keeps the group when the other user has deleted their account since', async () => {
+    it('erases the group when the other user has deleted their account since', async () => {
         const trip = await makeGroup(ana, ['Bruno', 'Mom'], 'Past trip');
         await claim(memberNamed(trip, 'Bruno'), bruno);
         await writeEntry(ana, trip.id, 'Past dinner', trip.me, [trip.me, memberNamed(trip, 'Mom')]);
         await deleteAccount(bruno, 'bruno@example.com');
+        expect(await mentions('Past trip', 'Mom', 'Past dinner')).toEqual([1, 1, 1]);
 
         await deleteAccount(ana);
 
-        expect((await rowsOfGroup(trip.id)).group).toHaveLength(1);
-        expect(await mentions('Past trip', 'Mom', 'Past dinner')).toEqual([1, 1, 1]);
+        expect(Object.values(await rowsOfGroup(trip.id)).flat()).toEqual([]);
+        expect(await mentions('Past trip', 'Mom', 'Past dinner', 'Bruno')).toEqual([0, 0, 0, 0]);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('erases a friend of two users when the second deletes their account and then the first does', async () => {
+        const friend = await befriend(ana, bruno);
+        await writeEntry(ana, friend.id, 'Friend lunch', friend.a, [friend.a, friend.b]);
+        await deleteAccount(bruno, 'bruno@example.com');
+        expect(await isClosed(friend.id)).toBe(false);
+        expect(await mentions('Friend lunch')).toEqual([1]);
+
+        await deleteAccount(ana);
+
+        expect(Object.values(await rowsOfGroup(friend.id)).flat()).toEqual([]);
+        expect(await mentions('Friend lunch')).toEqual([0]);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('erases a friend whose dummy was claimed by an invitee who has deleted their account since', async () => {
+        const friend = await makeFriend(ana, 'Dan');
+        await send(bruno, 'POST', '/invitations/accept', { token: await linkOf(ana, friend.id) });
+        await writeEntry(ana, friend.id, 'Claimed lunch', friend.me, [friend.me, memberNamed(friend, 'Dan')]);
+        await deleteAccount(bruno, 'bruno@example.com');
+        expect(await mentions('Claimed lunch')).toEqual([1]);
+
+        await deleteAccount(ana);
+
+        expect(Object.values(await rowsOfGroup(friend.id)).flat()).toEqual([]);
+        expect(await mentions('Claimed lunch', 'Dan')).toEqual([0, 0]);
         expect(await foreignKeyViolations()).toEqual([]);
     });
 

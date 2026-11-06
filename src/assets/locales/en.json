@@ -184,7 +184,7 @@
         "keeps": {
             "title": "How long, and deleting your account",
             "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
-            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends by name that only you used are deleted completely, with every name and expense in them.",
+            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends by name where you are the only person with an account are deleted completely, with every name and expense in them.",
             "stays": "The shared expenses in your groups stay for the others, because they are also their record. They show as “Deleted user”, without your name.",
             "backups": "The backups Cloudflare keeps to recover the service expire on their own."
         },

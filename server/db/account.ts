@@ -6,12 +6,13 @@ const OTHER_USER = `
     SELECT o.id FROM shared_members o
     WHERE o.group_id = m.group_id AND o.user_id IS NOT NULL AND o.user_id <> ?1 AND o.left_at IS NULL`;
 
-// The groups they are in where nobody else is or ever was a user (`claimed_at` stays after the user is deleted, and a
-// member who left was one): a friend by name, a group of placeholders. Nobody could read them once the account is gone.
+// The groups they are in where nobody else has an account (a member who left keeps theirs, one who deleted theirs has
+// none): a friend by name, a group of placeholders, a group the others deleted their accounts from. Nobody could read
+// them once the account is gone.
 const ERASABLE = `
     SELECT m.group_id FROM shared_members m
     WHERE m.user_id = ?1 AND NOT EXISTS (
-        SELECT 1 FROM shared_members o WHERE o.group_id = m.group_id AND o.claimed_at IS NOT NULL AND o.user_id IS NOT ?1)`;
+        SELECT 1 FROM shared_members o WHERE o.group_id = m.group_id AND o.user_id IS NOT NULL AND o.user_id <> ?1)`;
 
 // In foreign key order
 const ERASE_GROUP_ROWS = [
@@ -22,7 +23,7 @@ const ERASE_GROUP_ROWS = [
     `DELETE FROM shared_members WHERE group_id IN (${ERASABLE})`,
 ] as const;
 
-// The groups emptied just before, which can't be told apart from the rest once their members are gone
+// The groups emptied just before: no group can exist with no members through the API
 const ERASE_EMPTY_GROUPS = `
     DELETE FROM shared_groups
     WHERE NOT EXISTS (SELECT 1 FROM shared_members WHERE group_id = shared_groups.id)
@@ -33,8 +34,8 @@ const REVOKE_INVITATIONS = `
     UPDATE friend_invitations SET revoked_at = ?2
     WHERE created_by = ?1 AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL`;
 
-// The open groups they are in where nobody else would be left who uses the app: a friend with a dummy or with a deleted
-// user, a group of their own with dummies only or whose people left
+// The open groups they are in where nobody else would be left who uses the app, since everybody else with an account
+// has left
 const CLOSE_GROUPS = `
     UPDATE shared_groups SET deleted_at = ?2, updated_at = ?2
     WHERE deleted_at IS NULL AND id IN (
@@ -59,10 +60,11 @@ const readEmail = async (db: D1Database, userId: string): Promise<string | null>
     return row?.email ?? null;
 };
 
-// Everything of the user's own goes, in one batch, all or nothing. A group nobody else used is erased, with its names
-// and entries. In the other groups, their members stay, nameless, and so do the entries. The owner steps down before anybody takes over, as a group has one owner, and their members are
-// found by `user_id` until the `user` row goes last: its sessions and accounts go with it, and every user column of the
-// shared tables loses it through its foreign key.
+// Everything of the user's own goes, in one batch, all or nothing. A group nobody else has an account in is erased, with
+// its names and entries. In the other groups, their members stay, nameless, and so do the entries. The owner steps down
+// before anybody takes over, as a group has one owner, and their members are found by `user_id` until the `user` row
+// goes last: its sessions and accounts go with it, and every user column of the shared tables loses it through its
+// foreign key.
 const deleteAccount = async (db: D1Database, userId: string): Promise<void> => {
     const now = Date.now();
     await db.batch([
