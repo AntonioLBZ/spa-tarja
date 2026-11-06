@@ -1,7 +1,13 @@
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH } from '@core/shared-group';
+import {
+    MAX_CLOSED_GROUPS,
+    MAX_GROUP_MEMBERS,
+    MAX_GROUP_MEMBER_ROWS,
+    MAX_OPEN_GROUPS,
+    SHARED_NAME_MAX_LENGTH,
+} from '@core/shared-group';
 import {
     befriend,
     groupOf,
@@ -643,6 +649,86 @@ describe('writes at the same moment', () => {
             expect(await error(response, 409)).toBe('too-many-members');
         }
         expect((await groupOfAna(group.id)).members).toHaveLength(MAX_GROUP_MEMBERS);
+    });
+});
+
+describe('the people a group ever had', () => {
+    async function rowsOfGroup(groupId: string) {
+        const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM shared_members WHERE group_id = ?1')
+            .bind(groupId)
+            .first<{ n: number }>();
+        return row?.n;
+    }
+
+    async function seedLeft(groupId: string, count: number) {
+        const statements = Array.from({ length: count }, () =>
+            env.DB.prepare(
+                `INSERT INTO shared_members (id, group_id, name, role, created_at, left_at, left_seq)
+                 VALUES (?1, ?2, 'Gone', 'member', 1, 2, 0)`
+            ).bind(crypto.randomUUID(), groupId)
+        );
+        await env.DB.batch(statements);
+    }
+
+    it(`refuses a person once a group has had ${MAX_GROUP_MEMBER_ROWS}, though only one is in it`, async () => {
+        const group = await makeGroup(ana);
+        for (let added = 1; added < MAX_GROUP_MEMBER_ROWS; added++) {
+            const { id } = await addDummy(ana, group.id, `Dummy ${added}`);
+            await groupOf(await removeMember(ana, group.id, id));
+        }
+        expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
+
+        const response = await putMember(ana, group.id, crypto.randomUUID(), { name: 'One more' });
+
+        expect(await error(response, 409)).toBe('too-many-members-ever');
+        expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
+        expect((await groupOfAna(group.id)).members.filter((member) => member.leftAt === null)).toHaveLength(1);
+    });
+
+    it('refuses a friend, and a friend in place of a dummy, as it does a dummy', async () => {
+        const group = await makeGroup(ana, ['Dani']);
+        const toBruno = await befriend(ana, bruno);
+        await seedLeft(group.id, MAX_GROUP_MEMBER_ROWS - 2);
+
+        const added = await putMember(ana, group.id, crypto.randomUUID(), { friend: toBruno.id });
+        const replacing = await putMember(ana, group.id, crypto.randomUUID(), {
+            friend: toBruno.id,
+            replaces: memberNamed(group, 'Dani'),
+        });
+
+        expect(await error(added, 409)).toBe('too-many-members-ever');
+        expect(await error(replacing, 409)).toBe('too-many-members-ever');
+        expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
+        expect(member(await groupOfAna(group.id), memberNamed(group, 'Dani'))).toMatchObject({ mergedInto: null });
+    });
+
+    it('takes the last place, and says the group is full when it is the people in it that are too many', async () => {
+        const group = await makeGroup(ana);
+        await seedLeft(group.id, MAX_GROUP_MEMBER_ROWS - 2);
+        await addDummy(ana, group.id, 'Last');
+        const dummies = Array.from({ length: MAX_GROUP_MEMBERS - 1 }, (_, index) => `Dummy ${index}`);
+        const crowded = await makeGroup(ana, dummies);
+
+        const refused = await putMember(ana, group.id, crypto.randomUUID(), { name: 'Late' });
+        const full = await putMember(ana, crowded.id, crypto.randomUUID(), { name: 'Late' });
+
+        expect(await error(refused, 409)).toBe('too-many-members-ever');
+        expect(await error(full, 409)).toBe('too-many-members');
+        expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
+    });
+
+    it('never takes a group past the rows at the same moment', async () => {
+        const group = await makeGroup(ana);
+        await seedLeft(group.id, MAX_GROUP_MEMBER_ROWS - 3);
+
+        const responses = await Promise.all(
+            Array.from({ length: 6 }, (_, index) =>
+                putMember(ana, group.id, crypto.randomUUID(), { name: `Someone ${index}` })
+            )
+        );
+
+        expect(responses.filter((response) => response.status === 200)).toHaveLength(2);
+        expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
     });
 });
 

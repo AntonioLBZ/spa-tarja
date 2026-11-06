@@ -1,10 +1,12 @@
-import { MAX_GROUP_MEMBERS, type MemberRole, type MySwitches } from '@core/shared-group';
+import { MAX_GROUP_MEMBER_ROWS, MAX_GROUP_MEMBERS, type MemberRole, type MySwitches } from '@core/shared-group';
 
 // Whether the group has room for one more, counted in the same statement that adds them so that adds at the same
-// moment can't pass the limit: the members who haven't left, but for the dummy the new one replaces
+// moment can't pass the limits: the members who haven't left, but for the dummy the new one replaces, and every row
+// the group ever had
 const room = (replaces: string) => `
     (SELECT COUNT(*) FROM shared_members WHERE group_id = ?2 AND left_at IS NULL AND id IS NOT ${replaces})
-    < ${MAX_GROUP_MEMBERS}`;
+        < ${MAX_GROUP_MEMBERS}
+    AND (SELECT COUNT(*) FROM shared_members WHERE group_id = ?2) < ${MAX_GROUP_MEMBER_ROWS}`;
 
 const INSERT_PERSON = `
     INSERT INTO shared_members (id, group_id, user_id, name, role, created_by, created_at, claimed_at)
@@ -68,14 +70,21 @@ const isUniqueViolation = (error: unknown): boolean => {
     return error instanceof Error && error.message.includes('UNIQUE constraint failed');
 };
 
-const addPlaceholder = async (
-    db: D1Database,
-    member: NewMember,
-    name: string
-): Promise<'added' | 'full' | 'id-taken'> => {
+type AddResult = 'added' | 'full' | 'too-many-ever' | 'id-taken';
+
+// Which limit stopped an add: the rows the group ever had, which no removal frees, or the people in it
+const refusal = async (db: D1Database, groupId: string): Promise<'full' | 'too-many-ever'> => {
+    const row = await db
+        .prepare('SELECT COUNT(*) AS n FROM shared_members WHERE group_id = ?1')
+        .bind(groupId)
+        .first<{ n: number }>();
+    return (row?.n ?? 0) >= MAX_GROUP_MEMBER_ROWS ? 'too-many-ever' : 'full';
+};
+
+const addPlaceholder = async (db: D1Database, member: NewMember, name: string): Promise<AddResult> => {
     try {
         const { meta } = await insertPlaceholder(db, member, name).run();
-        return meta.changes === 0 ? 'full' : 'added';
+        return meta.changes === 0 ? await refusal(db, member.groupId) : 'added';
     } catch (error) {
         if (isUniqueViolation(error)) return 'id-taken';
         throw error;
@@ -151,12 +160,12 @@ const addFriend = async (
     member: NewMember,
     friend: Person,
     replaces: string | null
-): Promise<'added' | 'full' | 'id-taken'> => {
+): Promise<AddResult> => {
     const statements = [insertPerson(db, member, friend, 'member', replaces)];
     if (replaces !== null) statements.push(db.prepare(MERGE).bind(replaces, member.id, member.at));
     try {
         const [inserted] = await db.batch(statements);
-        return inserted?.meta.changes === 0 ? 'full' : 'added';
+        return inserted?.meta.changes === 0 ? await refusal(db, member.groupId) : 'added';
     } catch (error) {
         if (isUniqueViolation(error)) return 'id-taken';
         throw error;

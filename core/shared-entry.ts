@@ -3,7 +3,7 @@ import * as v from 'valibot';
 import { isCalendarDate } from './date';
 import { TEXT_MAX_LENGTH, paymentSchema } from './expense';
 import { MAX_AMOUNT_CENTS } from './money';
-import { memberIdSchema } from './shared-group';
+import { MAX_GROUP_MEMBER_ROWS, memberIdSchema } from './shared-group';
 
 // How an expense was split; only the shares are stored, the mode only reopens the form as it was left
 const SPLIT_MODES = ['equal', 'percent', 'exact'] as const;
@@ -13,8 +13,8 @@ const timestamp = v.pipe(v.number(), v.safeInteger(), v.minValue(0));
 
 const calendarDate = v.pipe(v.string(), v.check(isCalendarDate, 'Not a calendar day'));
 
-// A bound on what a write carries, above what a group's members can be over time, those who left and merged included
-const MAX_SHARES = 100;
+// A bound on what a write carries: the members a group can ever have, those who left and merged included
+const MAX_SHARES = MAX_GROUP_MEMBER_ROWS;
 
 // In lower case, so that two spellings of one id are the same entry
 const entryIdSchema = v.pipe(v.string(), v.uuid(), v.toLowerCase());

@@ -11,12 +11,15 @@ const MAX_OPEN_GROUPS = 30;
 
 const MAX_FRIENDS = 100;
 
-// Per user, counting the groups and friends that are closed for them, deleted or left: they can't be removed, so a
-// person is not put in more of them than this, nor makes more
+// Per user, counting the groups and friends that are closed for them, deleted or left, and that they haven't archived:
+// a person is not put in more of them than this, nor makes more, until they archive some
 const MAX_CLOSED_GROUPS = 100;
 
 // Counting only the members who haven't left
 const MAX_GROUP_MEMBERS = 30;
+
+// Counting every member the group ever had, those who left and were merged included, as their rows are never deleted
+const MAX_GROUP_MEMBER_ROWS = 100;
 
 // Per user, the direct invitations that are still open: a link holds no place for anybody, so a person keeps only a few
 const MAX_OPEN_INVITATIONS = 20;
@@ -164,6 +167,7 @@ export {
     MAX_CLOSED_GROUPS,
     MAX_FRIENDS,
     MAX_GROUP_MEMBERS,
+    MAX_GROUP_MEMBER_ROWS,
     MAX_OPEN_GROUPS,
     MAX_OPEN_INVITATIONS,
     SHARED_NAME_MAX_LENGTH,

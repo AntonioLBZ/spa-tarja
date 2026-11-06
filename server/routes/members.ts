@@ -47,6 +47,7 @@ const membersRoutes = new Hono<AppEnv>()
             if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
             const result = await addPlaceholder(db, added, input.name);
             if (result === 'full') return c.json({ error: 'too-many-members' }, 409);
+            if (result === 'too-many-ever') return c.json({ error: 'too-many-members-ever' }, 409);
             // The same write sent at the same moment may have added it first
             if (result === 'id-taken') {
                 const now = await readGroup(db, userId, groupId);
@@ -88,6 +89,7 @@ const membersRoutes = new Hono<AppEnv>()
         const person = { userId: friendUser, name: personName(await readProfile(db, friendUser)) };
         const result = await addFriend(db, added, person, input.replaces ?? null);
         if (result === 'full') return c.json({ error: 'too-many-members' }, 409);
+        if (result === 'too-many-ever') return c.json({ error: 'too-many-members-ever' }, 409);
         if (result === 'id-taken') {
             // The same write sent at the same moment may have added them first
             const now = await readGroup(db, userId, groupId);
