@@ -194,6 +194,7 @@ describe('pushing the entries of a group', () => {
     it.each([
         ['the server is failing', { status: 503 }],
         ['the session has ended', { status: 401, error: 'unauthorized' }],
+        ['the origin check refuses the request', { status: 403, error: 'bad-origin' }],
     ])('keeps everything pending, in order, when %s', async (_, refusal) => {
         const [a, b] = [sampleEntry(group), sampleEntry(group)];
         const { api, ids, outbox, sync } = setup();

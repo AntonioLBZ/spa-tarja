@@ -168,6 +168,17 @@ describe('pushing the outbox', () => {
         expect(outbox.getState().rejected).toEqual([]);
     });
 
+    it('keeps everything pending when the server refuses a write with 403', async () => {
+        const { api, outbox, sync } = setup();
+        api.state.writeStatus = 403;
+        await outbox.put(expense('a'));
+
+        await expect(sync()).rejects.toMatchObject({ status: 403 });
+
+        expect(outbox.getState().pending.map((item) => item.id)).toEqual(['a']);
+        expect(outbox.getState().rejected).toEqual([]);
+    });
+
     it('keeps everything pending when the session has ended, so the next sign-in delivers it', async () => {
         const { api, outbox, sync } = setup();
         api.state.unauthorized = true;

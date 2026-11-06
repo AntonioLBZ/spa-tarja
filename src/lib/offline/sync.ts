@@ -12,6 +12,9 @@ const RETRY_EVERY_MS = 30_000;
 // What the server says no to for good about an expense: the same write will never be accepted, so retrying is pointless
 const PERMANENT = [400, 409, 422];
 
+// The check of where a write comes from, which says no to the request and not to the write: the same one passes later
+const BAD_ORIGIN = 'bad-origin';
+
 // Sends what is pending, oldest first. What the server refused for good leaves the outbox with its reason; the first
 // failure that may pass on its own stops the run, keeping the order. A paused outbox sends nothing.
 const pushPending = async <T extends OutboxItem>(
@@ -26,7 +29,8 @@ const pushPending = async <T extends OutboxItem>(
             await send(item);
             await outbox.settle(item);
         } catch (error) {
-            if (!(error instanceof ApiError && permanent.includes(error.status))) throw error;
+            if (!(error instanceof ApiError && permanent.includes(error.status) && error.code !== BAD_ORIGIN))
+                throw error;
             await outbox.reject(item, error.code);
         }
     }
