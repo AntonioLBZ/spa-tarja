@@ -171,7 +171,6 @@ describe('the sections', () => {
         expect(before(groups, friends)).toBe(true);
         expect(within(groups).queryAllByRole('link')).toEqual([]);
         expect(within(friends).queryAllByRole('link')).toEqual([]);
-        expect(within(friends).getByText(text.lists.friendsNone)).toBeDefined();
     });
 
     it('hold New group under Groups and Invite a friend with its hint under Friends', async () => {
@@ -201,6 +200,12 @@ describe('the sections', () => {
         };
         expect(order(text.lists.groups, text.new.title)).toBe(true);
         expect(order(text.lists.friends, text.links.make)).toBe(true);
+    });
+
+    it('leave that line out when the notice of an empty tab already says there is nothing', async () => {
+        open();
+        await screen.findByText(text.empty);
+        expect(screen.queryByText(text.lists.friendsNone)).toBeNull();
     });
 
     it('say a friend appears when somebody accepts the link, until there is one', async () => {

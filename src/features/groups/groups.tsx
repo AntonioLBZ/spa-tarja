@@ -53,7 +53,9 @@ const Groups = () => {
             <ListSection title={t('lists.friends')}>
                 <InviteFriend disabled={!online} />
                 {friends.length > 0 && <GroupList ledgers={friends} />}
-                {hasData && friends.length === 0 && <Notice tone="quiet">{t('lists.friendsNone')}</Notice>}
+                {hasData && open.length > 0 && friends.length === 0 && (
+                    <Notice tone="quiet">{t('lists.friendsNone')}</Notice>
+                )}
             </ListSection>
             {closed.length > 0 && (
                 <Disclosure summary={t('lists.closed')} chevron>
