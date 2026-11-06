@@ -226,6 +226,26 @@ describe('editing a shared expense', () => {
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'credit', chargeDate: '2026-11-05' });
     });
 
+    it('is paid now when somebody else edits it and changes who paid, since the card was the payer’s', async () => {
+        const group = trip({ me: bea.id });
+        const { app } = await open(group, [
+            dinner(group, { paidBy: ana.id, payment: 'credit', chargeDate: '2026-11-05', date: '2026-10-25' }),
+        ]);
+        onlineManager.setOnline(false);
+        fireEvent.click(actionOf('Dinner', 'editItem'));
+        expect(chosenOption(share.paidBy)).toBe('Ana');
+
+        pickOption(share.paidBy, 'Cris');
+        fireEvent.click(screen.getByRole('button', { name: form.save }));
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]).toMatchObject({
+            paidBy: cris.id,
+            payment: 'direct',
+            chargeDate: null,
+        });
+    });
+
     it('opens the card of your own as you paid it', async () => {
         const group = trip();
         await open(group, [dinner(group, { payment: 'credit', chargeDate: '2026-11-05', date: '2026-10-25' })]);
