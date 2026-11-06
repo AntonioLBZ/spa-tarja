@@ -3,30 +3,61 @@ import { queryOptions, type QueryClient } from '@tanstack/react-query';
 import { ApiError, EXPENSES_KEY, fetchChanges, putExpense, type ExpensesState } from '@/lib/api';
 import { upsertById } from '@core/expense-merge';
 
-import type { Outbox } from './outbox';
+import type { Outbox, OutboxItem } from './outbox';
+import type { Expense } from '@core/expense';
 
-// What the server said no to for good: the same write will never be accepted, so retrying is pointless
-const isPermanent = (error: unknown): boolean => {
-    return error instanceof ApiError && (error.status === 400 || error.status === 409 || error.status === 422);
-};
+// How often to retry while something is waiting to sync, for connections that say they're up but aren't
+const RETRY_EVERY_MS = 30_000;
 
-// Sends what is pending, oldest first. The first failure that may pass on its own stops the run, keeping the order.
-const pushOutbox = async (client: QueryClient, outbox: Outbox): Promise<void> => {
-    await outbox.ready;
+// What the server says no to for good about an expense: the same write will never be accepted, so retrying is pointless
+const PERMANENT = [400, 409, 422];
 
-    for (const expense of [...outbox.getState().pending]) {
+// The check of where a write comes from, which says no to the request and not to the write: the same one passes later
+const BAD_ORIGIN = 'bad-origin';
+
+// Sends what is pending, oldest first. What the server refused for good leaves the outbox with its reason; the first
+// failure that may pass on its own stops the run, keeping the order. A paused outbox sends nothing.
+const pushPending = async <T extends OutboxItem>(
+    outbox: Outbox<T>,
+    items: readonly T[],
+    permanent: readonly number[],
+    send: (item: T) => Promise<void>
+): Promise<void> => {
+    for (const item of items) {
+        if (outbox.isPaused()) return;
         try {
-            const kept = await putExpense(expense);
-            // The row the server kept goes into the cache before the outbox lets go of it, so it never blinks out
-            client.setQueryData<ExpensesState>(EXPENSES_KEY, (state) =>
-                state ? { ...state, expenses: upsertById(state.expenses, kept) } : state
-            );
-            await outbox.settle(expense);
+            await send(item);
+            await outbox.settle(item);
         } catch (error) {
-            if (!isPermanent(error)) throw error;
-            await outbox.reject(expense);
+            if (!(error instanceof ApiError && permanent.includes(error.status) && error.code !== BAD_ORIGIN))
+                throw error;
+            await outbox.reject(item, error.code);
         }
     }
+};
+
+// The syncs running, by outbox and by what they sync, so overlapping triggers never send the same write twice
+const running = new WeakMap<object, Map<string, Promise<unknown>>>();
+
+// Runs the sync after the one of the same scope that is running, if any, whether that one fails or not
+const inTurn = <R>(outbox: object, scope: string, task: () => Promise<R>): Promise<R> => {
+    const scopes = running.get(outbox) ?? new Map<string, Promise<unknown>>();
+    running.set(outbox, scopes);
+    const turn = (scopes.get(scope) ?? Promise.resolve()).catch(() => undefined).then(task);
+    scopes.set(scope, turn);
+    return turn;
+};
+
+const pushOutbox = async (client: QueryClient, outbox: Outbox<Expense>): Promise<void> => {
+    await outbox.ready;
+    await pushPending(outbox, outbox.getState().pending, PERMANENT, async (expense) => {
+        const kept = await putExpense(expense);
+        // The row the server kept goes into the cache before the outbox lets go of it, so it never blinks out, also on a
+        // device that never pulled, whose pull then starts from the beginning
+        client.setQueryData<ExpensesState>(EXPENSES_KEY, (state) =>
+            state ? { ...state, expenses: upsertById(state.expenses, kept) } : { expenses: [kept], cursor: 0 }
+        );
+    });
 };
 
 const pullChanges = async (client: QueryClient): Promise<ExpensesState> => {
@@ -42,22 +73,15 @@ const pullChanges = async (client: QueryClient): Promise<ExpensesState> => {
     }
 };
 
-// Runs one at a time per outbox, so overlapping triggers never send the same expense twice
-const running = new WeakMap<Outbox, Promise<unknown>>();
-
-const syncExpenses = (client: QueryClient, outbox: Outbox): Promise<ExpensesState> => {
-    const turn = (running.get(outbox) ?? Promise.resolve())
-        .catch(() => undefined)
-        .then(async () => {
-            await pushOutbox(client, outbox);
-            return pullChanges(client);
-        });
-    running.set(outbox, turn);
-    return turn;
+const syncExpenses = (client: QueryClient, outbox: Outbox<Expense>): Promise<ExpensesState> => {
+    return inTurn(outbox, 'expenses', async () => {
+        await pushOutbox(client, outbox);
+        return pullChanges(client);
+    });
 };
 
 // The one place data moves: any trigger Query has (open, focus, reconnect, invalidation) runs a full sync
-const expensesQuery = (outbox: Outbox) => {
+const expensesQuery = (outbox: Outbox<Expense>) => {
     return queryOptions({
         queryKey: EXPENSES_KEY,
         queryFn: ({ client }) => syncExpenses(client, outbox),
@@ -65,4 +89,4 @@ const expensesQuery = (outbox: Outbox) => {
     });
 };
 
-export { expensesQuery, syncExpenses };
+export { RETRY_EVERY_MS, expensesQuery, inTurn, pushPending, syncExpenses };

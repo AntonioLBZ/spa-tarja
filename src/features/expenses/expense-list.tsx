@@ -9,10 +9,13 @@ import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/group-failure';
+import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useLocale } from '@/lib/i18n';
 import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
+import { isSharedRow } from '@core/shared-expense';
 
 import { useAddForm } from './add-form-state';
 import { restoreExpenses } from './create-expenses';
@@ -21,22 +24,39 @@ import { ExpenseRow } from './expense-row';
 import { useExpenseList } from './use-expense-list';
 import { useSaveExpense } from './use-save-expense';
 
+import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
 import type { ListGroup } from '@core/expense-list';
+import type { SharedEntry } from '@core/shared-entry';
 
 import './expense-list.css';
 
 const ExpenseList = () => {
     const t = useTranslations('expenses.list');
+    const tLedger = useTranslations('groups.ledger');
     const { locale } = useLocale();
     const save = useSaveExpense();
+    const entryActions = useEntryActions();
+    const failureWords = useFailureWords();
     const toast = useToast();
-    const { editing, startEdit, startCopy, endEdit, refocus, clearRefocus } = useAddForm();
+    const {
+        editing,
+        editingEntry,
+        startEdit,
+        startCopy,
+        startEditEntry,
+        startCopyEntry,
+        endEdit,
+        refocus,
+        clearRefocus,
+    } = useAddForm();
     const list = useExpenseList();
-    const { groups, grouping, leaving, pendingIds, hasData, isError, isWaitingForNetwork } = list;
+    const { groups, grouping, leaving, pendingIds, hasData, neverPulled, isError, isWaitingForNetwork } = list;
     const { labelOf, styleOf } = useCategoryOptions();
+    // Why a delete of a shared expense, or its Undo, didn't happen
+    const [failure, setFailure] = useState<GroupFailure | null>(null);
     // The toggle of each row by the id of its expense, and the title, where the focus goes back after an edit
-    const toggles = useRef(new Map<string, HTMLButtonElement>());
+    const toggles = useRef(new Map<string, HTMLElement>());
     const title = useRef<HTMLHeadingElement>(null);
     useEffect(() => {
         if (refocus === null) return;
@@ -94,6 +114,39 @@ const ExpenseList = () => {
         });
     };
 
+    const undoShared = async (groupId: string, deleted: SharedEntry) => {
+        setFailure(null);
+        try {
+            await entryActions.restore(groupId, deleted);
+            setRestored(deleted.id);
+        } catch (error) {
+            setFailure(failureOf(error));
+        }
+    };
+
+    // A shared expense is deleted from its group, for everybody in it. The row goes and the toast comes, saying which
+    // group it was, once that is safe on the device; a delete the device refuses leaves the row as it was.
+    const removeShared = async (row: Expense, source: SharedRowSource) => {
+        const neighbour = neighbourOf(row.id);
+        setFailure(null);
+        try {
+            const deleted = await entryActions.remove(source.group.id, source.entry);
+            if (editingEntry?.entry.id === row.id) endEdit();
+            list.fadeOut([row]);
+            setRestored(null);
+            ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
+            toast.show({
+                message: tLedger('deleted', {
+                    name: row.text || labelOf(row.categoryId),
+                    group: list.groupNameOf(source.group.id),
+                }),
+                action: { label: t('undo'), onAction: () => void undoShared(source.group.id, deleted) },
+            });
+        } catch (error) {
+            setFailure(failureOf(error));
+        }
+    };
+
     // Days, weeks and months say the year only when the list goes over a New Year
     const formats = useMemo(() => {
         const year = list.spansYears ? ({ year: 'numeric' } as const) : {};
@@ -131,7 +184,12 @@ const ExpenseList = () => {
                 {t('title')}
             </h2>
 
-            {isError && !hasData && (
+            {failure && (
+                <Notice tone="danger" role="alert">
+                    {failureWords(failure)}
+                </Notice>
+            )}
+            {isError && (!hasData || neverPulled) && (
                 <Notice tone="quiet" role="alert">
                     {t('loadFailed')}
                 </Notice>
@@ -157,6 +215,7 @@ const ExpenseList = () => {
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
                             const first = expenses[0]!;
+                            const source = isSharedRow(first) ? list.sourceOf(first.id) : undefined;
                             return (
                                 <ExpenseRow
                                     key={first.id}
@@ -165,9 +224,14 @@ const ExpenseList = () => {
                                     pending={expenses.some((part) => pendingIds.has(part.id))}
                                     leaving={leaving.has(first.id)}
                                     showDate={grouping !== 'day'}
-                                    onEdit={startEdit}
-                                    onDuplicate={startCopy}
-                                    onDelete={(parts) => remove(parts, Date.now())}
+                                    source={source}
+                                    onEdit={source ? () => startEditEntry(source) : startEdit}
+                                    onDuplicate={source ? () => startCopyEntry(source) : startCopy}
+                                    onDelete={
+                                        source
+                                            ? () => void removeShared(first, source)
+                                            : (parts) => remove(parts, Date.now())
+                                    }
                                     toggleRef={(node) => {
                                         if (node) toggles.current.set(first.id, node);
                                         return () => {

@@ -1,0 +1,88 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { sampleGroup } from '@/lib/test/groups';
+import { stubApi } from '@/lib/test/render-app';
+
+import { ApiError } from './api-error';
+import {
+    acceptInvitation,
+    declineInvitation,
+    deleteInvitation,
+    fetchPendingInvitations,
+    postInvitation,
+    readInvitation,
+} from './invitations';
+
+import type { PendingInvitation } from '@core/invitation';
+
+const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
+const PENDING: PendingInvitation = { id: TOKEN.slice(0, 36), token: TOKEN, expiresAt: 1_000 };
+
+function answering(body: unknown, status = 200) {
+    return stubApi(() => (status === 204 ? new Response(null, { status }) : Response.json(body, { status })));
+}
+
+function sent(fetchMock: ReturnType<typeof stubApi>) {
+    const [input, init] = fetchMock.mock.calls[0] ?? [];
+    return {
+        url: String(input),
+        method: init?.method ?? 'GET',
+        body: init?.body ? JSON.parse(String(init.body)) : null,
+    };
+}
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+});
+
+describe('the links of the person', () => {
+    it('are listed, made and revoked by the id, which opens nothing without its signature', async () => {
+        const listed = answering({ invitations: [PENDING] });
+        expect(await fetchPendingInvitations()).toEqual([PENDING]);
+        expect(sent(listed)).toEqual({ url: '/api/invitations', method: 'GET', body: null });
+
+        const made = answering({ invitation: PENDING });
+        expect(await postInvitation()).toEqual(PENDING);
+        expect(sent(made)).toEqual({ url: '/api/invitations', method: 'POST', body: null });
+
+        const revoked = answering({ invitations: [] });
+        expect(await deleteInvitation(PENDING.id)).toEqual([]);
+        expect(sent(revoked)).toEqual({ url: `/api/invitations/${PENDING.id}`, method: 'DELETE', body: null });
+    });
+
+    it('carry the reason of a refusal', async () => {
+        answering({ error: 'too-many-invitations' }, 409);
+
+        await expect(postInvitation()).rejects.toMatchObject({ status: 409, code: 'too-many-invitations' });
+        await expect(fetchPendingInvitations()).rejects.toBeInstanceOf(ApiError);
+        await expect(deleteInvitation(PENDING.id)).rejects.toBeInstanceOf(ApiError);
+    });
+});
+
+describe('a link', () => {
+    it('is read, accepted and declined with its token in the body, never in the URL', async () => {
+        const group = sampleGroup({ kind: 'direct', name: null });
+
+        const read = answering({ name: 'Ana' });
+        expect(await readInvitation(TOKEN)).toEqual({ name: 'Ana' });
+        expect(sent(read)).toEqual({ url: '/api/invitations/read', method: 'POST', body: { token: TOKEN } });
+
+        const accepted = answering(group);
+        expect(await acceptInvitation(TOKEN)).toEqual(group);
+        expect(sent(accepted)).toEqual({ url: '/api/invitations/accept', method: 'POST', body: { token: TOKEN } });
+
+        const declined = answering(null, 204);
+        expect(await declineInvitation(TOKEN)).toBeUndefined();
+        expect(sent(declined)).toEqual({ url: '/api/invitations/decline', method: 'POST', body: { token: TOKEN } });
+    });
+
+    it.each([
+        ['read', readInvitation],
+        ['accepted', acceptInvitation],
+        ['declined', declineInvitation],
+    ])('carries the reason when it cannot be %s', async (_, call) => {
+        answering({ error: 'gone' }, 410);
+
+        await expect(call(TOKEN)).rejects.toMatchObject({ status: 410, code: 'gone' });
+    });
+});

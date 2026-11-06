@@ -19,24 +19,43 @@ describe('routeDepth', () => {
         expect(routeDepth('/')).toBe(0);
         expect(routeDepth('/settings')).toBe(1);
         expect(routeDepth('/summary')).toBe(1);
+        expect(routeDepth('/groups')).toBe(1);
         expect(routeDepth('/categories')).toBe(2);
         expect(routeDepth('/charts')).toBe(2);
         expect(routeDepth('/budgets')).toBe(2);
     });
 
+    it('puts a group above Groups and its settings above the group', () => {
+        expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe(2);
+        expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe(3);
+    });
+
+    it('puts the page of an invitation level with Groups', () => {
+        expect(routeDepth('/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.token')).toBe(1);
+        expect(routeDepth('/join/a/b')).toBe(0);
+    });
+
     it('takes a page it does not know for the home screen', () => {
         expect(routeDepth('/nowhere')).toBe(0);
+        expect(routeDepth('/groups/a/b/c')).toBe(0);
     });
 });
 
 describe('navSection', () => {
     it('gives each screen of the header its own section and a deeper screen the one it is reached from', () => {
         expect(navSection('/')).toBe('/');
+        expect(navSection('/groups')).toBe('/groups');
         expect(navSection('/summary')).toBe('/summary');
         expect(navSection('/charts')).toBe('/summary');
         expect(navSection('/budgets')).toBe('/summary');
         expect(navSection('/settings')).toBe('/settings');
         expect(navSection('/categories')).toBe('/settings');
+    });
+
+    it('puts a group, its settings and the page of an invitation under Groups', () => {
+        expect(navSection('/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.token')).toBe('/groups');
+        expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe('/groups');
+        expect(navSection('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe('/groups');
     });
 
     it('takes a page it does not know for the home screen', () => {
@@ -50,8 +69,11 @@ describe('slideTypes', () => {
         expect(between('/settings', '/categories')).toEqual(['forward']);
         expect(between('/', '/categories')).toEqual(['forward']);
         expect(between('/', '/summary')).toEqual(['forward']);
+        expect(between('/', '/groups')).toEqual(['forward']);
         expect(between('/summary', '/charts')).toEqual(['forward']);
         expect(between('/summary', '/budgets')).toEqual(['forward']);
+        expect(between('/groups', '/groups/0b6f3c1e')).toEqual(['forward']);
+        expect(between('/groups/0b6f3c1e', '/groups/0b6f3c1e/edit')).toEqual(['forward']);
     });
 
     it('goes back when the new screen is shallower', () => {
@@ -61,11 +83,15 @@ describe('slideTypes', () => {
         expect(between('/summary', '/')).toEqual(['back']);
         expect(between('/charts', '/summary')).toEqual(['back']);
         expect(between('/budgets', '/summary')).toEqual(['back']);
+        expect(between('/groups/0b6f3c1e', '/groups')).toEqual(['back']);
+        expect(between('/groups/0b6f3c1e/edit', '/groups/0b6f3c1e')).toEqual(['back']);
     });
 
     it('stays level between two screens at the same depth', () => {
         expect(between('/summary', '/settings')).toEqual(['level']);
         expect(between('/settings', '/summary')).toEqual(['level']);
+        expect(between('/groups', '/summary')).toEqual(['level']);
+        expect(between('/settings', '/groups')).toEqual(['level']);
         expect(between('/charts', '/categories')).toEqual(['level']);
         expect(between('/categories', '/charts')).toEqual(['level']);
         expect(between('/charts', '/budgets')).toEqual(['level']);

@@ -1,6 +1,6 @@
 # ADR-0001: Scope: what is left out, and export only
 
-- Status: Accepted
+- Status: Superseded by ADR-0012
 - Date: 2026-10-25
 
 ## Context
@@ -15,7 +15,7 @@ What the app is, an installable web app to log everyday expenses that works offl
 
 ## Consequences
 
-- Shared expenses, a Splitwise-like function, is an idea kept in `TODO.md`, not a plan: every row belongs to one user, so it would change the model.
+- Shared expenses, splitting a cost with other people, is an idea kept in `TODO.md`, not a plan: every row belongs to one user, so it would change the model.
 - One currency: [ADR-0004](0004-data-conventions.md).
 - The backup keeps `version: 1`, as nothing reads a backup yet. The formats and the guard against a spreadsheet running a text as a formula are in [exporting your data](../specs/export.md).
 

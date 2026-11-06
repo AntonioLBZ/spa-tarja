@@ -1,0 +1,14 @@
+.settle-up {
+    display: grid;
+    gap: var(--size-4);
+}
+
+/* Save and, while a settlement is edited, Cancel beside it: two boxes of one width */
+.settle-up__actions {
+    display: flex;
+    gap: var(--size-4);
+}
+
+.settle-up__actions > .button {
+    flex: 1 1 0;
+}

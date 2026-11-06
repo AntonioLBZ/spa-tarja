@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
-import { ORIGIN, signIn, type TestSession } from '@server/test/session';
+import { befriend, makeGroup, send } from '@server/test/groups';
+import { ORIGIN, cachedSession, sentAs, signIn, type TestSession } from '@server/test/session';
 
 let session: TestSession;
 
@@ -132,6 +133,241 @@ describe('/api/auth', () => {
         const after = await request('/api/auth/get-session', asSession());
         expect(await after.json()).toBeNull();
         expect((await request('/api/expenses', asSession())).status).toBe(401);
+    });
+});
+
+describe('a user deleted while the session is cached', () => {
+    async function goneWithCache() {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(session.userId).run();
+        return cached;
+    }
+
+    async function rows(table: string) {
+        const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>();
+        return row?.n;
+    }
+
+    it('trusts the cached session of a user who is there, as it does for a few minutes', async () => {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "session" WHERE "userId" = ?1').bind(session.userId).run();
+
+        expect((await request('/api/expenses', asSession({}, cached))).status).toBe(200);
+    });
+
+    it.each(['/api/expenses', '/api/categories', '/api/income', '/api/budgets', '/api/profile', '/api/groups'])(
+        'answers 401 on %s',
+        async (path) => {
+            const cached = await goneWithCache();
+
+            expect((await request(path, asSession({}, cached))).status).toBe(401);
+        }
+    );
+
+    it('answers 401 to a write of an expense, and nothing is written', async () => {
+        const cached = await goneWithCache();
+        const expense = {
+            categoryId: 'food',
+            text: 'Lunch',
+            amountCents: 1250,
+            currency: 'EUR',
+            date: '2026-10-25',
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(cached, 'PUT', `/expenses/${crypto.randomUUID()}`, expense);
+
+        expect(response.status).toBe(401);
+        expect(await rows('expenses')).toBe(0);
+    });
+
+    it('answers 401 to a nickname, and nothing is written', async () => {
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'PUT', '/profile', { nickname: 'Anita' });
+
+        expect(response.status).toBe(401);
+        expect(await rows('profile')).toBe(0);
+    });
+
+    it('answers 401 to making a group, and nothing is made', async () => {
+        const cached = await goneWithCache();
+        const body = { kind: 'group', name: 'Trip', currency: 'EUR', me: { id: crypto.randomUUID() }, others: [] };
+
+        const response = await send(cached, 'PUT', `/groups/${crypto.randomUUID()}`, body);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_groups')).toBe(0);
+    });
+
+    it('answers 401 to adding a friend to a group', async () => {
+        const bruno = await signIn('bruno@example.com', 'Bruno');
+        const group = await makeGroup(session);
+        const friend = await befriend(session, bruno);
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, {
+            friend: friend.id,
+        });
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_members')).toBe(3);
+    });
+
+    it('answers 401 to reading the entries of a group', async () => {
+        const group = await makeGroup(session);
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'GET', `/groups/${group.id}/entries`);
+
+        expect(response.status).toBe(401);
+    });
+
+    it('answers 401 to writing an entry of a group, and nothing is written', async () => {
+        const group = await makeGroup(session, ['Dan']);
+        const dan = group.members.find((member) => member.id !== group.me)!;
+        const cached = await goneWithCache();
+        const settlement = {
+            kind: 'settlement',
+            text: '',
+            amountCents: 500,
+            currency: 'EUR',
+            date: '2026-10-26',
+            paidBy: dan.id,
+            shares: [{ memberId: group.me, cents: 500 }],
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(cached, 'PUT', `/groups/${group.id}/entries/${crypto.randomUUID()}`, settlement);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_entries')).toBe(0);
+    });
+
+    it('answers 401 to removing a member of a group, and nobody is removed', async () => {
+        const group = await makeGroup(session, ['Dan']);
+        const dan = group.members.find((member) => member.id !== group.me)!;
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'DELETE', `/groups/${group.id}/members/${dan.id}`);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_members')).toBe(2);
+    });
+
+    it.each(['read', 'accept', 'decline'])('answers 401 to %s a link', async (action) => {
+        const bruno = await signIn('bruno@example.com', 'Bruno');
+        const link = (await (await send(bruno, 'POST', '/invitations')).json()) as { invitation: { token: string } };
+        const cached = await goneWithCache();
+
+        const response = await send(cached, 'POST', `/invitations/${action}`, { token: link.invitation.token });
+
+        expect(response.status).toBe(401);
+    });
+});
+
+describe('a window opened for another user', () => {
+    let bruno: TestSession;
+
+    beforeEach(async () => {
+        bruno = await signIn('bruno@example.com', 'Bruno');
+    });
+
+    async function rows(table: string) {
+        const row = await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${table}`).first<{ n: number }>();
+        return row?.n;
+    }
+
+    it('serves a window opened for the user of the session', async () => {
+        const response = await send(sentAs(session, session.userId), 'GET', '/expenses');
+
+        expect(response.status).toBe(200);
+    });
+
+    it('serves a request that names nobody, like curl or an older app', async () => {
+        const response = await send(session, 'GET', '/expenses');
+
+        expect(response.status).toBe(200);
+    });
+
+    it.each(['/expenses', '/categories', '/income', '/budgets', '/profile', '/groups'])(
+        'answers 401 other-user on %s',
+        async (path) => {
+            const response = await send(sentAs(bruno, session.userId), 'GET', path);
+
+            expect(response.status).toBe(401);
+            expect(await response.json()).toEqual({ error: 'other-user' });
+        }
+    );
+
+    it('answers 401 other-user on a group route, and reads nothing of the group', async () => {
+        const group = await makeGroup(bruno);
+
+        const response = await send(sentAs(bruno, session.userId), 'GET', `/groups/${group.id}/entries`);
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'other-user' });
+    });
+
+    it('answers 401 other-user to a write of an expense, and nothing is written', async () => {
+        const expense = {
+            categoryId: 'food',
+            text: 'Lunch',
+            amountCents: 1250,
+            currency: 'EUR',
+            date: '2026-10-25',
+            createdAt: 1,
+            updatedAt: 1,
+            deletedAt: null,
+        };
+
+        const response = await send(sentAs(bruno, session.userId), 'PUT', `/expenses/${crypto.randomUUID()}`, expense);
+
+        expect(response.status).toBe(401);
+        expect(await rows('expenses')).toBe(0);
+    });
+
+    it('answers 401 other-user to making a group, and nothing is made', async () => {
+        const body = { kind: 'group', name: 'Trip', currency: 'EUR', me: { id: crypto.randomUUID() }, others: [] };
+
+        const response = await send(sentAs(bruno, session.userId), 'PUT', `/groups/${crypto.randomUUID()}`, body);
+
+        expect(response.status).toBe(401);
+        expect(await rows('shared_groups')).toBe(0);
+    });
+
+    it('answers 401 other-user to an empty name', async () => {
+        const response = await send(sentAs(session, ''), 'GET', '/expenses');
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'other-user' });
+    });
+
+    it('answers unauthorized, not other-user, when the account of the session is gone', async () => {
+        const cached = await cachedSession(session);
+        await env.DB.prepare('DELETE FROM "user" WHERE id = ?1').bind(session.userId).run();
+
+        const response = await send(sentAs(cached, bruno.userId), 'GET', '/expenses');
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'unauthorized' });
+    });
+
+    it('leaves the session routes alone: the window may ask who is signed in whoever it was opened for', async () => {
+        const response = await send(sentAs(bruno, session.userId), 'GET', '/auth/get-session');
+
+        expect(response.status).toBe(200);
+        expect(((await response.json()) as { user: { id: string } }).user.id).toBe(bruno.userId);
+    });
+
+    it('does not ask for the user on the health check', async () => {
+        const response = await send(sentAs(bruno, session.userId), 'GET', '/health');
+
+        expect(response.status).toBe(200);
     });
 });
 

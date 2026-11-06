@@ -17,7 +17,7 @@ const OPTIONS = [
 
 const Story: Meta<SelectStoryProps> = {
     title: 'Components/Select',
-    args: { id: 'select', label: 'Category', value: 'food', icons: true },
+    args: { id: 'select', label: 'Category', value: 'food', icons: true, disabled: false },
     argTypes: {
         value: { control: 'inline-radio', options: OPTIONS.map((option) => option.value) },
         'aria-describedby': { control: false },

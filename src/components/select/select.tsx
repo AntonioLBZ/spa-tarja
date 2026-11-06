@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react';
 
 import './select.css';
 
@@ -21,6 +21,9 @@ interface SelectProps<Value extends string> {
     // Of the field, from a `Field` around it
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
+    disabled?: boolean;
+    // The field, for a screen that puts the focus on it
+    ref?: Ref<HTMLButtonElement>;
 }
 
 // How long the letters typed on the field are remembered
@@ -30,7 +33,17 @@ const TYPING_MEMORY_MS = 500;
 // select-only combobox pattern: the focus stays on the field, and the active option is the one `aria-activedescendant`
 // names.
 const Select = <Value extends string>(props: SelectProps<Value>) => {
-    const { id, label, options, value, onChange, 'aria-describedby': describedBy, 'aria-invalid': invalid } = props;
+    const {
+        id,
+        label,
+        options,
+        value,
+        onChange,
+        'aria-describedby': describedBy,
+        'aria-invalid': invalid,
+        disabled,
+        ref,
+    } = props;
     const listId = useId();
     const root = useRef<HTMLDivElement>(null);
     const typed = useRef('');
@@ -155,6 +168,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
             onBlur={() => setOpen(false)}
         >
             <button
+                ref={ref}
                 className="select__field"
                 id={id}
                 aria-activedescendant={open ? optionId(active) : undefined}
@@ -163,6 +177,7 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                 aria-expanded={open}
                 aria-haspopup="listbox"
                 aria-invalid={invalid}
+                disabled={disabled}
                 role="combobox"
                 type="button"
                 onClick={() => {

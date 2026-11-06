@@ -13,6 +13,7 @@ function googleButton() {
 }
 
 afterEach(() => {
+    vi.restoreAllMocks();
     localStorage.clear();
     window.history.replaceState(null, '', '/');
     onlineManager.setOnline(true);
@@ -142,6 +143,20 @@ describe('sign-in gate', () => {
             expect(screen.getByRole('button', { name: en.auth.opening })).toBeDefined();
         });
 
+        it('says that signing in opens the invitation the person was sent', async () => {
+            window.history.replaceState(null, '', `/join/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`);
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+            expect(await screen.findByText(en.auth.invited)).toBeDefined();
+        });
+
+        it('says nothing of an invitation on any other page', async () => {
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+            await screen.findByRole('heading', { name: en.auth.title });
+
+            expect(screen.queryByText(en.auth.invited)).toBeNull();
+        });
+
         it('says nothing of failure on a plain visit', async () => {
             renderApp({ fakeAuth: createFakeAuth({ session: null }) });
             await screen.findByRole('heading', { name: en.auth.title });
@@ -226,6 +241,117 @@ describe('sign-in gate', () => {
 
             await waitFor(() => expect(fakeAuth.calls.getSession).toBeGreaterThan(checks));
             expect(screen.getByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+        });
+    });
+
+    describe('when another window changes the account', () => {
+        const BEA = { id: 'user-bea', name: 'Bea Ruiz', email: 'bea@example.com' };
+
+        function becomeVisible() {
+            vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+            document.dispatchEvent(new Event('visibilitychange'));
+        }
+
+        async function openForAna() {
+            stubApi(createFakeApi().handler);
+            const fakeAuth = createFakeAuth();
+            renderApp({ fakeAuth });
+            await screen.findByText(en.expenses.list.empty);
+            await waitFor(() => expect(fakeAuth.calls.getSession).toBe(1));
+            return fakeAuth;
+        }
+
+        it('asks who is signed in when the window becomes visible, and moves to the new user', async () => {
+            const fakeAuth = await openForAna();
+            fakeAuth.state.session = BEA;
+
+            becomeVisible();
+
+            await waitFor(() => expect(fakeAuth.auth.getState()).toMatchObject({ status: 'signed-in', user: BEA }));
+            expect(fakeAuth.calls.getSession).toBe(2);
+        });
+
+        it('does not ask when the window gets hidden', async () => {
+            const fakeAuth = await openForAna();
+
+            vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+            document.dispatchEvent(new Event('visibilitychange'));
+
+            expect(fakeAuth.calls.getSession).toBe(1);
+        });
+
+        it('asks who is signed in when another window stores another session, and moves to the new user', async () => {
+            const fakeAuth = await openForAna();
+            fakeAuth.state.session = BEA;
+
+            window.dispatchEvent(new StorageEvent('storage', { key: 'tarja:session' }));
+
+            await waitFor(() => expect(fakeAuth.auth.getState()).toMatchObject({ status: 'signed-in', user: BEA }));
+            expect(fakeAuth.calls.getSession).toBe(2);
+        });
+
+        it('asks to sign in when another window signs out', async () => {
+            const fakeAuth = await openForAna();
+            fakeAuth.state.session = null;
+
+            window.dispatchEvent(new StorageEvent('storage', { key: 'tarja:session', newValue: null }));
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+        });
+
+        it('asks again when another window clears the whole storage', async () => {
+            const fakeAuth = await openForAna();
+
+            window.dispatchEvent(new StorageEvent('storage', { key: null }));
+
+            await waitFor(() => expect(fakeAuth.calls.getSession).toBe(2));
+        });
+
+        it('does not ask for any other key', async () => {
+            const fakeAuth = await openForAna();
+
+            window.dispatchEvent(new StorageEvent('storage', { key: 'tarja:theme' }));
+
+            expect(fakeAuth.calls.getSession).toBe(1);
+        });
+
+        it('does not ask again when it ends, and listens to nobody', async () => {
+            stubApi(createFakeApi().handler);
+            const fakeAuth = createFakeAuth();
+            const { unmount } = renderApp({ fakeAuth });
+            await screen.findByText(en.expenses.list.empty);
+            await waitFor(() => expect(fakeAuth.calls.getSession).toBe(1));
+
+            unmount();
+            window.dispatchEvent(new StorageEvent('storage', { key: 'tarja:session' }));
+
+            expect(fakeAuth.calls.getSession).toBe(1);
+        });
+    });
+
+    describe('once the account is deleted', () => {
+        it('says so on the sign-in screen', async () => {
+            stubApi(createFakeApi().handler);
+            const { fakeAuth } = renderApp();
+            await screen.findByRole('heading', { name: en.expenses.form.title });
+
+            act(() => fakeAuth.auth.forget({ cleared: true }));
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(screen.getByRole('alert').textContent).toBe(en.auth.deleted);
+            expect(screen.queryByText(en.auth.deletedNotCleared)).toBeNull();
+            expect(fakeAuth.calls.signOut).toBe(0);
+        });
+
+        it('says so, and that the device still holds its copy, when it could not delete it', async () => {
+            stubApi(createFakeApi().handler);
+            const { fakeAuth } = renderApp();
+            await screen.findByRole('heading', { name: en.expenses.form.title });
+
+            act(() => fakeAuth.auth.forget({ cleared: false }));
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(screen.getByRole('alert').textContent).toBe(en.auth.deletedNotCleared);
         });
     });
 });

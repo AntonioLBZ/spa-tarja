@@ -6,6 +6,7 @@ import en from '@/assets/locales/en.json';
 import { EXPENSES_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
+import { leaveCopy as leaveGroupsCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
@@ -105,6 +106,20 @@ describe('user data', () => {
         expect(screen.queryByText('Copied')).toBeNull();
     });
 
+    it("hands another account an empty outbox of groups and leaves the first one's on the device", async () => {
+        const storage = createMemoryStorage();
+        const entry = { id: crypto.randomUUID(), groupId: crypto.randomUUID(), updatedAt: 1 };
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [entry]);
+        stubApi(createFakeApi().handler);
+
+        const app = renderApp({ storage, fakeAuth: createFakeAuth({ session: BEA }) });
+
+        await screen.findByText(en.expenses.list.empty);
+        await app.groupOutbox.ready;
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+        expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([entry]);
+    });
+
     it("hands the next account an empty app when the session turns out to be another's", async () => {
         const storage = createMemoryStorage();
         await leaveUnsent(storage, TEST_USER);
@@ -124,5 +139,126 @@ describe('user data', () => {
         expect(screen.queryByText(unsent.text)).toBeNull();
         expect(api.requests.filter((request) => request.startsWith('PUT'))).toEqual([]);
         expect(await storage.get(`tarja:outbox:${TEST_USER.id}`)).toEqual([unsent]);
+    });
+});
+
+describe('a window left open while the browser changes account', () => {
+    const ofBea: Expense = { ...unsent, id: crypto.randomUUID(), text: 'Of Bea' };
+
+    async function leaveWorkOf(storage: ReturnType<typeof createMemoryStorage>) {
+        const group = sampleGroup();
+        const entry = sampleEntry(group);
+        await leaveUnsent(storage, TEST_USER);
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [entry]);
+        await leaveGroupsCopy(storage, [group], []);
+        return { group, entry };
+    }
+
+    async function openedByAna() {
+        const storage = createMemoryStorage();
+        const { group, entry } = await leaveWorkOf(storage);
+        const api = createFakeApi({ groups: [group], expenses: [ofBea] });
+        stubApi(api.handler);
+        onlineManager.setOnline(false);
+        const fakeAuth = createFakeAuth();
+        const app = renderApp({ storage, fakeAuth });
+        await screen.findByText(unsent.text);
+        await app.groupOutbox.ready;
+        return { storage, entry, api, fakeAuth, app };
+    }
+
+    function switchToBea(api: ReturnType<typeof createFakeApi>, fakeAuth: ReturnType<typeof createFakeAuth>) {
+        api.state.cookieUser = BEA.id;
+        fakeAuth.state.session = BEA;
+    }
+
+    it('names the account it was opened for on every call', async () => {
+        const { api } = await openedByAna();
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(api.requestUsers.length).toBeGreaterThan(0));
+        const named = api.requestUsers.filter((entry) => !entry.request.includes('/api/health'));
+        expect(named.length).toBeGreaterThan(0);
+        expect(new Set(named.map((entry) => entry.user))).toEqual(new Set([TEST_USER.id]));
+    });
+
+    it('sends nothing of the first account with the second one’s session, and ends on the second', async () => {
+        const { storage, entry, api, fakeAuth } = await openedByAna();
+        switchToBea(api, fakeAuth);
+
+        onlineManager.setOnline(true);
+
+        expect(await screen.findByText(ofBea.text)).toBeDefined();
+        expect(screen.queryByText(unsent.text)).toBeNull();
+        expect(api.writes).toEqual([]);
+        expect(api.entryWrites).toEqual([]);
+        expect(api.attempts).toEqual([]);
+        expect(api.entryAttempts).toEqual([]);
+        expect(fakeAuth.auth.getState()).toMatchObject({ status: 'signed-in', user: BEA });
+        expect(await storage.get(`tarja:outbox:${TEST_USER.id}`)).toEqual([unsent]);
+        expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([entry]);
+    });
+
+    it('puts nothing of the second account in the cache of the first', async () => {
+        const { storage, api, fakeAuth } = await openedByAna();
+        switchToBea(api, fakeAuth);
+
+        onlineManager.setOnline(true);
+
+        await screen.findByText(ofBea.text);
+        await waitFor(async () => expect(await storage.get(`tarja:query-cache:${BEA.id}`)).toBeDefined());
+        expect(JSON.stringify(await storage.get(`tarja:query-cache:${TEST_USER.id}`))).not.toContain(ofBea.text);
+        expect(await storage.get(`tarja:outbox:${BEA.id}`)).toBeUndefined();
+        expect(await storage.get(`tarja:group-outbox:${BEA.id}`)).toBeUndefined();
+    });
+
+    it('hands the second account empty outboxes, and stops those of the first', async () => {
+        const { api, fakeAuth, app } = await openedByAna();
+        const first = { outbox: app.outbox, groupOutbox: app.groupOutbox };
+        switchToBea(api, fakeAuth);
+
+        onlineManager.setOnline(true);
+
+        await screen.findByText(ofBea.text);
+        expect(app.outbox).not.toBe(first.outbox);
+        expect(app.outbox.getState().pending).toEqual([]);
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+        expect(first.outbox.isPaused()).toBe(true);
+        expect(first.groupOutbox.isPaused()).toBe(true);
+    });
+
+    it('asks who is signed in a few times, not over and over', async () => {
+        const { api, fakeAuth } = await openedByAna();
+        switchToBea(api, fakeAuth);
+
+        onlineManager.setOnline(true);
+
+        await screen.findByText(ofBea.text);
+        const checks = fakeAuth.calls.getSession;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(fakeAuth.calls.getSession).toBe(checks);
+        expect(checks).toBeLessThanOrEqual(4);
+    });
+
+    it('stops sending the expenses of the first account once the second takes over', async () => {
+        const storage = createMemoryStorage();
+        const second: Expense = { ...unsent, id: crypto.randomUUID(), text: 'Second one' };
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:outbox', [unsent, second]);
+        const api = createFakeApi();
+        stubApi(api.handler);
+        const release = api.hold();
+        const fakeAuth = createFakeAuth();
+        renderApp({ storage, fakeAuth });
+        await waitFor(() => expect(api.requests.some((request) => request.startsWith('PUT'))).toBe(true));
+
+        fakeAuth.state.session = BEA;
+        await fakeAuth.auth.check();
+        release();
+
+        await waitFor(() => expect(api.writes.map((expense) => expense.id)).toEqual([unsent.id]));
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(api.writes.map((expense) => expense.id)).toEqual([unsent.id]);
+        expect(await storage.get(`tarja:outbox:${BEA.id}`)).toBeUndefined();
     });
 });

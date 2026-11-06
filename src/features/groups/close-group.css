@@ -1,0 +1,16 @@
+.close-group {
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.close-group__text {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.close-group__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}

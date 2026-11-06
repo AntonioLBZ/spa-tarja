@@ -4,7 +4,9 @@ import { useTranslations } from 'use-intl';
 import { Brand } from '@/components/brand/brand';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
-import { useAuth } from '@/lib/auth';
+import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
+
+import { PrivacyNotice } from './privacy-notice';
 
 import './sign-in-screen.css';
 
@@ -17,10 +19,12 @@ const cameBackFailed = (): boolean => {
 
 interface SignInScreenProps {
     unreachable: boolean;
+    // The account was just deleted from this device
+    deleted: DeletedAccount | null;
 }
 
 const SignInScreen = (props: SignInScreenProps) => {
-    const { unreachable } = props;
+    const { unreachable, deleted } = props;
     const t = useTranslations('auth');
     const { signIn } = useAuth();
     const [phase, setPhase] = useState<Phase>(() => (cameBackFailed() ? 'failed' : 'idle'));
@@ -48,6 +52,13 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Brand size="hero" />
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
+            {deleted?.cleared === true && <Notice role="alert">{t('deleted')}</Notice>}
+            {deleted?.cleared === false && (
+                <Notice tone="danger" role="alert">
+                    {t('deletedNotCleared')}
+                </Notice>
+            )}
+            {invitationPath(window.location.pathname) && <Notice>{t('invited')}</Notice>}
             {unreachable && (
                 <Notice tone="danger" role="alert">
                     {t('unreachable')}
@@ -61,6 +72,9 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Button disabled={phase === 'opening'} onClick={start}>
                 {phase === 'opening' ? t('opening') : t('google')}
             </Button>
+            <div className="sign-in__privacy">
+                <PrivacyNotice />
+            </div>
         </main>
     );
 };

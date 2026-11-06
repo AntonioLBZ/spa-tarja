@@ -5,13 +5,13 @@ import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { suggestCategory } from '@core/classifier';
 import { indexHistory, suggestFromHistory } from '@core/history-suggestion';
 
-import { useExpenses } from './use-expenses';
+import { useYourExpenses } from './use-your-expenses';
 
 // The category to suggest for a description: the one the keywords give and, only when they find nothing, the one the
-// person's own earlier expenses point to. Left off, as for an expense that already has its
-// category, it never looks at the history.
+// person's earlier expenses point to, their part of the shared ones included. Left off, as for an expense that
+// already has its category, it never looks at the history.
 const useSuggestCategory = (enabled: boolean) => {
-    const { expenses } = useExpenses();
+    const { expenses } = useYourExpenses();
     const { options } = useCategoryOptions();
 
     const index = useMemo(() => {

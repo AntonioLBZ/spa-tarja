@@ -11,6 +11,7 @@ import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
+import type { PendingEntry } from '@/lib/offline';
 import type { Expense } from '@core/expense';
 
 const root = document.documentElement;
@@ -319,6 +320,41 @@ describe('settings', () => {
             await screen.findByRole('heading', { name: en.auth.title });
             await new Promise((resolve) => setTimeout(resolve, 0));
             expect(await storage.get(`tarja:outbox:${TEST_USER.id}`)).toEqual([pendingExpense]);
+            expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        });
+
+        it('keeps an expense of a group that has not synced for the next time, and says so', async () => {
+            const pendingEntry: PendingEntry = {
+                id: crypto.randomUUID(),
+                groupId: crypto.randomUUID(),
+                kind: 'settlement',
+                text: '',
+                categoryId: null,
+                amountCents: 500,
+                currency: 'EUR',
+                date: '2026-10-25',
+                paidBy: crypto.randomUUID(),
+                split: 'exact',
+                shares: [{ memberId: crypto.randomUUID(), cents: 500 }],
+                payment: 'direct',
+                chargeDate: null,
+                createdAt: 1,
+                updatedAt: 1,
+                deletedAt: null,
+            };
+            const storage = createMemoryStorage();
+            await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [pendingEntry]);
+            await seedCopy(storage, TEST_USER.id);
+            stubApi(createFakeApi().handler);
+            onlineManager.setOnline(false);
+            renderApp({ path: '/settings', storage });
+            expect(await screen.findByText(en.settings.account.unsynced)).toBeDefined();
+
+            fireEvent.click(await signOutButton());
+
+            await screen.findByRole('heading', { name: en.auth.title });
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toEqual([pendingEntry]);
             expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
         });
     });

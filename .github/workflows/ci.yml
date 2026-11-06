@@ -3,6 +3,8 @@ name: CI
 on:
     push:
         branches: [main]
+    pull_request:
+        branches: [main]
 
 permissions:
     contents: read
@@ -26,6 +28,7 @@ jobs:
 
     release:
         needs: check
+        if: github.event_name == 'push'
         runs-on: ubuntu-latest
         permissions:
             actions: read

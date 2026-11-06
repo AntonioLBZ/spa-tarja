@@ -6,10 +6,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { CATEGORIES_KEY } from '@/lib/api';
+import { CATEGORIES_KEY, GROUPS_KEY } from '@/lib/api';
 import { createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
@@ -136,6 +137,36 @@ describe('expense list', () => {
         renderApp();
 
         expect(await screen.findByText(en.expenses.list.loadFailed)).toBeDefined();
+    });
+});
+
+describe('the list when the first pull fails', () => {
+    const withASentExpense = async (pull: 'fails' | 'works') => {
+        const storage = createMemoryStorage();
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:outbox', [expense({ text: 'Sent' })]);
+        const api = createFakeApi({ expenses: [expense({ text: 'Older' })] });
+        stubApi((url, init) => {
+            if (pull === 'fails' && url.pathname === '/api/expenses' && (init?.method ?? 'GET') === 'GET')
+                throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+        return renderApp({ storage });
+    };
+
+    it('says the expenses could not be loaded when only the one that was sent is here', async () => {
+        await withASentExpense('fails');
+
+        expect(await screen.findByText(en.expenses.list.loadFailed)).toBeDefined();
+        expect(screen.getByText('Sent')).toBeDefined();
+        expect(screen.queryByText('Older')).toBeNull();
+    });
+
+    it('says nothing when the pull after the one that was sent works', async () => {
+        await withASentExpense('works');
+
+        expect(await screen.findByText('Older')).toBeDefined();
+        expect(screen.getByText('Sent')).toBeDefined();
+        expect(screen.queryByText(en.expenses.list.loadFailed)).toBeNull();
     });
 });
 
@@ -1253,6 +1284,41 @@ describe('suggesting a category from your own expenses', () => {
 
         expect(chosenOption(label)).toBe('Gym');
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('learns from your part of a shared expense', async () => {
+        const group = sampleGroup();
+        stubApi(
+            createFakeApi({
+                groups: [group],
+                entries: [sampleEntry(group, { text: 'Padel con Bea', categoryId: 'leisure' })],
+            }).handler
+        );
+        renderApp();
+        await screen.findByText('Padel con Bea');
+
+        typeText('Padel');
+
+        expect(chosenOption(label)).toBe(en.categories.leisure);
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
+    it('does not learn from a shared expense of a group whose switch is off', async () => {
+        const group = sampleGroup({ showInExpenses: false });
+        const api = createFakeApi({
+            expenses: [expense({ text: 'Lunch' })],
+            groups: [group],
+            entries: [sampleEntry(group, { text: 'Padel con Bea', categoryId: 'leisure' })],
+        });
+        stubApi(api.handler);
+        const app = renderApp();
+        await screen.findByText('Lunch');
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+
+        typeText('Padel');
+
+        expect(chosenOption(label)).toBe(en.categories.other);
+        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
     it('skips a category that no longer exists', async () => {
@@ -2923,7 +2989,7 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(searchBox().type).toBe('search');
             expect(filtersToggle(0).getAttribute('aria-expanded')).toBe('false');
-            expect(screen.queryByRole('radio')).toBeNull();
+            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
             expect(screen.queryByLabelText(f.from)).toBeNull();
             expect(showing(3, 4)).toBeNull();
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
@@ -2966,6 +3032,51 @@ describe('searching, filtering and grouping the list', () => {
             ]);
         });
 
+        it('offer who it is shared with after how it was paid: anyone, just you, then each group and friend in your expenses', async () => {
+            const me = person('Ana', { role: 'owner' });
+            const friend = sampleGroup({ kind: 'direct', name: null, members: [me, person('Bea')], me: me.id });
+            const trip = sampleGroup({ name: 'Trip', members: [me, person('Cris')], me: me.id });
+            const hidden = sampleGroup({
+                name: 'Work',
+                members: [me, person('Dani')],
+                me: me.id,
+                showInExpenses: false,
+            });
+            const closed = sampleGroup({ name: 'Rome', members: [me, person('Eva')], me: me.id, closed: 'deleted' });
+            stubApi(createFakeApi({ expenses: list, groups: [friend, trip, hidden, closed] }).handler);
+            const app = renderApp();
+            await screen.findByText(cafe.text);
+            await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+            fireEvent.click(filtersToggle());
+
+            const sharedWith = screen.getByRole('combobox', { name: f.sharedWith });
+            const paidWith = screen.getByRole('group', { name: f.paidWith });
+            expect(paidWith.compareDocumentPosition(sharedWith) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
+            expect(optionNames(f.sharedWith)).toEqual([f.shared.anyone, f.shared.me, 'Trip', 'Rome', 'Bea']);
+        });
+
+        it('count who it is shared with as a filter, and find no shared row of a group yet', async () => {
+            const me = person('Ana', { role: 'owner' });
+            const trip = sampleGroup({ name: 'Trip', members: [me, person('Cris')], me: me.id });
+            stubApi(createFakeApi({ expenses: list, groups: [trip] }).handler);
+            const app = renderApp();
+            await screen.findByText(cafe.text);
+            await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+            fireEvent.click(filtersToggle());
+
+            pickOption(f.sharedWith, f.shared.me);
+            expect(filtersToggle(1)).toBeDefined();
+            expect(rowNames()).toEqual(['Weekly shop', 'Café con leche', 'Cinema']);
+
+            pickOption(f.sharedWith, 'Trip');
+            expect(await screen.findByText(en.expenses.list.noMatch)).toBeDefined();
+
+            clear();
+            expect(filtersToggle(0)).toBeDefined();
+            expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
+        });
+
         it('close again from the toggle', async () => {
             await open(list);
             fireEvent.click(filtersToggle());
@@ -2973,7 +3084,7 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(filtersToggle());
 
             expect(filtersToggle().getAttribute('aria-expanded')).toBe('false');
-            expect(screen.queryByRole('radio')).toBeNull();
+            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
         });
 
         it('do not clash with the add form, which keeps its own category field and date', async () => {

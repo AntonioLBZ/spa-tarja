@@ -3,7 +3,10 @@ import { queryOptions } from '@tanstack/react-query';
 import { BUDGETS_KEY, fetchBudgets } from './budgets';
 import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
+import { GROUPS_KEY, fetchGroups } from './groups';
 import { INCOME_KEY, fetchIncome } from './income';
+import { PENDING_INVITATIONS_KEY, fetchPendingInvitations, readInvitation } from './invitations';
+import { PROFILE_KEY, fetchProfile } from './profile';
 
 const healthQuery = () => {
     return queryOptions({
@@ -31,4 +34,33 @@ const budgetsQuery = () => {
     return queryOptions({ queryKey: BUDGETS_KEY, queryFn: fetchBudgets });
 };
 
-export { budgetsQuery, categoriesQuery, healthQuery, incomeQuery };
+// The groups and friends the person is in, closed ones too, kept offline by the persisted cache
+const groupsQuery = () => {
+    return queryOptions({ queryKey: GROUPS_KEY, queryFn: fetchGroups });
+};
+
+// The nickname, which needs a connection to change and is not kept offline
+const profileQuery = () => {
+    return queryOptions({ queryKey: PROFILE_KEY, queryFn: fetchProfile });
+};
+
+// The person's own links to be friends that are still open, which need a connection and are not kept offline
+const pendingInvitationsQuery = () => {
+    return queryOptions({ queryKey: PENDING_INVITATIONS_KEY, queryFn: fetchPendingInvitations });
+};
+
+// What the link of an invitation shows, which needs a connection and is not kept offline
+const invitationQuery = (token: string) => {
+    return queryOptions({ queryKey: ['invitation', token], queryFn: () => readInvitation(token) });
+};
+
+export {
+    budgetsQuery,
+    categoriesQuery,
+    groupsQuery,
+    healthQuery,
+    incomeQuery,
+    invitationQuery,
+    pendingInvitationsQuery,
+    profileQuery,
+};

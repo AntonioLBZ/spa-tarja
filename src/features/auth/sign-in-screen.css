@@ -19,3 +19,8 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
+
+/* A ghost under the button, as wide as its words */
+.sign-in__privacy {
+    justify-self: start;
+}

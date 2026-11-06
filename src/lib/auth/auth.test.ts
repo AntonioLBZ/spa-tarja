@@ -228,4 +228,28 @@ describe('auth', () => {
             expect(readCachedUser()).toEqual(ana);
         });
     });
+
+    describe('forget', () => {
+        it('signs out on the device alone once the account is deleted, and says so', () => {
+            writeCachedUser(ana);
+            const service = createService();
+            const auth = createAuth(service);
+
+            auth.forget({ cleared: true });
+
+            expect(auth.getState()).toEqual({ status: 'signed-out', unreachable: false, deleted: { cleared: true } });
+            expect(readCachedUser()).toBeNull();
+            expect(service.signOut).not.toHaveBeenCalled();
+        });
+
+        it('keeps saying so when the server then says there is no session', async () => {
+            writeCachedUser(ana);
+            const auth = createAuth(createService({ getSession: async () => null }));
+
+            auth.forget({ cleared: false });
+            await auth.check();
+
+            expect(auth.getState()).toEqual({ status: 'signed-out', unreachable: false, deleted: { cleared: false } });
+        });
+    });
 });

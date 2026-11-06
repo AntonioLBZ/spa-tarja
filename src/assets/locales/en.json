@@ -14,13 +14,6 @@
             "message": "A new version is ready",
             "apply": "Update",
             "dismiss": "Later"
-        },
-        "moved": {
-            "title": "Tarja has moved",
-            "message": "The app now lives at {address}.",
-            "reinstall": "If you installed it on your device, please uninstall it and install it again from the new address.",
-            "open": "Go to {address}",
-            "stay": "Stay here for now"
         }
     },
     "expenses": {
@@ -32,7 +25,11 @@
             "text": "Description",
             "category": "Category",
             "suggested": "Suggested from the description",
+            "customShared": "Custom categories aren't available in shared expenses.",
             "date": "Date",
+            "for": "For",
+            "forMe": "Just me",
+            "forShared": "Shared",
             "payment": "Payment",
             "chargeDate": "Charged on",
             "personal": "Your part",
@@ -76,6 +73,11 @@
                 "any": "Any",
                 "plan": "Installments"
             },
+            "sharedWith": "Shared with",
+            "shared": {
+                "anyone": "Anyone",
+                "me": "Just me"
+            },
             "showing": "Showing {shown} of {total}",
             "clear": "Clear"
         },
@@ -96,6 +98,10 @@
             "charged": "{payment}, charged {date}",
             "plan": "{parts} payments, until {date}",
             "paid": "Paid {total}",
+            "youPaid": "You paid",
+            "youPaidTotal": "You paid {total}",
+            "paidBy": "{name} paid",
+            "paidByTotal": "{name} paid {total}",
             "weekOf": "Week of {date}",
             "noMatch": "No expenses match",
             "showMore": "Show more",
@@ -120,6 +126,8 @@
     },
     "nav": {
         "expenses": "Expenses",
+        "groups": "Groups",
+        "label": "Main",
         "settings": "Settings",
         "summary": "Summary"
     },
@@ -130,7 +138,58 @@
         "opening": "Opening Google…",
         "loading": "Checking your session…",
         "unreachable": "Can't reach Tarja. Check your connection and try again.",
-        "failed": "Couldn't sign you in. Try again."
+        "failed": "Couldn't sign you in. Try again.",
+        "invited": "Sign in to see the invitation you were sent.",
+        "deleted": "Your account was deleted.",
+        "deletedNotCleared": "Your account was deleted, but this device couldn't delete its copy of your data. To remove it, clear the data of this site in your browser's settings."
+    },
+    "privacy": {
+        "open": "Privacy notice",
+        "title": "Privacy notice",
+        "close": "Close",
+        "intro": "What Tarja keeps about you, why, and what you can do about it.",
+        "who": {
+            "title": "Who is responsible",
+            "text": "Tarja is run by Antonio López Benítez, in La Coruña, España. For anything about your data, write to:",
+            "portfolio": "Portfolio"
+        },
+        "stored": {
+            "title": "What is stored, and why",
+            "intro": "Only what the app needs to work. It isn't used for anything else.",
+            "google": "From your Google account: your name, your email and the address of your picture. You sign in with Google, so Tarja never stores a password.",
+            "nickname": "Your nickname, if you set one. Your friends see it.",
+            "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in your groups.",
+            "invitations": "The invitation links you make. Each works once, for 14 days.",
+            "sessions": "Each time you sign in, a session: a cookie in your browser and, on the server, the IP address and the browser it was opened from.",
+            "device": "On your device: a copy of your data, so the app works offline, and your language, theme and color. Signing out removes the copy, unless something is still waiting to be sent."
+        },
+        "sees": {
+            "title": "Who sees it",
+            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account.",
+            "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody."
+        },
+        "others": {
+            "title": "Who else handles it",
+            "cloudflare": "Cloudflare hosts the app and keeps its database. Its platform also keeps logs of the requests the app receives, for a limited time.",
+            "google": "Google handles the sign-in.",
+            "none": "Tarja has no ads and no analytics, and it sends your data to nobody else. Nothing is sold."
+        },
+        "keeps": {
+            "title": "How long, and deleting your account",
+            "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
+            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends where you are the only person with an account are deleted completely, with every name and expense in them.",
+            "stays": "The shared expenses in your groups stay for the others, because they are also their record. They show as “Deleted user”, without your name.",
+            "backups": "The backups Cloudflare keeps to recover the service expire on their own."
+        },
+        "rights": {
+            "title": "Your rights",
+            "see": "See and download your data: in {settings}, under “{data}”.",
+            "correct": "Correct it: change your nickname in {settings}, under “{profile}”, and edit your expenses and the rest of what you wrote.",
+            "delete": "Delete it: in {settings}, press “{delete}”.",
+            "write": "Ask anything about your data by writing to the contact above.",
+            "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos."
+        },
+        "updated": "Last updated: 6 November 2026."
     },
     "settings": {
         "title": "Settings",
@@ -152,6 +211,17 @@
             "violet": "Violet",
             "pink": "Pink"
         },
+        "profile": {
+            "title": "Profile",
+            "label": "Nickname",
+            "hint": "Your friends see this name. It doesn't have to be unique. Until you set one, they see the name of your Google account, {name}.",
+            "save": "Save",
+            "remove": "Remove",
+            "offline": "You're offline. Connect to change your nickname.",
+            "invalid": "A nickname needs at least one visible character and no text-direction controls.",
+            "saveFailed": "Couldn't save your nickname. Try again.",
+            "removeFailed": "Couldn't remove your nickname. Try again."
+        },
         "categories": {
             "title": "Categories",
             "description": "Create your own categories to sort your expenses, and pick their color and icon.",
@@ -162,6 +232,8 @@
             "description": "Download a copy of your data: everything in a JSON file, or just the expenses in a CSV file that opens in a spreadsheet. They are made on this device, so they work offline.",
             "json": "All your data (JSON)",
             "csv": "Only the expenses (CSV)",
+            "loading": "Loading the expenses of your groups so they go in the files…",
+            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the files.",
             "columns": {
                 "date": "Date",
                 "text": "Text",
@@ -171,7 +243,8 @@
                 "payment": "Payment",
                 "chargeDate": "Charge date",
                 "personal": "Your part",
-                "part": "Part"
+                "part": "Part",
+                "group": "Group"
             }
         },
         "account": {
@@ -179,7 +252,23 @@
             "signOut": "Sign out",
             "signingOut": "Signing out…",
             "signOutFailed": "Couldn't sign out. Signing out needs a connection.",
-            "unsynced": "Some expenses haven't synced yet. They stay on this device until you sign in again."
+            "unsynced": "Some expenses haven't synced yet. They stay on this device until you sign in again.",
+            "delete": {
+                "open": "Delete account",
+                "title": "Delete your account?",
+                "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends where you are the only person with an account, with every name and expense in them. This can't be undone.",
+                "stays": "The shared expenses in your groups stay for the others, under “Deleted user”.",
+                "backups": "The backups kept to recover the service expire on their own.",
+                "export": "Download your data first",
+                "label": "Your email",
+                "hint": "Type {email} to confirm.",
+                "confirm": "Delete",
+                "deleting": "Deleting…",
+                "cancel": "Cancel",
+                "offline": "Deleting your account needs a connection.",
+                "failed": "Couldn't delete your account. Check your connection and try again.",
+                "wrongEmail": "That email doesn't match your account. Sign in again and try once more."
+            }
         }
     },
     "categoryManager": {
@@ -271,6 +360,289 @@
         "volunteer_activism": "Donations",
         "more_horiz": "More",
         "category": "Category"
+    },
+    "groups": {
+        "title": "Groups",
+        "names": {
+            "deleted": "Deleted user",
+            "numbered": "{name} ({number})",
+            "left": "{name} (left)",
+            "unknown": "Someone new",
+            "you": "{name} (You)"
+        },
+        "balance": {
+            "owed": "You are owed {amount}",
+            "owe": "You owe {amount}",
+            "allSettled": "All settled",
+            "youSettled": "You're settled",
+            "memberOwed": "{name} is owed {amount}",
+            "memberOwes": "{name} owes {amount}",
+            "memberSettled": "{name} is settled"
+        },
+        "debts": {
+            "label": "Balances",
+            "youOwe": "You owe {name} {amount}",
+            "owesYou": "{name} owes you {amount}",
+            "owes": "{from} owes {to} {amount}",
+            "none": "Nobody owes anybody.",
+            "simplified": "Simplified debts: the fewest payments that settle the group. A payment may name someone you didn't share with.",
+            "everyone": "Everyone's balance"
+        },
+        "settle": {
+            "title": "Settle up",
+            "lineItem": "Settle up: {debt}",
+            "from": "From",
+            "to": "To",
+            "amount": "Amount",
+            "date": "Date",
+            "save": "Save",
+            "same": "From and To have to be two different people.",
+            "sentence": "{text}.",
+            "after": {
+                "youOwe": "After this, you owe {name} {amount}",
+                "owesYou": "After this, {name} owes you {amount}",
+                "owes": "After this, {from} owes {to} {amount}",
+                "youSettled": "After this, you're settled with {name}",
+                "settled": "After this, {from} and {to} are settled"
+            },
+            "editTitle": "Edit the settlement",
+            "cancel": "Cancel"
+        },
+        "share": {
+            "with": "With",
+            "none": "You have no groups or friends yet. Make a group or invite a friend from the Groups tab.",
+            "paidBy": "Paid by",
+            "paidByNone": "Choose who paid",
+            "payerLeft": "The person who paid has left the group.",
+            "split": "Split",
+            "modes": {
+                "equal": "Equally",
+                "percent": "Percent",
+                "exact": "Amounts"
+            },
+            "people": "Who's in",
+            "percentOf": "{name}, percent",
+            "amountOf": "{name}, amount",
+            "nobody": "Choose at least one person.",
+            "unassigned": "{amount} unassigned",
+            "over": "{amount} over the total",
+            "percentLeft": "{percent} left",
+            "percentOver": "{percent} over",
+            "amountInvalid": "Each amount has to be a number.",
+            "percentInvalid": "Each percentage has to be a number from 0 to 100, with two decimals at most.",
+            "howYouPaid": "How you paid",
+            "othersNow": "For the others it counts as paid now.",
+            "cardNeedsYou": "To pay by card you have to be in the split."
+        },
+        "group": {
+            "missing": "This group isn't here. It doesn't exist, or you're not in it.",
+            "loadFailed": "Couldn't load your groups. Connect to see them.",
+            "back": "Go to Groups",
+            "entriesFailed": "Couldn't load the expenses of this group. Connect to see them.",
+            "closed": {
+                "deleted": "This group was deleted. Its expenses stay as they were.",
+                "deletedFriend": "This friend was removed. What you shared stays as it was.",
+                "left": "You left this group. It stays as it was the day you left."
+            }
+        },
+        "offline": "You're offline. Connect to make or change a group, or to invite a friend.",
+        "empty": "You have no groups or friends yet. Make a group, or invite a friend who uses Tarja with a link.",
+        "totalsWait": "Couldn't load the expenses of every group, so there are no totals yet. Connect to see them.",
+        "lists": {
+            "groups": "Groups",
+            "friends": "Friends",
+            "friendsNone": "A friend appears here when somebody accepts your link.",
+            "closed": "Closed groups",
+            "archived": "Archived"
+        },
+        "row": {
+            "settled": "Settled",
+            "deleted": "Deleted",
+            "deletedFriend": "No longer a friend",
+            "left": "You left",
+            "shown": "In your expenses",
+            "hidden": "Not in your expenses"
+        },
+        "new": {
+            "title": "New group",
+            "name": "Name",
+            "person": "Add a person",
+            "personHint": "By name, one at a time. They don't need the app.",
+            "add": "Add",
+            "friend": "From your friends",
+            "friendNone": "Choose a friend",
+            "addFriend": "Add friend",
+            "people": "People to add",
+            "remove": "Remove",
+            "removeItem": "Remove {name}",
+            "submit": "Make the group",
+            "full": "A group takes {max} people at most, you included."
+        },
+        "links": {
+            "make": "Invite a friend",
+            "hint": "For someone who uses Tarja or will. You get a link to send them, and you become friends when they accept. It works once, for {days} days.",
+            "title": "Invitation links",
+            "loadFailed": "Couldn't load your invitation links."
+        },
+        "nameInvalid": "A name needs at least one visible character and no text-direction controls.",
+        "failure": {
+            "offline": "You're offline. Connect and try again.",
+            "readOnly": "This group is closed, so nothing in it can change.",
+            "unsynced": "Some of your changes to this group haven't been sent yet. Connect and try again.",
+            "unsettled": "This person's balance isn't zero. Settle up first.",
+            "notOwner": "Only the owner of the group can do that.",
+            "ownerLeaves": "The owner can't leave. Make someone else the owner first, or delete the group.",
+            "memberGone": "That person is no longer in the group.",
+            "notAUser": "The person you chose hasn't joined the app yet.",
+            "notPlaceholder": "That person has joined already, so they can't be merged or replaced.",
+            "tooManyGroups": "You're in {max} open groups, the most there can be. Leave or delete one first.",
+            "tooManyFriends": "You have {max} friends, the most there can be. Remove one first.",
+            "friendTooManyGroups": "That friend is in {max} open groups, the most there can be.",
+            "tooManyClosedGroups": "You have {max} closed groups, the most there can be, so you can't make or join more. Archive some to make room.",
+            "friendTooManyClosedGroups": "That friend has {max} closed groups, the most there can be, so they can't join more until they archive some.",
+            "alreadyMember": "That friend is in the group already, or was in it before.",
+            "unknownFriend": "That person is no longer your friend.",
+            "tooManyMembers": "This group has {max} people, the most it can have.",
+            "tooManyMembersEver": "This group has had {max} people, counting those who left, the most it can have. Make a new group instead.",
+            "tooManyInvitations": "You have {max} open invitation links, the most there can be. Revoke one first.",
+            "failed": "Couldn't save the change. Try again."
+        },
+        "edit": {
+            "link": "Edit group",
+            "linkFriend": "Edit friend",
+            "title": "Edit {name}",
+            "show": "Show in my expenses",
+            "showHint": "When it's off, this group's expenses are not in your list, summary, charts or budgets.",
+            "archive": "Archive",
+            "unarchive": "Bring back",
+            "name": "Name",
+            "simplify": "Simplify debts",
+            "simplifyHint": "Shows the fewest payments that settle the group. It doesn't change any expense.",
+            "save": "Save"
+        },
+        "people": {
+            "title": "People",
+            "you": "You",
+            "owner": "Owner",
+            "notJoined": "Not joined",
+            "rename": "Rename",
+            "renameItem": "Rename {name}",
+            "merge": "Merge into…",
+            "mergeItem": "Merge into… ({name})",
+            "mergeQuestion": "Merge {name} into someone who uses the app? What was split with {name} becomes theirs. This can't be undone.",
+            "mergeInto": "Into",
+            "mergeNone": "Choose someone",
+            "mergeConfirm": "Merge",
+            "mergeConfirmItem": "Merge {name}",
+            "makeOwner": "Make owner",
+            "makeOwnerItem": "Make owner ({name})",
+            "makeOwnerQuestion": "Make {name} the owner? You stay in the group, and only they can do what the owner does.",
+            "newName": "New name",
+            "save": "Save name",
+            "cancel": "Cancel",
+            "remove": "Remove",
+            "removeItem": "Remove {name}",
+            "removeConfirm": "Remove {name} from the group? They stay in the expenses already shared.",
+            "unsettled": "{name}'s balance isn't zero. Settle up first.",
+            "add": "Add a person",
+            "addHint": "By name. They don't need the app.",
+            "addSubmit": "Add",
+            "friend": "From your friends",
+            "friendNone": "Choose a friend",
+            "place": "How they join",
+            "asNew": "Add as a new member",
+            "inPlaceOf": "In place of {name}",
+            "addFriend": "Add friend"
+        },
+        "close": {
+            "leave": {
+                "button": "Leave the group",
+                "question": "Leave {name}?",
+                "what": "The group closes for you as it is today. Its expenses stay in your list, and you can turn them off here.",
+                "confirm": "Leave",
+                "unsettled": "Your balance in {name} isn't zero. Settle up before you leave."
+            },
+            "delete": {
+                "button": "Delete the group",
+                "question": "Delete {name}?",
+                "what": "The group closes for everybody in it. The expenses stay in your list, and you can turn them off here.",
+                "confirm": "Delete",
+                "unsettled": "Not every balance in {name} is zero. Settle up before you delete it."
+            },
+            "deleteFriend": {
+                "button": "Remove friend",
+                "question": "Remove {name} from your friends?",
+                "what": "What you shared stays as it was. It stays in your list, and you can turn it off here.",
+                "confirm": "Remove",
+                "unsettled": "You and {name} aren't settled. Settle up before you remove them."
+            },
+            "cancel": "Cancel",
+            "settleUp": "Settle up"
+        },
+        "ledger": {
+            "title": "Expenses",
+            "empty": "No expenses yet.",
+            "order": {
+                "legend": "Order",
+                "added": "Recently added",
+                "date": "By date"
+            },
+            "youPaid": "You paid",
+            "paidBy": "Paid by {name}",
+            "yourPart": "Your part {amount}",
+            "notIn": "Not in this one",
+            "addedBy": "Added by {name}",
+            "editedBy": "Edited by {name}",
+            "youPaidTo": "You paid {name}",
+            "paidYou": "{name} paid you",
+            "paid": "{from} paid {to}",
+            "deleted": "Deleted {name} from {group}",
+            "deletedSettlement": "Deleted the settlement “{name}” from {group}",
+            "leftCantEdit": "Someone in this one has left the group, so it can't be edited. Delete it and add it again if it needs a change."
+        },
+        "refused": {
+            "change": "A change to “{name}” in {group} was discarded.",
+            "elsewhere": "A change to a group that isn't on this device was discarded.",
+            "reason": {
+                "closed": "The group is closed.",
+                "memberLeft": "Someone in it has left the group.",
+                "unknownMember": "Someone in it isn't in the group.",
+                "notThePayer": "Only the person who paid can say they paid by card.",
+                "kindFixed": "An expense can't become a settlement, nor a settlement an expense.",
+                "currencyMismatch": "Its currency isn't the group's.",
+                "unknownCategory": "Its category isn't one of the default ones.",
+                "idTaken": "It clashes with an entry of another group.",
+                "clockAhead": "The clock of this device is ahead. Check its date and time, then enter it again.",
+                "other": "The server refused it."
+            },
+            "dismiss": "Dismiss"
+        },
+        "join": {
+            "title": "Friend invitation",
+            "asks": "{name} wants to be your friend.",
+            "what": "If you accept, you become friends: you can share expenses and see what you owe each other. Your part of those expenses counts in your own expenses, and you can turn that off with Show in my expenses.",
+            "accept": "Accept",
+            "decline": "Decline",
+            "loading": "Opening the invitation…",
+            "offline": "You're offline. Opening an invitation needs a connection.",
+            "gone": "This link can't be used. It may have expired, been used or been withdrawn. Ask for a new one.",
+            "yourself": "This is your own invitation. Send the link to the person you want as a friend.",
+            "alreadyFriends": "You and {name} are friends already.",
+            "inviterAtLimit": "{name} can't have more friends for now.",
+            "loadFailed": "Couldn't open the invitation. Try again.",
+            "failed": "Couldn't answer the invitation. Try again.",
+            "retry": "Try again",
+            "declined": "You declined the invitation."
+        },
+        "invite": {
+            "link": "Invitation link",
+            "until": "Open until {date}. It works once.",
+            "copy": "Copy link",
+            "share": "Share link",
+            "copied": "Link copied.",
+            "sendFailed": "Couldn't copy or share the link. Select it above and copy it yourself.",
+            "revoke": "Revoke link"
+        }
     },
     "summary": {
         "title": "Summary",

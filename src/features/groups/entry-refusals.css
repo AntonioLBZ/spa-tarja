@@ -1,0 +1,16 @@
+.entry-refusals {
+    display: grid;
+    gap: var(--size-2);
+}
+
+/* The message and its Dismiss, side by side while both fit */
+.entry-refusals__item {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-2) var(--size-4);
+}
+
+.entry-refusals__message {
+    flex: 1 1 auto;
+}

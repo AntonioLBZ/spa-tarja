@@ -4,7 +4,10 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
-import { useOutbox, useUserData } from '@/lib/offline';
+import { useGroupOutbox, useOutbox, useUserData } from '@/lib/offline';
+
+import { DeleteAccount } from './delete-account';
+import { PrivacyNotice } from './privacy-notice';
 
 import './account.css';
 
@@ -14,7 +17,9 @@ const Account = () => {
     const { signOut } = useAuth();
     const { discard } = useUserData();
     const outbox = useOutbox();
+    const groupOutbox = useGroupOutbox();
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
+    const { pending: pendingEntries } = useSyncExternalStore(groupOutbox.subscribe, groupOutbox.getState);
     const [phase, setPhase] = useState<'idle' | 'signing-out' | 'failed'>('idle');
 
     const handleSignOut = async () => {
@@ -26,8 +31,8 @@ const Account = () => {
             return;
         }
         // What hasn't synced stays on the device for the next time this user signs in
-        await outbox.ready;
-        if (outbox.getState().pending.length === 0) await discard();
+        await Promise.all([outbox.ready, groupOutbox.ready]);
+        if (outbox.getState().pending.length === 0 && groupOutbox.getState().pending.length === 0) await discard();
     };
 
     return (
@@ -37,7 +42,7 @@ const Account = () => {
                 <span className="account__name">{user.name}</span>
                 <span className="account__email">{user.email}</span>
             </p>
-            {pending.length > 0 && <Notice>{t('unsynced')}</Notice>}
+            {pending.length + pendingEntries.length > 0 && <Notice>{t('unsynced')}</Notice>}
             {phase === 'failed' && (
                 <Notice tone="danger" role="alert">
                     {t('signOutFailed')}
@@ -46,6 +51,8 @@ const Account = () => {
             <Button block disabled={phase === 'signing-out'} onClick={handleSignOut}>
                 {phase === 'signing-out' ? t('signingOut') : t('signOut')}
             </Button>
+            <DeleteAccount />
+            <PrivacyNotice />
         </section>
     );
 };

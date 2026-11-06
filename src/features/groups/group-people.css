@@ -1,0 +1,27 @@
+.group-people {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-people__add {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.group-people__friend {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.group-people__row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+.group-people__input {
+    flex: 1 1 8rem;
+    min-width: 0;
+}

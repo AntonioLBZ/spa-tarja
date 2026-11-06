@@ -9,11 +9,13 @@ import { EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 import { PERSIST_BUSTER, createPersister, createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
+import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';
+import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.summary;
@@ -680,5 +682,74 @@ describe('without a connection', () => {
         await screen.findByRole('heading', { name: text.title });
         expect(await within(row(text.left)).findByText('€1,750.00')).toBeDefined();
         expect(within(row(text.spent)).getByText('€250.00')).toBeDefined();
+    });
+});
+
+describe('your part of the shared expenses', () => {
+    const ana = person('Ana', { role: 'owner' });
+    const bea = person('Bea');
+
+    function trip(overrides: Partial<SharedGroup> = {}) {
+        return sampleGroup({ members: [ana, bea], me: ana.id, ...overrides });
+    }
+
+    function halves(cents: number) {
+        return [
+            { memberId: ana.id, cents: cents / 2 },
+            { memberId: bea.id, cents: cents / 2 },
+        ];
+    }
+
+    it('counts in the numbers whoever paid, in a closed group too, and a settlement does not', async () => {
+        const lisbon = trip();
+        const rome = trip({ name: 'Rome', closed: 'left' });
+        await open({
+            expenses: [expense({ amountCents: 1000 })],
+            groups: [lisbon, rome],
+            entries: [
+                sampleEntry(lisbon, { paidBy: bea.id }),
+                sampleSettlement(lisbon, ana.id, bea.id, 2000),
+                sampleEntry(rome, { amountCents: 1000, shares: halves(1000) }),
+            ],
+        });
+
+        expect(await within(row(text.spent)).findByText('€35.00')).toBeDefined();
+    });
+
+    it('counts your credit card part in the month it is charged, and your restaurant card part as income then', async () => {
+        const group = trip();
+        await open({
+            groups: [group],
+            entries: [
+                sampleEntry(group, { date: '2026-10-31', payment: 'credit', chargeDate: '2026-11-02' }),
+                sampleEntry(group, {
+                    amountCents: 6000,
+                    shares: halves(6000),
+                    date: '2026-10-12',
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+            ],
+        });
+
+        await screen.findByText(text.paidBack);
+        expect(within(row(text.paidBack)).getByText('€30.00')).toBeDefined();
+        expect(within(row(text.spent)).getByText('€30.00')).toBeDefined();
+        fireEvent.click(screen.getByRole('button', { name: en.monthSwitch.next }));
+        expect(within(row(text.spent)).getByText('€20.00')).toBeDefined();
+        expect(within(row(text.voucher)).getByText('€30.00')).toBeDefined();
+    });
+
+    it('leaves out a group whose switch is off, also from the copy on the device', async () => {
+        const storage = createMemoryStorage();
+        const shown = trip();
+        const hidden = trip({ name: 'Work', showInExpenses: false });
+        const entries = [sampleEntry(shown), sampleEntry(hidden, { amountCents: 8000, shares: halves(8000) })];
+        await leaveCopy(storage, [shown, hidden], entries);
+        stubApi(createFakeApi({ groups: [shown, hidden], entries }).handler);
+        renderApp({ path: '/summary', storage });
+        await screen.findByRole('heading', { name: text.title });
+
+        await waitFor(() => expect(within(row(text.spent)).getByText('€20.00')).toBeDefined());
     });
 });

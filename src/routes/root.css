@@ -13,9 +13,8 @@
     view-transition-name: header;
 }
 
-/* Expenses, the logo and the other screens. The side columns grow alike while there is room, which keeps
-   the logo in the middle; on a narrow phone the wider side keeps its width and the logo moves off the middle instead
-   of anything overflowing */
+/* Expenses, the logo and the other screens, from 40 rem up. The side columns grow alike while there is room, which
+   keeps the logo in the middle. */
 .root__nav {
     align-items: center;
     column-gap: var(--size-2);
@@ -23,17 +22,11 @@
     grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
 }
 
+/* Far enough apart not to read as one phrase */
 .root__group {
     display: flex;
-    gap: var(--size-2);
+    gap: var(--size-4);
     justify-self: end;
-}
-
-/* Summary and Settings stop reading as one phrase once there is room */
-@media (width >= 40rem) {
-    .root__group {
-        gap: var(--size-4);
-    }
 }
 
 .root__brand,
@@ -61,6 +54,13 @@
     view-transition-name: nav-underline;
 }
 
+/* On a phone the header holds the logo alone, in the middle */
+.root--tabs .root__header {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
 .root__main {
     margin-inline: auto;
     max-width: 40rem;
@@ -68,6 +68,11 @@
         max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
     view-transition-name: page;
     width: 100%;
+}
+
+/* The bar has the bottom of the page: room for it, and for the safe area it pads itself with */
+.root--tabs .root__main {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-6));
 }
 
 /* Screens slide. The header holds still under its own name while the page moves, and where the browser has

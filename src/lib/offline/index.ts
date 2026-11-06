@@ -1,8 +1,10 @@
-export { OutboxProvider, useOutbox } from './outbox-context';
-export { createOutbox, type Outbox, type OutboxState } from './outbox';
+export { OutboxProvider, useGroupOutbox, useOutbox } from './outbox-context';
+export { createOutbox, type Outbox, type OutboxState, type PendingEntry, type Rejection } from './outbox';
+export { groupEntriesQuery, syncGroup } from './group-sync';
 export { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
 export { idbStorage, type KeyValueStorage } from './storage';
-export { expensesQuery } from './sync';
+export { forgetSharedWith, readSharedWith, rememberSharedWith } from './shared-with';
+export { RETRY_EVERY_MS, expensesQuery } from './sync';
 export { useOnline } from './use-online';
 export { UserDataProvider, useUserData } from './user-data';
 export { createUserStorage } from './user-storage';

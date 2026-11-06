@@ -20,6 +20,8 @@ export default defineConfig({
                     cloudflareTest({
                         wrangler: { configPath: './wrangler.jsonc' },
                         miniflare: {
+                            // A database of its own for the tests that run the migrations on rows already there
+                            d1Databases: ['MIGRATION_DB'],
                             bindings: {
                                 TEST_MIGRATIONS: migrations,
                                 BETTER_AUTH_SECRET: 'test-secret-that-is-long-enough-for-better-auth',
@@ -32,6 +34,7 @@ export default defineConfig({
                 resolve: { tsconfigPaths: true },
                 test: {
                     name: 'server',
+                    testTimeout: 20_000,
                     include: ['server/**/*.test.ts'],
                     setupFiles: ['server/test/apply-migrations.ts'],
                 },
@@ -48,6 +51,7 @@ export default defineConfig({
                 resolve: { tsconfigPaths: true },
                 test: {
                     name: 'front',
+                    testTimeout: 20_000,
                     environment: 'jsdom',
                     include: ['src/**/*.test.{ts,tsx}'],
                     setupFiles: ['src/lib/test/setup.ts'],

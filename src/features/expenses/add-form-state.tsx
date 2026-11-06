@@ -1,11 +1,17 @@
 import { createContext, use, useMemo, useRef, useState, type ReactNode } from 'react';
 
+import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
 
 // What the form copies into a new expense: the expense, or every part of its plan. `serial` tells one press of
 // Duplicate from the next, so pressing it again starts over.
 interface Copy {
     parts: readonly Expense[];
+    serial: number;
+}
+
+// A shared expense, with its group, that the form copies into a new one of that group
+interface EntryCopy extends SharedRowSource {
     serial: number;
 }
 
@@ -24,6 +30,12 @@ interface AddFormState {
     startCopy: (parts: readonly Expense[]) => void;
     // Back to adding. After Add or Cancel, `refocus` hands the focus back to the row that was copied.
     endCopy: (options?: { refocus?: boolean }) => void;
+    // The shared expense of a row, with its group, that the form is editing or copying, never together with anything
+    // else; `endEdit` and `endCopy` end them too
+    editingEntry: SharedRowSource | null;
+    startEditEntry: (source: SharedRowSource) => void;
+    copyingEntry: EntryCopy | null;
+    startCopyEntry: (source: SharedRowSource) => void;
     // The expense whose row should take the focus, until the list has given it
     refocus: string | null;
     clearRefocus: () => void;
@@ -51,19 +63,33 @@ const AddFormProvider = (props: AddFormProviderProps) => {
     const [open, setOpen] = useState(true);
     const [editing, setEditing] = useState<readonly Expense[] | null>(null);
     const [copying, setCopying] = useState<Copy | null>(null);
+    const [editingEntry, setEditingEntry] = useState<SharedRowSource | null>(null);
+    const [copyingEntry, setCopyingEntry] = useState<EntryCopy | null>(null);
     const copies = useRef(0);
     const [refocus, setRefocus] = useState<string | null>(null);
     const [added, setAdded] = useState<{ day: string } | null>(null);
 
     const value = useMemo(() => {
         const endEdit = (options: { refocus?: boolean } = {}) => {
-            if (options.refocus && editing) setRefocus(editing[0]!.id);
+            const id = editing?.[0]!.id ?? editingEntry?.entry.id;
+            if (options.refocus && id !== undefined) setRefocus(id);
             setEditing(null);
+            setEditingEntry(null);
         };
 
         const endCopy = (options: { refocus?: boolean } = {}) => {
-            if (options.refocus && copying) setRefocus(copying.parts[0]!.id);
+            const id = copying?.parts[0]!.id ?? copyingEntry?.entry.id;
+            if (options.refocus && id !== undefined) setRefocus(id);
             setCopying(null);
+            setCopyingEntry(null);
+        };
+
+        // Whatever the form was editing or copying gives way to what it starts now
+        const clear = () => {
+            setEditing(null);
+            setCopying(null);
+            setEditingEntry(null);
+            setCopyingEntry(null);
         };
 
         return {
@@ -71,18 +97,30 @@ const AddFormProvider = (props: AddFormProviderProps) => {
             setOpen,
             editing,
             startEdit: (parts: readonly Expense[]) => {
-                setCopying(null);
+                clear();
                 setEditing(parts);
                 setOpen(true);
             },
             endEdit,
             copying,
             startCopy: (parts: readonly Expense[]) => {
-                setEditing(null);
+                clear();
                 setCopying({ parts, serial: ++copies.current });
                 setOpen(true);
             },
             endCopy,
+            editingEntry,
+            startEditEntry: (source: SharedRowSource) => {
+                clear();
+                setEditingEntry(source);
+                setOpen(true);
+            },
+            copyingEntry,
+            startCopyEntry: (source: SharedRowSource) => {
+                clear();
+                setCopyingEntry({ ...source, serial: ++copies.current });
+                setOpen(true);
+            },
             refocus,
             clearRefocus: () => setRefocus(null),
             added,
@@ -98,7 +136,7 @@ const AddFormProvider = (props: AddFormProviderProps) => {
                 setOpen(true);
             },
         };
-    }, [open, editing, copying, refocus, added]);
+    }, [open, editing, copying, editingEntry, copyingEntry, refocus, added]);
 
     return <AddFormContext value={value}>{children}</AddFormContext>;
 };

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
-import { createOutbox } from './outbox';
+import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
 
 import type { Expense } from '@core/expense';
 
@@ -22,7 +22,7 @@ function expense(id: string, overrides: Partial<Expense> = {}): Expense {
 }
 
 async function openOutbox(storage = createMemoryStorage()) {
-    const outbox = createOutbox(storage);
+    const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
     await outbox.ready;
     return { outbox, storage };
 }
@@ -31,7 +31,7 @@ describe('outbox', () => {
     it('starts empty', async () => {
         const { outbox } = await openOutbox();
 
-        expect(outbox.getState()).toEqual({ pending: [], rejected: 0 });
+        expect(outbox.getState()).toEqual({ pending: [], rejected: [] });
     });
 
     it('holds a saved expense as pending and tells its subscribers', async () => {
@@ -80,7 +80,7 @@ describe('outbox', () => {
         const { outbox, storage } = await openOutbox();
         await outbox.put(expense('a'));
 
-        const reloaded = createOutbox(storage);
+        const reloaded = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
         await reloaded.ready;
 
         expect(reloaded.getState().pending).toEqual([expense('a')]);
@@ -94,7 +94,7 @@ describe('outbox', () => {
         await outbox.settle(sent);
 
         expect(outbox.getState().pending).toEqual([]);
-        const reloaded = createOutbox(storage);
+        const reloaded = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
         await reloaded.ready;
         expect(reloaded.getState().pending).toEqual([]);
     });
@@ -110,16 +110,51 @@ describe('outbox', () => {
         expect(outbox.getState().pending.map((item) => item.text)).toEqual(['edited meanwhile']);
     });
 
-    it('counts a rejected expense and drops it, until the user dismisses the notice', async () => {
+    it('drops a rejected expense and keeps it with the reason, until the user dismisses the notice', async () => {
         const { outbox } = await openOutbox();
         const sent = expense('a');
         await outbox.put(sent);
 
-        await outbox.reject(sent);
+        await outbox.reject(sent, 'id-taken');
 
-        expect(outbox.getState()).toEqual({ pending: [], rejected: 1 });
+        expect(outbox.getState()).toEqual({ pending: [], rejected: [{ item: sent, code: 'id-taken' }] });
         outbox.dismissRejected();
-        expect(outbox.getState().rejected).toBe(0);
+        expect(outbox.getState().rejected).toEqual([]);
+    });
+
+    it('lets the user dismiss one refusal and keeps the others', async () => {
+        const { outbox } = await openOutbox();
+        const [first, second] = [expense('a'), expense('b')];
+        await outbox.putAll([first, second]);
+        await outbox.reject(first, 'closed');
+        await outbox.reject(second, 'clock-ahead');
+
+        outbox.dismissRejection(outbox.getState().rejected[0]!);
+
+        expect(outbox.getState().rejected).toEqual([{ item: second, code: 'clock-ahead' }]);
+    });
+
+    it('keeps no refusal on the device, so a reload forgets them', async () => {
+        const { outbox, storage } = await openOutbox();
+        const sent = expense('a');
+        await outbox.put(sent);
+        await outbox.reject(sent, 'closed');
+
+        const { outbox: reloaded } = await openOutbox(storage);
+
+        expect(reloaded.getState()).toEqual({ pending: [], rejected: [] });
+    });
+
+    it('keeps a version edited while the older one was being refused, and counts nothing', async () => {
+        const { outbox } = await openOutbox();
+        const sent = expense('a', { updatedAt: 1 });
+        await outbox.put(sent);
+        await outbox.put(expense('a', { text: 'edited meanwhile', updatedAt: 2 }));
+
+        await outbox.reject(sent, null);
+
+        expect(outbox.getState().pending.map((item) => item.text)).toEqual(['edited meanwhile']);
+        expect(outbox.getState().rejected).toEqual([]);
     });
 });
 
@@ -157,7 +192,7 @@ describe('putAll', () => {
 
         expect(set).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledTimes(1);
-        const reloaded = createOutbox(storage);
+        const reloaded = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
         await reloaded.ready;
         expect(reloaded.getState().pending.map((item) => item.id)).toEqual(['a', 'b', 'c']);
     });
@@ -179,5 +214,46 @@ describe('putAll', () => {
         await outbox.putAll([]);
 
         expect(set).not.toHaveBeenCalled();
+    });
+});
+
+describe('the outbox of the entries of groups', () => {
+    const entry: PendingEntry = {
+        id: crypto.randomUUID(),
+        groupId: crypto.randomUUID(),
+        kind: 'settlement',
+        text: '',
+        categoryId: null,
+        amountCents: 500,
+        currency: 'EUR',
+        date: '2026-10-25',
+        paidBy: crypto.randomUUID(),
+        split: 'exact',
+        shares: [{ memberId: crypto.randomUUID(), cents: 500 }],
+        payment: 'direct',
+        chargeDate: null,
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+    };
+
+    it('lives on the same device apart from the one of the expenses', async () => {
+        const storage = createMemoryStorage();
+        const expenses = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
+        const entries = createOutbox<PendingEntry>(storage, GROUP_OUTBOX_STORAGE_KEY);
+        await Promise.all([expenses.ready, entries.ready]);
+
+        await entries.put(entry);
+        await expenses.put(expense('a'));
+
+        const [expensesAgain, entriesAgain] = [
+            createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY),
+            createOutbox<PendingEntry>(storage, GROUP_OUTBOX_STORAGE_KEY),
+        ];
+        await Promise.all([expensesAgain.ready, entriesAgain.ready]);
+        expect(expensesAgain.getState().pending).toEqual([expense('a')]);
+        expect(entriesAgain.getState().pending).toEqual([entry]);
+        expect(await storage.get('tarja:outbox')).toEqual([expense('a')]);
+        expect(await storage.get('tarja:group-outbox')).toEqual([entry]);
     });
 });

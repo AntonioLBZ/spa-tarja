@@ -14,13 +14,6 @@
             "message": "Hay una versión nueva",
             "apply": "Actualizar",
             "dismiss": "Después"
-        },
-        "moved": {
-            "title": "Tarja se ha mudado",
-            "message": "La app ahora está en {address}.",
-            "reinstall": "Si la tienes instalada en tu dispositivo, desinstálala e instálala de nuevo desde la nueva dirección.",
-            "open": "Ir a {address}",
-            "stay": "Seguir aquí por ahora"
         }
     },
     "expenses": {
@@ -32,7 +25,11 @@
             "text": "Descripción",
             "category": "Categoría",
             "suggested": "Sugerida según la descripción",
+            "customShared": "Las categorías propias no están disponibles en los gastos compartidos.",
             "date": "Fecha",
+            "for": "Para",
+            "forMe": "Solo yo",
+            "forShared": "Compartido",
             "payment": "Pago",
             "chargeDate": "Se carga el",
             "personal": "Tu parte",
@@ -76,6 +73,11 @@
                 "any": "Cualquiera",
                 "plan": "Plazos"
             },
+            "sharedWith": "Compartido con",
+            "shared": {
+                "anyone": "Cualquiera",
+                "me": "Solo yo"
+            },
             "showing": "Mostrando {shown} de {total}",
             "clear": "Limpiar"
         },
@@ -96,6 +98,10 @@
             "charged": "{payment}, se carga el {date}",
             "plan": "{parts} pagos, hasta el {date}",
             "paid": "Pagaste {total}",
+            "youPaid": "Pagaste",
+            "youPaidTotal": "Pagaste {total}",
+            "paidBy": "{name} pagó",
+            "paidByTotal": "{name} pagó {total}",
             "weekOf": "Semana del {date}",
             "noMatch": "Ningún gasto coincide",
             "showMore": "Mostrar más",
@@ -120,6 +126,8 @@
     },
     "nav": {
         "expenses": "Gastos",
+        "groups": "Grupos",
+        "label": "Principal",
         "settings": "Ajustes",
         "summary": "Resumen"
     },
@@ -130,7 +138,58 @@
         "opening": "Abriendo Google…",
         "loading": "Comprobando tu sesión…",
         "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
-        "failed": "No se pudo iniciar sesión. Inténtalo de nuevo."
+        "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+        "invited": "Inicia sesión para ver la invitación que te han enviado.",
+        "deleted": "Tu cuenta se ha eliminado.",
+        "deletedNotCleared": "Tu cuenta se ha eliminado, pero este dispositivo no ha podido borrar su copia de tus datos. Para quitarla, borra los datos de este sitio en los ajustes del navegador."
+    },
+    "privacy": {
+        "open": "Aviso de privacidad",
+        "title": "Aviso de privacidad",
+        "close": "Cerrar",
+        "intro": "Qué guarda Tarja sobre ti, para qué y qué puedes hacer al respecto.",
+        "who": {
+            "title": "Quién es responsable",
+            "text": "Tarja la lleva Antonio López Benítez, en La Coruña, España. Para cualquier asunto sobre tus datos, escribe a:",
+            "portfolio": "Portfolio"
+        },
+        "stored": {
+            "title": "Qué se guarda y para qué",
+            "intro": "Solo lo que la app necesita para funcionar. No se usa para nada más.",
+            "google": "De tu cuenta de Google: tu nombre, tu correo y la dirección de tu foto. Entras con Google, así que Tarja nunca guarda una contraseña.",
+            "nickname": "Tu apodo, si lo has puesto. Tus amigos lo ven.",
+            "written": "Lo que escribes: gastos, categorías, ingresos, presupuestos, grupos, amigos, gastos compartidos, los pagos con los que se salda cuentas y los nombres que das a las personas de tus grupos.",
+            "invitations": "Los enlaces de invitación que creas. Cada uno sirve una vez, durante 14 días.",
+            "sessions": "Cada vez que inicias sesión, una sesión: una cookie en tu navegador y, en el servidor, la dirección IP y el navegador desde los que se abrió.",
+            "device": "En tu dispositivo: una copia de tus datos, para que la app funcione sin conexión, y tu idioma, tema y color. Al cerrar sesión se borra la copia, salvo que algo siga esperando a enviarse."
+        },
+        "sees": {
+            "title": "Quién lo ve",
+            "members": "Las personas de un grupo contigo, y tus amigos, ven lo que se comparte en él y el nombre que se usa para ti ahí: tu apodo o, si no tienes, el nombre de tu cuenta de Google.",
+            "own": "Las demás personas que usan Tarja nunca ven tu correo, y tus gastos, categorías, ingresos y presupuestos propios no se muestran a nadie."
+        },
+        "others": {
+            "title": "Quién más lo trata",
+            "cloudflare": "Cloudflare aloja la app y guarda su base de datos. Su plataforma también guarda registros de las peticiones que recibe la app, durante un tiempo limitado.",
+            "google": "Google gestiona el inicio de sesión.",
+            "none": "Tarja no tiene anuncios ni analítica, y no envía tus datos a nadie más. No se vende nada."
+        },
+        "keeps": {
+            "title": "Cuánto tiempo y eliminar tu cuenta",
+            "how": "Hasta que elimines tu cuenta. Eliminarla requiere conexión y no se puede deshacer.",
+            "goes": "Lo tuyo se borra para siempre: tu nombre, correo y dirección de la foto, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar. Los grupos y los amigos en los que eres la única persona con cuenta se borran por completo, con todos los nombres y gastos que contienen.",
+            "stays": "Los gastos compartidos de tus grupos se quedan para los demás, porque también son su registro. Aparecen como «Usuario eliminado», sin tu nombre.",
+            "backups": "Las copias de seguridad que Cloudflare guarda para recuperar el servicio caducan solas."
+        },
+        "rights": {
+            "title": "Tus derechos",
+            "see": "Ver y descargar tus datos: en {settings}, en «{data}».",
+            "correct": "Corregirlos: cambia tu apodo en {settings}, en «{profile}», y edita tus gastos y el resto de lo que escribiste.",
+            "delete": "Borrarlos: en {settings}, pulsa «{delete}».",
+            "write": "Preguntar lo que quieras sobre tus datos escribiendo al contacto de arriba.",
+            "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos."
+        },
+        "updated": "Última actualización: 6 de noviembre de 2026."
     },
     "settings": {
         "title": "Ajustes",
@@ -152,6 +211,17 @@
             "violet": "Violeta",
             "pink": "Rosa"
         },
+        "profile": {
+            "title": "Perfil",
+            "label": "Apodo",
+            "hint": "Tus amigos ven este nombre. No tiene por qué ser único. Mientras no pongas uno, ven el nombre de tu cuenta de Google, {name}.",
+            "save": "Guardar",
+            "remove": "Quitar",
+            "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
+            "invalid": "Un apodo necesita al menos un carácter visible y ningún control de dirección del texto.",
+            "saveFailed": "No se pudo guardar tu apodo. Inténtalo de nuevo.",
+            "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
+        },
         "categories": {
             "title": "Categorías",
             "description": "Crea tus propias categorías para clasificar tus gastos y elige su color e icono.",
@@ -162,6 +232,8 @@
             "description": "Descarga una copia de tus datos: todo en un archivo JSON, o solo los gastos en un CSV que se abre en una hoja de cálculo. Se hacen en este dispositivo, así que funcionan sin conexión.",
             "json": "Todos tus datos (JSON)",
             "csv": "Solo los gastos (CSV)",
+            "loading": "Cargando los gastos de tus grupos para incluirlos en los archivos…",
+            "missing": "Los gastos de algunos grupos todavía no están en este dispositivo, así que no se incluyen en los archivos.",
             "columns": {
                 "date": "Fecha",
                 "text": "Texto",
@@ -171,7 +243,8 @@
                 "payment": "Pago",
                 "chargeDate": "Fecha de cargo",
                 "personal": "Tu parte",
-                "part": "Parte"
+                "part": "Parte",
+                "group": "Grupo"
             }
         },
         "account": {
@@ -179,7 +252,23 @@
             "signOut": "Cerrar sesión",
             "signingOut": "Cerrando sesión…",
             "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",
-            "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión."
+            "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión.",
+            "delete": {
+                "open": "Eliminar la cuenta",
+                "title": "¿Eliminar tu cuenta?",
+                "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre, y también los grupos y los amigos en los que eres la única persona con cuenta, con todos los nombres y gastos que contienen. No se puede deshacer.",
+                "stays": "Los gastos compartidos de tus grupos se quedan para los demás, a nombre de «Usuario eliminado».",
+                "backups": "Las copias de seguridad que se guardan para recuperar el servicio caducan solas.",
+                "export": "Descarga antes tus datos",
+                "label": "Tu correo",
+                "hint": "Escribe {email} para confirmar.",
+                "confirm": "Eliminar",
+                "deleting": "Eliminando…",
+                "cancel": "Cancelar",
+                "offline": "Para eliminar tu cuenta hace falta conexión.",
+                "failed": "No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo.",
+                "wrongEmail": "Ese correo no coincide con tu cuenta. Vuelve a iniciar sesión e inténtalo de nuevo."
+            }
         }
     },
     "categoryManager": {
@@ -271,6 +360,289 @@
         "volunteer_activism": "Donaciones",
         "more_horiz": "Más",
         "category": "Categoría"
+    },
+    "groups": {
+        "title": "Grupos",
+        "names": {
+            "deleted": "Usuario eliminado",
+            "numbered": "{name} ({number})",
+            "left": "{name} (se fue)",
+            "unknown": "Una persona nueva",
+            "you": "{name} (Tú)"
+        },
+        "balance": {
+            "owed": "Te deben {amount}",
+            "owe": "Debes {amount}",
+            "allSettled": "Todo saldado",
+            "youSettled": "Tienes las cuentas saldadas",
+            "memberOwed": "A {name} le deben {amount}",
+            "memberOwes": "{name} debe {amount}",
+            "memberSettled": "{name} tiene las cuentas saldadas"
+        },
+        "debts": {
+            "label": "Saldos",
+            "youOwe": "Debes {amount} a {name}",
+            "owesYou": "{name} te debe {amount}",
+            "owes": "{from} debe {amount} a {to}",
+            "none": "Nadie debe nada.",
+            "simplified": "Deudas simplificadas: el menor número de pagos que salda el grupo. Algún pago puede ser para alguien con quien no compartiste gastos.",
+            "everyone": "El saldo de cada persona"
+        },
+        "settle": {
+            "title": "Saldar cuentas",
+            "lineItem": "Saldar cuentas: {debt}",
+            "from": "Paga",
+            "to": "Recibe",
+            "amount": "Importe",
+            "date": "Fecha",
+            "save": "Guardar",
+            "same": "Quien paga y quien recibe tienen que ser dos personas distintas.",
+            "sentence": "{text}.",
+            "after": {
+                "youOwe": "Con esto, debes {amount} a {name}",
+                "owesYou": "Con esto, {name} te debe {amount}",
+                "owes": "Con esto, {from} debe {amount} a {to}",
+                "youSettled": "Con esto, quedas en paz con {name}",
+                "settled": "Con esto, {from} y {to} quedan en paz"
+            },
+            "editTitle": "Editar el pago",
+            "cancel": "Cancelar"
+        },
+        "share": {
+            "with": "Con",
+            "none": "Aún no tienes grupos ni amigos. Crea un grupo o invita a un amigo desde la pestaña Grupos.",
+            "paidBy": "Pagado por",
+            "paidByNone": "Elige quién pagó",
+            "payerLeft": "Quien pagó ha salido del grupo.",
+            "split": "Reparto",
+            "modes": {
+                "equal": "A partes iguales",
+                "percent": "Por porcentaje",
+                "exact": "Por importes"
+            },
+            "people": "Quién participa",
+            "percentOf": "{name}, porcentaje",
+            "amountOf": "{name}, importe",
+            "nobody": "Elige al menos a una persona.",
+            "unassigned": "Faltan {amount} por asignar",
+            "over": "Sobran {amount} del total",
+            "percentLeft": "Falta un {percent}",
+            "percentOver": "Sobra un {percent}",
+            "amountInvalid": "Cada importe tiene que ser un número.",
+            "percentInvalid": "Cada porcentaje tiene que ser un número de 0 a 100, con dos decimales como mucho.",
+            "howYouPaid": "Cómo pagaste",
+            "othersNow": "Para los demás cuenta como pagado ahora.",
+            "cardNeedsYou": "Para pagar con tarjeta tienes que entrar en el reparto."
+        },
+        "group": {
+            "missing": "Este grupo no está aquí. No existe o no formas parte de él.",
+            "loadFailed": "No se pudieron cargar tus grupos. Conéctate para verlos.",
+            "back": "Ir a Grupos",
+            "entriesFailed": "No se pudieron cargar los gastos de este grupo. Conéctate para verlos.",
+            "closed": {
+                "deleted": "Este grupo se eliminó. Sus gastos se quedan como estaban.",
+                "deletedFriend": "Esta persona ya no está entre tus amigos. Lo que compartíais se queda como estaba.",
+                "left": "Saliste de este grupo. Se queda como estaba el día que saliste."
+            }
+        },
+        "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo, o para invitar a un amigo.",
+        "empty": "Aún no tienes grupos ni amigos. Crea un grupo, o invita con un enlace a un amigo que use Tarja.",
+        "totalsWait": "No se pudieron cargar los gastos de todos los grupos, así que aún no hay totales. Conéctate para verlos.",
+        "lists": {
+            "groups": "Grupos",
+            "friends": "Amigos",
+            "friendsNone": "Un amigo aparecerá aquí cuando alguien acepte tu enlace.",
+            "closed": "Grupos cerrados",
+            "archived": "Archivados"
+        },
+        "row": {
+            "settled": "Sin deudas",
+            "deleted": "Eliminado",
+            "deletedFriend": "Ya no está entre tus amigos",
+            "left": "Saliste",
+            "shown": "En tus gastos",
+            "hidden": "Fuera de tus gastos"
+        },
+        "new": {
+            "title": "Nuevo grupo",
+            "name": "Nombre",
+            "person": "Añadir a una persona",
+            "personHint": "Por su nombre, de una en una. No necesita la app.",
+            "add": "Añadir",
+            "friend": "De tus amigos",
+            "friendNone": "Elige a un amigo",
+            "addFriend": "Añadir amigo",
+            "people": "Personas que añadir",
+            "remove": "Quitar",
+            "removeItem": "Quitar a {name}",
+            "submit": "Crear el grupo",
+            "full": "Un grupo admite {max} personas como máximo, contándote a ti."
+        },
+        "links": {
+            "make": "Invitar a un amigo",
+            "hint": "Para quien usa Tarja o la va a usar. Obtienes un enlace para enviárselo y seréis amigos cuando lo acepte. Sirve una vez, durante {days} días.",
+            "title": "Enlaces de invitación",
+            "loadFailed": "No se pudieron cargar tus enlaces de invitación."
+        },
+        "nameInvalid": "Un nombre necesita al menos un carácter visible y ningún control de dirección del texto.",
+        "failure": {
+            "offline": "Estás sin conexión. Conéctate e inténtalo de nuevo.",
+            "readOnly": "Este grupo está cerrado, así que no se puede cambiar nada.",
+            "unsynced": "Algunos cambios tuyos en este grupo aún no se han enviado. Conéctate e inténtalo de nuevo.",
+            "unsettled": "El saldo de esta persona no está a cero. Primero hay que saldar cuentas.",
+            "notOwner": "Solo quien administra el grupo puede hacer eso.",
+            "ownerLeaves": "Quien administra el grupo no puede salir. Primero haz admin a otra persona, o elimina el grupo.",
+            "memberGone": "Esa persona ya no está en el grupo.",
+            "notAUser": "La persona que elegiste aún no se ha unido a la app.",
+            "notPlaceholder": "Esa persona ya se ha unido, así que no se puede fusionar ni sustituir.",
+            "tooManyGroups": "Estás en {max} grupos abiertos, el máximo. Sal de alguno o elimínalo primero.",
+            "tooManyFriends": "Tienes {max} amigos, el máximo. Quita alguno primero.",
+            "friendTooManyGroups": "Esa persona está en {max} grupos abiertos, el máximo.",
+            "tooManyClosedGroups": "Tienes {max} grupos cerrados, el máximo, así que no puedes crear ni unirte a más. Archiva algunos para hacer sitio.",
+            "friendTooManyClosedGroups": "Esa persona tiene {max} grupos cerrados, el máximo, así que no puede unirse a más hasta que archive algunos.",
+            "alreadyMember": "Esa persona ya está en el grupo, o estuvo antes.",
+            "unknownFriend": "Esa persona ya no está entre tus amigos.",
+            "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
+            "tooManyMembersEver": "Este grupo ha tenido {max} personas, contando a las que se fueron, el máximo. Crea un grupo nuevo.",
+            "tooManyInvitations": "Tienes {max} enlaces de invitación abiertos, el máximo. Retira alguno primero.",
+            "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
+        },
+        "edit": {
+            "link": "Editar grupo",
+            "linkFriend": "Editar amigo",
+            "title": "Editar {name}",
+            "show": "Mostrar en mis gastos",
+            "showHint": "Si lo desactivas, los gastos de este grupo no salen en tu lista, tu resumen, tus gráficos ni tus presupuestos.",
+            "archive": "Archivar",
+            "unarchive": "Recuperar",
+            "name": "Nombre",
+            "simplify": "Simplificar deudas",
+            "simplifyHint": "Muestra el menor número de pagos que salda el grupo. No cambia ningún gasto.",
+            "save": "Guardar"
+        },
+        "people": {
+            "title": "Personas",
+            "you": "Tú",
+            "owner": "Admin",
+            "notJoined": "Aún no se ha unido",
+            "rename": "Cambiar nombre",
+            "renameItem": "Cambiar nombre de {name}",
+            "merge": "Fusionar con…",
+            "mergeItem": "Fusionar con… ({name})",
+            "mergeQuestion": "¿Fusionar a {name} con alguien que usa la app? Lo repartido con {name} pasa a ser suyo. No se puede deshacer.",
+            "mergeInto": "Con",
+            "mergeNone": "Elige a alguien",
+            "mergeConfirm": "Fusionar",
+            "mergeConfirmItem": "Fusionar a {name}",
+            "makeOwner": "Hacer admin",
+            "makeOwnerItem": "Hacer admin a {name}",
+            "makeOwnerQuestion": "¿Hacer admin a {name}? Sigues en el grupo, pero solo esa persona podrá hacer lo que hace quien administra.",
+            "newName": "Nuevo nombre",
+            "save": "Guardar nombre",
+            "cancel": "Cancelar",
+            "remove": "Quitar",
+            "removeItem": "Quitar a {name}",
+            "removeConfirm": "¿Quitar a {name} del grupo? Sigue en los gastos que ya se repartieron.",
+            "unsettled": "El saldo de {name} no está a cero. Primero hay que saldar cuentas.",
+            "add": "Añadir a una persona",
+            "addHint": "Por su nombre. No necesita la app.",
+            "addSubmit": "Añadir",
+            "friend": "De tus amigos",
+            "friendNone": "Elige a un amigo",
+            "place": "Cómo entra",
+            "asNew": "Como persona nueva",
+            "inPlaceOf": "En lugar de {name}",
+            "addFriend": "Añadir amigo"
+        },
+        "close": {
+            "leave": {
+                "button": "Salir del grupo",
+                "question": "¿Salir de {name}?",
+                "what": "El grupo se cierra para ti tal como está hoy. Sus gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "confirm": "Salir",
+                "unsettled": "Tu saldo en {name} no está a cero. Salda cuentas antes de salir."
+            },
+            "delete": {
+                "button": "Eliminar el grupo",
+                "question": "¿Eliminar {name}?",
+                "what": "El grupo se cierra para todas las personas que están en él. Los gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "confirm": "Eliminar",
+                "unsettled": "No todos los saldos de {name} están a cero. Primero hay que saldar cuentas."
+            },
+            "deleteFriend": {
+                "button": "Quitar de amigos",
+                "question": "¿Quitar a {name} de tus amigos?",
+                "what": "Lo que compartíais se queda como estaba. Sigue en tu lista, y puedes quitarlo aquí.",
+                "confirm": "Quitar",
+                "unsettled": "Aún hay deudas entre {name} y tú. Primero hay que saldar cuentas."
+            },
+            "cancel": "Cancelar",
+            "settleUp": "Saldar cuentas"
+        },
+        "ledger": {
+            "title": "Gastos",
+            "empty": "Aún no hay gastos.",
+            "order": {
+                "legend": "Orden",
+                "added": "Últimos añadidos",
+                "date": "Por fecha"
+            },
+            "youPaid": "Pagaste tú",
+            "paidBy": "Pagó {name}",
+            "yourPart": "Tu parte: {amount}",
+            "notIn": "No participas",
+            "addedBy": "Añadido por {name}",
+            "editedBy": "Editado por {name}",
+            "youPaidTo": "Pagaste a {name}",
+            "paidYou": "{name} te pagó",
+            "paid": "{from} pagó a {to}",
+            "deleted": "Se eliminó «{name}» de {group}",
+            "deletedSettlement": "Eliminado de {group}: el pago «{name}»",
+            "leftCantEdit": "Alguien de este apunte ha salido del grupo, así que no se puede editar. Si hay que cambiarlo, elimínalo y añádelo de nuevo."
+        },
+        "refused": {
+            "change": "Se descartó un cambio en «{name}» de {group}.",
+            "elsewhere": "Se descartó un cambio en un grupo que no está en este dispositivo.",
+            "reason": {
+                "closed": "El grupo está cerrado.",
+                "memberLeft": "Alguien que participa ha salido del grupo.",
+                "unknownMember": "Alguien que participa no está en el grupo.",
+                "notThePayer": "Solo quien pagó puede indicar que pagó con tarjeta.",
+                "kindFixed": "Un gasto no puede pasar a ser un pago, ni un pago a ser un gasto.",
+                "currencyMismatch": "Su moneda no es la del grupo.",
+                "unknownCategory": "Su categoría no es una de las predeterminadas.",
+                "idTaken": "Coincide con un apunte de otro grupo.",
+                "clockAhead": "El reloj de este dispositivo va adelantado. Revisa la fecha y la hora, y vuelve a introducirlo.",
+                "other": "El servidor lo rechazó."
+            },
+            "dismiss": "Cerrar"
+        },
+        "join": {
+            "title": "Invitación de amistad",
+            "asks": "{name} quiere que seáis amigos.",
+            "what": "Si aceptas, seréis amigos: podréis compartir gastos y ver lo que os debéis. Tu parte de esos gastos cuenta en tus propios gastos, y puedes quitarla con Mostrar en mis gastos.",
+            "accept": "Aceptar",
+            "decline": "Rechazar",
+            "loading": "Abriendo la invitación…",
+            "offline": "No tienes conexión. Para abrir una invitación hace falta conexión.",
+            "gone": "Este enlace ya no sirve. Puede que haya caducado, que ya se haya usado o que lo hayan retirado. Pide uno nuevo.",
+            "yourself": "Es tu propia invitación. Envía el enlace a la persona con quien quieras compartir gastos.",
+            "alreadyFriends": "{name} y tú ya sois amigos.",
+            "inviterAtLimit": "{name} no puede tener más amigos por ahora.",
+            "loadFailed": "No se pudo abrir la invitación. Inténtalo de nuevo.",
+            "failed": "No se pudo responder a la invitación. Inténtalo de nuevo.",
+            "retry": "Reintentar",
+            "declined": "Has rechazado la invitación."
+        },
+        "invite": {
+            "link": "Enlace de invitación",
+            "until": "Abierto hasta el {date}. Sirve una vez.",
+            "copy": "Copiar enlace",
+            "share": "Compartir enlace",
+            "copied": "Enlace copiado.",
+            "sendFailed": "No se pudo copiar ni compartir el enlace. Selecciónalo arriba y cópialo tú.",
+            "revoke": "Retirar enlace"
+        }
     },
     "summary": {
         "title": "Resumen",

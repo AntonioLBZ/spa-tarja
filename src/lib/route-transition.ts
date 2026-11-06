@@ -5,20 +5,29 @@ const DEPTHS: Record<string, number> = {
     '/': 0,
     '/settings': 1,
     '/summary': 1,
+    '/groups': 1,
     '/categories': 2,
     '/charts': 2,
     '/budgets': 2,
 };
 
+// The screens of one group, and the page of an invitation, by the shape of their path
+const PATH_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
+    [/^\/groups\/[^/]+$/, 2],
+    [/^\/groups\/[^/]+\/edit$/, 3],
+    [/^\/join\/[^/]+$/, 1],
+];
+
 const routeDepth = (pathname: string): number => {
-    return DEPTHS[pathname] ?? 0;
+    return DEPTHS[pathname] ?? PATH_DEPTHS.find(([shape]) => shape.test(pathname))?.[1] ?? 0;
 };
 
-type NavSection = '/' | '/summary' | '/settings';
+type NavSection = '/' | '/groups' | '/summary' | '/settings';
 
 // The header word a screen falls under, which carries the underline: a deeper screen falls under the one it is reached
 // from
 const SECTIONS: Record<string, NavSection> = {
+    '/groups': '/groups',
     '/summary': '/summary',
     '/charts': '/summary',
     '/budgets': '/summary',
@@ -27,7 +36,8 @@ const SECTIONS: Record<string, NavSection> = {
 };
 
 const navSection = (pathname: string): NavSection => {
-    return SECTIONS[pathname] ?? '/';
+    const underGroups = pathname.startsWith('/groups/') || pathname.startsWith('/join/');
+    return SECTIONS[pathname] ?? (underGroups ? '/groups' : '/');
 };
 
 interface LocationChange {

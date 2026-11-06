@@ -1,11 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useSyncExternalStore } from 'react';
 
-import { expensesQuery, useOutbox } from '@/lib/offline';
+import { RETRY_EVERY_MS, expensesQuery, useOutbox } from '@/lib/offline';
 import { applyPending } from '@core/expense-merge';
-
-// How often to retry while something is waiting to sync, for connections that say they're up but aren't
-const RETRY_EVERY_MS = 30_000;
 
 // The expenses as the person sees them: what the server told this device, with their unsynced changes on top
 const useExpenses = () => {
@@ -23,6 +20,8 @@ const useExpenses = () => {
         pendingIds,
         // Whether this device has ever heard from the server
         hasData: query.data !== undefined,
+        // Whether what is here is only what the device sent, since no pull ever worked (the cursor is still 0)
+        neverPulled: query.data !== undefined && query.data.cursor === 0 && query.data.expenses.length > 0,
         isError: query.isError,
         // Waiting for the connection rather than loading
         isWaitingForNetwork: query.fetchStatus === 'paused',

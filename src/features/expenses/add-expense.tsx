@@ -11,18 +11,26 @@ import { ExpenseForm } from './expense-form';
 // Editing or duplicating an expense loads it into the same form, which a new key puts back to adding once that is over.
 const AddExpense = () => {
     const t = useTranslations('expenses.form');
-    const { open, setOpen, editing, copying, endEdit, endCopy, noteAdded } = useAddForm();
+    const { open, setOpen, editing, copying, editingEntry, copyingEntry, endEdit, endCopy, noteAdded } = useAddForm();
     const heading = useRef<HTMLButtonElement>(null);
-    const title = editing ? t('editTitle') : copying ? t('copyTitle') : t('title');
+    const isEdit = editing !== null || editingEntry !== null;
+    const isCopy = copying !== null || copyingEntry !== null;
+    const title = isEdit ? t('editTitle') : isCopy ? t('copyTitle') : t('title');
+    // A shared expense is changed or copied in its group, which the form then holds fixed
+    const entry = editingEntry ?? copyingEntry;
+    const key =
+        editing?.[0]!.id ??
+        editingEntry?.entry.id ??
+        (copying ? `copy-${copying.serial}` : copyingEntry ? `copy-${copyingEntry.serial}` : 'new');
 
     // Edit and Duplicate bring the form into view and put the focus on its heading, never on a field: a phone would
     // open its keyboard
     useEffect(() => {
-        if (!editing && !copying) return;
+        if (!editing && !copying && !editingEntry && !copyingEntry) return;
         const behavior = readDuration('--duration-base') === 0 ? 'instant' : 'smooth';
         heading.current?.scrollIntoView({ behavior, block: 'start' });
         heading.current?.focus({ preventScroll: true });
-    }, [editing, copying]);
+    }, [editing, copying, editingEntry, copyingEntry]);
 
     return (
         <Disclosure
@@ -36,10 +44,13 @@ const AddExpense = () => {
             toggleRef={heading}
         >
             <ExpenseForm
-                key={editing?.[0]!.id ?? (copying ? `copy-${copying.serial}` : 'new')}
+                key={key}
                 title={title}
+                group={entry?.group}
                 editing={editing}
                 copying={copying?.parts ?? null}
+                editingEntry={editingEntry?.entry ?? null}
+                copyingEntry={copyingEntry?.entry ?? null}
                 onDone={() => {
                     endEdit({ refocus: true });
                     endCopy({ refocus: true });

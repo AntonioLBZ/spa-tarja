@@ -1,18 +1,24 @@
+import * as v from 'valibot';
+
+import { USER_HEADER, accountDeletionSchema, confirmsEmail } from '@core/account';
 import { categoryNameKey, type Category } from '@core/category';
 import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
+import { profileInputSchema, type Profile } from '@core/profile';
+
+import { TEST_USER } from './fake-auth';
+import { createFakeGroups, type FakeGroupsOptions, type FakeGroupsState, type Refusal } from './fake-groups';
 
 import type { Handler } from './render-app';
 import type { Budget, BudgetLimitsInput } from '@core/budget';
 import type { Expense } from '@core/expense';
 import type { Income, IncomeInput } from '@core/income';
 
-interface FakeApiOptions {
+interface FakeApiOptions extends FakeGroupsOptions {
     expenses?: Expense[];
     categories?: Category[];
     income?: Income[];
     budgets?: Budget[];
-    // Most rows per page, whatever the client asks for
-    pageSize?: number;
+    nickname?: string | null;
 }
 
 // An in-memory stand-in for the Worker's routes; anything it doesn't know answers 404
@@ -39,9 +45,17 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
     const budgetRequests: string[] = [];
     const budgetBodies: unknown[] = [];
 
+    // The account is that of the test user, who is the one signed in
+    const profile: Profile = { nickname: options.nickname ?? null, name: TEST_USER.name };
+    const profileBodies: unknown[] = [];
+
+    const accountDeletions: unknown[] = [];
+
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
     const requests: string[] = [];
+    // The user each request said it was made for, by request, null when it named nobody
+    const requestUsers: Array<{ request: string; user: string | null }> = [];
     const state = {
         // An HTTP status to answer every write with, or null to accept them
         writeStatus: null as number | null,
@@ -53,19 +67,58 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         incomeWriteStatus: null as number | null,
         // An HTTP status to answer every budget write with, or null to accept them
         budgetWriteStatus: null as number | null,
+        // An HTTP status to answer every profile write with, or null to accept them
+        profileWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
+        // The user the browser's cookie carries, who a request that names another user is refused for. Null accepts any.
+        cookieUser: null as string | null,
+        // An HTTP status to answer the deletion of the account with, or null to delete it
+        accountDeleteStatus: null as number | null,
+        // The email the server holds for the account, which the deletion has to be confirmed with
+        accountEmail: TEST_USER.email as string,
+        // Answers every change of a group or of its people with it, or null to accept them
+        groupRefusal: null as Refusal | null,
+        // Answers every write of an entry of a group with it, or null to accept them
+        entryRefusal: null as Refusal | null,
+        // An entry of a group lands, and then the connection drops before its answer arrives
+        loseEntryAnswers: false,
+        // Answers reading, accepting or declining a link with these, instead of doing it
+        linkRefusals: {} as FakeGroupsState['linkRefusals'],
     };
 
-    const handler: Handler = (url, init) => {
+    const fakeGroups = createFakeGroups(options, state, profile);
+
+    // While a test holds it, every request waits for the function it hands back to be called
+    let gate: Promise<void> | null = null;
+    const hold = () => {
+        let release: () => void = () => undefined;
+        gate = new Promise((resolve) => {
+            release = resolve;
+        });
+        return () => {
+            gate = null;
+            release();
+        };
+    };
+
+    const handler: Handler = async (url, init) => {
         const method = init?.method ?? 'GET';
-        requests.push(`${method} ${url.pathname}${url.search}`);
+        const request = `${method} ${url.pathname}${url.search}`;
+        requests.push(request);
+        requestUsers.push({ request, user: new Headers(init?.headers).get(USER_HEADER) });
+        if (gate) await gate;
 
         if (state.offline) throw new TypeError('Failed to fetch');
 
         if (url.pathname === '/api/health') return Response.json({ ok: true });
 
         if (state.unauthorized) return Response.json({ error: 'unauthorized' }, { status: 401 });
+
+        const named = new Headers(init?.headers).get(USER_HEADER);
+        if (state.cookieUser !== null && named !== null && named !== state.cookieUser) {
+            return Response.json({ error: 'other-user' }, { status: 401 });
+        }
 
         if (url.pathname === '/api/expenses' && method === 'GET') {
             const after = Number(url.searchParams.get('after') ?? 0);
@@ -77,6 +130,10 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
                 cursor: page.at(-1)?.seq ?? after,
                 hasMore: changes.length > page.length,
             });
+        }
+
+        if (url.pathname.startsWith('/api/groups') || url.pathname.startsWith('/api/invitations')) {
+            return fakeGroups.handle(url, method, init);
         }
 
         if (url.pathname === '/api/categories' && method === 'GET') return Response.json({ categories });
@@ -153,6 +210,34 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             return Response.json({ budgets: saved });
         }
 
+        if (url.pathname === '/api/profile' && method === 'GET') return Response.json(profile);
+
+        if (url.pathname === '/api/profile' && method === 'PUT') {
+            const body: unknown = JSON.parse(String(init?.body));
+            profileBodies.push(body);
+            if (state.profileWriteStatus !== null) return new Response(null, { status: state.profileWriteStatus });
+
+            const parsed = v.safeParse(profileInputSchema, body);
+            if (!parsed.success) return Response.json({ error: 'invalid' }, { status: 400 });
+            profile.nickname = parsed.output.nickname;
+            return Response.json(profile);
+        }
+
+        if (url.pathname === '/api/account' && method === 'DELETE') {
+            const body: unknown = JSON.parse(String(init?.body));
+            accountDeletions.push(body);
+            if (state.accountDeleteStatus !== null) return new Response(null, { status: state.accountDeleteStatus });
+
+            const parsed = v.safeParse(accountDeletionSchema, body);
+            if (!parsed.success) return Response.json({ error: 'invalid' }, { status: 400 });
+            if (!confirmsEmail(parsed.output.email, state.accountEmail)) {
+                return Response.json({ error: 'wrong-email' }, { status: 422 });
+            }
+            // The account and its sessions are gone
+            state.unauthorized = true;
+            return new Response(null, { status: 204 });
+        }
+
         const id = /^\/api\/expenses\/([^/]+)$/.exec(url.pathname)?.[1];
         if (id && method === 'PUT') {
             const expense: Expense = { id, ...JSON.parse(String(init?.body)) };
@@ -171,6 +256,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         writes,
         attempts,
         requests,
+        requestUsers,
         state,
         // Something another device wrote
         serverWrite: store,
@@ -181,6 +267,18 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgets,
         budgetRequests,
         budgetBodies,
+        profile,
+        profileBodies,
+        accountDeletions,
+        hold,
+        groups: fakeGroups.groups,
+        groupRequests: fakeGroups.groupRequests,
+        entryAttempts: fakeGroups.entryAttempts,
+        entryWrites: fakeGroups.entryWrites,
+        entriesOf: fakeGroups.entriesOf,
+        cursorOf: fakeGroups.cursorOf,
+        pendingInvitations: fakeGroups.pendingInvitations,
+        serverWriteEntry: fakeGroups.serverWriteEntry,
     };
 };
 
