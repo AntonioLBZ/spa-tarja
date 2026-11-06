@@ -4,19 +4,19 @@ import { MAX_OPEN_INVITATIONS } from '@core/shared-group';
 
 const DAY = 24 * 60 * 60 * 1000;
 
-// A direct invitation that nobody answered or revoked and that hasn't expired; ?2 is the time now
+// An invitation that nobody answered or revoked and that hasn't expired; ?2 is the time now
 const PENDING = `
     member_id IS NULL AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL AND expires_at > ?2`;
 
 // Only while the person has room for one more, counted in the same statement, so that makes at the same moment can't
 // pass the limit
-const INSERT_DIRECT = `
+const INSERT_INVITATION = `
     INSERT INTO friend_invitations (id, created_by, created_at, expires_at)
     SELECT ?1, ?3, ?2, ?4
     WHERE (SELECT COUNT(*) FROM friend_invitations WHERE created_by = ?3 AND ${PENDING}) < ${MAX_OPEN_INVITATIONS}`;
 
-// The direct invitations of ?1 that ended before ?2 without being accepted: revoked, declined, or past their end
-const PURGE_ENDED_DIRECT = `
+// The invitations of ?1 that ended before ?2 without being accepted: revoked, declined, or past their end
+const PURGE_ENDED = `
     DELETE FROM friend_invitations
     WHERE created_by = ?1 AND member_id IS NULL AND accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ?2`;
 
@@ -25,9 +25,9 @@ const LIST_PENDING = `
     SELECT id, expires_at AS expiresAt FROM friend_invitations
     WHERE created_by = ?1 AND ${PENDING} ORDER BY created_at DESC, rowid DESC`;
 
-const REVOKE_DIRECT = `UPDATE friend_invitations SET revoked_at = ?2 WHERE id = ?3 AND created_by = ?1 AND ${PENDING}`;
+const REVOKE = `UPDATE friend_invitations SET revoked_at = ?2 WHERE id = ?3 AND created_by = ?1 AND ${PENDING}`;
 
-const OWN_DIRECT = 'SELECT 1 FROM friend_invitations WHERE id = ?3 AND created_by = ?1 AND member_id IS NULL';
+const OWNED = 'SELECT 1 FROM friend_invitations WHERE id = ?3 AND created_by = ?1 AND member_id IS NULL';
 
 // An invitation with what decides whether it can still be taken
 interface InvitationState {
@@ -35,7 +35,7 @@ interface InvitationState {
     // The friend it made, once it was accepted
     groupId: string | null;
     acceptedBy: string | null;
-    // Nobody answered or revoked it, it hasn't expired, it is direct and who asks is still a user
+    // Nobody answered or revoked it, it hasn't expired and who asks is still a user
     open: boolean;
     // The user who asks to be friends
     inviter: string | null;
@@ -109,7 +109,7 @@ const areFriends = async (db: D1Database, one: string, other: string): Promise<b
 
 // The friend an invitation made, in the app's currency, with who asked under `inviterName`; or null, with nothing
 // written, when it could no longer be used or the two became friends meanwhile
-const acceptDirectInvitation = async (
+const acceptInvitation = async (
     db: D1Database,
     id: string,
     taker: Taker,
@@ -134,7 +134,7 @@ const declineInvitation = async (db: D1Database, id: string, userId: string): Pr
 
 // A link to be friends with nobody behind it, or null when the person has as many open as there can be. The person's own
 // links that ended long ago go with it, so the table doesn't grow with every link made and revoked.
-const createDirectInvitation = async (
+const createInvitation = async (
     db: D1Database,
     by: string,
     at: number
@@ -142,8 +142,8 @@ const createDirectInvitation = async (
     const id = crypto.randomUUID();
     const expiresAt = at + INVITATION_DAYS * DAY;
     const [, inserted] = await db.batch([
-        db.prepare(PURGE_ENDED_DIRECT).bind(by, at - ENDED_INVITATION_DAYS * DAY),
-        db.prepare(INSERT_DIRECT).bind(id, at, by, expiresAt),
+        db.prepare(PURGE_ENDED).bind(by, at - ENDED_INVITATION_DAYS * DAY),
+        db.prepare(INSERT_INVITATION).bind(id, at, by, expiresAt),
     ]);
     return (inserted?.meta.changes ?? 0) > 0 ? { id, expiresAt } : null;
 };
@@ -161,22 +161,19 @@ const listPendingInvitations = async (
 };
 
 // Whether it is an invitation of the person's, which is then revoked if it was still open
-const revokeDirectInvitation = async (db: D1Database, userId: string, id: string): Promise<boolean> => {
+const revokeInvitation = async (db: D1Database, userId: string, id: string): Promise<boolean> => {
     const now = Date.now();
-    const [, own] = await db.batch([
-        db.prepare(REVOKE_DIRECT).bind(userId, now, id),
-        db.prepare(OWN_DIRECT).bind(userId, now, id),
-    ]);
+    const [, own] = await db.batch([db.prepare(REVOKE).bind(userId, now, id), db.prepare(OWNED).bind(userId, now, id)]);
     return (own?.results.length ?? 0) > 0;
 };
 
 export {
-    acceptDirectInvitation,
+    acceptInvitation,
     areFriends,
-    createDirectInvitation,
+    createInvitation,
     declineInvitation,
     listPendingInvitations,
     readInvitation,
-    revokeDirectInvitation,
+    revokeInvitation,
     type InvitationState,
 };

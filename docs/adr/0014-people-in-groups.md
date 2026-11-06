@@ -23,7 +23,7 @@ Login is Google only ([ADR-0008](0008-google-login-with-better-auth.md)) and the
 - Bringing a new real person into a group takes two steps: they become a friend, then they are added. Adding a dummy takes one.
 - A friend who is added to a group can't refuse, only leave once their balance is zero; anybody in the group can write entries that split with them. That is the trust the friendship stands for.
 - A dummy can't be invited. To bring into the app somebody who is a dummy in a group, the maker invites them as a friend with a link and then adds that friend to the group in place of the dummy, which merges it.
-- A direct link holds no place for anybody, so a person keeps only a few of them open at once.
+- A link holds no place for anybody, so a person keeps only a few of them open at once.
 - Deleting an account is irreversible and needs a connection. The backups D1 keeps on its own expire by themselves. Personal data of others stays in the ledgers of the groups, under the name the group gave them, but only in a group somebody else has an account in; what nobody else could read goes with them, names and texts included.
 - The invitations, the merge and the deletion need a connection ([ADR-0013](0013-shared-entries-sync-through-an-outbox.md)).
 
@@ -33,6 +33,6 @@ Login is Google only ([ADR-0008](0008-google-login-with-better-auth.md)) and the
 - **An invitation by email**: needs a mail service, which isn't free.
 - **An invitation to a group**: it leaks the group to whoever sees a link, and it is a second kind of invitation next to the one for friends.
 - **Links only for a dummy**: inviting a person who uses the app would mean making a fake friend first and having them replace it, a step the owner found hard to follow (2026-11-06).
-- **Friends by name, with a link for their dummy later**: a friend that was only typed looks like any other and has no account, and the same person could end up as two friends, a typed one and a real one that came through a direct link. The owner dropped it (2026-11-06): a friend is somebody who accepted, and a person without the app is a dummy inside a group.
+- **Friends by name, with a link for their dummy later**: a friend that was only typed looks like any other and has no account, and the same person could end up as two friends, a typed one and a real one that came through a link. The owner dropped it (2026-11-06): a friend is somebody who accepted, and a person without the app is a dummy inside a group.
 - **Rewriting the entries to merge**: touches every entry of the group, bumps every cursor and breaks the writes waiting in an outbox.
 - **Deleting a person's entries with their account**: it would change the balances of people who did nothing.

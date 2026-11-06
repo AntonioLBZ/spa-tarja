@@ -295,7 +295,7 @@ describe('making a link to be friends', () => {
 });
 
 describe('a link to be friends, opened by somebody', () => {
-    async function directLink(as = ana) {
+    async function linkOf(as = ana) {
         return (await linkMade(as)).token;
     }
 
@@ -305,7 +305,7 @@ describe('a link to be friends, opened by somebody', () => {
 
     it('shows only the name of who asks: their nickname', async () => {
         await send(ana, 'PUT', '/profile', { nickname: 'Anita' });
-        const token = await directLink();
+        const token = await linkOf();
 
         const response = await readLink(bruno, token);
 
@@ -314,7 +314,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('or else the name of their account, never their email', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         const response = await readLink(bruno, token);
 
@@ -325,7 +325,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('is only read when it is opened, which changes nothing', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         await readLink(bruno, token);
         await readLink(carla, token);
@@ -335,7 +335,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('needs a session to be read, accepted or declined', async () => {
-        const token = await directLink();
+        const token = await linkOf();
         const anonymous = { userId: '', headers: new Headers() };
 
         for (const response of [readLink, accept, decline].map((call) => call(anonymous, token))) {
@@ -352,7 +352,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('is never kept by a cache, whether it is read, accepted or declined', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         const answers = [await readLink(bruno, token), await accept(bruno, token), await decline(carla, token)];
 
@@ -361,7 +361,7 @@ describe('a link to be friends, opened by somebody', () => {
 
     it('names each of the two after their nickname, else the name of their account', async () => {
         await send(bruno, 'PUT', '/profile', { nickname: 'Bru' });
-        const token = await directLink();
+        const token = await linkOf();
 
         const friend = await groupOf(await accept(bruno, token));
 
@@ -369,7 +369,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('makes the two friends once accepted, both people, in a friend of the app currency that who asked owns', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         const friend = await groupOf(await accept(bruno, token));
 
@@ -387,7 +387,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('answers the same friend again to the person who took it, and serves nobody else', async () => {
-        const token = await directLink();
+        const token = await linkOf();
         const friend = await groupOf(await accept(bruno, token));
 
         expect(await groupOf(await accept(bruno, token))).toEqual(friend);
@@ -396,7 +396,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('serves one person when two accept at the same moment, and makes no second friend', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         const responses = await Promise.all([accept(bruno, token), accept(carla, token)]);
 
@@ -408,7 +408,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('makes one friend when two links of the same person are accepted at the same moment', async () => {
-        const [first, second] = [await directLink(), await directLink()];
+        const [first, second] = [await linkOf(), await linkOf()];
 
         const responses = await Promise.all([accept(bruno, first), accept(bruno, second)]);
 
@@ -439,7 +439,7 @@ describe('a link to be friends, opened by somebody', () => {
 
     it('refuses two people who are friends already, and leaves the link open', async () => {
         await befriend(ana, bruno);
-        const token = await directLink();
+        const token = await linkOf();
 
         expect(await error(await accept(bruno, token), 409)).toBe('already-friends');
         expect(await pendingIn(await listLinks(ana))).toHaveLength(1);
@@ -449,7 +449,7 @@ describe('a link to be friends, opened by somebody', () => {
     it('takes two people whose friend was removed', async () => {
         const old = await befriend(ana, bruno);
         await groupOf(await send(ana, 'DELETE', `/groups/${old.id}`));
-        const token = await directLink();
+        const token = await linkOf();
 
         expect((await accept(bruno, token)).status).toBe(200);
     });
@@ -457,13 +457,13 @@ describe('a link to be friends, opened by somebody', () => {
     it('takes two people who share a group but are not friends', async () => {
         const group = await makeGroup(ana);
         await groupOf(await send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { name: 'Bruno' }));
-        const token = await directLink();
+        const token = await linkOf();
 
         expect((await accept(bruno, token)).status).toBe(200);
     });
 
     it('tells the person who made it that it is their own, and stays open', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         for (const call of [readLink, accept, decline]) {
             expect(await error(await call(ana, token), 409)).toBe('yourself');
@@ -483,7 +483,7 @@ describe('a link to be friends, opened by somebody', () => {
         [
             'used by somebody else',
             async () => {
-                const token = await directLink();
+                const token = await linkOf();
                 await groupOf(await accept(carla, token));
                 return token;
             },
@@ -491,7 +491,7 @@ describe('a link to be friends, opened by somebody', () => {
         [
             'declined',
             async () => {
-                const token = await directLink();
+                const token = await linkOf();
                 expect((await decline(carla, token)).status).toBe(204);
                 return token;
             },
@@ -499,18 +499,18 @@ describe('a link to be friends, opened by somebody', () => {
         [
             'of a person who deleted their account',
             async () => {
-                const token = await directLink();
+                const token = await linkOf();
                 await send(ana, 'DELETE', '/account', { email: 'ana@example.com' });
                 return token;
             },
         ],
         [
             'signed with another secret',
-            async () => signInvitation('another-secret-that-is-long-enough', (await directLink()).slice(0, 36)),
+            async () => signInvitation('another-secret-that-is-long-enough', (await linkOf()).slice(0, 36)),
         ],
         ['that was never made', () => signInvitation(env.BETTER_AUTH_SECRET, crypto.randomUUID())],
-        ['with a signature made up', async () => `${(await directLink()).slice(0, 36)}.${'A'.repeat(43)}`],
-        ['spelled another way', async () => respelled(await directLink())],
+        ['with a signature made up', async () => `${(await linkOf()).slice(0, 36)}.${'A'.repeat(43)}`],
+        ['spelled another way', async () => respelled(await linkOf())],
         ['of another shape', async () => 'nonsense'],
         ['that is a number', async () => 7],
         ['that is null', async () => null],
@@ -557,14 +557,14 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('takes a person who has as many open groups as there can be, as groups and friends are counted apart', async () => {
-        const token = await directLink();
+        const token = await linkOf();
         for (let made = 0; made < MAX_OPEN_GROUPS; made++) await makeGroup(bruno);
 
         expect((await accept(bruno, token)).status).toBe(200);
     });
 
     it('is refused to a person who can take no more friends, with the limit that stops them', async () => {
-        const token = await directLink();
+        const token = await linkOf();
         await seedFriends(bruno.userId, MAX_FRIENDS);
         await seedClosedGroups(carla.userId, MAX_CLOSED_GROUPS);
 
@@ -577,7 +577,7 @@ describe('a link to be friends, opened by somebody', () => {
         ['friends', (userId: string) => seedFriends(userId, MAX_FRIENDS)],
         ['closed groups', (userId: string) => seedClosedGroups(userId, MAX_CLOSED_GROUPS)],
     ])('is refused when who asks has as many %s as there can be, in the same words', async (_, fill) => {
-        const token = await directLink();
+        const token = await linkOf();
         await fill(ana.userId);
         const groups = await countRows('shared_groups');
 
@@ -587,7 +587,7 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('is declined, which ends it, leaves the list of who made it and keeps nothing of who declined', async () => {
-        const token = await directLink();
+        const token = await linkOf();
 
         expect((await decline(bruno, token)).status).toBe(204);
 
@@ -598,8 +598,8 @@ describe('a link to be friends, opened by somebody', () => {
     });
 
     it('is revoked when who made it deletes their account, while a friend it made stays to answer again', async () => {
-        const open = await directLink();
-        const used = await directLink();
+        const open = await linkOf();
+        const used = await linkOf();
         const friend = await groupOf(await accept(bruno, used));
 
         expect((await send(ana, 'DELETE', '/account', { email: 'ana@example.com' })).status).toBe(204);

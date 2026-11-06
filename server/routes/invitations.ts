@@ -7,13 +7,13 @@ import { invitationIdSchema, invitationTokenSchema } from '@core/invitation';
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS, personName } from '@core/shared-group';
 import { countClosedGroups, countOpenGroups, readSharedGroup } from '@server/db/groups';
 import {
-    acceptDirectInvitation,
+    acceptInvitation,
     areFriends,
-    createDirectInvitation,
+    createInvitation,
     declineInvitation,
     listPendingInvitations,
     readInvitation,
-    revokeDirectInvitation,
+    revokeInvitation,
 } from '@server/db/invitations';
 import { readProfile } from '@server/db/profile';
 import { readInvitationToken, signInvitation } from '@server/invitation-token';
@@ -80,7 +80,7 @@ const invitationsRoutes = new Hono<AppEnv>()
         const userId = c.var.userId;
         const limit = await friendLimitOf(c.env.DB, userId);
         if (limit) return c.json({ error: limit }, 409);
-        const made = await createDirectInvitation(c.env.DB, userId, Date.now());
+        const made = await createInvitation(c.env.DB, userId, Date.now());
         if (!made) return c.json({ error: 'too-many-invitations' }, 409);
         const invitation: PendingInvitation = {
             id: made.id,
@@ -92,7 +92,7 @@ const invitationsRoutes = new Hono<AppEnv>()
     // Another person's invitation is not found, as one that doesn't exist
     .delete('/:invitationId', invitationParam, async (c) => {
         const userId = c.var.userId;
-        const own = await revokeDirectInvitation(c.env.DB, userId, c.req.valid('param').invitationId);
+        const own = await revokeInvitation(c.env.DB, userId, c.req.valid('param').invitationId);
         if (!own) return c.json(NOT_FOUND, 404);
         return c.json({ invitations: await pendingOf(c.env, userId) }, 200);
     })
@@ -124,7 +124,7 @@ const invitationsRoutes = new Hono<AppEnv>()
 
         const taker = { userId, name: personName(await readProfile(db, userId)) };
         const inviterName = personName(await readProfile(db, inviter));
-        const friendId = await acceptDirectInvitation(db, invitation.id, taker, inviterName);
+        const friendId = await acceptInvitation(db, invitation.id, taker, inviterName);
         if (friendId !== null) return answer(friendId);
 
         // Taken or revoked meanwhile, or the two made friends through another link at the same moment

@@ -21,7 +21,7 @@ const MAX_GROUP_MEMBERS = 30;
 // Counting every member the group ever had, those who left and were merged included, as their rows are never deleted
 const MAX_GROUP_MEMBER_ROWS = 100;
 
-// Per user, the direct invitations that are still open: a link holds no place for anybody, so a person keeps only a few
+// Per user, the invitations that are still open: a link holds no place for anybody, so a person keeps only a few
 const MAX_OPEN_INVITATIONS = 20;
 
 const SHARED_NAME_MAX_LENGTH = 40;

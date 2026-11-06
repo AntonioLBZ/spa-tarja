@@ -2,7 +2,7 @@ import { applyD1Migrations, type D1Migration } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { acceptDirectInvitation } from '@server/db/invitations';
+import { acceptInvitation } from '@server/db/invitations';
 import { makeGroup, memberNamed } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
@@ -113,7 +113,7 @@ describe('taking an invitation', () => {
             ).first();
         const before = await count();
 
-        const friendId = await acceptDirectInvitation(env.DB, id, { userId: bruno.userId, name: 'Bruno' }, 'Ana');
+        const friendId = await acceptInvitation(env.DB, id, { userId: bruno.userId, name: 'Bruno' }, 'Ana');
 
         expect(friendId).toBeNull();
         expect(await count()).toEqual(before);
@@ -125,7 +125,7 @@ const { TEST_MIGRATIONS, MIGRATION_DB } = env as unknown as {
     MIGRATION_DB: D1Database;
 };
 
-describe('the migration that lets an invitation be direct', () => {
+describe('the migration that lets an invitation hold no member', () => {
     const before = TEST_MIGRATIONS.filter((migration) => migration.name < '0013');
     const columns =
         'rowid, id, group_id, member_id, created_by, created_at, expires_at, accepted_by, accepted_at, declined_at, revoked_at';
