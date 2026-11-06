@@ -6,7 +6,6 @@ import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { YOUR_DATA_ID } from '@/features/export/your-data';
-import { forgetSharedWith } from '@/features/groups/shared-with';
 import { ApiError, deleteAccount } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { useGroupOutbox, useOnline, useOutbox, useUserData } from '@/lib/offline';
@@ -77,7 +76,6 @@ const DeleteAccount = () => {
         } catch {
             cleared = false;
         }
-        forgetSharedWith();
         forget({ cleared });
     };
 

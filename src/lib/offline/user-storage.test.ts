@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
+import { readSharedWith, rememberSharedWith } from './shared-with';
 import { createUserStorage } from './user-storage';
 
 describe('user storage', () => {
@@ -51,6 +52,30 @@ describe('user storage', () => {
             expect(await bea.storage.get('tarja:outbox')).toEqual(['bea']);
             expect(await bea.storage.get('tarja:group-outbox')).toEqual(['bea in a group']);
             expect(await bea.storage.get('tarja:query-cache')).toEqual({ bea: true });
+        });
+
+        it('forgets the group last shared with of that user, and of nobody else', async () => {
+            rememberSharedWith('ana', 'group-of-ana');
+            rememberSharedWith('bea', 'group-of-bea');
+
+            await createUserStorage(createMemoryStorage(), 'ana').discard();
+
+            expect(readSharedWith('ana')).toBeNull();
+            expect(readSharedWith('bea')).toBe('group-of-bea');
+        });
+
+        it('forgets it even when the storage cannot delete', async () => {
+            const blocked = {
+                ...createMemoryStorage(),
+                remove: async () => {
+                    throw new Error('The storage is blocked');
+                },
+            };
+            rememberSharedWith('ana', 'group-of-ana');
+
+            await expect(createUserStorage(blocked, 'ana').discard()).rejects.toThrow('The storage is blocked');
+
+            expect(readSharedWith('ana')).toBeNull();
         });
 
         it('deletes data it never touched in this session', async () => {

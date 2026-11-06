@@ -1,12 +1,13 @@
 import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY } from './outbox';
 import { QUERY_CACHE_STORAGE_KEY } from './persister';
+import { forgetSharedWith } from './shared-with';
 
 import type { KeyValueStorage } from './storage';
 
 interface UserStorage {
     storage: KeyValueStorage;
-    // Deletes the outboxes and the cache of the user from this device. Writes that come after, such as a throttled save
-    // of the cache, are ignored so they can't bring the data back.
+    // Deletes the outboxes, the cache and the group last shared with of the user from this device. Writes that come
+    // after, such as a throttled save of the cache, are ignored so they can't bring the data back.
     discard: () => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ const createUserStorage = (storage: KeyValueStorage, userId: string): UserStorag
         },
         discard: async () => {
             discarded = true;
+            forgetSharedWith(userId);
             const keys = [OUTBOX_STORAGE_KEY, GROUP_OUTBOX_STORAGE_KEY, QUERY_CACHE_STORAGE_KEY];
             await Promise.all(keys.map((key) => storage.remove(scoped(key))));
         },

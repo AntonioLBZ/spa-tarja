@@ -4,10 +4,17 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { readSharedWith, rememberSharedWith } from '@/features/groups/shared-with';
 import { EXPENSES_KEY } from '@/lib/api';
 import { readCachedUser } from '@/lib/auth';
-import { PERSIST_BUSTER, createUserStorage, syncGroup, type KeyValueStorage, type PendingEntry } from '@/lib/offline';
+import {
+    PERSIST_BUSTER,
+    createUserStorage,
+    readSharedWith,
+    rememberSharedWith,
+    syncGroup,
+    type KeyValueStorage,
+    type PendingEntry,
+} from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
@@ -296,7 +303,7 @@ describe('delete account', () => {
         const storage = createMemoryStorage();
         await seedCopy(storage, TEST_USER.id);
         await seedCopy(storage, 'someone-else');
-        rememberSharedWith(crypto.randomUUID());
+        rememberSharedWith(TEST_USER.id, crypto.randomUUID());
         const { api, app, dialog } = await openDialog(storage);
 
         confirm(dialog);
@@ -308,7 +315,7 @@ describe('delete account', () => {
             expect(await storage.get(`${key}:${TEST_USER.id}`)).toBeUndefined();
             expect(await storage.get(`${key}:someone-else`)).toBeDefined();
         }
-        expect(readSharedWith()).toBeNull();
+        expect(readSharedWith(TEST_USER.id)).toBeNull();
         expect(readCachedUser()).toBeNull();
         expect(app.fakeAuth.calls.signOut).toBe(0);
     });
@@ -322,7 +329,7 @@ describe('delete account', () => {
                 throw new Error('The storage is blocked');
             },
         };
-        rememberSharedWith(crypto.randomUUID());
+        rememberSharedWith(TEST_USER.id, crypto.randomUUID());
         const { dialog } = await openDialog(failing);
 
         confirm(dialog);
@@ -330,6 +337,6 @@ describe('delete account', () => {
         expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
         expect(screen.getByRole('alert').textContent).toBe(en.auth.deletedNotCleared);
         expect(readCachedUser()).toBeNull();
-        expect(readSharedWith()).toBeNull();
+        expect(readSharedWith(TEST_USER.id)).toBeNull();
     });
 });

@@ -10,10 +10,11 @@ import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords } from '@/features/groups/group-failure';
 import { SharedTail, useSharedTail } from '@/features/groups/shared-tail';
-import { rememberSharedWith } from '@/features/groups/shared-with';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
+import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
+import { rememberSharedWith } from '@/lib/offline';
 import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories';
 import { toDateString } from '@core/date';
 import { TEXT_MAX_LENGTH, type Payment } from '@core/expense';
@@ -137,6 +138,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     } = props;
     const t = useTranslations('expenses.form');
     const { locale } = useLocale();
+    const user = useUser();
     const save = useSaveExpense();
     const { save: saveEntry } = useEntryActions();
     const warn = useBudgetWarning();
@@ -238,7 +240,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 return;
             }
             warn(sharedRowsOf(write.group, [write.entry]));
-            rememberSharedWith(write.group.id);
+            rememberSharedWith(user.id, write.group.id);
             onAdded?.(date);
             if (copyingEntry) {
                 onDone?.();

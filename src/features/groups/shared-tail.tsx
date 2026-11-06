@@ -7,7 +7,9 @@ import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
+import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
+import { readSharedWith } from '@/lib/offline';
 import { splitEvenly } from '@core/installments';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
 import { SPLIT_MODES } from '@core/shared-entry';
@@ -25,7 +27,6 @@ import {
 
 import { newEntry } from './new-entry';
 import { NewPerson } from './new-person';
-import { readSharedWith } from './shared-with';
 import { groupsFirst, useGroupOptions } from './use-group-options';
 import { useGroupWords } from './use-group-words';
 import { useGroups } from './use-ledgers';
@@ -204,7 +205,8 @@ const useSharedTail = (
     const [draft, setDraft] = useState<SharedDraft>(() =>
         fixed && source ? draftOfEntry(fixed, source.entry, locale) : START
     );
-    const [remembered] = useState(readSharedWith);
+    const user = useUser();
+    const [remembered] = useState(() => readSharedWith(user.id));
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
 
     const group = draft.asking

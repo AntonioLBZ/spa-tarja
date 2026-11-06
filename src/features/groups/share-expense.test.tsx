@@ -6,7 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, GROUPS_KEY, groupEntriesKey } from '@/lib/api';
+import { rememberSharedWith } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
@@ -147,9 +149,24 @@ describe('the choice For', () => {
         expect(optionNames(share.with)).toEqual(['Trip', 'Dani', share.newPerson]);
     });
 
+    it('starts With on the first group for another user of the device, who never shared with the last one', async () => {
+        const dani = friend('Dani');
+        rememberSharedWith(TEST_USER.id, dani.id);
+        stubApi(createFakeApi({ groups: [trip(), dani] }).handler);
+        const other = { id: 'user-bea', name: 'Bea', email: 'bea@example.com' };
+        const app = renderApp({ fakeAuth: createFakeAuth({ session: other }) });
+        await screen.findByRole('radio', { name: form.forShared });
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(chosenOption(share.with)).toBe('Trip');
+        expect(localStorage.getItem(`tarja:shared-with:${other.id}`)).toBeNull();
+    });
+
     it('starts With on the group used last on this device', async () => {
         const dani = friend('Dani');
-        localStorage.setItem('tarja:shared-with', dani.id);
+        localStorage.setItem(`tarja:shared-with:${TEST_USER.id}`, dani.id);
         await openHome([trip(), dani]);
 
         fireEvent.click(forChoice(form.forShared));
@@ -244,7 +261,7 @@ describe('splitting equally', () => {
         expect(field(form.amount).value).toBe('');
         expect(field(form.text).value).toBe('');
         expect(forChoice(form.forMe).checked).toBe(true);
-        expect(localStorage.getItem('tarja:shared-with')).toBe(group.id);
+        expect(localStorage.getItem(`tarja:shared-with:${TEST_USER.id}`)).toBe(group.id);
     });
 
     it('leaves out whoever is unchecked, who shows no share', async () => {
