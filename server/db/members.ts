@@ -86,12 +86,17 @@ const renameMember = async (db: D1Database, memberId: string, name: string): Pro
     await db.prepare('UPDATE shared_members SET name = ?2 WHERE id = ?1').bind(memberId, name).run();
 };
 
-// The row stays, so the entries go on naming the member
-const leaveGroup = async (db: D1Database, memberId: string): Promise<void> => {
-    await db
-        .prepare(`UPDATE shared_members SET left_at = ?2, left_seq = ${CURSOR} WHERE id = ?1 AND left_at IS NULL`)
+// The row stays, so the entries go on naming the member. Whether they left now: not the owner, who may have been made
+// one since the request read the group, and not one who left already.
+const leaveGroup = async (db: D1Database, memberId: string): Promise<boolean> => {
+    const { meta } = await db
+        .prepare(
+            `UPDATE shared_members SET left_at = ?2, left_seq = ${CURSOR}
+             WHERE id = ?1 AND left_at IS NULL AND role <> 'owner'`
+        )
         .bind(memberId, Date.now())
         .run();
+    return meta.changes > 0;
 };
 
 // From then on the placeholder's id means `into`, and it has left
@@ -99,12 +104,22 @@ const mergeMember = async (db: D1Database, memberId: string, into: string): Prom
     await db.prepare(MERGE).bind(memberId, into, Date.now()).run();
 };
 
-// The owner becomes a member, and that member the owner, together
-const handOver = async (db: D1Database, groupId: string, to: string): Promise<void> => {
-    await db.batch([
-        db.prepare(`UPDATE shared_members SET role = 'member' WHERE group_id = ?1 AND role = 'owner'`).bind(groupId),
-        db.prepare(`UPDATE shared_members SET role = 'owner' WHERE id = ?1`).bind(to),
+// The owner becomes a member, and that member the owner, together, and only while that member is still there. Whether
+// it was done.
+const handOver = async (db: D1Database, groupId: string, to: string): Promise<boolean> => {
+    const [, promoted] = await db.batch([
+        db
+            .prepare(
+                `UPDATE shared_members SET role = 'member'
+                 WHERE group_id = ?1 AND role = 'owner'
+                    AND EXISTS (SELECT 1 FROM shared_members WHERE id = ?2 AND group_id = ?1 AND left_at IS NULL)`
+            )
+            .bind(groupId, to),
+        db
+            .prepare(`UPDATE shared_members SET role = 'owner' WHERE id = ?2 AND group_id = ?1 AND left_at IS NULL`)
+            .bind(groupId, to),
     ]);
+    return (promoted?.meta.changes ?? 0) > 0;
 };
 
 // A switch that isn't sent stays as it is; archiving again keeps the day it was archived

@@ -17,6 +17,7 @@ import {
     makeFriend,
     makeGroup,
     memberNamed,
+    racingEnv,
     seedClosedGroups,
     seedEntry,
     send,
@@ -590,6 +591,43 @@ describe('POST /api/groups/:id/owner', () => {
         const response = await handOver(ana, friend.id, friend.b);
 
         expect([response.status, await response.json()]).toEqual([409, { error: 'direct' }]);
+    });
+});
+
+async function standing(memberId: string) {
+    const row = await env.DB.prepare('SELECT role, left_at IS NOT NULL AS left FROM shared_members WHERE id = ?1')
+        .bind(memberId)
+        .first<{ role: string; left: number }>();
+    return { role: row?.role, left: row?.left === 1 };
+}
+
+describe('POST /api/groups/:id/owner, at the same moment as the leave of the target', () => {
+    it('hands nothing over to a member who left first, and answers that they left', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+        const racing = racingEnv("SET role = 'owner'", () =>
+            send(bruno, 'DELETE', `/groups/${group.id}/members/${brunoId}`)
+        );
+
+        const response = await send(ana, 'POST', `/groups/${group.id}/owner`, { memberId: brunoId }, racing);
+
+        expect(response.status).toBe(422);
+        expect(await response.json()).toEqual({ error: 'member-left' });
+        expect(await standing(group.me)).toEqual({ role: 'owner', left: false });
+        expect(await standing(brunoId)).toEqual({ role: 'member', left: true });
+    });
+
+    it('lets the leave of a member who was handed the group first be refused, since the owner can not leave', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+        const racing = racingEnv('SET left_at = ?2', () => handOver(ana, group.id, brunoId));
+
+        const response = await send(bruno, 'DELETE', `/groups/${group.id}/members/${brunoId}`, undefined, racing);
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'owner' });
+        expect(await standing(brunoId)).toEqual({ role: 'owner', left: false });
+        expect(await standing(group.me)).toEqual({ role: 'member', left: false });
     });
 });
 

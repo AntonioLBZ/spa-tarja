@@ -7,11 +7,60 @@ import type { TestSession } from './session';
 import type { SharedGroup } from '@core/shared-group';
 
 // A request to the API as that person, with a JSON body when there is one
-const send = async (as: TestSession, method: string, path: string, body?: unknown): Promise<Response> => {
+const send = async (
+    as: TestSession,
+    method: string,
+    path: string,
+    body?: unknown,
+    bindings: typeof env = env
+): Promise<Response> => {
     const headers = new Headers(as.headers);
     if (body !== undefined) headers.set('content-type', 'application/json');
     const init = { method, headers, body: body === undefined ? undefined : JSON.stringify(body) };
-    return app.request(`/api${path}`, init, env);
+    return app.request(`/api${path}`, init, bindings);
+};
+
+// The bindings of a request that another one overtakes: `before` runs once, just before the first write of the request
+// whose SQL has `match` in it, whether it runs on its own or in a batch, which is after the request has read the group
+const racingEnv = (match: string, before: () => Promise<unknown>): typeof env => {
+    let landed = false;
+    const marked = new WeakSet<D1PreparedStatement>();
+    const land = async () => {
+        if (landed) return;
+        landed = true;
+        await before();
+    };
+    const DB = new Proxy(env.DB, {
+        get(target, property) {
+            if (property === 'batch') {
+                return async (statements: D1PreparedStatement[]) => {
+                    if (statements.some((statement) => marked.has(statement))) await land();
+                    return target.batch(statements);
+                };
+            }
+            if (property === 'prepare') {
+                return (sql: string) => {
+                    const statement = target.prepare(sql);
+                    if (!sql.includes(match)) return statement;
+                    const bind = statement.bind.bind(statement);
+                    statement.bind = (...values: unknown[]) => {
+                        const bound = bind(...values);
+                        const run = bound.run.bind(bound);
+                        marked.add(bound);
+                        bound.run = async () => {
+                            await land();
+                            return run();
+                        };
+                        return bound;
+                    };
+                    return statement;
+                };
+            }
+            const value = Reflect.get(target, property);
+            return typeof value === 'function' ? value.bind(target) : value;
+        },
+    });
+    return new Proxy(env, { get: (target, property) => (property === 'DB' ? DB : Reflect.get(target, property)) });
 };
 
 // The group a write answers, once it answered 200
@@ -130,4 +179,16 @@ const seedClosedGroups = async (
     return ids;
 };
 
-export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, seedClosedGroups, seedEntry, send };
+export {
+    befriend,
+    claim,
+    groupOf,
+    listGroups,
+    makeFriend,
+    makeGroup,
+    memberNamed,
+    racingEnv,
+    seedClosedGroups,
+    seedEntry,
+    send,
+};

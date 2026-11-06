@@ -145,7 +145,13 @@ const membersRoutes = new Hono<AppEnv>()
             if (balances.some((balance) => balance.memberId === target.id && balance.cents !== 0)) {
                 return c.json({ error: 'unsettled' }, 409);
             }
-            await leaveGroup(db, target.id);
+            // The member may have been made the owner since the group was read
+            if (!(await leaveGroup(db, target.id))) {
+                const now = await readGroup(db, userId, groupId);
+                if (now?.members.find((member) => member.id === target.id)?.role === 'owner') {
+                    return c.json({ error: 'owner' }, 409);
+                }
+            }
         }
         return c.json(await readSharedGroup(db, userId, groupId), 200);
     });

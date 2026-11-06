@@ -114,7 +114,8 @@ const groupsRoutes = new Hono<AppEnv>()
             if (!manages(state)) return c.json({ error: 'not-owner' }, 403);
             if (target.leftAt !== null) return c.json({ error: 'member-left' }, 422);
             if (target.userId === null) return c.json({ error: 'not-a-user' }, 409);
-            await handOver(db, groupId, target.id);
+            // The target may have left since the group was read
+            if (!(await handOver(db, groupId, target.id))) return c.json({ error: 'member-left' }, 422);
         }
         return c.json(await readSharedGroup(db, userId, groupId), 200);
     })
