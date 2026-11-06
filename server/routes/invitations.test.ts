@@ -2,7 +2,13 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { memberBalances } from '@core/balance';
-import { INVITATION_DAYS, isInvitationToken, type FriendInvitation, type PendingInvitation } from '@core/invitation';
+import {
+    ENDED_INVITATION_DAYS,
+    INVITATION_DAYS,
+    isInvitationToken,
+    type FriendInvitation,
+    type PendingInvitation,
+} from '@core/invitation';
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_INVITATIONS, type SharedGroup } from '@core/shared-group';
 import { app } from '@server/app';
 import { signInvitation } from '@server/invitation-token';
@@ -727,6 +733,73 @@ describe('a link to be friends with nobody behind it', () => {
         expect(await error(await makeLink(ana), 409)).toBe('too-many-invitations');
         vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + INVITATION_DAYS * DAY });
         await linkMade(ana);
+    });
+
+    it(`deletes the own links that ended over ${ENDED_INVITATION_DAYS} days ago when the person makes another`, async () => {
+        const now = Date.now();
+        const ago = (days: number) => now - days * DAY;
+        const age = async (id: string, columns: Record<string, number>) => {
+            const names = Object.keys(columns);
+            await env.DB.prepare(
+                `UPDATE friend_invitations SET ${names.map((name, i) => `${name} = ?${i + 2}`).join(', ')} WHERE id = ?1`
+            )
+                .bind(id, ...Object.values(columns))
+                .run();
+        };
+        const expired = async (as: TestSession, createdDays: number, expiresDays: number) => {
+            const { id } = await linkMade(as);
+            await age(id, { created_at: ago(createdDays), expires_at: ago(expiresDays) });
+            return id;
+        };
+        const revoked = async (as: TestSession, createdDays: number, expiresDays: number, revokedDays: number) => {
+            const { id } = await linkMade(as);
+            await revokeLink(as, id);
+            await age(id, { created_at: ago(createdDays), expires_at: ago(expiresDays), revoked_at: ago(revokedDays) });
+            return id;
+        };
+        const gone = [
+            await revoked(ana, 100, 86, 90),
+            await revoked(ana, 40, 26, 33),
+            await expired(ana, 60, 46),
+            await expired(ana, 45, 31),
+            await (async () => {
+                const link = await linkMade(ana);
+                await decline(bruno, link.token);
+                await age(link.id, { created_at: ago(60), expires_at: ago(46), declined_at: ago(50) });
+                return link.id;
+            })(),
+        ];
+        const accepted = await linkMade(ana);
+        await accept(bruno, accepted.token);
+        await age(accepted.id, { created_at: ago(100), expires_at: ago(86), accepted_at: ago(90) });
+        const friend = await makeFriend(ana, 'Dana');
+        const forDummy = (await linkOf(ana, friend.id)).slice(0, 36);
+        await revoke(ana, friend.id);
+        await age(forDummy, { created_at: ago(100), expires_at: ago(86), revoked_at: ago(90) });
+        const kept = [
+            accepted.id,
+            forDummy,
+            await revoked(ana, 10, -4, 5),
+            await revoked(ana, 40, 26, 28),
+            await expired(ana, 43, 29),
+            (await linkMade(ana)).id,
+            await expired(bruno, 100, 86),
+        ];
+
+        const made = await linkMade(ana);
+
+        const rows = await storedRows();
+        expect(rows.map((row) => row.id).sort()).toEqual([...kept, made.id].sort());
+        for (const id of gone) expect(rows.map((row) => row.id)).not.toContain(id);
+    });
+
+    it('keeps a recently revoked link, which can be revoked again', async () => {
+        const made = await linkMade(ana);
+        await revokeLink(ana, made.id);
+
+        await linkMade(ana);
+
+        expect((await revokeLink(ana, made.id)).status).toBe(200);
     });
 
     it('is refused to a person who can take no more friends', async () => {

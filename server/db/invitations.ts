@@ -1,4 +1,4 @@
-import { INVITATION_DAYS } from '@core/invitation';
+import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/invitation';
 import { DEFAULT_CURRENCY } from '@core/money';
 import { MAX_OPEN_INVITATIONS } from '@core/shared-group';
 
@@ -42,6 +42,11 @@ const INSERT_DIRECT = `
     INSERT INTO friend_invitations (id, created_by, created_at, expires_at)
     SELECT ?1, ?3, ?2, ?4
     WHERE (SELECT COUNT(*) FROM friend_invitations WHERE created_by = ?3 AND ${PENDING}) < ${MAX_OPEN_INVITATIONS}`;
+
+// The direct invitations of ?1 that ended before ?2 without being accepted: revoked, declined, or past their end
+const PURGE_ENDED_DIRECT = `
+    DELETE FROM friend_invitations
+    WHERE created_by = ?1 AND member_id IS NULL AND accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ?2`;
 
 // The rowid breaks a tie of two made in the same millisecond, as it grows with every invitation made
 const LIST_PENDING = `
@@ -223,7 +228,8 @@ const revokeInvitations = async (db: D1Database, groupId: string): Promise<void>
     await db.prepare(REVOKE).bind(groupId, Date.now()).run();
 };
 
-// A link to be friends with nobody behind it, or null when the person has as many open as there can be
+// A link to be friends with nobody behind it, or null when the person has as many open as there can be. The person's own
+// links that ended long ago go with it, so the table doesn't grow with every link made and revoked.
 const createDirectInvitation = async (
     db: D1Database,
     by: string,
@@ -231,8 +237,11 @@ const createDirectInvitation = async (
 ): Promise<{ id: string; expiresAt: number } | null> => {
     const id = crypto.randomUUID();
     const expiresAt = at + INVITATION_DAYS * DAY;
-    const { meta } = await db.prepare(INSERT_DIRECT).bind(id, at, by, expiresAt).run();
-    return meta.changes > 0 ? { id, expiresAt } : null;
+    const [, inserted] = await db.batch([
+        db.prepare(PURGE_ENDED_DIRECT).bind(by, at - ENDED_INVITATION_DAYS * DAY),
+        db.prepare(INSERT_DIRECT).bind(id, at, by, expiresAt),
+    ]);
+    return (inserted?.meta.changes ?? 0) > 0 ? { id, expiresAt } : null;
 };
 
 // The direct invitations of the person that can still be used, newest first
