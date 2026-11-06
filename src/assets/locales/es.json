@@ -263,7 +263,7 @@
             "delete": {
                 "open": "Eliminar la cuenta",
                 "title": "¿Eliminar tu cuenta?",
-                "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre. No se puede deshacer.",
+                "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre, y también los grupos y los amigos por nombre en los que eres la única persona con cuenta, con todos los nombres y gastos que contienen. No se puede deshacer.",
                 "stays": "Los gastos compartidos de tus grupos se quedan para los demás, a nombre de «Usuario eliminado».",
                 "backups": "Las copias de seguridad que se guardan para recuperar el servicio caducan solas.",
                 "export": "Descarga antes tus datos",

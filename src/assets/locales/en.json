@@ -263,7 +263,7 @@
             "delete": {
                 "open": "Delete account",
                 "title": "Delete your account?",
-                "goes": "Your expenses, categories, income, budgets and nickname go for good. This can't be undone.",
+                "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends by name where you are the only person with an account, with every name and expense in them. This can't be undone.",
                 "stays": "The shared expenses in your groups stay for the others, under “Deleted user”.",
                 "backups": "The backups kept to recover the service expire on their own.",
                 "export": "Download your data first",
