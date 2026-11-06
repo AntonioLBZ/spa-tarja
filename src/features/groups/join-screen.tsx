@@ -25,7 +25,15 @@ interface JoinScreenProps {
 type LinkEnd = 'gone' | 'yourself' | 'declined';
 
 // Why accepting or declining didn't go through, while the link can still be answered
-type AnswerFailure = 'alreadyFriends' | 'tooManyFriends' | 'offline' | 'failed';
+type AnswerFailure =
+    'alreadyFriends' | 'tooManyFriends' | 'tooManyClosedGroups' | 'inviterAtLimit' | 'offline' | 'failed';
+
+const ANSWER_FAILURES: Partial<Record<string, AnswerFailure>> = {
+    'already-friends': 'alreadyFriends',
+    'too-many-friends': 'tooManyFriends',
+    'too-many-closed-groups': 'tooManyClosedGroups',
+    'inviter-at-limit': 'inviterAtLimit',
+};
 
 const endOf = (error: unknown): LinkEnd | null => {
     if (!(error instanceof ApiError)) return null;
@@ -35,11 +43,11 @@ const endOf = (error: unknown): LinkEnd | null => {
 
 const answerFailureOf = (error: unknown): AnswerFailure => {
     if (error instanceof LocalRefusal) return 'offline';
-    if (error instanceof ApiError && error.code === 'already-friends') return 'alreadyFriends';
-    return error instanceof ApiError && error.code === 'too-many-friends' ? 'tooManyFriends' : 'failed';
+    return (error instanceof ApiError && error.code !== null && ANSWER_FAILURES[error.code]) || 'failed';
 };
 
-// The page a link to be friends opens: who asks, and Accept or Decline. Accepting opens the friend.
+// The page a link to be friends opens: who asks, what accepting does, and Accept or Decline. Accepting opens the friend.
+// A link for a dummy also hands the person what was shared with it.
 const JoinScreen = (props: JoinScreenProps) => {
     const { token } = props;
     const t = useTranslations('groups');
@@ -74,7 +82,7 @@ const JoinScreen = (props: JoinScreenProps) => {
     };
 
     const failureText = (reason: AnswerFailure, name: string) => {
-        if (reason === 'alreadyFriends') return t('join.alreadyFriends', { name });
+        if (reason === 'alreadyFriends' || reason === 'inviterAtLimit') return t(`join.${reason}`, { name });
         return reason === 'failed' ? t('join.failed') : failureWords(reason);
     };
 
@@ -90,12 +98,12 @@ const JoinScreen = (props: JoinScreenProps) => {
             );
         }
         if (link.data) {
-            const { name } = link.data;
+            const { name, forDummy } = link.data;
             return (
                 <>
                     <Sheet label={name}>
                         <p className="join__text">{t('join.asks', { name })}</p>
-                        <p className="join__text">{t('join.what', { name })}</p>
+                        <p className="join__text">{t(forDummy ? 'join.what' : 'join.whatNew', { name })}</p>
                         <div className="join__actions">
                             <Button ghost disabled={!online || busy} onClick={() => void answer(true)}>
                                 {t('join.accept')}
