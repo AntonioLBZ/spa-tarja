@@ -5,7 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { groupEntriesKey } from '@/lib/api';
+import { randomSeed } from '@/lib/random-seed';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
@@ -13,6 +15,8 @@ import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
 import type { SharedGroup } from '@core/shared-group';
+
+vi.mock('@/lib/random-seed', () => ({ randomSeed: vi.fn() }));
 
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;
@@ -87,10 +91,12 @@ function heading(name: string) {
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(NOW);
+    vi.mocked(randomSeed).mockReturnValue(seedFavouring(0));
 });
 
 afterEach(() => {
     vi.useRealTimers();
+    vi.mocked(randomSeed).mockReset();
     localStorage.clear();
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();

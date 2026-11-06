@@ -10,12 +10,12 @@ import { rememberSharedWith } from '@/lib/offline';
 import { randomSeed } from '@/lib/random-seed';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
+import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
-import { splitEqually } from '@core/split';
 
 import type { SharedGroup } from '@core/shared-group';
 
@@ -117,15 +117,6 @@ function percent(basisPoints: number, locale = 'en') {
 
 function checkbox(name: string) {
     return within(people()).getByRole('checkbox', { name }) as HTMLInputElement;
-}
-
-function seedFavouring(index: number) {
-    const members = ['first', 'second', 'third'];
-    for (let seed = 0; ; seed++) {
-        if (splitEqually(1000, members, seed)?.find((item) => item.memberId === members[index])?.cents === 334) {
-            return seed;
-        }
-    }
 }
 
 function amountsShown() {
