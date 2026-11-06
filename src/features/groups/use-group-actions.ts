@@ -6,15 +6,12 @@ import {
     PENDING_INVITATIONS_KEY,
     acceptInvitation,
     declineInvitation,
-    deleteFriendInvitation,
     deleteGroup,
     deleteInvitation,
     deleteMember,
-    friendInvitationKey,
     groupEntriesKey,
     handOver,
     mergeMember,
-    postFriendInvitation,
     postInvitation,
     putGroup,
     putMember,
@@ -26,7 +23,7 @@ import { DEFAULT_CURRENCY } from '@core/money';
 
 import { LocalRefusal } from './local-refusal';
 
-import type { FriendInvitation, PendingInvitation } from '@core/invitation';
+import type { PendingInvitation } from '@core/invitation';
 import type { GroupChange, MySwitches, SharedGroup } from '@core/shared-group';
 
 // A member made by name, with an id made on the device
@@ -78,11 +75,6 @@ const useGroupActions = () => {
             await queryClient.cancelQueries({ queryKey: GROUPS_KEY });
             queryClient.setQueryData<SharedGroup[]>(GROUPS_KEY, (groups = []) => upsertById(groups, group));
             return group;
-        };
-
-        const keepInvitation = (groupId: string, invitation: FriendInvitation | null) => {
-            queryClient.setQueryData(friendInvitationKey(groupId), invitation);
-            return invitation;
         };
 
         // A read of the links on its way would put an older list over the one this change leaves. A list never read is
@@ -160,15 +152,6 @@ const useGroupActions = () => {
                 online();
                 return keep(await putMySwitches(groupId, switches));
             },
-            // A new link for the dummy of a friend, in place of the open one
-            async invite(groupId: string) {
-                openGroup(groupId);
-                return keepInvitation(groupId, await postFriendInvitation(groupId));
-            },
-            async revokeInvitation(groupId: string) {
-                openGroup(groupId);
-                return keepInvitation(groupId, await deleteFriendInvitation(groupId));
-            },
             // A new link to be friends, with nobody behind it, first in the list of the person's links
             async inviteFriend() {
                 online();
@@ -182,8 +165,8 @@ const useGroupActions = () => {
                 await keepLinks(() => links);
                 return links;
             },
-            // The person takes the place of the dummy the link is for, and the friend is theirs like any other. The
-            // groups may never have been read on this device, so they are read again behind it.
+            // The friend the link makes is theirs like any other. The groups may never have been read on this device, so
+            // they are read again behind it.
             async acceptLink(token: string) {
                 online();
                 const friend = await keep(await acceptInvitation(token));

@@ -9,7 +9,6 @@ import {
     GROUPS_KEY,
     INCOME_KEY,
     PROFILE_KEY,
-    friendInvitationKey,
     groupEntriesKey,
     invitationQuery,
     pendingInvitationsQuery,
@@ -58,8 +57,7 @@ describe('createPersistOptions', () => {
     it('never keeps a link of an invitation, nor what it shows', () => {
         const client = new QueryClient();
         client.setQueryData(GROUPS_KEY, []);
-        client.setQueryData(friendInvitationKey('friend'), { state: 'open', token: TOKEN, expiresAt: 1 });
-        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana', forDummy: true });
+        client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana', forDummy: false });
         client.setQueryData(pendingInvitationsQuery().queryKey, [{ id: 'link', token: TOKEN, expiresAt: 1 }]);
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
 

@@ -10,7 +10,6 @@ import { useOnline } from '@/lib/offline';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
 import { CloseGroup } from './close-group';
-import { FriendInvite } from './friend-invite';
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { GroupGate } from './group-gate';
 import { GroupPeople } from './group-people';
@@ -52,8 +51,6 @@ const SettingsView = (props: SettingsViewProps) => {
     const online = useOnline();
     const words = useGroupWords(group);
     const open = group.closed === null;
-    // A friend whose other side nobody has taken yet, which an invitation is for
-    const invitable = open && group.kind === 'direct' && group.members.some((member) => !member.claimed);
 
     return (
         <section className="group-settings">
@@ -67,7 +64,6 @@ const SettingsView = (props: SettingsViewProps) => {
                 </>
             )}
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
-            {invitable && <FriendInvite group={group} disabled={!online} />}
             {open && <CloseGroup ledger={ledger} disabled={!online} />}
         </section>
     );

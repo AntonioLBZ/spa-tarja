@@ -29,12 +29,10 @@ function openLink(
     options: {
         refusals?: Partial<Record<'read' | 'accept' | 'decline', Refusal>>;
         known?: boolean;
-        forDummy?: boolean;
     } = {}
 ) {
     const friend = friendOfCarla();
-    const forDummy = options.forDummy ?? true;
-    const incoming = options.known === false ? [] : [{ token: TOKEN, name: 'Carla', forDummy, friend }];
+    const incoming = options.known === false ? [] : [{ token: TOKEN, name: 'Carla', friend }];
     const api = createFakeApi({ incoming });
     Object.assign(api.state.linkRefusals, options.refusals);
     stubApi(api.handler);
@@ -80,32 +78,18 @@ describe('the join page', () => {
         fireEvent.click(screen.getByRole('button', { name: en.groups.join.accept }));
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Carla Ruiz' })).toBeDefined();
+        expect(screen.queryByRole('button', { name: en.groups.join.accept })).toBeNull();
         expect(api.groups.map((group) => group.id)).toEqual([friend.id]);
         expect(linkRequests(api)).toEqual(['POST /api/invitations/read', 'POST /api/invitations/accept']);
     });
 
-    it.each([
-        ['a direct link, that the two become friends', false, 'groups.join.whatNew', 'groups.join.what'],
-        ['the link of a dummy, that what was shared becomes theirs', true, 'groups.join.what', 'groups.join.whatNew'],
-    ] as const)('says what accepting does: for %s', async (_, forDummy, said, unsaid) => {
-        openLink({ forDummy });
+    it('says what accepting does: that the two become friends, with no word of what was shared before', async () => {
+        openLink();
         renderApp({ path: PATH });
         await asked();
 
-        expect(screen.getByText(t(said, { name: 'Carla' }))).toBeDefined();
-        expect(screen.queryByText(t(unsaid, { name: 'Carla' }))).toBeNull();
-    });
-
-    it('opens the friend a direct link makes once the person accepts', async () => {
-        const { api, friend } = openLink({ forDummy: false });
-        renderApp({ path: PATH });
-        await asked();
-
-        fireEvent.click(screen.getByRole('button', { name: en.groups.join.accept }));
-
-        expect(await screen.findByRole('heading', { level: 1, name: 'Carla Ruiz' })).toBeDefined();
-        expect(screen.queryByRole('button', { name: en.groups.join.accept })).toBeNull();
-        expect(api.groups.map((group) => group.id)).toEqual([friend.id]);
+        expect(screen.getByText(t('groups.join.what', { name: 'Carla' }))).toBeDefined();
+        expect(screen.queryByText(/has already written down/i)).toBeNull();
     });
 
     it('says the invitation was declined, with the way to Groups', async () => {

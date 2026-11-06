@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { INVITATION_DAYS, type FriendInvitation, type PendingInvitation } from '@core/invitation';
+import { INVITATION_DAYS, type PendingInvitation } from '@core/invitation';
 import { sharedEntryInputSchema, type LedgerEntry, type SharedEntry } from '@core/shared-entry';
 import {
     groupWriteSchema,
@@ -22,12 +22,10 @@ interface Refusal {
     error?: string;
 }
 
-// A link the test user opens: the name of who asks, whether it is for a dummy, and the friend the test user becomes by
-// accepting it
+// A link the test user opens: the name of who asks and the friend the test user becomes by accepting it
 interface IncomingInvitation {
     token: string;
     name: string;
-    forDummy: boolean;
     friend: SharedGroup;
 }
 
@@ -44,8 +42,6 @@ interface FakeGroupsOptions {
     pageSize?: number;
     // The links the test user can open
     incoming?: IncomingInvitation[];
-    // The invitation of each friend, by its id, as its members read it
-    friendInvitations?: Record<string, FriendInvitation>;
     // The open links to be friends the test user made, newest first
     pending?: PendingInvitation[];
 }
@@ -83,7 +79,6 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
     const groupRequests: string[] = [];
     const entryAttempts: SharedEntry[] = [];
     const entryWrites: LedgerEntry[] = [];
-    const friendInvitations = new Map(Object.entries(options.friendInvitations ?? {}));
     const links = new Map((options.incoming ?? []).map((link) => [link.token, link]));
     const pending: PendingInvitation[] = structuredClone(options.pending ?? []);
 
@@ -239,30 +234,13 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         });
     };
 
-    // A new link replaces the open one, and revoking leaves a declined one as it is
-    const friendInvitation = (group: SharedGroup, method: string): Response => {
-        if (method === 'POST') {
-            if (group.closed !== null) return refuse({ status: 409, error: 'closed' });
-            const token = `${crypto.randomUUID()}.${'A'.repeat(43)}`;
-            const invitation: FriendInvitation = {
-                state: 'open',
-                token,
-                expiresAt: Date.now() + INVITATION_DAYS * DAY,
-            };
-            friendInvitations.set(group.id, invitation);
-        }
-        if (method === 'DELETE' && friendInvitations.get(group.id)?.state === 'open')
-            friendInvitations.delete(group.id);
-        return Response.json({ invitation: friendInvitations.get(group.id) ?? null });
-    };
-
     // A link serves once: accepted, the test user is in its friend
     const answerLink = (action: LinkAction, init?: RequestInit): Response => {
         const refusal = state.linkRefusals[action];
         if (refusal) return refuse(refusal);
         const link = links.get((json(init) as { token: string }).token);
         if (!link) return refuse({ status: 410, error: 'gone' });
-        if (action === 'read') return Response.json({ name: link.name, forDummy: link.forDummy });
+        if (action === 'read') return Response.json({ name: link.name, forDummy: false });
         links.delete(link.token);
         if (action === 'decline') return new Response(null, { status: 204 });
         const friend = structuredClone(link.friend);
@@ -306,13 +284,8 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         const entryId = /^\/entries\/([^/]+)$/.exec(rest)?.[1];
         if (entryId && method === 'PUT') return group ? writeEntry(group, entryId, init) : refuse({ status: 404 });
 
-        if (rest === '/invitations' && method === 'GET') {
-            return group ? friendInvitation(group, method) : refuse({ status: 404 });
-        }
-
         groupRequests.push(`${method} ${url.pathname}`);
         if (state.groupRefusal) return refuse(state.groupRefusal);
-        if (rest === '/invitations') return group ? friendInvitation(group, method) : refuse({ status: 404 });
         if (!group) {
             const made = rest === '' && method === 'PUT' ? newGroup(groupId, json(init)) : { status: 404 };
             return 'status' in made ? refuse(made) : Response.json(made);
@@ -334,7 +307,6 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
                 .sort((a, b) => a.seq - b.seq)
                 .map((row) => row.entry),
         cursorOf,
-        friendInvitations,
         pendingInvitations: pending,
         // Another member writes an entry, from their own device
         serverWriteEntry: ({ groupId, ...entry }: SeededEntry, by: string) =>

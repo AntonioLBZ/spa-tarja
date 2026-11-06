@@ -1,9 +1,0 @@
-.friend-invite__text {
-    margin: 0;
-    overflow-wrap: anywhere;
-}
-
-/* A ghost lines up with the text, so it doesn't stretch across the sheet */
-.friend-invite__make {
-    justify-self: start;
-}

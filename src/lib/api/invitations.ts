@@ -1,31 +1,8 @@
 import { toApiError } from './api-error';
 import { api } from './client';
 
-import type { FriendInvitation, InvitationView, PendingInvitation } from '@core/invitation';
+import type { InvitationView, PendingInvitation } from '@core/invitation';
 import type { SharedGroup } from '@core/shared-group';
-
-// The invitation of a friend, kept in memory only, as changing it needs a connection
-const friendInvitationKey = (groupId: string) => ['friend-invitation', groupId] as const;
-
-const fetchFriendInvitation = async (groupId: string): Promise<FriendInvitation | null> => {
-    const response = await api.api.groups[':groupId'].invitations.$get({ param: { groupId } });
-    if (!response.ok) throw await toApiError(response);
-    return (await response.json()).invitation;
-};
-
-// A new link for the dummy of the friend, in place of the open one
-const postFriendInvitation = async (groupId: string): Promise<FriendInvitation> => {
-    const response = await api.api.groups[':groupId'].invitations.$post({ param: { groupId } });
-    if (!response.ok) throw await toApiError(response);
-    return (await response.json()).invitation;
-};
-
-// Revokes the open link, so sending it twice is harmless
-const deleteFriendInvitation = async (groupId: string): Promise<FriendInvitation | null> => {
-    const response = await api.api.groups[':groupId'].invitations.$delete({ param: { groupId } });
-    if (!response.ok) throw await toApiError(response);
-    return (await response.json()).invitation;
-};
 
 // The person's own links to be friends that are still open, kept in memory only, as changing them needs a connection
 const PENDING_INVITATIONS_KEY = ['pending-invitations'] as const;
@@ -75,12 +52,8 @@ export {
     PENDING_INVITATIONS_KEY,
     acceptInvitation,
     declineInvitation,
-    deleteFriendInvitation,
     deleteInvitation,
-    fetchFriendInvitation,
     fetchPendingInvitations,
-    friendInvitationKey,
-    postFriendInvitation,
     postInvitation,
     readInvitation,
 };

@@ -47,7 +47,6 @@ const answerFailureOf = (error: unknown): AnswerFailure => {
 };
 
 // The page a link to be friends opens: who asks, what accepting does, and Accept or Decline. Accepting opens the friend.
-// A link for a dummy also hands the person what was shared with it.
 const JoinScreen = (props: JoinScreenProps) => {
     const { token } = props;
     const t = useTranslations('groups');
@@ -98,12 +97,12 @@ const JoinScreen = (props: JoinScreenProps) => {
             );
         }
         if (link.data) {
-            const { name, forDummy } = link.data;
+            const { name } = link.data;
             return (
                 <>
                     <Sheet label={name}>
                         <p className="join__text">{t('join.asks', { name })}</p>
-                        <p className="join__text">{t(forDummy ? 'join.what' : 'join.whatNew', { name })}</p>
+                        <p className="join__text">{t('join.what', { name })}</p>
                         <div className="join__actions">
                             <Button ghost disabled={!online || busy} onClick={() => void answer(true)}>
                                 {t('join.accept')}

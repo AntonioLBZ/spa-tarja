@@ -7,19 +7,15 @@ import { ApiError } from './api-error';
 import {
     acceptInvitation,
     declineInvitation,
-    deleteFriendInvitation,
     deleteInvitation,
-    fetchFriendInvitation,
     fetchPendingInvitations,
-    postFriendInvitation,
     postInvitation,
     readInvitation,
 } from './invitations';
 
-import type { FriendInvitation, PendingInvitation } from '@core/invitation';
+import type { PendingInvitation } from '@core/invitation';
 
 const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
-const OPEN: FriendInvitation = { state: 'open', token: TOKEN, expiresAt: 1_000 };
 const PENDING: PendingInvitation = { id: TOKEN.slice(0, 36), token: TOKEN, expiresAt: 1_000 };
 
 function answering(body: unknown, status = 200) {
@@ -37,29 +33,6 @@ function sent(fetchMock: ReturnType<typeof stubApi>) {
 
 afterEach(() => {
     vi.unstubAllGlobals();
-});
-
-describe('the invitation of a friend', () => {
-    it('is read, made and revoked under the friend', async () => {
-        const read = answering({ invitation: OPEN });
-        expect(await fetchFriendInvitation('friend-1')).toEqual(OPEN);
-        expect(sent(read)).toMatchObject({ url: '/api/groups/friend-1/invitations', method: 'GET' });
-
-        const made = answering({ invitation: OPEN });
-        expect(await postFriendInvitation('friend-1')).toEqual(OPEN);
-        expect(sent(made)).toMatchObject({ url: '/api/groups/friend-1/invitations', method: 'POST' });
-
-        const revoked = answering({ invitation: null });
-        expect(await deleteFriendInvitation('friend-1')).toBeNull();
-        expect(sent(revoked)).toMatchObject({ url: '/api/groups/friend-1/invitations', method: 'DELETE' });
-    });
-
-    it('carries the reason of a refusal', async () => {
-        answering({ error: 'not-placeholder' }, 409);
-
-        await expect(postFriendInvitation('friend-1')).rejects.toMatchObject({ status: 409, code: 'not-placeholder' });
-        await expect(postFriendInvitation('friend-1')).rejects.toBeInstanceOf(ApiError);
-    });
 });
 
 describe('the links of the person', () => {

@@ -309,6 +309,25 @@ describe('Simplify debts', () => {
     });
 });
 
+describe('a friend whose other side has not joined', () => {
+    it('has no invitation to make, and nothing to add a friend by name', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const friend = sampleGroup({
+            kind: 'direct',
+            name: null,
+            me: ana.id,
+            members: [ana, person('Bea', { claimed: false })],
+        });
+        const { api } = await edit(friend);
+        await screen.findByRole('checkbox', { name: text.edit.show });
+
+        expect(screen.queryByRole('heading', { name: /^invite$/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /invitation link/i })).toBeNull();
+        expect(screen.queryByLabelText(/their name/i)).toBeNull();
+        expect(api.requests.filter((request) => request.includes('/invitations'))).toEqual([]);
+    });
+});
+
 describe('without a connection', () => {
     it('turns everything off and says why', async () => {
         await edit(sampleGroup({ name: 'Lisbon' }));
