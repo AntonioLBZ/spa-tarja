@@ -150,6 +150,54 @@
         "deleted": "Your account was deleted.",
         "deletedNotCleared": "Your account was deleted, but this device couldn't delete its copy of your data. To remove it, clear the data of this site in your browser's settings."
     },
+    "privacy": {
+        "open": "Privacy notice",
+        "title": "Privacy notice",
+        "close": "Close",
+        "intro": "What Tarja keeps about you, why, and what you can do about it.",
+        "who": {
+            "title": "Who is responsible",
+            "text": "Tarja is run by Antonio López Benítez, in La Coruña, España. For anything about your data, write to:",
+            "portfolio": "Portfolio"
+        },
+        "stored": {
+            "title": "What is stored, and why",
+            "intro": "Only what the app needs to work. It isn't used for anything else.",
+            "google": "From your Google account: your name, your email and the address of your picture. You sign in with Google, so Tarja never stores a password.",
+            "nickname": "Your nickname, if you set one. Your friends see it.",
+            "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in them.",
+            "invitations": "The invitation links you make. Each works once, for 14 days.",
+            "sessions": "Each time you sign in, a session: a cookie in your browser and, on the server, the IP address and the browser it was opened from.",
+            "device": "On your device: a copy of your data, so the app works offline, and your language, theme and color. Signing out removes the copy, unless something is still waiting to be sent."
+        },
+        "sees": {
+            "title": "Who sees it",
+            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account.",
+            "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody."
+        },
+        "others": {
+            "title": "Who else handles it",
+            "cloudflare": "Cloudflare hosts the app and keeps its database. Its platform also keeps logs of the requests the app receives, for a limited time.",
+            "google": "Google handles the sign-in.",
+            "none": "Tarja has no ads and no analytics, and it sends your data to nobody else. Nothing is sold."
+        },
+        "keeps": {
+            "title": "How long, and deleting your account",
+            "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
+            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working.",
+            "stays": "The shared expenses in your groups stay for the others, because they are also their record. They show as “Deleted user”, without your name.",
+            "backups": "The backups Cloudflare keeps to recover the service expire on their own."
+        },
+        "rights": {
+            "title": "Your rights",
+            "see": "See and download your data: in {settings}, under “{data}”.",
+            "correct": "Correct it: change your nickname in {settings}, under “{profile}”, and edit your expenses and the rest of what you wrote.",
+            "delete": "Delete it: in {settings}, press “{delete}”.",
+            "write": "Ask anything about your data by writing to the contact above.",
+            "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos."
+        },
+        "updated": "Last updated: 6 November 2026."
+    },
     "settings": {
         "title": "Settings",
         "language": {

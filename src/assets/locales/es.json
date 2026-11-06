@@ -150,6 +150,54 @@
         "deleted": "Tu cuenta se ha eliminado.",
         "deletedNotCleared": "Tu cuenta se ha eliminado, pero este dispositivo no ha podido borrar su copia de tus datos. Para quitarla, borra los datos de este sitio en los ajustes del navegador."
     },
+    "privacy": {
+        "open": "Aviso de privacidad",
+        "title": "Aviso de privacidad",
+        "close": "Cerrar",
+        "intro": "Qué guarda Tarja sobre ti, para qué y qué puedes hacer al respecto.",
+        "who": {
+            "title": "Quién es responsable",
+            "text": "Tarja la lleva Antonio López Benítez, en La Coruña, España. Para cualquier asunto sobre tus datos, escribe a:",
+            "portfolio": "Portfolio"
+        },
+        "stored": {
+            "title": "Qué se guarda y para qué",
+            "intro": "Solo lo que la app necesita para funcionar. No se usa para nada más.",
+            "google": "De tu cuenta de Google: tu nombre, tu correo y la dirección de tu foto. Entras con Google, así que Tarja nunca guarda una contraseña.",
+            "nickname": "Tu apodo, si lo has puesto. Tus amigos lo ven.",
+            "written": "Lo que escribes: gastos, categorías, ingresos, presupuestos, grupos, amigos, gastos compartidos, los pagos con los que se salda cuentas y los nombres que das a las personas que salen en ellos.",
+            "invitations": "Los enlaces de invitación que creas. Cada uno sirve una vez, durante 14 días.",
+            "sessions": "Cada vez que inicias sesión, una sesión: una cookie en tu navegador y, en el servidor, la dirección IP y el navegador desde los que se abrió.",
+            "device": "En tu dispositivo: una copia de tus datos, para que la app funcione sin conexión, y tu idioma, tema y color. Al cerrar sesión se borra la copia, salvo que algo siga esperando a enviarse."
+        },
+        "sees": {
+            "title": "Quién lo ve",
+            "members": "Las personas de un grupo contigo, y tus amigos, ven lo que se comparte en él y el nombre que se usa para ti ahí: tu apodo o, si no tienes, el nombre de tu cuenta de Google.",
+            "own": "Las demás personas que usan Tarja nunca ven tu correo, y tus gastos, categorías, ingresos y presupuestos propios no se muestran a nadie."
+        },
+        "others": {
+            "title": "Quién más lo trata",
+            "cloudflare": "Cloudflare aloja la app y guarda su base de datos. Su plataforma también guarda registros de las peticiones que recibe la app, durante un tiempo limitado.",
+            "google": "Google gestiona el inicio de sesión.",
+            "none": "Tarja no tiene anuncios ni analítica, y no envía tus datos a nadie más. No se vende nada."
+        },
+        "keeps": {
+            "title": "Cuánto tiempo y eliminar tu cuenta",
+            "how": "Hasta que elimines tu cuenta. Eliminarla requiere conexión y no se puede deshacer.",
+            "goes": "Lo tuyo se borra para siempre: tu nombre, correo y dirección de la foto, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar.",
+            "stays": "Los gastos compartidos de tus grupos se quedan para los demás, porque también son su registro. Aparecen como «Usuario eliminado», sin tu nombre.",
+            "backups": "Las copias de seguridad que Cloudflare guarda para recuperar el servicio caducan solas."
+        },
+        "rights": {
+            "title": "Tus derechos",
+            "see": "Ver y descargar tus datos: en {settings}, en «{data}».",
+            "correct": "Corregirlos: cambia tu apodo en {settings}, en «{profile}», y edita tus gastos y el resto de lo que escribiste.",
+            "delete": "Borrarlos: en {settings}, pulsa «{delete}».",
+            "write": "Preguntar lo que quieras sobre tus datos escribiendo al contacto de arriba.",
+            "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos."
+        },
+        "updated": "Última actualización: 6 de noviembre de 2026."
+    },
     "settings": {
         "title": "Ajustes",
         "language": {
