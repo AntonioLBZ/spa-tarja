@@ -6,6 +6,29 @@ const OTHER_USER = `
     SELECT o.id FROM shared_members o
     WHERE o.group_id = m.group_id AND o.user_id IS NOT NULL AND o.user_id <> ?1 AND o.left_at IS NULL`;
 
+// The groups they are in where nobody else is or ever was a user (`claimed_at` stays after the user is deleted, and a
+// member who left was one): a friend by name, a group of placeholders. Nobody could read them once the account is gone.
+const ERASABLE = `
+    SELECT m.group_id FROM shared_members m
+    WHERE m.user_id = ?1 AND NOT EXISTS (
+        SELECT 1 FROM shared_members o WHERE o.group_id = m.group_id AND o.claimed_at IS NOT NULL AND o.user_id IS NOT ?1)`;
+
+// In foreign key order
+const ERASE_GROUP_ROWS = [
+    `DELETE FROM friend_invitations WHERE group_id IN (${ERASABLE})
+        OR member_id IN (SELECT id FROM shared_members WHERE group_id IN (${ERASABLE}))`,
+    `UPDATE shared_members SET merged_into = NULL WHERE group_id IN (${ERASABLE})`,
+    `DELETE FROM shared_entries WHERE group_id IN (${ERASABLE})`,
+    `DELETE FROM shared_members WHERE group_id IN (${ERASABLE})`,
+] as const;
+
+// The groups emptied just before, which can't be told apart from the rest once their members are gone
+const ERASE_EMPTY_GROUPS = `
+    DELETE FROM shared_groups
+    WHERE NOT EXISTS (SELECT 1 FROM shared_members WHERE group_id = shared_groups.id)
+        AND NOT EXISTS (SELECT 1 FROM shared_entries WHERE group_id = shared_groups.id)
+        AND NOT EXISTS (SELECT 1 FROM friend_invitations WHERE group_id = shared_groups.id)`;
+
 const REVOKE_INVITATIONS = `
     UPDATE friend_invitations SET revoked_at = ?2
     WHERE created_by = ?1 AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL`;
@@ -36,13 +59,15 @@ const readEmail = async (db: D1Database, userId: string): Promise<string | null>
     return row?.email ?? null;
 };
 
-// Everything of the user's own goes, in one batch, all or nothing. In the groups, their members stay, nameless, and so
-// do the entries. The owner steps down before anybody takes over, as a group has one owner, and their members are
+// Everything of the user's own goes, in one batch, all or nothing. A group nobody else used is erased, with its names
+// and entries. In the other groups, their members stay, nameless, and so do the entries. The owner steps down before anybody takes over, as a group has one owner, and their members are
 // found by `user_id` until the `user` row goes last: its sessions and accounts go with it, and every user column of the
 // shared tables loses it through its foreign key.
 const deleteAccount = async (db: D1Database, userId: string): Promise<void> => {
     const now = Date.now();
     await db.batch([
+        ...ERASE_GROUP_ROWS.map((sql) => db.prepare(sql).bind(userId)),
+        db.prepare(ERASE_EMPTY_GROUPS),
         db.prepare(REVOKE_INVITATIONS).bind(userId, now),
         db.prepare(CLOSE_GROUPS).bind(userId, now),
         db.prepare(STEP_DOWN).bind(userId),

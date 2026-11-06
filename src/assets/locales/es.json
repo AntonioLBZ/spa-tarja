@@ -184,7 +184,7 @@
         "keeps": {
             "title": "Cuánto tiempo y eliminar tu cuenta",
             "how": "Hasta que elimines tu cuenta. Eliminarla requiere conexión y no se puede deshacer.",
-            "goes": "Lo tuyo se borra para siempre: tu nombre, correo y dirección de la foto, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar.",
+            "goes": "Lo tuyo se borra para siempre: tu nombre, correo y dirección de la foto, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar. Los grupos y los amigos por nombre que solo usaste tú se borran por completo, con todos los nombres y gastos que contienen.",
             "stays": "Los gastos compartidos de tus grupos se quedan para los demás, porque también son su registro. Aparecen como «Usuario eliminado», sin tu nombre.",
             "backups": "Las copias de seguridad que Cloudflare guarda para recuperar el servicio caducan solas."
         },

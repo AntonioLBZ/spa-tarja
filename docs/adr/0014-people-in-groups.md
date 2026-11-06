@@ -14,7 +14,7 @@ Login is Google only ([ADR-0008](0008-google-login-with-better-auth.md)) and the
 - **A group holds dummies and friends only.** A member adds a dummy by name, or one of their own friends who is a real person, and a friend is a member at once: being friends is the consent. When the group has dummies, adding a friend asks whether they replace one or are a new member.
 - A dummy can be **merged into a real member of the same group**, and only that: the dummy is marked as merged and its id means the target from then on, in the balances and the ledger. No entry is rewritten, so the sync and the offline writes are not affected. A merge can't be undone.
 - Signing in from an invitation link comes back to the link ([authentication](../specs/authentication.md)).
-- A person can **delete their account**. Their own data goes: expenses, categories, income, budgets, nickname, sessions. In the groups they were in, their member becomes "Deleted user" and the entries stay, since they are also the record of the others; the debts they leave can still be settled or removed by the rest. A group they owned passes to the member who is a user and joined first, or closes if there is none.
+- A person can **delete their account**. Their own data goes: expenses, categories, income, budgets, nickname, sessions. In the groups they were in, their member becomes "Deleted user" and the entries stay, since they are also the record of the others; the debts they leave can still be settled or removed by the rest. A group they owned passes to the member who is a user and joined first, or closes if there is none. A group where nobody else is or ever was a user (a friend by name, a group of dummies) is not kept: nobody could read it, so it is erased with its name, its people and its entries.
 - The app carries a **privacy notice** that says what is stored, why, who sees it and how to export and delete it ([settings](../specs/settings.md)).
 
 ## Consequences
@@ -24,7 +24,7 @@ Login is Google only ([ADR-0008](0008-google-login-with-better-auth.md)) and the
 - A friend who is added to a group can't refuse, only leave once their balance is zero; anybody in the group can write entries that split with them. That is the trust the friendship stands for.
 - A person can be a dummy friend that someone typed and, through a direct link or the link of another dummy, a real friend: two friends that are never merged. Sending the link of the dummy that exists avoids it.
 - A direct link holds no place for anybody, so a person keeps only a few of them open at once.
-- Deleting an account is irreversible and needs a connection. The backups D1 keeps on its own expire by themselves. Personal data of others stays in the ledgers of the groups, under the name the group gave them.
+- Deleting an account is irreversible and needs a connection. The backups D1 keeps on its own expire by themselves. Personal data of others stays in the ledgers of the groups, under the name the group gave them, but only in a group somebody else is or was a user of; what only the person used goes with them, names and texts included.
 - The invitations, the merge and the deletion need a connection ([ADR-0013](0013-shared-entries-sync-through-an-outbox.md)).
 
 ## Alternatives considered

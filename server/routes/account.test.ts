@@ -224,6 +224,11 @@ describe('DELETE /api/account', () => {
         await claim(memberNamed(trip, 'Bruno'), bruno);
         await seedEntry(trip.id, { paidBy: trip.me, shares: { [memberNamed(trip, 'Bruno')]: 700 } });
         await linkOf(ana, (await makeFriend(ana, 'Dan')).id);
+        const dummies = await makeGroup(ana, ['Mom', 'Mother'], 'Family');
+        await env.DB.prepare('UPDATE shared_members SET merged_into = ?2 WHERE id = ?1')
+            .bind(memberNamed(dummies, 'Mother'), memberNamed(dummies, 'Mom'))
+            .run();
+        await seedEntry(dummies.id, { paidBy: dummies.me, shares: { [memberNamed(dummies, 'Mom')]: 800 } });
         const before = [await rowsOf(ana.userId), await sharedRows()];
         await env.DB.prepare(
             `CREATE TRIGGER refuse_user_delete BEFORE DELETE ON "user" BEGIN SELECT RAISE(ABORT, 'refused'); END`
@@ -423,33 +428,29 @@ describe('the groups of a deleted account', () => {
         expect(await isClosed(deserted.id)).toBe(true);
     });
 
-    it('closes a group they owned where nobody else uses the app, and leaves it with no owner', async () => {
-        const dummies = await makeGroup(ana, ['Dan']);
-        const deserted = await makeGroup(ana, ['Bruno']);
+    it('closes a group they owned where somebody else used the app and left, and leaves it with no owner', async () => {
+        const deserted = await makeGroup(ana, ['Bruno', 'Dan']);
         const brunoId = memberNamed(deserted, 'Bruno');
         await joinAt(brunoId, bruno, 10);
         await leftAt(brunoId);
 
         await deleteAccount(ana);
 
-        for (const group of [dummies, deserted]) {
-            expect(await isClosed(group.id)).toBe(true);
-            expect(await ownerOf(group.id)).toBeNull();
-        }
+        expect(await isClosed(deserted.id)).toBe(true);
+        expect(await ownerOf(deserted.id)).toBeNull();
+        expect((await membersOf(deserted.id)).map((member) => member.name).sort()).toEqual(['', 'Bruno', 'Dan']);
         const [seen] = await listGroups(bruno);
         expect(seen?.closed).toBe('left');
     });
 
-    it('closes a friend whose other side is a dummy, and revokes its open link', async () => {
+    it('erases a friend by name with its open link, which then answers as gone', async () => {
         const friend = await makeFriend(ana, 'Dan');
         const token = await linkOf(ana, friend.id);
 
         await deleteAccount(ana);
 
-        expect(await isClosed(friend.id)).toBe(true);
-        const [invitation] = (await rowsOfGroup(friend.id)).invitations;
-        expect(invitation).toMatchObject({ created_by: null, accepted_at: null });
-        expect(invitation?.revoked_at).not.toBeNull();
+        const rows = await rowsOfGroup(friend.id);
+        expect(Object.values(rows).flat()).toEqual([]);
         expect((await send(bruno, 'POST', '/invitations/read', { token })).status).toBe(410);
     });
 
@@ -551,7 +552,9 @@ describe('the groups of a deleted account', () => {
         const [carlaId, brunoId] = ['Carla', 'Bruno'].map((name) => memberNamed(trip, name));
         await joinAt(carlaId!, carla, 20);
         await joinAt(brunoId!, bruno, 10);
-        const deserted = await makeGroup(ana, ['Dan']);
+        const deserted = await makeGroup(ana, ['Bruno']);
+        await joinAt(memberNamed(deserted, 'Bruno'), bruno, 10);
+        await leftAt(memberNamed(deserted, 'Bruno'));
         for (const id of [trip.id, deserted.id]) {
             await env.DB.prepare('UPDATE shared_groups SET deleted_at = 5, updated_at = 5 WHERE id = ?1')
                 .bind(id)
@@ -588,6 +591,145 @@ describe('the groups of a deleted account', () => {
         await deleteAccount(ana);
 
         expect(await ownerOf(trip.id)).toBe(smaller);
+    });
+
+    async function mentions(...texts: string[]) {
+        const counts = await Promise.all(
+            texts.map(async (text) => {
+                const row = await env.DB.prepare(
+                    `SELECT (SELECT COUNT(*) FROM shared_groups WHERE name LIKE ?1)
+                        + (SELECT COUNT(*) FROM shared_members WHERE name LIKE ?1)
+                        + (SELECT COUNT(*) FROM shared_entries WHERE text LIKE ?1) AS n`
+                )
+                    .bind(`%${text}%`)
+                    .first<{ n: number }>();
+                return row?.n;
+            })
+        );
+        return counts;
+    }
+
+    async function foreignKeyViolations() {
+        return (await env.DB.prepare('PRAGMA foreign_key_check').all()).results;
+    }
+
+    async function writeEntry(as: TestSession, groupId: string, text: string, paidBy: string, shares: string[]) {
+        const entry = dinner(paidBy, Object.fromEntries(shares.map((id) => [id, 500])));
+        const response = await send(as, 'PUT', `/groups/${groupId}/entries/${crypto.randomUUID()}`, { ...entry, text });
+        expect(response.status).toBe(200);
+    }
+
+    it('erases a group where nobody else used the app: its name, people, entries and links', async () => {
+        const family = await makeGroup(ana, ['Mom', 'Mother', 'Dan'], 'Family secrets');
+        const [mom, mother] = ['Mom', 'Mother'].map((name) => memberNamed(family, name));
+        await env.DB.prepare('UPDATE shared_members SET merged_into = ?2 WHERE id = ?1').bind(mother, mom).run();
+        await writeEntry(ana, family.id, 'Therapy for Mom', family.me, [family.me, mom!]);
+        await writeEntry(ana, family.id, 'Gift for Mother', mother!, [mother!, family.me]);
+        const memberIds = family.members.map((member) => member.id);
+        await env.DB.prepare(
+            `INSERT INTO friend_invitations (id, group_id, member_id, created_by, created_at, expires_at)
+             VALUES (?1, ?2, ?3, ?4, 1, 2)`
+        )
+            .bind(crypto.randomUUID(), family.id, mom, ana.userId)
+            .run();
+        const before = await mentions('Family', 'Mom', 'Mother', 'Dan', 'Therapy', 'Gift');
+        expect(before.every((n) => n !== undefined && n > 0)).toBe(true);
+
+        const response = await deleteAccount(ana);
+
+        expect(response.status).toBe(204);
+        expect(Object.values(await rowsOfGroup(family.id)).flat()).toEqual([]);
+        expect(await mentions('Family', 'Mom', 'Mother', 'Dan', 'Therapy', 'Gift')).toEqual([0, 0, 0, 0, 0, 0]);
+        const orphans = await env.DB.prepare(
+            `SELECT (SELECT COUNT(*) FROM shared_members WHERE id IN (SELECT value FROM json_each(?1)))
+                + (SELECT COUNT(*) FROM friend_invitations WHERE member_id IN (SELECT value FROM json_each(?1))) AS n`
+        )
+            .bind(JSON.stringify(memberIds))
+            .first<{ n: number }>();
+        expect(orphans?.n).toBe(0);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('erases every friend by name, with the group they made alone, and none of the rest', async () => {
+        const friends = [await makeFriend(ana, 'Dan'), await makeFriend(ana, 'Eve')];
+        await linkOf(ana, friends[0]!.id);
+        await writeEntry(ana, friends[1]!.id, 'Lunch with Eve', friends[1]!.me, [friends[1]!.me]);
+        const alone = await makeGroup(ana);
+        const kept = await makeGroup(bruno, ['Carla'], 'Bruno trip');
+        const keptFriend = await makeFriend(bruno, 'Dan');
+
+        await deleteAccount(ana);
+
+        for (const gone of [...friends, alone]) {
+            expect(Object.values(await rowsOfGroup(gone.id)).flat()).toEqual([]);
+        }
+        expect(await mentions('Eve', 'Lunch')).toEqual([0, 0]);
+        expect((await rowsOfGroup(kept.id)).members).toHaveLength(2);
+        expect((await rowsOfGroup(keptFriend.id)).members).toHaveLength(2);
+        expect((await listGroups(bruno)).map((group) => group.id).sort()).toEqual([kept.id, keptFriend.id].sort());
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('erases a closed group, or one they had left, when nobody else ever used the app in it', async () => {
+        const closed = await makeGroup(ana, ['Dan'], 'Closed one');
+        const left = await makeGroup(ana, ['Eve'], 'Left one');
+        await writeEntry(ana, closed.id, 'Closed lunch', closed.me, [closed.me]);
+        await env.DB.prepare('UPDATE shared_groups SET deleted_at = 5, updated_at = 5 WHERE id = ?1')
+            .bind(closed.id)
+            .run();
+        await leftAt(left.me);
+
+        await deleteAccount(ana);
+
+        for (const gone of [closed, left]) {
+            expect(Object.values(await rowsOfGroup(gone.id)).flat()).toEqual([]);
+        }
+        expect(await mentions('Closed', 'Left one', 'Dan', 'Eve')).toEqual([0, 0, 0, 0]);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('keeps the group, the names and the entries when another user is in it', async () => {
+        const trip = await makeGroup(ana, ['Bruno', 'Mom'], 'Real trip');
+        await claim(memberNamed(trip, 'Bruno'), bruno);
+        await writeEntry(ana, trip.id, 'Real dinner', trip.me, [trip.me, memberNamed(trip, 'Mom')]);
+
+        await deleteAccount(ana);
+
+        const rows = await rowsOfGroup(trip.id);
+        expect(rows.group).toHaveLength(1);
+        expect(rows.entries).toHaveLength(1);
+        expect(await mentions('Real trip', 'Mom', 'Real dinner')).toEqual([1, 1, 1]);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('keeps the group, the names and the entries when another user was in it and left', async () => {
+        const trip = await makeGroup(ana, ['Bruno', 'Mom'], 'Left trip');
+        const brunoId = memberNamed(trip, 'Bruno');
+        await claim(brunoId, bruno);
+        await writeEntry(ana, trip.id, 'Left dinner', trip.me, [trip.me, memberNamed(trip, 'Mom')]);
+        await leftAt(brunoId);
+
+        await deleteAccount(ana);
+
+        const rows = await rowsOfGroup(trip.id);
+        expect(rows.group[0]).toMatchObject({ name: 'Left trip' });
+        expect(rows.group[0]).toMatchObject({ deleted_at: expect.any(Number) });
+        expect(rows.entries).toHaveLength(1);
+        expect(await mentions('Left trip', 'Mom', 'Left dinner')).toEqual([1, 1, 1]);
+        expect(await foreignKeyViolations()).toEqual([]);
+    });
+
+    it('keeps the group when the other user has deleted their account since', async () => {
+        const trip = await makeGroup(ana, ['Bruno', 'Mom'], 'Past trip');
+        await claim(memberNamed(trip, 'Bruno'), bruno);
+        await writeEntry(ana, trip.id, 'Past dinner', trip.me, [trip.me, memberNamed(trip, 'Mom')]);
+        await deleteAccount(bruno, 'bruno@example.com');
+
+        await deleteAccount(ana);
+
+        expect((await rowsOfGroup(trip.id)).group).toHaveLength(1);
+        expect(await mentions('Past trip', 'Mom', 'Past dinner')).toEqual([1, 1, 1]);
+        expect(await foreignKeyViolations()).toEqual([]);
     });
 
     it('leaves a group they had left as it was, without closing it or handing it over', async () => {
