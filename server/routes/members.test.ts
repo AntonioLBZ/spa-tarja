@@ -859,6 +859,19 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend with closed group
         expect((await groupOfAna(other.id)).members).toHaveLength(1);
     });
 
+    it('adds a friend again once they archive the closed groups other people piled onto them', async () => {
+        const toBruno = await befriend(ana, bruno);
+        const piled = await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+        const group = await makeGroup(ana);
+        expect(await error(await putMember(ana, group.id, crypto.randomUUID(), { friend: toBruno.id }), 409)).toBe(
+            'too-many-closed-groups'
+        );
+
+        await send(bruno, 'PUT', `/groups/${piled[0]}/me`, { archived: true });
+
+        await addFriend(ana, group.id, toBruno.id);
+    });
+
     it('refuses to put a friend in place of a dummy, as it does to add one', async () => {
         const group = await makeGroup(ana, ['Dani']);
         const toBruno = await befriend(ana, bruno);

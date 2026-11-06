@@ -200,13 +200,14 @@ const countOpenGroups = async (db: D1Database, userId: string, kind: GroupKind):
     return row?.n ?? 0;
 };
 
-// The groups and friends that are closed for the user, whether they were deleted or the user left them. Only the routes
-// that put somebody in a group ask; deleting an account never does.
+// The groups and friends that are closed for the user and that they haven't archived, whether they were deleted or the
+// user left them: archiving one frees its place. Only the routes that put somebody in a group ask; deleting an account
+// never does.
 const countClosedGroups = async (db: D1Database, userId: string): Promise<number> => {
     const row = await db
         .prepare(
             `SELECT COUNT(*) AS n FROM shared_members m JOIN shared_groups g ON g.id = m.group_id
-             WHERE m.user_id = ?1 AND (m.left_at IS NOT NULL OR g.deleted_at IS NOT NULL)`
+             WHERE m.user_id = ?1 AND m.archived_at IS NULL AND (m.left_at IS NOT NULL OR g.deleted_at IS NOT NULL)`
         )
         .bind(userId)
         .first<{ n: number }>();

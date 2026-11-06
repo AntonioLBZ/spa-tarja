@@ -811,6 +811,15 @@ describe('a link to be friends with nobody behind it', () => {
         expect(await storedRows()).toEqual([]);
     });
 
+    it('is made again once a person archives the closed groups that count against them', async () => {
+        const piled = await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+        expect(await error(await makeLink(bruno), 409)).toBe('too-many-closed-groups');
+
+        await send(bruno, 'PUT', `/groups/${piled[0]}/me`, { archived: true });
+
+        expect((await makeLink(bruno)).status).toBe(200);
+    });
+
     it('needs a session, and the window of the user it was opened for', async () => {
         const made = await linkMade(ana);
         const anonymous = { userId: '', headers: new Headers() };

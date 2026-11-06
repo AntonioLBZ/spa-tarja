@@ -370,6 +370,34 @@ describe('PUT /api/groups/:id, over the closed groups of the maker', () => {
 
         await makeGroup(ana);
     });
+
+    it('frees the slot of every closed group they archive, and takes it back when they bring it back', async () => {
+        const piled = await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
+        expect((await put(ana, crypto.randomUUID(), trip())).status).toBe(409);
+
+        const archive = (id: string, archived: boolean) => switches(ana, id, { archived });
+        expect((await archive(piled[0]!, true)).status).toBe(200);
+        await makeGroup(ana);
+        expect((await archive(piled[0]!, false)).status).toBe(200);
+
+        const response = await put(ana, crypto.randomUUID(), trip());
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
+    });
+
+    it('does not count any archived group, and still refuses at the limit of the ones that are not', async () => {
+        const piled = await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
+        for (const id of piled) expect((await switches(ana, id, { archived: true })).status).toBe(200);
+        await makeGroup(ana);
+        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS - 1);
+        await makeGroup(ana);
+        await seedClosedGroups(ana.userId, 1, 'left');
+
+        const response = await put(ana, crypto.randomUUID(), trip());
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
+    });
 });
 
 describe('PUT /api/groups/:id, a change', () => {

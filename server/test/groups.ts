@@ -104,11 +104,17 @@ const seedEntry = async (groupId: string, entry: SeededEntry): Promise<number> =
     return row.seq;
 };
 
-// Groups already closed for that person, written straight into the tables: deleted, or left by them
-const seedClosedGroups = async (userId: string, count: number, how: 'deleted' | 'left' = 'deleted'): Promise<void> => {
+// Groups already closed for that person, written straight into the tables: deleted, or left by them. Their ids.
+const seedClosedGroups = async (
+    userId: string,
+    count: number,
+    how: 'deleted' | 'left' = 'deleted'
+): Promise<string[]> => {
     const statements: D1PreparedStatement[] = [];
+    const ids: string[] = [];
     for (let made = 0; made < count; made++) {
         const groupId = crypto.randomUUID();
+        ids.push(groupId);
         statements.push(
             env.DB.prepare(
                 `INSERT INTO shared_groups (id, kind, name, currency, created_by, created_at, updated_at, deleted_at)
@@ -121,6 +127,7 @@ const seedClosedGroups = async (userId: string, count: number, how: 'deleted' | 
         );
     }
     for (let from = 0; from < statements.length; from += 50) await env.DB.batch(statements.slice(from, from + 50));
+    return ids;
 };
 
 export { befriend, claim, groupOf, listGroups, makeFriend, makeGroup, memberNamed, seedClosedGroups, seedEntry, send };
