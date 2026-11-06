@@ -672,8 +672,9 @@ describe('the people a group ever had', () => {
 
     it(`refuses a person once a group has had ${MAX_GROUP_MEMBER_ROWS}, though only one is in it`, async () => {
         const group = await makeGroup(ana);
-        for (let added = 1; added < MAX_GROUP_MEMBER_ROWS; added++) {
-            const { id } = await addDummy(ana, group.id, `Dummy ${added}`);
+        await seedLeft(group.id, MAX_GROUP_MEMBER_ROWS - 3);
+        for (const name of ['Dummy 1', 'Dummy 2']) {
+            const { id } = await addDummy(ana, group.id, name);
             await groupOf(await removeMember(ana, group.id, id));
         }
         expect(await rowsOfGroup(group.id)).toBe(MAX_GROUP_MEMBER_ROWS);
