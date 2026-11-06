@@ -158,7 +158,7 @@
             "intro": "Only what the app needs to work. It isn't used for anything else.",
             "google": "From your Google account: your name, your email and the address of your picture. You sign in with Google, so Tarja never stores a password.",
             "nickname": "Your nickname, if you set one. Your friends see it.",
-            "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in them.",
+            "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in your groups.",
             "invitations": "The invitation links you make. Each works once, for 14 days.",
             "sessions": "Each time you sign in, a session: a cookie in your browser and, on the server, the IP address and the browser it was opened from.",
             "device": "On your device: a copy of your data, so the app works offline, and your language, theme and color. Signing out removes the copy, unless something is still waiting to be sent."
@@ -177,7 +177,7 @@
         "keeps": {
             "title": "How long, and deleting your account",
             "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
-            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends by name where you are the only person with an account are deleted completely, with every name and expense in them.",
+            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends where you are the only person with an account are deleted completely, with every name and expense in them.",
             "stays": "The shared expenses in your groups stay for the others, because they are also their record. They show as “Deleted user”, without your name.",
             "backups": "The backups Cloudflare keeps to recover the service expire on their own."
         },
@@ -256,7 +256,7 @@
             "delete": {
                 "open": "Delete account",
                 "title": "Delete your account?",
-                "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends by name where you are the only person with an account, with every name and expense in them. This can't be undone.",
+                "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends where you are the only person with an account, with every name and expense in them. This can't be undone.",
                 "stays": "The shared expenses in your groups stay for the others, under “Deleted user”.",
                 "backups": "The backups kept to recover the service expire on their own.",
                 "export": "Download your data first",
