@@ -2,7 +2,7 @@ import { onlineManager, useQueryClient } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiError, GROUPS_KEY } from '@/lib/api';
+import { ApiError, GROUPS_KEY, PENDING_INVITATIONS_KEY, pendingInvitationsQuery } from '@/lib/api';
 import { useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
@@ -14,6 +14,7 @@ import { LocalRefusal } from './local-refusal';
 import { useGroupActions } from './use-group-actions';
 import { useGroups, useLedgers } from './use-ledgers';
 
+import type { PendingInvitation } from '@core/invitation';
 import type { SharedGroup } from '@core/shared-group';
 
 type Actions = ReturnType<typeof useGroupActions>;
@@ -159,6 +160,48 @@ describe('a closed group is read-only', () => {
         await waitFor(() =>
             expect(app.groupOf(group.id)).toMatchObject({ closed: 'deleted', archived: true, showInExpenses: false })
         );
+    });
+});
+
+describe('the links to be friends of the person', () => {
+    const older: PendingInvitation = {
+        id: '0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f',
+        token: `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`,
+        expiresAt: 1_000,
+    };
+
+    it('keeps a new link first in the list on the device, and the list the server answers to a revoke', async () => {
+        const app = await setup([], { pending: [older] });
+        const listed = () => app.result.current.client.getQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY);
+        await act(() => app.result.current.client.fetchQuery(pendingInvitationsQuery()));
+
+        const made = await act(() => app.result.current.actions.inviteFriend());
+
+        expect(listed()).toEqual([made, older]);
+        await act(() => app.result.current.actions.revokeLink(made.id));
+        expect(listed()).toEqual([older]);
+        expect(app.api.groupRequests).toEqual(['POST /api/invitations', `DELETE /api/invitations/${made.id}`]);
+    });
+
+    it('keeps no list made only of the new link when the list was never read', async () => {
+        const app = await setup([], { pending: [older] });
+
+        await act(() => app.result.current.actions.inviteFriend());
+
+        expect(app.result.current.client.getQueryData(PENDING_INVITATIONS_KEY)).toBeUndefined();
+    });
+
+    it.each([
+        ['making one', (actions: Actions) => actions.inviteFriend()],
+        ['revoking one', (actions: Actions) => actions.revokeLink(older.id)],
+    ])('refuses %s offline before anything is sent', async (_, change) => {
+        const app = await setup([], { pending: [older] });
+        onlineManager.setOnline(false);
+
+        const refused = change(app.result.current.actions);
+
+        await expect(refused).rejects.toMatchObject({ code: 'offline' });
+        expect(app.writes()).toEqual([]);
     });
 });
 

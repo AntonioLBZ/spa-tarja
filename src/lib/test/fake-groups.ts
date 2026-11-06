@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { INVITATION_DAYS, type FriendInvitation } from '@core/invitation';
+import { INVITATION_DAYS, type FriendInvitation, type PendingInvitation } from '@core/invitation';
 import { sharedEntryInputSchema, type LedgerEntry, type SharedEntry } from '@core/shared-entry';
 import {
     groupWriteSchema,
@@ -22,10 +22,12 @@ interface Refusal {
     error?: string;
 }
 
-// A link the test user opens: the name of who asks, and the friend the test user becomes by accepting it
+// A link the test user opens: the name of who asks, whether it is for a dummy, and the friend the test user becomes by
+// accepting it
 interface IncomingInvitation {
     token: string;
     name: string;
+    forDummy: boolean;
     friend: SharedGroup;
 }
 
@@ -44,10 +46,12 @@ interface FakeGroupsOptions {
     incoming?: IncomingInvitation[];
     // The invitation of each friend, by its id, as its members read it
     friendInvitations?: Record<string, FriendInvitation>;
+    // The open links to be friends the test user made, newest first
+    pending?: PendingInvitation[];
 }
 
 interface FakeGroupsState {
-    // Answers every change of a group or of its people with it
+    // Answers every change of a group, of its people or of the links of the test user with it
     groupRefusal: Refusal | null;
     // Answers every write of an entry with it
     entryRefusal: Refusal | null;
@@ -81,6 +85,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
     const entryWrites: LedgerEntry[] = [];
     const friendInvitations = new Map(Object.entries(options.friendInvitations ?? {}));
     const links = new Map((options.incoming ?? []).map((link) => [link.token, link]));
+    const pending: PendingInvitation[] = structuredClone(options.pending ?? []);
 
     const groupOf = (groupId: string) => groups.find((group) => group.id === groupId);
     const cursorOf = (groupId: string) =>
@@ -257,7 +262,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         if (refusal) return refuse(refusal);
         const link = links.get((json(init) as { token: string }).token);
         if (!link) return refuse({ status: 410, error: 'gone' });
-        if (action === 'read') return Response.json({ name: link.name });
+        if (action === 'read') return Response.json({ name: link.name, forDummy: link.forDummy });
         links.delete(link.token);
         if (action === 'decline') return new Response(null, { status: 204 });
         const friend = structuredClone(link.friend);
@@ -265,9 +270,31 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         return Response.json(friend);
     };
 
+    // The links to be friends of the test user: a new one comes first, and revoking one takes it out
+    const ownLinks = (url: URL, method: string): Response => {
+        if (method === 'GET') return Response.json({ invitations: pending });
+        groupRequests.push(`${method} ${url.pathname}`);
+        if (state.groupRefusal) return refuse(state.groupRefusal);
+        if (method === 'POST') {
+            const id = crypto.randomUUID();
+            const invitation = { id, token: `${id}.${'A'.repeat(43)}`, expiresAt: Date.now() + INVITATION_DAYS * DAY };
+            pending.unshift(invitation);
+            return Response.json({ invitation });
+        }
+        const at = pending.findIndex((link) => url.pathname === `/api/invitations/${link.id}`);
+        if (at < 0) return refuse({ status: 404, error: 'not-found' });
+        pending.splice(at, 1);
+        return Response.json({ invitations: pending });
+    };
+
     // Answers a request under /api/groups or /api/invitations
     const handle = (url: URL, method: string, init?: RequestInit): Response => {
         if (url.pathname === '/api/groups' && method === 'GET') return Response.json({ groups });
+
+        const ofLinks = url.pathname === '/api/invitations' && (method === 'GET' || method === 'POST');
+        if (ofLinks || (method === 'DELETE' && url.pathname.startsWith('/api/invitations/'))) {
+            return ownLinks(url, method);
+        }
 
         const action = /^\/api\/invitations\/(read|accept|decline)$/.exec(url.pathname)?.[1] as LinkAction | undefined;
         if (action && method === 'POST') return answerLink(action, init);
@@ -308,6 +335,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
                 .map((row) => row.entry),
         cursorOf,
         friendInvitations,
+        pendingInvitations: pending,
         // Another member writes an entry, from their own device
         serverWriteEntry: ({ groupId, ...entry }: SeededEntry, by: string) =>
             storeEntry(groupId, { ...entry, createdBy: by, updatedBy: by }),

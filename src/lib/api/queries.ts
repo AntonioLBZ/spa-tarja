@@ -5,7 +5,13 @@ import { CATEGORIES_KEY, fetchCategories } from './categories';
 import { api } from './client';
 import { GROUPS_KEY, fetchGroups } from './groups';
 import { INCOME_KEY, fetchIncome } from './income';
-import { fetchFriendInvitation, friendInvitationKey, readInvitation } from './invitations';
+import {
+    PENDING_INVITATIONS_KEY,
+    fetchFriendInvitation,
+    fetchPendingInvitations,
+    friendInvitationKey,
+    readInvitation,
+} from './invitations';
 import { PROFILE_KEY, fetchProfile } from './profile';
 
 const healthQuery = () => {
@@ -49,6 +55,11 @@ const friendInvitationQuery = (groupId: string) => {
     return queryOptions({ queryKey: friendInvitationKey(groupId), queryFn: () => fetchFriendInvitation(groupId) });
 };
 
+// The person's own links to be friends that are still open, which need a connection and are not kept offline
+const pendingInvitationsQuery = () => {
+    return queryOptions({ queryKey: PENDING_INVITATIONS_KEY, queryFn: fetchPendingInvitations });
+};
+
 // What the link of an invitation shows, which needs a connection and is not kept offline
 const invitationQuery = (token: string) => {
     return queryOptions({ queryKey: ['invitation', token], queryFn: () => readInvitation(token) });
@@ -62,5 +73,6 @@ export {
     healthQuery,
     incomeQuery,
     invitationQuery,
+    pendingInvitationsQuery,
     profileQuery,
 };

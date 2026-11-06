@@ -1,7 +1,7 @@
 import { toApiError } from './api-error';
 import { api } from './client';
 
-import type { FriendInvitation, InvitationView } from '@core/invitation';
+import type { FriendInvitation, InvitationView, PendingInvitation } from '@core/invitation';
 import type { SharedGroup } from '@core/shared-group';
 
 // The invitation of a friend, kept in memory only, as changing it needs a connection
@@ -27,6 +27,30 @@ const deleteFriendInvitation = async (groupId: string): Promise<FriendInvitation
     return (await response.json()).invitation;
 };
 
+// The person's own links to be friends that are still open, kept in memory only, as changing them needs a connection
+const PENDING_INVITATIONS_KEY = ['pending-invitations'] as const;
+
+const fetchPendingInvitations = async (): Promise<PendingInvitation[]> => {
+    const response = await api.api.invitations.$get();
+    if (!response.ok) throw await toApiError(response);
+    return (await response.json()).invitations;
+};
+
+// A new link to be friends, with nobody behind it
+const postInvitation = async (): Promise<PendingInvitation> => {
+    const response = await api.api.invitations.$post();
+    if (!response.ok) throw await toApiError(response);
+    return (await response.json()).invitation;
+};
+
+// Revokes one by its id, which opens nothing without the signature, so sending it twice is harmless; answers the links
+// still open
+const deleteInvitation = async (invitationId: string): Promise<PendingInvitation[]> => {
+    const response = await api.api.invitations[':invitationId'].$delete({ param: { invitationId } });
+    if (!response.ok) throw await toApiError(response);
+    return (await response.json()).invitations;
+};
+
 // The calls of a link carry its token in the body, so that no URL the server logs holds it
 
 const readInvitation = async (token: string): Promise<InvitationView> => {
@@ -48,11 +72,15 @@ const declineInvitation = async (token: string): Promise<void> => {
 };
 
 export {
+    PENDING_INVITATIONS_KEY,
     acceptInvitation,
     declineInvitation,
     deleteFriendInvitation,
+    deleteInvitation,
     fetchFriendInvitation,
+    fetchPendingInvitations,
     friendInvitationKey,
     postFriendInvitation,
+    postInvitation,
     readInvitation,
 };

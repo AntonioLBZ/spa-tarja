@@ -29,7 +29,7 @@ function openLink(
     options: { refusals?: Partial<Record<'read' | 'accept' | 'decline', Refusal>>; known?: boolean } = {}
 ) {
     const friend = friendOfCarla();
-    const incoming = options.known === false ? [] : [{ token: TOKEN, name: 'Carla', friend }];
+    const incoming = options.known === false ? [] : [{ token: TOKEN, name: 'Carla', forDummy: true, friend }];
     const api = createFakeApi({ incoming });
     Object.assign(api.state.linkRefusals, options.refusals);
     stubApi(api.handler);

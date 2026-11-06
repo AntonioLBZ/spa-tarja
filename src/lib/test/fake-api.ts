@@ -132,7 +132,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             });
         }
 
-        if (url.pathname.startsWith('/api/groups') || url.pathname.startsWith('/api/invitations/')) {
+        if (url.pathname.startsWith('/api/groups') || url.pathname.startsWith('/api/invitations')) {
             return fakeGroups.handle(url, method, init);
         }
 
@@ -278,6 +278,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         entriesOf: fakeGroups.entriesOf,
         cursorOf: fakeGroups.cursorOf,
         friendInvitations: fakeGroups.friendInvitations,
+        pendingInvitations: fakeGroups.pendingInvitations,
         serverWriteEntry: fakeGroups.serverWriteEntry,
     };
 };

@@ -464,6 +464,7 @@
             "alreadyMember": "Esa persona ya está en el grupo, o estuvo antes.",
             "unknownFriend": "Esa persona ya no está entre tus amigos.",
             "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
+            "tooManyInvitations": "Tienes {max} enlaces de invitación abiertos, el máximo. Retira alguno primero.",
             "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
         },
         "edit": {

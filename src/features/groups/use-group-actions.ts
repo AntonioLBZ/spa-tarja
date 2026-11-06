@@ -3,16 +3,19 @@ import { useMemo } from 'react';
 
 import {
     GROUPS_KEY,
+    PENDING_INVITATIONS_KEY,
     acceptInvitation,
     declineInvitation,
     deleteFriendInvitation,
     deleteGroup,
+    deleteInvitation,
     deleteMember,
     friendInvitationKey,
     groupEntriesKey,
     handOver,
     mergeMember,
     postFriendInvitation,
+    postInvitation,
     putGroup,
     putMember,
     putMySwitches,
@@ -23,7 +26,7 @@ import { DEFAULT_CURRENCY } from '@core/money';
 
 import { LocalRefusal } from './local-refusal';
 
-import type { FriendInvitation } from '@core/invitation';
+import type { FriendInvitation, PendingInvitation } from '@core/invitation';
 import type { GroupChange, MySwitches, SharedGroup } from '@core/shared-group';
 
 // A member made by name, with an id made on the device
@@ -86,6 +89,15 @@ const useGroupActions = () => {
         const keepInvitation = (groupId: string, invitation: FriendInvitation | null) => {
             queryClient.setQueryData(friendInvitationKey(groupId), invitation);
             return invitation;
+        };
+
+        // A read of the links on its way would put an older list over the one this change leaves. A list never read
+        // is read again instead, so the device never holds one that leaves out links it hasn't seen.
+        const keepLinks = async (change: (links: PendingInvitation[]) => PendingInvitation[]) => {
+            await queryClient.cancelQueries({ queryKey: PENDING_INVITATIONS_KEY });
+            const links = queryClient.getQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY);
+            if (links) queryClient.setQueryData(PENDING_INVITATIONS_KEY, change(links));
+            else void queryClient.invalidateQueries({ queryKey: PENDING_INVITATIONS_KEY });
         };
 
         return {
@@ -174,6 +186,19 @@ const useGroupActions = () => {
             async revokeInvitation(groupId: string) {
                 openGroup(groupId);
                 return keepInvitation(groupId, await deleteFriendInvitation(groupId));
+            },
+            // A new link to be friends, with nobody behind it, first in the list of the person's links
+            async inviteFriend() {
+                online();
+                const made = await postInvitation();
+                await keepLinks((links) => [made, ...links.filter((link) => link.id !== made.id)]);
+                return made;
+            },
+            async revokeLink(invitationId: string) {
+                online();
+                const links = await deleteInvitation(invitationId);
+                await keepLinks(() => links);
+                return links;
             },
             // The person takes the place of the dummy the link is for, and the friend is theirs like any other. The
             // groups may never have been read on this device, so they are read again behind it.

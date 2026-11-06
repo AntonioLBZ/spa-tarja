@@ -2,7 +2,13 @@ import { useCallback } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ApiError } from '@/lib/api';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import {
+    MAX_CLOSED_GROUPS,
+    MAX_FRIENDS,
+    MAX_GROUP_MEMBERS,
+    MAX_OPEN_GROUPS,
+    MAX_OPEN_INVITATIONS,
+} from '@core/shared-group';
 
 import { LocalRefusal } from './local-refusal';
 
@@ -25,6 +31,7 @@ type GroupFailure =
     | 'alreadyMember'
     | 'unknownFriend'
     | 'tooManyMembers'
+    | 'tooManyInvitations'
     | 'failed';
 
 const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
@@ -42,6 +49,7 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     'already-member': 'alreadyMember',
     'unknown-friend': 'unknownFriend',
     'too-many-members': 'tooManyMembers',
+    'too-many-invitations': 'tooManyInvitations',
 };
 
 // A refusal of the device or of the server; anything else, a dropped connection included, is a plain failure
@@ -71,6 +79,7 @@ const useFailureWords = () => {
             }
             if (failure === 'tooManyFriends') return t(failure, { max: MAX_FRIENDS });
             if (failure === 'tooManyMembers') return t(failure, { max: MAX_GROUP_MEMBERS });
+            if (failure === 'tooManyInvitations') return t(failure, { max: MAX_OPEN_INVITATIONS });
             return t(failure);
         },
         [t]

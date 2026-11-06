@@ -12,6 +12,7 @@ import {
     friendInvitationKey,
     groupEntriesKey,
     invitationQuery,
+    pendingInvitationsQuery,
 } from '@/lib/api';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
@@ -59,6 +60,7 @@ describe('createPersistOptions', () => {
         client.setQueryData(GROUPS_KEY, []);
         client.setQueryData(friendInvitationKey('friend'), { state: 'open', token: TOKEN, expiresAt: 1 });
         client.setQueryData(invitationQuery(TOKEN).queryKey, { name: 'Ana', forDummy: true });
+        client.setQueryData(pendingInvitationsQuery().queryKey, [{ id: 'link', token: TOKEN, expiresAt: 1 }]);
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());
 
         const queries = dehydrate(client, dehydrateOptions).queries;

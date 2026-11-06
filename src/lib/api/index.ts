@@ -25,11 +25,14 @@ export {
     putMySwitches,
 } from './groups';
 export {
+    PENDING_INVITATIONS_KEY,
     acceptInvitation,
     declineInvitation,
     deleteFriendInvitation,
+    deleteInvitation,
     friendInvitationKey,
     postFriendInvitation,
+    postInvitation,
 } from './invitations';
 export { PROFILE_KEY, fetchProfile, putProfile } from './profile';
 export {
@@ -40,5 +43,6 @@ export {
     healthQuery,
     incomeQuery,
     invitationQuery,
+    pendingInvitationsQuery,
     profileQuery,
 } from './queries';
