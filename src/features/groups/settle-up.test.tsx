@@ -17,6 +17,7 @@ import type { GroupMember, SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.settle;
+const you = t('groups.names.you', { name: 'Ana' });
 
 function euros(cents: number) {
     return formatAmount(cents, 'EUR', 'en');
@@ -125,7 +126,7 @@ describe('settling up from a line', () => {
 
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
 
-        expect(select(text.from).textContent).toBe(text.you);
+        expect(select(text.from).textContent).toBe(you);
         expect(select(text.to).textContent).toBe('Bea');
         expect(amount().value).toBe('15.00');
         expect(document.activeElement).toBe(amount());
@@ -337,7 +338,7 @@ describe('settling up in the simplified view', () => {
 
         fireEvent.click(toggle());
 
-        expect(select(text.from).textContent).toBe(text.you);
+        expect(select(text.from).textContent).toBe(you);
         expect(select(text.to).textContent).toBe('Bea');
         expect(hint()).toBe(sentences(youOweBea));
     });
@@ -432,7 +433,7 @@ describe('the form', () => {
 
         fireEvent.click(toggle());
 
-        expect(select(text.from).textContent).toBe(text.you);
+        expect(select(text.from).textContent).toBe(you);
         expect(select(text.to).textContent).toBe('Bea');
         expect(amount().value).toBe('');
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
@@ -508,7 +509,7 @@ describe('the form', () => {
         fireEvent.click(toggle());
 
         fireEvent.click(select(text.to));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.you, 'Bea', 'Cris']);
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([you, 'Bea', 'Cris']);
         fireEvent.click(screen.getByRole('option', { name: 'Cris' }));
         fireEvent.change(amount(), { target: { value: '3' } });
         fireEvent.click(toggle());
@@ -530,7 +531,7 @@ describe('the form', () => {
         fireEvent.change(amount(), { target: { value: '0.01' } });
         expect(save().disabled).toBe(false);
 
-        choose(text.to, text.you);
+        choose(text.to, you);
 
         expect(screen.getByRole('alert').textContent).toBe(text.same);
         expect(save().disabled).toBe(true);
@@ -601,6 +602,43 @@ describe('where there is no settling up', () => {
     });
 });
 
+describe('naming the person in From and To', () => {
+    it('lists them as their name and (You), where the sentences keep a plain You', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(toggle());
+
+        expect(you).toBe('Ana (You)');
+        expect(select(text.from).textContent).toBe(you);
+        expect(select(text.to).textContent).toBe('Bea');
+        expect(screen.queryByRole('option', { name: 'You' })).toBeNull();
+        fireEvent.change(amount(), { target: { value: '5' } });
+        expect(hint()).toContain(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) }));
+        expect(hint()).toContain(t('groups.settle.after.youOwe', { name: 'Bea', amount: euros(1000) }));
+    });
+
+    it('numbers the name when another member has the same one', async () => {
+        const first = person('Ana', { role: 'owner' });
+        const second = person('Ana');
+        const group = trip({ members: [first, second, bea], me: second.id });
+        await open(group, [
+            expense(group, bea, [
+                [first, 1500],
+                [second, 1500],
+            ]),
+        ]);
+        fireEvent.click(toggle());
+
+        expect(select(text.from).textContent).toBe('Ana (2) (You)');
+        fireEvent.click(select(text.to));
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+            'Ana',
+            'Ana (2) (You)',
+            'Bea',
+        ]);
+    });
+});
+
 describe('in Spanish', () => {
     it('names the button of each line by words that hold what it shows', async () => {
         localStorage.setItem('tarja:locale', 'es');
@@ -622,6 +660,20 @@ describe('in Spanish', () => {
 });
 
 describe('settling up in Spanish', () => {
+    it('lists the person as their name and (Tú)', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const group = trip();
+        const api = createFakeApi({ groups: [group], entries: debts(group) });
+        stubApi(api.handler);
+        renderApp({ path: `/groups/${group.id}` });
+
+        fireEvent.click(await screen.findByRole('button', { name: es.groups.settle.title }));
+
+        expect(select(es.groups.settle.from).textContent).toBe('Ana (Tú)');
+        fireEvent.click(select(es.groups.settle.to));
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual(['Ana (Tú)', 'Bea', 'Cris']);
+    });
+
     it('fills in the amount and reads what is typed the Spanish way', async () => {
         localStorage.setItem('tarja:locale', 'es');
         const tEs = createTranslator({ locale: 'es', messages: es });

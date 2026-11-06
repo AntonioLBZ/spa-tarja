@@ -392,7 +392,6 @@ const SharedPeople = (props: SharedPeopleProps) => {
     const { locale } = useLocale();
     const words = useGroupWords(group);
     const id = useId();
-    const nameOf = (memberId: string) => (memberId === group.me ? t('you') : words.nameOf(memberId));
     const { mode, problem } = tail;
     const byPercent = mode === 'percent';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
@@ -411,7 +410,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                         label={t('paidBy')}
                         options={[
                             ...nobodyYet,
-                            ...tail.present.map((member) => ({ value: member.id, label: nameOf(member.id) })),
+                            ...tail.present.map((member) => ({ value: member.id, label: words.nameInList(member.id) })),
                         ]}
                         value={tail.payer ?? ''}
                         onChange={(value) => {
@@ -435,7 +434,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                     {tail.rows.map((row) => (
                         <li key={row.id} className="shared-people__row">
                             <Checkbox
-                                label={nameOf(row.id)}
+                                label={words.nameInList(row.id)}
                                 checked={row.isIn}
                                 onChange={(checked) => tail.take(row.id, checked)}
                             />
@@ -445,7 +444,9 @@ const SharedPeople = (props: SharedPeopleProps) => {
                                     className="shared-people__input"
                                     aria-describedby={row.invalid ? `${id}-invalid` : undefined}
                                     aria-invalid={row.invalid}
-                                    aria-label={t(byPercent ? 'percentOf' : 'amountOf', { name: nameOf(row.id) })}
+                                    aria-label={t(byPercent ? 'percentOf' : 'amountOf', {
+                                        name: words.nameInList(row.id),
+                                    })}
                                     autoComplete="off"
                                     inputMode="decimal"
                                     type="text"

@@ -24,6 +24,7 @@ vi.mock('@/lib/random-seed', () => ({ randomSeed: vi.fn() }));
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;
 const share = en.groups.share;
+const you = t('groups.names.you', { name: 'Ana' });
 
 function euros(cents: number) {
     return formatAmount(cents, 'EUR', 'en');
@@ -155,10 +156,10 @@ describe('the choice For', () => {
         fireEvent.click(forChoice(form.forShared));
 
         expect(chosenOption(share.with)).toBe('Trip');
-        expect(chosenOption(share.paidBy)).toBe(share.you);
-        expect(optionNames(share.paidBy)).toEqual([share.you, 'Bea', 'Cris']);
-        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
-        expect([share.you, 'Bea', 'Cris'].map((name) => checkbox(name).checked)).toEqual([true, true, true]);
+        expect(chosenOption(share.paidBy)).toBe(you);
+        expect(optionNames(share.paidBy)).toEqual([you, 'Bea', 'Cris']);
+        expect(rows()).toEqual([you, 'Bea', 'Cris']);
+        expect([you, 'Bea', 'Cris'].map((name) => checkbox(name).checked)).toEqual([true, true, true]);
     });
 
     it('offers the open groups first and then the friends, and none that is closed', async () => {
@@ -197,7 +198,7 @@ describe('the choice For', () => {
         fireEvent.click(forChoice(form.forShared));
 
         expect(chosenOption(share.with)).toBe('Dani');
-        expect(rows()).toEqual([share.you, 'Dani']);
+        expect(rows()).toEqual([you, 'Dani']);
     });
 
     it('keeps the head and what was typed in the other tail when it switches', async () => {
@@ -235,7 +236,7 @@ describe('splitting equally', () => {
 
         fill({ amount: '10' });
 
-        expect(rows()).toEqual([`${share.you}${euros(334)}`, `Bea${euros(333)}`, `Cris${euros(333)}`]);
+        expect(rows()).toEqual([`${you}${euros(334)}`, `Bea${euros(333)}`, `Cris${euros(333)}`]);
         expect(amountsShown()).toEqual([334, 333, 333]);
     });
 
@@ -245,8 +246,8 @@ describe('splitting equally', () => {
 
         fill({ amount: '0.01' });
 
-        expect(rows()).toEqual([`${share.you}${euros(1)}`, 'Bea', 'Cris']);
-        expect([share.you, 'Bea', 'Cris'].map((name) => checkbox(name).checked)).toEqual([true, true, true]);
+        expect(rows()).toEqual([`${you}${euros(1)}`, 'Bea', 'Cris']);
+        expect([you, 'Bea', 'Cris'].map((name) => checkbox(name).checked)).toEqual([true, true, true]);
     });
 
     it('saves the expense in the group on the device, offline too, and empties the form back to Just me', async () => {
@@ -300,7 +301,7 @@ describe('splitting equally', () => {
         fireEvent.click(checkbox('Cris'));
         fireEvent.click(addButton());
 
-        expect(rows()).toEqual([`${share.you}${euros(500)}`, `Bea${euros(500)}`, 'Cris']);
+        expect(rows()).toEqual([`${you}${euros(500)}`, `Bea${euros(500)}`, 'Cris']);
         await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
         expect(app.groupOutbox.getState().pending[0]!.shares).toEqual([
             { memberId: ana.id, cents: 500 },
@@ -316,7 +317,7 @@ describe('splitting equally', () => {
         fill({ amount: '10' });
 
         pickOption(share.paidBy, 'Bea');
-        fireEvent.click(checkbox(share.you));
+        fireEvent.click(checkbox(you));
         fireEvent.click(addButton());
 
         await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
@@ -334,7 +335,7 @@ describe('splitting equally', () => {
         fireEvent.click(forChoice(form.forShared));
         fill({ amount: '10' });
 
-        for (const name of [share.you, 'Bea', 'Cris']) fireEvent.click(checkbox(name));
+        for (const name of [you, 'Bea', 'Cris']) fireEvent.click(checkbox(name));
 
         expect(screen.getByRole('alert').textContent).toBe(share.nobody);
         expect(addButton().disabled).toBe(true);
@@ -356,14 +357,14 @@ describe('splitting equally', () => {
 
         fireEvent.click(forChoice(form.forShared));
 
-        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
-        expect(optionNames(share.paidBy)).toEqual([share.you, 'Bea', 'Cris']);
+        expect(rows()).toEqual([you, 'Bea', 'Cris']);
+        expect(optionNames(share.paidBy)).toEqual([you, 'Bea', 'Cris']);
     });
 });
 
 describe('the cents left of an equal split', () => {
     it.each([
-        ['you', 0],
+        ['Ana', 0],
         ['Bea', 1],
         ['Cris', 2],
     ])('go to %s when the seed of the form picks them', async (_name, index) => {
@@ -448,6 +449,46 @@ describe('the cents left of an equal split', () => {
     });
 });
 
+describe("naming the person in Paid by and Who's in", () => {
+    it('lists them as their name and (You), with the label of their share the same', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        expect(you).toBe('Ana (You)');
+        expect(optionNames(share.paidBy)).toEqual([you, 'Bea', 'Cris']);
+        expect(rows().map((row) => row?.replace(/[\d.]+$/, '').replace('€', ''))).toEqual([you, 'Bea', 'Cris']);
+        pickMode('percent');
+        expect(shareField(you, 'percentOf')).toBeDefined();
+        pickMode('exact');
+        expect(shareField(you, 'amountOf')).toBeDefined();
+    });
+
+    it('numbers the name when another member has the same one', async () => {
+        const first = person('Ana', { role: 'owner' });
+        const second = person('Ana');
+        await openHome([trip({ members: [first, second, cris], me: second.id })]);
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(optionNames(share.paidBy)).toEqual(['Ana', 'Ana (2) (You)', 'Cris']);
+        expect(chosenOption(share.paidBy)).toBe('Ana (2) (You)');
+        expect(checkbox('Ana (2) (You)').checked).toBe(true);
+    });
+
+    it('lists them as their name and (Tú) in Spanish', async () => {
+        localStorage.setItem('tarja:locale', 'es');
+        const api = createFakeApi({ groups: [trip()] });
+        stubApi(api.handler);
+        const spanish = renderApp();
+        await screen.findByRole('radio', { name: es.expenses.form.forShared });
+        await waitFor(() => expect(spanish.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
+
+        expect(chosenOption(es.groups.share.paidBy)).toBe('Ana (Tú)');
+        expect(optionNames(es.groups.share.paidBy)).toEqual(['Ana (Tú)', 'Bea', 'Cris']);
+    });
+});
+
 describe('saving', () => {
     it('saves once on a double tap', async () => {
         const { app } = await openHome([trip()]);
@@ -508,7 +549,7 @@ describe('splitting by percent', () => {
         fill({ amount: '0.10' });
         pickMode('percent');
 
-        fireEvent.change(shareField(share.you, 'percentOf'), { target: { value: '45' } });
+        fireEvent.change(shareField(you, 'percentOf'), { target: { value: '45' } });
         fireEvent.change(shareField('Bea', 'percentOf'), { target: { value: '45' } });
         fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '10' } });
         fireEvent.click(addButton());
@@ -599,7 +640,7 @@ describe('splitting by amount', () => {
 
         pickMode('exact');
         expect(shareValues()).toEqual(['3.34', '3.33', '3.33']);
-        fireEvent.change(shareField(share.you, 'amountOf'), { target: { value: '5' } });
+        fireEvent.change(shareField(you, 'amountOf'), { target: { value: '5' } });
         fireEvent.change(shareField('Bea', 'amountOf'), { target: { value: '5' } });
         fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '0' } });
         fireEvent.click(addButton());
@@ -644,7 +685,7 @@ describe('splitting by amount', () => {
 
         pickMode('equal');
 
-        expect(rows()).toEqual([`${share.you}${euros(500)}`, 'Bea', `Cris${euros(500)}`]);
+        expect(rows()).toEqual([`${you}${euros(500)}`, 'Bea', `Cris${euros(500)}`]);
     });
 });
 
@@ -680,7 +721,7 @@ describe('how you paid', () => {
 
         expect(screen.queryByRole('combobox', { name: share.howYouPaid })).toBeNull();
         expect(screen.queryByLabelText(form.chargeDate)).toBeNull();
-        pickOption(share.paidBy, share.you);
+        pickOption(share.paidBy, you);
         expect(chosenOption(share.howYouPaid)).toBe(en.expenses.payment.direct);
     });
 
@@ -713,7 +754,7 @@ describe('how you paid', () => {
         fill({ amount: '10' });
         pickOption(share.howYouPaid, en.expenses.payment[payment]);
 
-        fireEvent.click(checkbox(share.you));
+        fireEvent.click(checkbox(you));
 
         expect(within(theForm()).getByRole('alert').textContent).toBe(share.cardNeedsYou);
         expect(addButton().disabled).toBe(true);
@@ -792,8 +833,8 @@ describe('on the screen of a group', () => {
 
         expect(screen.queryByRole('radio', { name: form.forShared })).toBeNull();
         expect(screen.queryByRole('combobox', { name: share.with })).toBeNull();
-        expect(chosenOption(share.paidBy)).toBe(share.you);
-        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
+        expect(chosenOption(share.paidBy)).toBe(you);
+        expect(rows()).toEqual([you, 'Bea', 'Cris']);
     });
 
     it('adds the expense to the group, offline too, and the balances change at once', async () => {
@@ -809,7 +850,7 @@ describe('on the screen of a group', () => {
         await waitFor(() => expect(balance()).toBe(t('groups.balance.owed', { amount: euros(2000) })));
         expect(app.groupOutbox.getState().pending).toMatchObject([{ groupId: group.id, amountCents: 3000 }]);
         expect(field(form.amount).value).toBe('');
-        expect(chosenOption(share.paidBy)).toBe(share.you);
+        expect(chosenOption(share.paidBy)).toBe(you);
     });
 
     it.each([
@@ -870,7 +911,10 @@ describe('New person…', () => {
         fireEvent.click(screen.getByRole('button', { name: en.groups.friend.submit }));
 
         await waitFor(() => expect(chosenOption(share.with)).toBe('Dani'));
-        expect(rows()).toEqual([`${share.you}${euros(500)}`, `Dani${euros(500)}`]);
+        expect(rows()).toEqual([
+            `${t('groups.names.you', { name: TEST_USER.name })}${euros(500)}`,
+            `Dani${euros(500)}`,
+        ]);
         const dani = api.groups.find((group) => group.kind === 'direct')!;
         onlineManager.setOnline(false);
         fireEvent.click(addButton());
@@ -916,7 +960,7 @@ describe('New person…', () => {
         );
         expect(screen.getByText(share.newPersonOffline)).toBeDefined();
         pickOption(share.with, 'Trip');
-        expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
+        expect(rows()).toEqual([you, 'Bea', 'Cris']);
     });
 
     it('is there under the hint when there is no group or friend yet', async () => {

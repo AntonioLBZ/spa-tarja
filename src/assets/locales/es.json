@@ -367,7 +367,8 @@
             "deleted": "Usuario eliminado",
             "numbered": "{name} ({number})",
             "left": "{name} (se fue)",
-            "unknown": "Una persona nueva"
+            "unknown": "Una persona nueva",
+            "you": "{name} (Tú)"
         },
         "balance": {
             "owed": "Te deben {amount}",
@@ -392,7 +393,6 @@
             "lineItem": "Saldar cuentas: {debt}",
             "from": "Paga",
             "to": "Recibe",
-            "you": "Tú",
             "amount": "Importe",
             "date": "Fecha",
             "save": "Guardar",
@@ -422,7 +422,6 @@
                 "percent": "Por porcentaje",
                 "exact": "Por importes"
             },
-            "you": "Tú",
             "people": "Quién participa",
             "percentOf": "{name}, porcentaje",
             "amountOf": "{name}, importe",

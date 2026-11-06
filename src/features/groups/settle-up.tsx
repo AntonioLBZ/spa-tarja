@@ -182,10 +182,7 @@ const SettleUp = (props: SettleUpProps) => {
     };
     const { from, to } = draft;
     const change = (next: Partial<SettleDraft>) => form.setDraft({ ...draft, ...next });
-    const options = people.map((member) => ({
-        value: member.id,
-        label: member.id === group.me ? t('you') : words.nameOf(member.id),
-    }));
+    const options = people.map((member) => ({ value: member.id, label: words.nameInList(member.id) }));
     // Nothing when it isn't an amount
     const cents = parseAmount(draft.amount, locale) ?? 0;
     const same = from === to;

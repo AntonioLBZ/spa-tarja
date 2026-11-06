@@ -63,10 +63,7 @@ const PersonRow = (props: PersonRowProps) => {
     // Whom a dummy can be merged into, in the group's order
     const targets = group.members
         .filter((target) => isUser(target) && target.leftAt === null)
-        .map((target) => ({
-            value: target.id,
-            label: target.id === group.me ? t('people.you') : words.nameOf(target.id),
-        }));
+        .map((target) => ({ value: target.id, label: words.nameInList(target.id) }));
     // Nobody again when the one chosen left or was merged meanwhile
     const chosen = targets.some((target) => target.value === into) ? into : '';
     const tags = [

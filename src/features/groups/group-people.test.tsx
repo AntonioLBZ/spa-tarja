@@ -21,6 +21,7 @@ import {
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.people;
+const you = t('groups.names.you', { name: 'Ana' });
 
 function euros(cents: number) {
     return formatAmount(cents, 'EUR', 'en');
@@ -320,11 +321,7 @@ describe('merging', () => {
         expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone);
         expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
         fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-            text.mergeNone,
-            text.you,
-            'Bea',
-        ]);
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.mergeNone, you, 'Bea']);
         fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
@@ -342,11 +339,7 @@ describe('merging', () => {
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
         fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
 
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-            text.mergeNone,
-            text.you,
-            'Bea',
-        ]);
+        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.mergeNone, you, 'Bea']);
     });
 
     it('chooses nobody again when the one chosen leaves while the panel is open', async () => {

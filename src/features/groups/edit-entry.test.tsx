@@ -17,6 +17,7 @@ import type { SharedGroup } from '@core/shared-group';
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;
 const share = en.groups.share;
+const you = t('groups.names.you', { name: 'Ana' });
 const list = en.expenses.list;
 const NOW = new Date(2026, 9, 27, 12).getTime();
 
@@ -354,7 +355,7 @@ describe('duplicating a shared expense', () => {
         expect(field(form.amount).value).toBe('10.00');
         expect(field(form.date).value).toBe('2026-10-27');
         expect(chosenOption(share.paidBy)).toBe('Bea');
-        expect((within(people()).getByRole('checkbox', { name: share.you }) as HTMLInputElement).checked).toBe(false);
+        expect((within(people()).getByRole('checkbox', { name: you }) as HTMLInputElement).checked).toBe(false);
         expect(screen.getByRole('button', { name: form.submit })).toBeDefined();
     });
 
@@ -407,12 +408,12 @@ describe('duplicating a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'duplicateItem'));
 
-        expect(optionNames(share.paidBy)).toEqual([share.you, 'Bea']);
+        expect(optionNames(share.paidBy)).toEqual([you, 'Bea']);
         expect(
             within(people())
                 .getAllByRole('checkbox')
                 .map((box) => box.parentElement?.textContent)
-        ).toEqual([share.you, 'Bea']);
+        ).toEqual([you, 'Bea']);
     });
 
     it('starts without a payer when the one who paid has left, and saves once somebody present is chosen', async () => {
@@ -431,7 +432,7 @@ describe('duplicating a shared expense', () => {
         fireEvent.click(actionOf('Dinner', 'duplicateItem'));
 
         expect(chosenOption(share.paidBy)).toBe(share.paidByNone);
-        expect(optionNames(share.paidBy)).toEqual([share.paidByNone, share.you, 'Bea']);
+        expect(optionNames(share.paidBy)).toEqual([share.paidByNone, you, 'Bea']);
         expect(screen.getByText(share.payerLeft)).toBeDefined();
         const submit = screen.getByRole('button', { name: form.submit }) as HTMLButtonElement;
         expect(submit.disabled).toBe(true);
@@ -479,7 +480,7 @@ describe('editing a settlement', () => {
         expect(title.getAttribute('aria-expanded')).toBe('true');
         expect(document.activeElement).toBe(title);
         expect(chosenOption(settle.from)).toBe('Bea');
-        expect(chosenOption(settle.to)).toBe(settle.you);
+        expect(chosenOption(settle.to)).toBe(you);
         expect(settleField(settle.amount).value).toBe('5.00');
         expect(settleField(settle.date).value).toBe('2026-10-20');
         expect(screen.getByRole('button', { name: settle.cancel })).toBeDefined();

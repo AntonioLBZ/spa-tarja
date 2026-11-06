@@ -32,6 +32,13 @@ const useGroupWords = (group: SharedGroup) => {
             return left ? t('names.left', { name }) : name;
         };
 
+        // A member as a list or a picker names them: the person gets "(You)" after the name the group knows them by,
+        // where a sentence says plain "You"
+        const nameInList = (memberId: string) => {
+            const id = canonicalMember(group.members, memberId);
+            return id === group.me ? t('names.you', { name: nameOf(id) }) : nameOf(id);
+        };
+
         const title = groupTitle(group, names);
 
         // What the person is owed or owes in the group
@@ -72,7 +79,7 @@ const useGroupWords = (group: SharedGroup) => {
                     ? 'deletedFriend'
                     : 'deleted';
 
-        return { title, closed, nameOf, mine, row, sentence, debt };
+        return { title, closed, nameOf, nameInList, mine, row, sentence, debt };
     }, [group, locale, t]);
 };
 

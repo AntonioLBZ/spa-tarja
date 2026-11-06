@@ -367,7 +367,8 @@
             "deleted": "Deleted user",
             "numbered": "{name} ({number})",
             "left": "{name} (left)",
-            "unknown": "Someone new"
+            "unknown": "Someone new",
+            "you": "{name} (You)"
         },
         "balance": {
             "owed": "You are owed {amount}",
@@ -392,7 +393,6 @@
             "lineItem": "Settle up: {debt}",
             "from": "From",
             "to": "To",
-            "you": "You",
             "amount": "Amount",
             "date": "Date",
             "save": "Save",
@@ -422,7 +422,6 @@
                 "percent": "Percent",
                 "exact": "Amounts"
             },
-            "you": "You",
             "people": "Who's in",
             "percentOf": "{name}, percent",
             "amountOf": "{name}, amount",
