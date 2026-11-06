@@ -73,24 +73,16 @@ const makerSchema = v.object({ id: memberIdSchema });
 
 const placeholderSchema = v.object({ id: memberIdSchema, name: sharedNameSchema });
 
-// A group and its first people: the maker, who owns it, and the others as dummies. A friend is the maker and one dummy.
+// A group and its first people: the maker, who owns it, and the others as dummies. Only a group is made this way: a
+// friend comes from an accepted invitation.
 const newGroupSchema = v.pipe(
-    v.variant('kind', [
-        v.object({
-            kind: v.literal('group'),
-            name: sharedNameSchema,
-            currency: currencySchema,
-            me: makerSchema,
-            others: v.pipe(v.array(placeholderSchema), v.maxLength(MAX_GROUP_MEMBERS - 1)),
-        }),
-        v.object({
-            kind: v.literal('direct'),
-            name: v.optional(v.null(), null),
-            currency: currencySchema,
-            me: makerSchema,
-            others: v.pipe(v.array(placeholderSchema), v.length(1)),
-        }),
-    ]),
+    v.object({
+        kind: v.literal('group'),
+        name: sharedNameSchema,
+        currency: currencySchema,
+        me: makerSchema,
+        others: v.pipe(v.array(placeholderSchema), v.maxLength(MAX_GROUP_MEMBERS - 1)),
+    }),
     v.check(({ me, others }) => {
         const ids = [me.id, ...others.map((other) => other.id)];
         return new Set(ids).size === ids.length;
@@ -125,7 +117,7 @@ const mySwitchesSchema = v.object({
 });
 
 // A `group` has a name and any number of members; a `direct` one is a friend, two members and no name
-type GroupKind = NewGroup['kind'];
+type GroupKind = 'group' | 'direct';
 
 type MemberRole = 'owner' | 'member';
 

@@ -26,7 +26,7 @@ const MERGE = `
     WHERE id = ?1 AND merged_into IS NULL AND left_at IS NULL
         AND EXISTS (SELECT 1 FROM shared_members AS target WHERE target.id = ?2)`;
 
-// The other side of a friend of the user's that is open: the user it is, or null while it is a dummy
+// The other side of a friend of the user's that is open: the user it is, or null once they deleted their account
 const FRIEND = `
     SELECT other.user_id AS userId
     FROM shared_groups g

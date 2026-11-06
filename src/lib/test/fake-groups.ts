@@ -109,7 +109,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         const group: SharedGroup = {
             id: groupId,
             kind: input.kind,
-            name: input.kind === 'group' ? input.name : null,
+            name: input.name,
             currency: input.currency,
             simplifyDebts: false,
             closed: null,

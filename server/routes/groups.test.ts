@@ -1,20 +1,13 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import {
-    MAX_CLOSED_GROUPS,
-    MAX_FRIENDS,
-    MAX_OPEN_GROUPS,
-    SHARED_NAME_MAX_LENGTH,
-    UNNAMED_PERSON,
-} from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH, UNNAMED_PERSON } from '@core/shared-group';
 import { app } from '@server/app';
 import {
     befriend,
     claim,
     groupOf,
     listGroups,
-    makeFriend,
     makeGroup,
     memberNamed,
     racingEnv,
@@ -95,10 +88,15 @@ describe('GET /api/groups', () => {
 
     it('lists the groups and the friends the caller is in, oldest first, and nobody else’s', async () => {
         const first = await makeGroup(ana);
-        const friend = await makeFriend(ana);
+        const friend = await befriend(ana, bruno);
         await makeGroup(bruno, [], 'Not yours');
+        await makeGroup(carla, [], 'Not yours either');
 
-        expect(await listGroups(ana)).toEqual([first, friend]);
+        const listed = await listGroups(ana);
+
+        expect(listed.map((group) => group.id)).toEqual([first.id, friend.id]);
+        expect(listed.map((group) => group.kind)).toEqual(['group', 'direct']);
+        expect(listed[0]).toEqual(first);
     });
 
     it('never tells a user id or an email', async () => {
@@ -158,27 +156,6 @@ describe('PUT /api/groups/:id, a new group', () => {
 
         const [listed] = await listGroups(ana);
         expect(listed?.members).toEqual([expect.objectContaining({ id: group.me, name: 'Anita' })]);
-    });
-
-    it('makes a friend: no name, the maker and one dummy', async () => {
-        const id = crypto.randomUUID();
-        const me = crypto.randomUUID();
-        const other = crypto.randomUUID();
-
-        const friend = await groupOf(
-            await put(ana, id, {
-                kind: 'direct',
-                currency: 'EUR',
-                me: { id: me },
-                others: [{ id: other, name: 'Bruno' }],
-            })
-        );
-
-        expect(friend).toMatchObject({ id, kind: 'direct', name: null, me });
-        expect(friend.members).toEqual([
-            { id: me, name: 'Ana García', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
-            { id: other, name: 'Bruno', role: 'member', claimed: false, leftAt: null, mergedInto: null },
-        ]);
     });
 
     it('is idempotent: repeating it answers the same and makes nothing more', async () => {
@@ -248,10 +225,10 @@ describe('PUT /api/groups/:id, a new group', () => {
         ['a currency that is not the app’s', trip({ currency: 'XXX' })],
         ['a currency that is another real one', trip({ currency: 'USD' })],
         [
-            'a friend in a currency that is not the app’s',
+            'a friend by name, which only an accepted invitation makes',
             {
                 kind: 'direct',
-                currency: 'XXX',
+                currency: 'EUR',
                 me: { id: crypto.randomUUID() },
                 others: [{ id: crypto.randomUUID(), name: 'Bruno' }],
             },
@@ -280,9 +257,21 @@ describe('PUT /api/groups/:id, a new group', () => {
         expect(await rows('shared_groups', id)).toBe(0);
     });
 
-    it('makes the group and the friend in the currency of the app', async () => {
+    it('makes the group in the currency of the app', async () => {
         expect((await makeGroup(ana)).currency).toBe('EUR');
-        expect((await makeFriend(ana)).currency).toBe('EUR');
+    });
+
+    it('refuses a friend by name for the id of a group that exists as well, and changes nothing', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        const friend = {
+            kind: 'direct',
+            currency: 'EUR',
+            me: { id: crypto.randomUUID() },
+            others: [{ id: crypto.randomUUID(), name: 'Carla' }],
+        };
+
+        expect((await put(ana, group.id, friend)).status).toBe(400);
+        expect(await listGroups(ana)).toEqual([group]);
     });
 
     it('refuses an id that is not a UUID with 400', async () => {
@@ -298,24 +287,8 @@ describe('PUT /api/groups/:id, a new group', () => {
         expect(response.status).toBe(409);
         expect(await response.json()).toEqual({ error: 'too-many-groups' });
         expect(await rows('shared_groups', id)).toBe(0);
-        await makeFriend(ana);
+        await befriend(ana, bruno);
         await makeGroup(bruno);
-    });
-
-    it(`makes at most ${MAX_FRIENDS} friends per person, groups apart`, async () => {
-        for (let made = 0; made < MAX_FRIENDS; made++) await makeFriend(ana);
-
-        const response = await put(ana, crypto.randomUUID(), {
-            kind: 'direct',
-            currency: 'EUR',
-            me: { id: crypto.randomUUID() },
-            others: [{ id: crypto.randomUUID(), name: 'One more' }],
-        });
-
-        expect(response.status).toBe(409);
-        expect(await response.json()).toEqual({ error: 'too-many-friends' });
-        await makeGroup(ana);
-        await makeFriend(bruno);
     });
 });
 
@@ -342,28 +315,15 @@ describe('PUT /api/groups/:id, over the closed groups of the maker', () => {
         expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
     });
 
-    it('refuses a friend too', async () => {
-        await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
-
-        const response = await put(ana, crypto.randomUUID(), {
-            kind: 'direct',
-            currency: 'EUR',
-            me: { id: crypto.randomUUID() },
-            others: [{ id: crypto.randomUUID(), name: 'Bruno' }],
-        });
-
-        expect(response.status).toBe(409);
-        expect(await response.json()).toEqual({ error: 'too-many-closed-groups' });
-    });
-
     it('leaves everybody else alone, and does not count the open groups', async () => {
         await seedClosedGroups(ana.userId, MAX_CLOSED_GROUPS);
         for (let made = 0; made < 5; made++) await makeGroup(bruno);
 
         await makeGroup(bruno);
-        await makeFriend(carla);
+        await befriend(carla, bruno);
 
-        expect((await listGroups(bruno)).filter((group) => group.closed === null)).toHaveLength(6);
+        const open = (await listGroups(bruno)).filter((group) => group.closed === null);
+        expect(open.filter((group) => group.kind === 'group')).toHaveLength(6);
     });
 
     it('does not count a group that is somebody else’s closed group', async () => {
@@ -515,18 +475,24 @@ describe('DELETE /api/groups/:id', () => {
         expect((await listGroups(ana))[0]?.closed).toBeNull();
     });
 
-    it('lets either side delete a friend: a dummy one at any time, a real one once settled', async () => {
-        const dummy = await makeFriend(ana);
-        await seedEntry(dummy.id, { paidBy: dummy.me, shares: { [dummy.members[1]?.id ?? '']: 900 } });
-        const real = await befriend(ana, bruno);
-        await seedEntry(real.id, { paidBy: real.a, shares: { [real.b]: 900 } });
+    it('lets either side delete a friend once settled', async () => {
+        const friend = await befriend(ana, bruno);
+        await seedEntry(friend.id, { paidBy: friend.a, shares: { [friend.b]: 900 } });
 
-        const refused = await remove(bruno, real.id);
-        await seedEntry(real.id, { paidBy: real.b, shares: { [real.a]: 900 }, kind: 'settlement' });
+        const refused = await remove(bruno, friend.id);
+        await seedEntry(friend.id, { paidBy: friend.b, shares: { [friend.a]: 900 }, kind: 'settlement' });
 
-        expect((await groupOf(await remove(ana, dummy.id))).closed).toBe('deleted');
         expect(refused.status).toBe(409);
-        expect((await groupOf(await remove(bruno, real.id))).closed).toBe('deleted');
+        expect(await refused.json()).toEqual({ error: 'unsettled' });
+        expect((await groupOf(await remove(bruno, friend.id))).closed).toBe('deleted');
+    });
+
+    it('lets the one left in a friend whose other side deleted their account delete it whatever the balance', async () => {
+        const friend = await befriend(ana, bruno);
+        await seedEntry(friend.id, { paidBy: friend.a, shares: { [friend.b]: 900 } });
+        await send(bruno, 'DELETE', '/account', { email: 'bruno@example.com' });
+
+        expect((await groupOf(await remove(ana, friend.id))).closed).toBe('deleted');
     });
 
     it('answers the group when it is sent again', async () => {

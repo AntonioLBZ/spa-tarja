@@ -78,8 +78,8 @@ describe('putGroup', () => {
         api.state.groupRefusal = { status: 409, error: 'too-many-groups' };
 
         const made = putGroup(crypto.randomUUID(), {
-            kind: 'direct',
-            name: null,
+            kind: 'group',
+            name: 'Lisbon',
             currency: 'EUR',
             me: { id: crypto.randomUUID() },
             others: [{ id: crypto.randomUUID(), name: 'Bea' }],

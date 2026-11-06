@@ -83,17 +83,6 @@ const makeGroup = async (as: TestSession, names: string[] = [], name = 'Trip'): 
     return groupOf(await send(as, 'PUT', `/groups/${crypto.randomUUID()}`, body));
 };
 
-// A friend made by `as` by name, so a dummy until somebody takes its place
-const makeFriend = async (as: TestSession, name = 'Bruno'): Promise<SharedGroup> => {
-    const body = {
-        kind: 'direct',
-        currency: 'EUR',
-        me: { id: crypto.randomUUID() },
-        others: [{ id: crypto.randomUUID(), name }],
-    };
-    return groupOf(await send(as, 'PUT', `/groups/${crypto.randomUUID()}`, body));
-};
-
 // A placeholder of a group made a real member, as adding a friend in its place leaves it, under their account's name
 const claim = async (memberId: string, by: TestSession): Promise<void> => {
     await env.DB.prepare(
@@ -183,16 +172,4 @@ const seedClosedGroups = async (
     return ids;
 };
 
-export {
-    befriend,
-    claim,
-    groupOf,
-    listGroups,
-    makeFriend,
-    makeGroup,
-    memberNamed,
-    racingEnv,
-    seedClosedGroups,
-    seedEntry,
-    send,
-};
+export { befriend, claim, groupOf, listGroups, makeGroup, memberNamed, racingEnv, seedClosedGroups, seedEntry, send };

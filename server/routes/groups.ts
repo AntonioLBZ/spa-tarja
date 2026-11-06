@@ -5,7 +5,6 @@ import * as v from 'valibot';
 import { memberBalances } from '@core/balance';
 import {
     MAX_CLOSED_GROUPS,
-    MAX_FRIENDS,
     MAX_OPEN_GROUPS,
     groupIdSchema,
     groupWriteSchema,
@@ -50,9 +49,9 @@ const groupsRoutes = new Hono<AppEnv>()
 
         if (!state) {
             if (input.kind === undefined) return c.json(NOT_FOUND, 404);
-            const [limit, error] =
-                input.kind === 'group' ? [MAX_OPEN_GROUPS, 'too-many-groups'] : [MAX_FRIENDS, 'too-many-friends'];
-            if ((await countOpenGroups(db, userId, input.kind)) >= limit) return c.json({ error }, 409);
+            if ((await countOpenGroups(db, userId, 'group')) >= MAX_OPEN_GROUPS) {
+                return c.json({ error: 'too-many-groups' }, 409);
+            }
             if ((await countClosedGroups(db, userId)) >= MAX_CLOSED_GROUPS) {
                 return c.json({ error: 'too-many-closed-groups' }, 409);
             }

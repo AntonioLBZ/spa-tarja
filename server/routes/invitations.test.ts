@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ENDED_INVITATION_DAYS, INVITATION_DAYS, isInvitationToken, type PendingInvitation } from '@core/invitation';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_INVITATIONS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_GROUPS, MAX_OPEN_INVITATIONS } from '@core/shared-group';
 import { app } from '@server/app';
 import { signInvitation } from '@server/invitation-token';
 import { befriend, groupOf, listGroups, makeGroup, memberNamed, seedClosedGroups, send } from '@server/test/groups';
@@ -554,6 +554,13 @@ describe('a link to be friends, opened by somebody', () => {
         for (const call of [readLink, accept, decline]) {
             expect(await error(await call(bruno, made.token), 410)).toBe('gone');
         }
+    });
+
+    it('takes a person who has as many open groups as there can be, as groups and friends are counted apart', async () => {
+        const token = await directLink();
+        for (let made = 0; made < MAX_OPEN_GROUPS; made++) await makeGroup(bruno);
+
+        expect((await accept(bruno, token)).status).toBe(200);
     });
 
     it('is refused to a person who can take no more friends, with the limit that stops them', async () => {

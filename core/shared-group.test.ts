@@ -58,13 +58,6 @@ describe('newGroupSchema', () => {
         expect(v.safeParse(newGroupSchema, { ...trip, others: [] }).success).toBe(true);
     });
 
-    it('keeps a friend without a name', () => {
-        const result = v.safeParse(newGroupSchema, friend);
-
-        expect(result.success).toBe(true);
-        expect(result.output).toEqual({ ...friend, name: null });
-    });
-
     it('takes a group of the most members there can be, and refuses one more', () => {
         expect(v.safeParse(newGroupSchema, { ...trip, others: others(MAX_GROUP_MEMBERS - 1) }).success).toBe(true);
         expect(v.safeParse(newGroupSchema, { ...trip, others: others(MAX_GROUP_MEMBERS) }).success).toBe(false);
@@ -97,18 +90,10 @@ describe('newGroupSchema', () => {
     });
 
     it.each([
+        ['with no name', {}],
         ['with a name', { name: 'Bruno' }],
         ['with nobody else', { others: [] }],
-        [
-            'with two others',
-            {
-                others: [
-                    { id: BRUNO, name: 'Bruno' },
-                    { id: CARLA, name: 'Carla' },
-                ],
-            },
-        ],
-    ])('refuses a friend %s', (_, overrides) => {
+    ])('refuses a friend %s, which only an accepted invitation makes', (_, overrides) => {
         expect(v.safeParse(newGroupSchema, { ...friend, ...overrides }).success).toBe(false);
     });
 });
@@ -212,6 +197,7 @@ describe('groupWriteSchema', () => {
 
     it('never reads a new group that is wrong as a change', () => {
         expect(v.safeParse(groupWriteSchema, { ...trip, others: others(MAX_GROUP_MEMBERS) }).success).toBe(false);
+        expect(v.safeParse(groupWriteSchema, friend).success).toBe(false);
         expect(v.safeParse(groupWriteSchema, { ...friend, name: 'Bruno' }).success).toBe(false);
     });
 });

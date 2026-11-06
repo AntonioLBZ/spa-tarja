@@ -12,7 +12,6 @@ import {
     befriend,
     groupOf,
     listGroups,
-    makeFriend,
     makeGroup,
     memberNamed,
     seedClosedGroups,
@@ -139,7 +138,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a dummy', () => {
     });
 
     it('refuses a third member in a friend', async () => {
-        const friend = await makeFriend(ana);
+        const friend = await befriend(ana, bruno);
 
         expect(await error(await putMember(ana, friend.id, crypto.randomUUID(), { name: 'Dani' }), 409)).toBe('direct');
         expect((await listGroups(ana))[0]?.members).toHaveLength(2);
@@ -293,9 +292,10 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
         expect((await listGroups(ana)).find((candidate) => candidate.id === group.id)?.members).toHaveLength(1);
     });
 
-    it('refuses a friend who is still a dummy', async () => {
+    it('refuses a friend whose other side deleted their account', async () => {
         const group = await makeGroup(ana);
-        const friend = await makeFriend(ana);
+        const friend = await befriend(ana, bruno);
+        await send(bruno, 'DELETE', '/account', { email: 'bruno@example.com' });
 
         expect(await error(await putMember(ana, group.id, crypto.randomUUID(), { friend: friend.id }), 409)).toBe(
             'not-a-user'
@@ -313,13 +313,10 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
     });
 
     it('refuses a friend in a friend', async () => {
-        const other = await makeFriend(ana, 'Bruno');
+        const other = await befriend(ana, carla);
         const friend = await befriend(ana, bruno);
 
-        const response = await putMember(ana, other.id, crypto.randomUUID(), {
-            friend: friend.id,
-            replaces: other.members[1]?.id,
-        });
+        const response = await putMember(ana, other.id, crypto.randomUUID(), { friend: friend.id, replaces: other.b });
 
         expect(await error(response, 409)).toBe('direct');
         expect((await listGroups(bruno)).map((candidate) => candidate.id)).toEqual([friend.id]);
@@ -606,9 +603,9 @@ describe('POST /api/groups/:groupId/members/:memberId/merge', () => {
     });
 
     it('merges nothing in a friend', async () => {
-        const friend = await makeFriend(ana);
+        const friend = await befriend(ana, bruno);
 
-        const response = await merge(ana, friend.id, friend.members[1]?.id ?? '', friend.me);
+        const response = await merge(ana, friend.id, friend.b, friend.a);
 
         expect(await error(response, 409)).toBe('direct');
     });
