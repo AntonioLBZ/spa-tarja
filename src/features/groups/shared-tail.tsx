@@ -48,8 +48,8 @@ interface SharedDraft {
     out: readonly string[];
     // What was typed in the percentages or the amounts since the mode was chosen
     typed: TypedShares | null;
-    // The shares of the entry it started from, kept while nothing of the split is touched, as splitting its percentages
-    // again may move a cent
+    // The shares of the entry being edited, kept while nothing of the split is touched, as splitting its percentages
+    // again may move a cent. A copy is a new expense and has none.
     saved: SavedShares | null;
 }
 
@@ -145,8 +145,8 @@ const splitOf = (
 
 // Where the tail of an entry starts: its payer, its mode and who is in, with the percentages as its shares over the
 // amount and the amounts as saved. A merged placeholder is read as its target, and somebody who left can't take part,
-// so the saved shares are kept only when everybody in them still can.
-const draftOfEntry = (group: SharedGroup, entry: SharedExpenseEntry, locale: string): SharedDraft => {
+// so an edit keeps the saved shares only when everybody in them still can. A copy keeps none: its cents left are drawn.
+const draftOfEntry = (group: SharedGroup, entry: SharedExpenseEntry, copy: boolean, locale: string): SharedDraft => {
     const present = group.members.filter((member) => member.leftAt === null).map((member) => member.id);
     const cents = new Map<string, number>();
     for (const share of entry.shares) {
@@ -175,7 +175,7 @@ const draftOfEntry = (group: SharedGroup, entry: SharedExpenseEntry, locale: str
         mode: entry.split,
         out: present.filter((memberId) => !cents.has(memberId)),
         typed,
-        saved: keptCents === entry.amountCents ? { amountCents: entry.amountCents, shares } : null,
+        saved: !copy && keptCents === entry.amountCents ? { amountCents: entry.amountCents, shares } : null,
     };
 };
 
@@ -196,7 +196,7 @@ const useSharedTail = (
     const { groups } = useGroups();
     const { locale } = useLocale();
     const [draft, setDraft] = useState<SharedDraft>(() =>
-        fixed && source ? draftOfEntry(fixed, source.entry, locale) : START
+        fixed && source ? draftOfEntry(fixed, source.entry, source.copy, locale) : START
     );
     // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
     const [seed, setSeed] = useState(randomSeed);

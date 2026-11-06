@@ -375,16 +375,32 @@ describe('duplicating a shared expense', () => {
 
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]!.id).not.toBe(saved.id);
-        expect(api.entryWrites[0]).toMatchObject({
-            text: 'Dinner',
-            date: '2026-10-27',
-            createdAt: NOW,
-            shares: saved.shares,
-        });
+        expect(api.entryWrites[0]).toMatchObject({ text: 'Dinner', date: '2026-10-27', createdAt: NOW });
         await waitFor(() => expect(within(theLedger()).getAllByText('Dinner')).toHaveLength(2));
         const original = within(theLedger()).getAllByText('Dinner')[1];
         await waitFor(() => expect(document.activeElement).toBe(original!.closest('button')));
         expect(heading(form.title)).toBeDefined();
+    });
+
+    it('draws the cents left again, as for a new expense, instead of keeping those of the original', async () => {
+        const group = trip();
+        const { api } = await open(group, [dinner(group)]);
+        vi.mocked(randomSeed).mockReturnValue(seedFavouring(1));
+        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
+
+        expect(
+            within(people())
+                .getAllByRole('listitem')
+                .map((row) => row.textContent)
+        ).toEqual([`${you}€3.33`, 'Bea€3.34', 'Cris€3.33']);
+        fireEvent.click(screen.getByRole('button', { name: form.submit }));
+
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+        expect(api.entryWrites[0]!.shares).toEqual([
+            { memberId: ana.id, cents: 333 },
+            { memberId: bea.id, cents: 334 },
+            { memberId: cris.id, cents: 333 },
+        ]);
     });
 
     it('is paid now when somebody else paid by card', async () => {
