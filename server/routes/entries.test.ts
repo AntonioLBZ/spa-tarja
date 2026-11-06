@@ -121,6 +121,24 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await seqsOf(group.id)).toEqual([1]);
     });
 
+    it('takes an equal split whose extra cent sits on any member, as the cents are drawn at random', async () => {
+        const { group, bruno: brunoId } = await tripWithBruno(['Dani']);
+        const members = [group.me, brunoId, memberNamed(group, 'Dani')];
+
+        for (const lucky of members) {
+            const id = crypto.randomUUID();
+            const shares = Object.fromEntries(members.map((memberId) => [memberId, memberId === lucky ? 334 : 333]));
+
+            const entry = await entryOf(
+                await putEntry(ana, group.id, id, dinner(group.me, shares, { split: 'equal' }))
+            );
+
+            expect(entry).toMatchObject({ amountCents: 1000, split: 'equal' });
+            expect(entry.shares).toEqual(members.map((memberId) => ({ memberId, cents: shares[memberId] })));
+        }
+        expect(await seqsOf(group.id)).toEqual([1, 2, 3]);
+    });
+
     it('lets any member edit an entry, and records who wrote it last', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const id = crypto.randomUUID();

@@ -615,3 +615,21 @@ describe('a link to be friends, opened by somebody', () => {
         expect(again.members.find((member) => member.id === again.me)?.role).toBe('owner');
     });
 });
+
+describe('the invitations of a group', () => {
+    it('are gone: a group has no routes to list, make or revoke them', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        const path = `/groups/${group.id}/invitations`;
+
+        const answers = [
+            await send(ana, 'GET', path),
+            await send(ana, 'POST', path),
+            await send(ana, 'POST', path, { memberId: memberNamed(group, 'Bruno') }),
+            await send(ana, 'DELETE', path),
+            await send(ana, 'DELETE', `${path}/${crypto.randomUUID()}`),
+        ];
+
+        expect(answers.map((answer) => answer.status)).toEqual([404, 404, 404, 404, 404]);
+        expect(await storedRows()).toEqual([]);
+    });
+});
