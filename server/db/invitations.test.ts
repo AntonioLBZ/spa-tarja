@@ -131,7 +131,18 @@ describe('the migration that lets an invitation be direct', () => {
     const columns =
         'rowid, id, group_id, member_id, created_by, created_at, expires_at, accepted_by, accepted_at, declined_at, revoked_at';
 
+    async function emptied() {
+        const { results } = await MIGRATION_DB.prepare(
+            `SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%'`
+        ).all<{ name: string }>();
+        await MIGRATION_DB.batch([
+            MIGRATION_DB.prepare('PRAGMA defer_foreign_keys = on'),
+            ...results.map(({ name }) => MIGRATION_DB.prepare(`DROP TABLE "${name}"`)),
+        ]);
+    }
+
     async function seededAt0012() {
+        await emptied();
         await applyD1Migrations(MIGRATION_DB, before);
         const at = (sql: string, ...values: unknown[]) => MIGRATION_DB.prepare(sql).bind(...values);
         await MIGRATION_DB.batch([
