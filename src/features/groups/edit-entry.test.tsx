@@ -162,11 +162,9 @@ describe('editing a shared expense', () => {
         fireEvent.click(screen.getByRole('button', { name: form.save }));
 
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
-        expect(api.entryWrites[0]!.shares).toEqual([
-            { memberId: ana.id, cents: 667 },
-            { memberId: bea.id, cents: 667 },
-            { memberId: cris.id, cents: 666 },
-        ]);
+        const shares = api.entryWrites[0]!.shares;
+        expect(shares.map((item) => item.memberId)).toEqual([ana.id, bea.id, cris.id]);
+        expect(shares.map((item) => item.cents).toSorted()).toEqual([666, 667, 667]);
     });
 
     it('is later than the version it replaces when the clock of the device is behind', async () => {

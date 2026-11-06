@@ -15,11 +15,12 @@ interface RandomGroup {
 
 const randomSplit = (random: Random, amountCents: number, memberIds: readonly string[]): [SplitMode, Share[]] => {
     const split = random.pick(SPLIT_MODES);
-    if (split === 'equal') return [split, splitEqually(amountCents, memberIds) ?? []];
+    const seed = random.int(0, 0xffffffff);
+    if (split === 'equal') return [split, splitEqually(amountCents, memberIds, seed) ?? []];
     if (split === 'percent') {
         const basisPoints = random.parts(HUNDRED_PERCENT, memberIds.length);
         const percents = memberIds.map((memberId, index) => ({ memberId, basisPoints: basisPoints[index]! }));
-        return [split, splitByPercent(amountCents, percents) ?? []];
+        return [split, splitByPercent(amountCents, percents, seed) ?? []];
     }
     const cents = random.parts(amountCents, memberIds.length);
     const parts = memberIds.map((memberId, index) => ({ memberId, cents: cents[index]! }));

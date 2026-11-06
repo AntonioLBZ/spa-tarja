@@ -1,12 +1,13 @@
 import { onlineManager } from '@tanstack/react-query';
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, GROUPS_KEY, groupEntriesKey } from '@/lib/api';
 import { rememberSharedWith } from '@/lib/offline';
+import { randomSeed } from '@/lib/random-seed';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
 import { person, sampleGroup } from '@/lib/test/groups';
@@ -14,8 +15,11 @@ import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
+import { splitEqually } from '@core/split';
 
 import type { SharedGroup } from '@core/shared-group';
+
+vi.mock('@/lib/random-seed', () => ({ randomSeed: vi.fn() }));
 
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;
@@ -114,10 +118,31 @@ function checkbox(name: string) {
     return within(people()).getByRole('checkbox', { name }) as HTMLInputElement;
 }
 
+function seedFavouring(index: number) {
+    const members = ['first', 'second', 'third'];
+    for (let seed = 0; ; seed++) {
+        if (splitEqually(1000, members, seed)?.find((item) => item.memberId === members[index])?.cents === 334) {
+            return seed;
+        }
+    }
+}
+
+function amountsShown() {
+    return rows().map((text) => {
+        const amount = /\d[\d,.]*$/.exec(text ?? '')?.[0] ?? '0';
+        return Math.round(Number(amount.replace(/,/g, '')) * 100);
+    });
+}
+
+beforeEach(() => {
+    vi.mocked(randomSeed).mockReturnValue(seedFavouring(0));
+});
+
 afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();
+    vi.mocked(randomSeed).mockReset();
 });
 
 describe('the choice For', () => {
@@ -204,13 +229,14 @@ describe('the choice For', () => {
 });
 
 describe('splitting equally', () => {
-    it('gives each person who is in the amount divided, the cents left to the first ones', async () => {
+    it('gives each person who is in the amount divided, the cent left to the one the seed picks', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
 
         fill({ amount: '10' });
 
         expect(rows()).toEqual([`${share.you}${euros(334)}`, `Bea${euros(333)}`, `Cris${euros(333)}`]);
+        expect(amountsShown()).toEqual([334, 333, 333]);
     });
 
     it('shows no amount for somebody who is in but whose part comes to nothing', async () => {
@@ -332,6 +358,93 @@ describe('splitting equally', () => {
 
         expect(rows()).toEqual([share.you, 'Bea', 'Cris']);
         expect(optionNames(share.paidBy)).toEqual([share.you, 'Bea', 'Cris']);
+    });
+});
+
+describe('the cents left of an equal split', () => {
+    it.each([
+        ['you', 0],
+        ['Bea', 1],
+        ['Cris', 2],
+    ])('go to %s when the seed of the form picks them', async (_name, index) => {
+        vi.mocked(randomSeed).mockReturnValue(seedFavouring(index));
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+
+        fill({ amount: '10' });
+
+        expect(amountsShown()).toEqual([0, 1, 2].map((position) => (position === index ? 334 : 333)));
+    });
+
+    it('stay on the same person as the form renders again and the amount and the description are typed', async () => {
+        vi.mocked(randomSeed).mockReturnValue(seedFavouring(1));
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+
+        fill({ amount: '10' });
+        const first = rows();
+        fill({ amount: '10', text: 'Dinner' });
+        fireEvent.change(field(form.text), { target: { value: 'Dinner with all' } });
+
+        expect(rows()).toEqual(first);
+        expect(amountsShown()).toEqual([333, 334, 333]);
+        fill({ amount: '10.01', text: 'Dinner with all' });
+        expect(amountsShown()[1]).toBe(334);
+        expect(amountsShown().toSorted()).toEqual([333, 334, 334]);
+        fill({ amount: '10', text: 'Dinner with all' });
+        expect(amountsShown()).toEqual([333, 334, 333]);
+        expect(randomSeed).toHaveBeenCalledTimes(1);
+    });
+
+    it('can land on different people in different forms', async () => {
+        const lucky = new Set<number>();
+
+        for (const index of [0, 1, 2]) {
+            vi.mocked(randomSeed).mockReturnValue(seedFavouring(index));
+            await openHome([trip()]);
+            fireEvent.click(forChoice(form.forShared));
+            fill({ amount: '10' });
+            lucky.add(amountsShown().indexOf(334));
+            cleanup();
+        }
+
+        expect([...lucky].toSorted()).toEqual([0, 1, 2]);
+    });
+
+    it('are saved on the person the form showed, and a new form draws its own seed', async () => {
+        vi.mocked(randomSeed).mockReturnValueOnce(seedFavouring(2)).mockReturnValueOnce(seedFavouring(1));
+        const { app } = await openHome([trip()]);
+        onlineManager.setOnline(false);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        expect(amountsShown()).toEqual([333, 333, 334]);
+
+        fireEvent.click(addButton());
+
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+        expect(app.groupOutbox.getState().pending[0]!.shares).toEqual([
+            { memberId: ana.id, cents: 333 },
+            { memberId: bea.id, cents: 333 },
+            { memberId: cris.id, cents: 334 },
+        ]);
+        await waitFor(() => expect(field(form.amount).value).toBe(''));
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        expect(amountsShown()).toEqual([333, 334, 333]);
+    });
+
+    it('stay on the same person when the mode changes from Equally to Percent and to Amounts', async () => {
+        vi.mocked(randomSeed).mockReturnValue(seedFavouring(2));
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        pickMode('percent');
+        expect(shareValues()).toEqual(['33.33', '33.33', '33.34']);
+        pickMode('exact');
+        expect(shareValues()).toEqual(['3.33', '3.33', '3.34']);
+        pickMode('equal');
+        expect(amountsShown()).toEqual([333, 333, 334]);
     });
 });
 

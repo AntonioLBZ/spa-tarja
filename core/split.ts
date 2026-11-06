@@ -1,5 +1,6 @@
 import { planBalance, splitEvenly } from './installments';
 import { MAX_AMOUNT_CENTS } from './money';
+import { shuffled } from './shuffle';
 
 import type { Share } from './shared-entry';
 
@@ -15,16 +16,37 @@ const sumOf = (values: readonly number[]): number => {
     return values.reduce((sum, value) => sum + value, 0);
 };
 
+// The turn of each position to get a unit left over, 0 being the first: set by the seed, so a split can be shown and
+// saved as the same
+const turnsOf = (count: number, seed: number): number[] => {
+    return shuffled(
+        Array.from({ length: count }, (_, index) => index),
+        seed
+    );
+};
+
+// A whole in parts as even as they can be, in the order of the positions: the units left go one at a time to the
+// positions whose turn comes first
+const spreadEvenly = (whole: number, count: number, seed: number): number[] => {
+    const evenly = splitEvenly(whole, count);
+    return turnsOf(count, seed).map((turn) => evenly[turn] ?? 0);
+};
+
 // A whole shared out by weights: each part rounded down, and the units left one at a time to the biggest fractions, a
-// tie going to the first
-const largestRemainder = (whole: number, weights: readonly number[], weightTotal: number): number[] => {
+// tie going to the position whose turn comes first
+const largestRemainder = (
+    whole: number,
+    weights: readonly number[],
+    weightTotal: number,
+    turns: readonly number[]
+): number[] => {
     const fractions = weights.map((weight) => (whole * weight) % weightTotal);
     const parts = weights.map((weight, index) => (whole * weight - fractions[index]!) / weightTotal);
     const left = whole - sumOf(parts);
     const extra = new Set(
         fractions
             .map((fraction, index) => ({ fraction, index }))
-            .sort((a, b) => b.fraction - a.fraction || a.index - b.index)
+            .sort((a, b) => b.fraction - a.fraction || turns[a.index]! - turns[b.index]!)
             .slice(0, left)
             .map(({ index }) => index)
     );
@@ -47,20 +69,22 @@ const isPercent = (basisPoints: number): boolean => {
     return Number.isInteger(basisPoints) && basisPoints >= 0 && basisPoints <= HUNDRED_PERCENT;
 };
 
-// Equally among the members who are in, in the group's order: the cents left go one at a time to the first ones. None
-// when nobody is in. Every split is none for an amount that isn't whole cents from 0 to the maximum.
-const splitEqually = (amountCents: number, memberIds: readonly string[]): Share[] | null => {
+// Equally among the members who are in, in the group's order: the cents left go one at a time to members the 32-bit
+// seed picks, the same ones for the same seed. None when nobody is in. Every split is none for an amount that isn't
+// whole cents from 0 to the maximum.
+const splitEqually = (amountCents: number, memberIds: readonly string[], seed: number): Share[] | null => {
     if (!isAmount(amountCents) || memberIds.length === 0) return null;
-    return sharesOf(memberIds, splitEvenly(amountCents, memberIds.length));
+    return sharesOf(memberIds, spreadEvenly(amountCents, memberIds.length, seed));
 };
 
-// By the percentage of each member, in the group's order. None unless each is 0 to 100 % and they add up to 100 %.
-const splitByPercent = (amountCents: number, percents: readonly MemberPercent[]): Share[] | null => {
+// By the percentage of each member, in the group's order, a cent left going to the biggest fraction and, when two tie,
+// to the member the seed puts first. None unless each is 0 to 100 % and they add up to 100 %.
+const splitByPercent = (amountCents: number, percents: readonly MemberPercent[], seed: number): Share[] | null => {
     const basisPoints = percents.map((percent) => percent.basisPoints);
     if (!isAmount(amountCents) || !basisPoints.every(isPercent) || sumOf(basisPoints) !== HUNDRED_PERCENT) return null;
     return sharesOf(
         percents.map((percent) => percent.memberId),
-        largestRemainder(amountCents, basisPoints, HUNDRED_PERCENT)
+        largestRemainder(amountCents, basisPoints, HUNDRED_PERCENT, turnsOf(percents.length, seed))
     );
 };
 
@@ -84,9 +108,10 @@ const percentLeft = (percents: readonly MemberPercent[]): number => {
     return HUNDRED_PERCENT - sumOf(percents.map((percent) => percent.basisPoints));
 };
 
-// Where the percent mode starts: 100 % split evenly, the hundredths left going to the first ones
-const equalPercents = (memberIds: readonly string[]): MemberPercent[] => {
-    const basisPoints = splitEvenly(HUNDRED_PERCENT, memberIds.length);
+// Where the percent mode starts: 100 % split evenly, the hundredths left going to the members the seed picks, the same
+// order as the cents of an equal split
+const equalPercents = (memberIds: readonly string[], seed: number): MemberPercent[] => {
+    const basisPoints = spreadEvenly(HUNDRED_PERCENT, memberIds.length, seed);
     return memberIds.map((memberId, index) => ({ memberId, basisPoints: basisPoints[index] ?? 0 }));
 };
 
@@ -96,7 +121,8 @@ const percentsOf = (amountCents: number, shares: readonly Share[]): MemberPercen
     const basisPoints = largestRemainder(
         HUNDRED_PERCENT,
         shares.map((share) => share.cents),
-        amountCents
+        amountCents,
+        shares.map((_, index) => index)
     );
     return shares.map((share, index) => ({ memberId: share.memberId, basisPoints: basisPoints[index] ?? 0 }));
 };

@@ -10,7 +10,7 @@ import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fi
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { readSharedWith } from '@/lib/offline';
-import { splitEvenly } from '@core/installments';
+import { randomSeed } from '@/lib/random-seed';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
 import { SPLIT_MODES } from '@core/shared-entry';
 import { canonicalMember } from '@core/shared-member';
@@ -124,11 +124,12 @@ const parsePercent = (text: string, locale: string): number | null => {
 const splitOf = (
     mode: SplitMode,
     amount: number | null,
-    values: ReadonlyArray<{ memberId: string; value: number | null }>
+    values: ReadonlyArray<{ memberId: string; value: number | null }>,
+    seed: number
 ): { shares: Share[] | null; problem: SplitProblem | null } => {
     if (values.length === 0) return { shares: null, problem: { kind: 'nobody' } };
     const ids = values.map((item) => item.memberId);
-    if (mode === 'equal') return { shares: amount === null ? null : splitEqually(amount, ids), problem: null };
+    if (mode === 'equal') return { shares: amount === null ? null : splitEqually(amount, ids, seed), problem: null };
     // The amounts wait for the total they are typed against
     if (mode === 'exact' && amount === null) return { shares: null, problem: null };
 
@@ -140,7 +141,7 @@ const splitOf = (
         const percents = typed.map((item) => ({ memberId: item.memberId, basisPoints: item.value }));
         const left = percentLeft(percents);
         if (left !== 0) return { shares: null, problem: { kind: 'left', left } };
-        return { shares: amount === null ? null : splitByPercent(amount, percents), problem: null };
+        return { shares: amount === null ? null : splitByPercent(amount, percents, seed), problem: null };
     }
 
     const parts = typed.map((item) => ({ memberId: item.memberId, cents: item.value }));
@@ -205,6 +206,8 @@ const useSharedTail = (
     const [draft, setDraft] = useState<SharedDraft>(() =>
         fixed && source ? draftOfEntry(fixed, source.entry, locale) : START
     );
+    // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
+    const [seed, setSeed] = useState(randomSeed);
     const user = useUser();
     const [remembered] = useState(() => readSharedWith(user.id));
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
@@ -228,10 +231,13 @@ const useSharedTail = (
     const key = draft.mode === 'exact' ? `${amount}:${inIds.join()}` : inIds.join();
     const startTexts = (): string[] => {
         if (draft.mode === 'percent') {
-            return equalPercents(inIds).map((percent) => formatAmountInput(percent.basisPoints, locale));
+            return equalPercents(inIds, seed).map((percent) => formatAmountInput(percent.basisPoints, locale));
         }
         if (amount === null) return inIds.map(() => '');
-        return splitEvenly(amount, inIds.length).map((cents) => formatAmountInput(cents, locale));
+        const equally = splitEqually(amount, inIds, seed) ?? [];
+        return inIds.map((memberId) =>
+            formatAmountInput(equally.find((share) => share.memberId === memberId)?.cents ?? 0, locale)
+        );
     };
     const texts: Readonly<Record<string, string>> =
         draft.mode === 'equal'
@@ -243,7 +249,8 @@ const useSharedTail = (
     const split = splitOf(
         draft.mode,
         amount,
-        inIds.map((memberId) => ({ memberId, value: parse(texts[memberId] ?? '', locale) }))
+        inIds.map((memberId) => ({ memberId, value: parse(texts[memberId] ?? '', locale) })),
+        seed
     );
     const kept = draft.saved !== null && draft.saved.amountCents === amount ? draft.saved.shares : null;
     const shares = kept ?? split.shares;
@@ -331,8 +338,11 @@ const useSharedTail = (
             };
             return { group, entry };
         },
-        // Back to where it starts, in the same group
-        reset: () => setDraft({ ...START, groupId: group?.id ?? null }),
+        // Back to where it starts, in the same group, for a new expense with a seed of its own
+        reset: () => {
+            setDraft({ ...START, groupId: group?.id ?? null });
+            setSeed(randomSeed());
+        },
     };
 };
 
