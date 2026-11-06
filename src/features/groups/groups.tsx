@@ -1,3 +1,4 @@
+import { useId, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
@@ -7,7 +8,7 @@ import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { EntryRefusals } from './entry-refusals';
-import { GroupList } from './group-list';
+import { GroupList, GroupSheet } from './group-list';
 import { InviteFriend } from './invite-friend';
 import { myBalance } from './my-balance';
 import { NewGroup } from './new-group';
@@ -19,8 +20,13 @@ interface GroupTotalsProps {
     ledgers: readonly Ledger[];
 }
 
-// The Groups tab: what the person is owed and owes across their open groups and friends, making a group, inviting a
-// friend with a link, the groups and the friends, and at the end the closed and the archived ones
+interface ListSectionProps {
+    title: string;
+    children: ReactNode;
+}
+
+// The Groups tab: what the person is owed and owes across their open groups and friends; the groups, with making one,
+// and the friends, with inviting one by a link; and at the end the closed and the archived ones
 const Groups = () => {
     const t = useTranslations('groups');
     const online = useOnline();
@@ -40,20 +46,40 @@ const Groups = () => {
             <EntryRefusals />
             {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.loadFailed')}</Notice>}
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
-            <NewGroup disabled={!online} />
-            <InviteFriend disabled={!online} />
-            {groups.length > 0 && <GroupList label={t('lists.groups')} ledgers={groups} />}
-            {friends.length > 0 && <GroupList label={t('lists.friends')} ledgers={friends} />}
+            <ListSection title={t('lists.groups')}>
+                <NewGroup disabled={!online} />
+                {groups.length > 0 && <GroupList ledgers={groups} />}
+            </ListSection>
+            <ListSection title={t('lists.friends')}>
+                <InviteFriend disabled={!online} />
+                {friends.length > 0 && <GroupList ledgers={friends} />}
+                {hasData && friends.length === 0 && <Notice tone="quiet">{t('lists.friendsNone')}</Notice>}
+            </ListSection>
             {closed.length > 0 && (
                 <Disclosure summary={t('lists.closed')} chevron>
-                    <GroupList label={t('lists.closed')} ledgers={closed} />
+                    <GroupSheet label={t('lists.closed')} ledgers={closed} />
                 </Disclosure>
             )}
             {archived.length > 0 && (
                 <Disclosure summary={t('lists.archived')} chevron>
-                    <GroupList label={t('lists.archived')} ledgers={archived} />
+                    <GroupSheet label={t('lists.archived')} ledgers={archived} />
                 </Disclosure>
             )}
+        </section>
+    );
+};
+
+// A list with its own heading, its control first and then the rows
+const ListSection = (props: ListSectionProps) => {
+    const { title, children } = props;
+    const headingId = useId();
+
+    return (
+        <section className="groups__section" aria-labelledby={headingId}>
+            <h2 className="groups__heading" id={headingId}>
+                {title}
+            </h2>
+            {children}
         </section>
     );
 };

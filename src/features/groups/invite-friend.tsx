@@ -84,7 +84,7 @@ const InviteFriend = (props: InviteFriendProps) => {
                 </Notice>
             )}
             {links.data && links.data.length > 0 && (
-                <Sheet label={t('links.title')}>
+                <Sheet label={t('links.title')} level="h3">
                     {links.data.map((link) => (
                         <InvitationLink
                             key={link.id}

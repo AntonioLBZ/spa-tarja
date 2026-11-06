@@ -10,6 +10,7 @@ import { TEST_USER } from '@/lib/test/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { INVITATION_DAYS } from '@core/invitation';
 import { formatAmount } from '@core/money';
 import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
@@ -152,8 +153,92 @@ describe('the totals', () => {
     });
 });
 
+describe('the sections', () => {
+    function section(label: string) {
+        return screen.getByRole('heading', { level: 2, name: label }).closest('section')!;
+    }
+
+    function before(first: Element, second: Element) {
+        return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING);
+    }
+
+    it('are Groups and Friends, each under its heading, even with nothing in them', async () => {
+        open();
+        await screen.findByText(text.empty);
+
+        const groups = section(text.lists.groups);
+        const friends = section(text.lists.friends);
+        expect(before(groups, friends)).toBe(true);
+        expect(within(groups).queryAllByRole('link')).toEqual([]);
+        expect(within(friends).queryAllByRole('link')).toEqual([]);
+        expect(within(friends).getByText(text.lists.friendsNone)).toBeDefined();
+    });
+
+    it('hold New group under Groups and Invite a friend with its hint under Friends', async () => {
+        open([sampleGroup({ name: 'Lisbon' })]);
+        await screen.findByText(text.balance.allSettled);
+
+        const groups = section(text.lists.groups);
+        const friends = section(text.lists.friends);
+        expect(within(groups).getByRole('button', { name: text.new.title })).toBeDefined();
+        expect(within(groups).queryByRole('button', { name: text.links.make })).toBeNull();
+        expect(within(friends).getByRole('button', { name: text.links.make })).toBeDefined();
+        expect(within(friends).getByText(t('groups.links.hint', { days: INVITATION_DAYS }))).toBeDefined();
+        expect(within(friends).queryByRole('button', { name: text.new.title })).toBeNull();
+    });
+
+    it('put the heading first, then the control, then the list', async () => {
+        const friend = sampleGroup({ kind: 'direct', name: null });
+        open([sampleGroup({ name: 'Lisbon' }), friend]);
+        await screen.findByText(text.balance.allSettled);
+
+        const order = (label: string, control: string) => {
+            const container = section(label);
+            const heading = within(container).getByRole('heading', { level: 2, name: label });
+            const toggle = within(container).getByRole('button', { name: control });
+            const row = within(container).getAllByRole('link')[0]!;
+            return before(heading, toggle) && before(toggle, row);
+        };
+        expect(order(text.lists.groups, text.new.title)).toBe(true);
+        expect(order(text.lists.friends, text.links.make)).toBe(true);
+    });
+
+    it('say a friend appears when somebody accepts the link, until there is one', async () => {
+        open([sampleGroup({ name: 'Lisbon' })]);
+        await screen.findByText(text.balance.allSettled);
+        expect(screen.getByText(text.lists.friendsNone)).toBeDefined();
+    });
+
+    it('leave that line out once there is a friend', async () => {
+        open([sampleGroup({ kind: 'direct', name: null })]);
+        await screen.findByText(text.balance.allSettled);
+
+        expect(screen.queryByText(text.lists.friendsNone)).toBeNull();
+    });
+
+    it('keep the closed and the archived disclosures at the end', async () => {
+        open([sampleGroup({ name: 'Rome', closed: 'deleted' })]);
+        await screen.findByText(text.empty);
+
+        const closed = screen.getByRole('button', { name: text.lists.closed });
+        expect(before(section(text.lists.friends), closed)).toBe(true);
+    });
+
+    it('show the controls even when the groups cannot be loaded, without saying there are no friends', async () => {
+        const api = createFakeApi();
+        api.state.offline = true;
+        stubApi(api.handler);
+        renderApp({ path: '/groups' });
+
+        expect(await screen.findByText(text.group.loadFailed)).toBeDefined();
+        expect(within(section(text.lists.groups)).getByRole('button', { name: text.new.title })).toBeDefined();
+        expect(within(section(text.lists.friends)).getByRole('button', { name: text.links.make })).toBeDefined();
+        expect(screen.queryByText(text.lists.friendsNone)).toBeNull();
+    });
+});
+
 describe('the lists', () => {
-    it('put the groups and the friends on their own sheets, each with your balance in words', async () => {
+    it('put the groups and the friends in their own sections, each with your balance in words', async () => {
         const lisbon = sampleGroup({ name: 'Lisbon' });
         const porto = sampleGroup({ name: 'Porto' });
         const friend = sampleGroup({ kind: 'direct', name: null });
@@ -180,13 +265,6 @@ describe('the lists', () => {
         fireEvent.click(row);
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
-    });
-
-    it('leave out a sheet with nothing on it', async () => {
-        open([sampleGroup({ name: 'Lisbon' })]);
-        await screen.findByText(text.balance.allSettled);
-
-        expect(screen.queryByRole('heading', { level: 2, name: text.lists.friends })).toBeNull();
     });
 
     it('keep the closed and the archived ones apart, under disclosures closed at first', async () => {

@@ -1,4 +1,4 @@
-/* A row on paper that leads to another screen: no notch, the text color, as tall as a touch at least */
+/* A row that leads to another screen: the text color, as tall as a touch at least. On paper it has no notch of its own */
 .group-row {
     align-items: center;
     color: var(--color-content-primary);
@@ -27,4 +27,13 @@
     gap: 0 var(--size-3);
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+/* A card whose whole box is the link, so the padding is the link's */
+.group-card {
+    padding: 0;
+}
+
+.group-row--card {
+    padding: var(--size-2) var(--size-3);
 }

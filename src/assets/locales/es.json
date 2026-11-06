@@ -451,6 +451,7 @@
         "lists": {
             "groups": "Grupos",
             "friends": "Amigos",
+            "friendsNone": "Un amigo aparecerá aquí cuando alguien acepte tu enlace.",
             "closed": "Grupos cerrados",
             "archived": "Archivados"
         },
