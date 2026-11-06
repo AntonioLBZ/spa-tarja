@@ -159,6 +159,29 @@ describe('the names of groups and people', () => {
     });
 });
 
+describe('the names of groups and people, and the direction of the text', () => {
+    it.each([
+        '\u200E',
+        '\u200F',
+        '\u202A',
+        '\u202B',
+        '\u202C',
+        '\u202D',
+        '\u202E',
+        '\u2066',
+        '\u2067',
+        '\u2068',
+        '\u2069',
+    ])('refuse a name with %j among visible characters', (control) => {
+        const name = `${control}uoy sewo Ana`;
+
+        expect(v.safeParse(groupChangeSchema, { name }).success).toBe(false);
+        expect(v.safeParse(memberWriteSchema, { name }).success).toBe(false);
+        expect(v.safeParse(newGroupSchema, { ...trip, name }).success).toBe(false);
+        expect(v.safeParse(newGroupSchema, { ...trip, others: [{ id: BRUNO, name }] }).success).toBe(false);
+    });
+});
+
 describe('groupChangeSchema', () => {
     it('takes the name, the switch of the simplified debts, both or neither', () => {
         expect(v.parse(groupChangeSchema, { name: 'Flat' })).toEqual({ name: 'Flat' });
@@ -236,6 +259,12 @@ describe('personName', () => {
 
     it('is the name of the account otherwise, trimmed', () => {
         expect(personName({ nickname: null, name: '  Ana García ' })).toBe('Ana García');
+    });
+
+    it('takes the direction controls out of the name of an account, and of a nickname', () => {
+        expect(personName({ nickname: null, name: '\u202Euoy sewo Ana\u2069' })).toBe('uoy sewo Ana');
+        expect(personName({ nickname: '\u2066Anita\u200F', name: 'Ana' })).toBe('Anita');
+        expect(personName({ nickname: null, name: '\u202E\u202C' })).toBe(UNNAMED_PERSON);
     });
 
     it('cuts a long name of an account to the most a name can take, never in the middle of a character', () => {

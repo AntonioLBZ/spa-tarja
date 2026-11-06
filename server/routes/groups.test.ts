@@ -752,6 +752,35 @@ describe('a stranger', () => {
 });
 
 describe('the names of people', () => {
+    it('refuse a name of a group or of a placeholder that reverses the text around it', async () => {
+        const reversing = '\u202Euoy sewo Ana';
+        const group = await makeGroup(ana, ['Bruno']);
+
+        const made = await put(ana, crypto.randomUUID(), { ...trip(), name: reversing });
+        const madeWithPlaceholder = await put(ana, crypto.randomUUID(), {
+            ...trip(),
+            others: [{ id: crypto.randomUUID(), name: reversing }],
+        });
+        const renamed = await put(ana, group.id, { name: reversing });
+        const added = await send(ana, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, { name: reversing });
+        const renamedMember = await send(ana, 'PUT', `/groups/${group.id}/members/${memberNamed(group, 'Bruno')}`, {
+            name: reversing,
+        });
+
+        for (const response of [made, madeWithPlaceholder, renamed, added, renamedMember]) {
+            expect(response.status).toBe(400);
+        }
+        expect((await listGroups(ana)).map((candidate) => candidate.name)).toEqual(['Trip']);
+    });
+
+    it('start a maker whose account name reverses the text with the name without it', async () => {
+        const dani = await signIn('dani@example.com', '\u202Euoy sewo Dani');
+
+        const group = await makeGroup(dani);
+
+        expect(group.members[0]?.name).toBe('uoy sewo Dani');
+    });
+
     it.each([
         ['too long', 'x'.repeat(120), 'x'.repeat(SHARED_NAME_MAX_LENGTH)],
         ['blank', '   ', UNNAMED_PERSON],

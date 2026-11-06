@@ -150,6 +150,15 @@ describe('PUT /api/profile', () => {
         expect(await read()).toEqual({ nickname: 'Anita', name: 'Ana' });
     });
 
+    it('rejects a nickname that reverses the text around it, and keeps the one there was', async () => {
+        await put({ nickname: 'Anita' });
+
+        const response = await put({ nickname: '\u202Euoy sewo Ana' });
+
+        expect(response.status).toBe(400);
+        expect(await read()).toEqual({ nickname: 'Anita', name: 'Ana' });
+    });
+
     it.each([
         ['a body that is not JSON', 'nickname=Ana'],
         ['a body cut short', '{"nickname": "Ana"'],

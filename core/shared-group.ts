@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 
 import { DEFAULT_CURRENCY } from './money';
-import { isVisibleText } from './text';
+import { hasDirectionControls, isVisibleText, stripDirectionControls } from './text';
 
 import type { Profile } from './profile';
 import type { SharedMember } from './shared-member';
@@ -40,7 +40,8 @@ const sharedNameSchema = v.pipe(
     v.trim(),
     v.minLength(1),
     v.maxLength(SHARED_NAME_MAX_LENGTH),
-    v.check(isVisibleText, 'Nothing visible')
+    v.check(isVisibleText, 'Nothing visible'),
+    v.check((name) => !hasDirectionControls(name), 'Sets the direction of the text')
 );
 
 // At most that many UTF-16 code units, never cutting a character in two
@@ -56,7 +57,8 @@ const cutText = (text: string, max: number): string => {
 // The name a person starts with in a group they make or join: their nickname, else the name of their account cut to
 // fit, as long as it is a name a group takes
 const personName = ({ nickname, name }: Profile): string => {
-    for (const candidate of [nickname, cutText(name.trim(), SHARED_NAME_MAX_LENGTH)]) {
+    const account = cutText(stripDirectionControls(name).trim(), SHARED_NAME_MAX_LENGTH);
+    for (const candidate of [nickname === null ? null : stripDirectionControls(nickname), account]) {
         const parsed = v.safeParse(sharedNameSchema, candidate);
         if (parsed.success) return parsed.output;
     }

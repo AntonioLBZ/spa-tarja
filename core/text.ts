@@ -22,4 +22,16 @@ const isVisibleText = (text: string): boolean => {
     return VISIBLE.test(text);
 };
 
-export { isVisibleText, normalizeText, searchWords };
+// The marks, embeddings, overrides and isolates that set the direction of the text around them: in a name they could
+// reverse the rest of the line the name sits in
+const DIRECTION_CONTROLS = /[\u200E\u200F\u202A-\u202E\u2066-\u2069]/gu;
+
+const stripDirectionControls = (text: string): string => {
+    return text.replace(DIRECTION_CONTROLS, '');
+};
+
+const hasDirectionControls = (text: string): boolean => {
+    return stripDirectionControls(text) !== text;
+};
+
+export { hasDirectionControls, isVisibleText, normalizeText, searchWords, stripDirectionControls };

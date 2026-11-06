@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { isVisibleText } from './text';
+import { hasDirectionControls, isVisibleText } from './text';
 
 // In UTF-16 code units, as a string's length counts them, so an emoji takes two
 const NICKNAME_MAX_LENGTH = 30;
@@ -9,7 +9,8 @@ const nicknameSchema = v.pipe(
     v.string(),
     v.trim(),
     v.maxLength(NICKNAME_MAX_LENGTH),
-    v.check(isVisibleText, 'Nothing visible')
+    v.check(isVisibleText, 'Nothing visible'),
+    v.check((nickname) => !hasDirectionControls(nickname), 'Sets the direction of the text')
 );
 
 // Null takes the nickname away
