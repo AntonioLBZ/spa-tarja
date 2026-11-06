@@ -1,8 +1,8 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { readGroup } from '@server/db/groups';
-import { makeGroup, memberNamed } from '@server/test/groups';
+import { countClosedGroups, readGroup } from '@server/db/groups';
+import { claim, makeGroup, memberNamed } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
 
 import type { SharedGroup } from '@core/shared-group';
@@ -61,6 +61,25 @@ describe('readGroup', () => {
         for (let made = 0; made < 20; made++) await makeGroup(ana, ['Bruno', 'Carla']);
 
         expect(await rowsToRead(group)).toBeLessThan(alone * 2);
+    });
+});
+
+describe('countClosedGroups', () => {
+    it('keeps a closed group in the count of a member while only another member has archived it', async () => {
+        const bruno = await signIn('bruno@example.com', 'Bruno Díaz');
+        const trip = await makeGroup(ana, ['Bruno']);
+        const brunoId = memberNamed(trip, 'Bruno');
+        await claim(brunoId, bruno);
+        await env.DB.prepare('UPDATE shared_groups SET deleted_at = 5, updated_at = 5 WHERE id = ?1')
+            .bind(trip.id)
+            .run();
+        expect(await countClosedGroups(env.DB, ana.userId)).toBe(1);
+        expect(await countClosedGroups(env.DB, bruno.userId)).toBe(1);
+
+        await env.DB.prepare('UPDATE shared_members SET archived_at = 6 WHERE id = ?1').bind(brunoId).run();
+
+        expect(await countClosedGroups(env.DB, bruno.userId)).toBe(0);
+        expect(await countClosedGroups(env.DB, ana.userId)).toBe(1);
     });
 });
 
