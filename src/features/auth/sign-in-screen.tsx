@@ -6,6 +6,8 @@ import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
 
+import { PrivacyNotice } from './privacy-notice';
+
 import './sign-in-screen.css';
 
 type Phase = 'idle' | 'opening' | 'failed';
@@ -70,6 +72,9 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Button disabled={phase === 'opening'} onClick={start}>
                 {phase === 'opening' ? t('opening') : t('google')}
             </Button>
+            <div className="sign-in__privacy">
+                <PrivacyNotice />
+            </div>
         </main>
     );
 };
