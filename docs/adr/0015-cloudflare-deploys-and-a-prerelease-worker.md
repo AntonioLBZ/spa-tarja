@@ -18,7 +18,7 @@ Tried on a throwaway Worker on 2026-11-09, so the decision rests on what was see
 - **The prerelease is a second Worker**, `tarja-prerelease`, the `prerelease` environment of `wrangler.jsonc`, at `https://tarja-prerelease.albz.app`. It has its own D1 database, `tarja-prerelease`, its own secrets (a `BETTER_AUTH_SECRET` of its own) and its own Google OAuth client, in the same Google project, which lists only that address. It shares no data, secret or client with production.
 - **One script deploys it**, `pnpm deploy:prerelease`: it builds with `CLOUDFLARE_ENV=prerelease`, applies the migrations with `--env prerelease` and deploys with `--env prerelease`. It is the deploy command Workers Builds runs for a branch other than `main`.
 - **A test fails if the prerelease binds the production database.**
-- **The prerelease says what it is**: the app built for it shows a mark. The build knows, so it needs no request and shows offline.
+- **The prerelease says what it is**: the build knows it is one, so the logo reads `Tarja-pre`, and the installed name (`Tarja Pre`), the page title and the icon (its line red) differ from production's. It needs no request and shows offline.
 
 ## Consequences
 
@@ -26,7 +26,7 @@ Tried on a throwaway Worker on 2026-11-09, so the decision rests on what was see
 - Branches share one prerelease database. It is disposable: two branches with different migrations can collide, and then it is wiped.
 - The prerelease is open. Nothing links its address and its data are the owner's tests. Cloudflare Access (free up to 50 users) could be put in front; it is left out for now because it is not confirmed to need no payment method, and free tiers only is a rule ([ADR-0003](0003-spa-on-one-worker-on-free-tiers.md)).
 - The repository is public and the build token writes Workers and D1. Before builds for other branches are on, the owner checks in the Cloudflare dashboard that pull requests from forks are not built. If that cannot be ensured, branch builds stay off and the prerelease is deployed by hand with the same script.
-- Both apps install as "Tarja"; only the mark tells them apart.
+- Both apps can sit on one phone: the prerelease is `Tarja Pre`, with a red line in its icon.
 - [ADR-0003](0003-spa-on-one-worker-on-free-tiers.md) holds for production, one Worker and one D1. The prerelease is a second of each, within the free limits. Builds draw on the 3,000 free build minutes a month, and the free plan runs one build at a time, so two deploys never overlap.
 - Not tried here, only in Workers Builds itself: whether its image installs Node 26 (CI uses 26; the image defaults to 24), the check that the config's `name` matches the Worker, whether the build token may create the custom domain, and the rule for pull requests from forks.
 

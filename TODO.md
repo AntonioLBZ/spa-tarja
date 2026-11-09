@@ -49,6 +49,6 @@ The repo side:
 - The test that fails if `env.prerelease` binds production's database ([testing and CI](docs/specs/testing-and-ci.md)).
 - `.nvmrc` with `26`; if Workers Builds does not install it, `24` in `.nvmrc` and in `ci.yml`.
 - Remove the `release` job from `.github/workflows/ci.yml`.
-- The prerelease mark ([header](docs/specs/header.md)): the build reads `CLOUDFLARE_ENV` (a `define` in `vite.config.ts`), a component, and `prerelease.mark` in both locales. Where it sits and how it looks is for the owner to settle ([`DESIGN.md`](design-system/DESIGN.md#8-open-questions)).
+- What tells the prerelease apart ([header](docs/specs/header.md), [repository structure](docs/specs/repository-structure.md)): the build reads `CLOUDFLARE_ENV` (a `define` in `vite.config.ts`), the logo reads `Tarja-pre`, the manifest name and the title are `Tarja Pre`, and the icons are the red ones in `public/prerelease/`.
 - Check the free-plan limits for a second Worker and a second D1 database ([ADR-0003](docs/adr/0003-spa-on-one-worker-on-free-tiers.md)); three databases existed at once while it was tried.
 - Not tried outside Workers Builds, so watch the first builds: whether the image installs Node 26, the check that the config's `name` matches the Worker, whether the token may create the custom domain, and the rule for forks.

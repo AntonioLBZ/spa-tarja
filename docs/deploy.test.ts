@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import ts from 'typescript';
@@ -23,6 +23,15 @@ interface WranglerConfig {
 
 const read = (path: string) => {
     return readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+};
+
+const files = (folder: string) => {
+    const path = fileURLToPath(new URL(`../${folder}`, import.meta.url));
+    if (!existsSync(path)) return [];
+    return readdirSync(path, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name !== '_headers')
+        .map((entry) => entry.name)
+        .sort();
 };
 
 const wrangler = () => {
@@ -77,5 +86,19 @@ describe('the prerelease scripts', () => {
     it('leave the production scripts alone', () => {
         expect(scripts()['deploy:prod']).toBe('pnpm build && wrangler deploy');
         expect(scripts()['db:migrate:remote']).toBe('wrangler d1 migrations apply DB --remote');
+    });
+});
+
+describe('the prerelease icons', () => {
+    it('are the same files as the production icons', () => {
+        expect(files('public/prerelease')).toEqual(files('public'));
+    });
+
+    it('draw the line red instead of blue', () => {
+        const prerelease = read('public/prerelease/favicon.svg');
+
+        expect(prerelease).toContain('#ff6b6b');
+        expect(prerelease).not.toContain('#8aa4ff');
+        expect(read('public/favicon.svg')).toContain('#8aa4ff');
     });
 });

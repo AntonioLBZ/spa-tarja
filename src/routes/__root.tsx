@@ -9,6 +9,7 @@ import { Icon } from '@/components/icon/icon';
 import { ToastProvider } from '@/components/toast/toast';
 import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
 import { AppUpdate } from '@/features/pwa/app-update';
+import { isPrerelease } from '@/lib/prerelease';
 import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
 import { useWide } from '@/lib/use-wide';
 
@@ -64,7 +65,7 @@ const RootBrand = () => {
                 if (!opensElsewhere(event)) reveal();
             }}
         >
-            <Brand />
+            <Brand prerelease={isPrerelease()} />
         </Link>
     );
 };

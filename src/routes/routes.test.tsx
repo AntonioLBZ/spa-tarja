@@ -213,6 +213,35 @@ describe('header', () => {
     });
 });
 
+describe('prerelease logo', () => {
+    afterEach(() => {
+        vi.unstubAllEnvs();
+    });
+
+    async function open(wide: boolean) {
+        stubViewport(wide);
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/' });
+        await screen.findByRole('navigation');
+    }
+
+    it.each([true, false])('names the logo Tarja-pre in the prerelease build (wide: %s)', async (wide) => {
+        vi.stubEnv('VITE_PRERELEASE', 'true');
+
+        await open(wide);
+
+        expect(screen.getByRole('link', { name: 'Tarja-pre' }).getAttribute('href')).toBe('/');
+        expect(screen.queryByRole('link', { name: 'Tarja' })).toBeNull();
+    });
+
+    it.each([true, false])('keeps the plain Tarja in production (wide: %s)', async (wide) => {
+        await open(wide);
+
+        expect(screen.getByRole('link', { name: 'Tarja' }).getAttribute('href')).toBe('/');
+        expect(screen.queryByRole('link', { name: 'Tarja-pre' })).toBeNull();
+    });
+});
+
 describe('bottom navigation', () => {
     const TABS = [en.nav.expenses, en.nav.groups, en.nav.summary, en.nav.settings];
 

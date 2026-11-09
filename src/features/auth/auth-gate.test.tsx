@@ -19,6 +19,7 @@ afterEach(() => {
     window.history.replaceState(null, '', '/');
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
 });
 
 describe('sign-in gate', () => {
@@ -55,6 +56,22 @@ describe('sign-in gate', () => {
             expect(googleButton()).toBeDefined();
             expect(screen.queryByRole('heading', { name: en.expenses.form.title })).toBeNull();
             expect(screen.queryByRole('link', { name: en.nav.settings })).toBeNull();
+        });
+
+        it('names the prerelease on the sign-in screen', async () => {
+            vi.stubEnv('VITE_PRERELEASE', 'true');
+
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(document.querySelector('.brand')?.textContent).toBe('Tarja-pre');
+        });
+
+        it('names the plain Tarja on the sign-in screen in production', async () => {
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+            expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+            expect(document.querySelector('.brand')?.textContent).toBe('Tarja');
         });
 
         it.each([
