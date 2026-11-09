@@ -44,7 +44,7 @@ pnpm only. Pin dependencies exactly (`pnpm add -E`).
 pnpm dev                 # Vite + the Worker in workerd, local D1; UI and /api on :5173
 pnpm build               # tsc -b && vite build
 pnpm types:check         # tsc -b over app, server and node configs
-pnpm types:gen           # wrangler types -> worker-configuration.d.ts (rerun after editing wrangler.jsonc)
+pnpm types:gen           # wrangler types -> worker-configuration.d.ts (rerun after editing wrangler.jsonc, with .dev.vars moved aside: it adds the secrets)
 pnpm lint                # eslint + stylelint (src/**/*.css)
 pnpm format / format:check
 pnpm storybook           # the design system on :6006, local only (design-system/)

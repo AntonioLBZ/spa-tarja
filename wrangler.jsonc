@@ -18,4 +18,18 @@
         },
     ],
     "observability": { "enabled": true },
+    "env": {
+        "prerelease": {
+            "workers_dev": false,
+            "routes": [{ "pattern": "tarja-prerelease.albz.app", "custom_domain": true }],
+            "d1_databases": [
+                {
+                    "binding": "DB",
+                    "database_name": "tarja-prerelease",
+                    "database_id": "48700b9c-9f40-4485-869c-11fe710d4cfc",
+                    "migrations_dir": "db/migrations",
+                },
+            ],
+        },
+    },
 }

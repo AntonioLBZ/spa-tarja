@@ -20,7 +20,9 @@
         "pwa:icons": "pwa-assets-generator",
         "db:migrate": "wrangler d1 migrations apply DB --local",
         "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+        "db:migrate:prerelease": "wrangler d1 migrations apply DB --remote --env prerelease",
         "deploy:prod": "pnpm build && wrangler deploy",
+        "deploy:prerelease": "CLOUDFLARE_ENV=prerelease pnpm build && pnpm db:migrate:prerelease && wrangler deploy --env prerelease",
         "prepare": "husky"
     },
     "dependencies": {
