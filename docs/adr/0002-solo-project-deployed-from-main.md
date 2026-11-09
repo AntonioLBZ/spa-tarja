@@ -1,6 +1,6 @@
 # ADR-0002: Work on `main`, and deploy every push that passes CI
 
-- Status: Accepted
+- Status: Superseded by ADR-0015
 - Date: 2026-10-25
 
 ## Context

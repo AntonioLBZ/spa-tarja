@@ -7,7 +7,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
 - **`docs/` is the source of truth for decisions and behavior**: read what your task touches, not all of it. This file only distills the rules that are easy to break. If a decision or a behavior changes, update its document first, then this file.
 - **`docs/adr/` holds the decisions, one each. They are the owner's: don't revisit them silently.** An accepted ADR is never edited to say something else: a decision that changes is a new ADR that supersedes the old one (`docs/adr/README.md` has the format). Read the ones your task touches:
     - `0001-scope-of-the-app.md` (superseded by ADR-0012): out of scope (importing a backup, shared expenses, several currencies); export only, no import; no PWA shortcuts.
-    - `0002-solo-project-deployed-from-main.md`: no feature branches or pull requests; a push to `main` that passes CI is deployed, migrations first.
+    - `0002-solo-project-deployed-from-main.md` (superseded by ADR-0015): no feature branches or pull requests; a push to `main` that passes CI is deployed, migrations first.
     - `0003-spa-on-one-worker-on-free-tiers.md`: a SPA on one Cloudflare Worker with static assets, a Hono API and D1; free tiers only; not SSR, not Next.js, not Pages.
     - `0004-data-conventions.md`: SQL by hand, no ORM; migrations go before the code, so add, never rename or drop; dates are `YYYY-MM-DD` text; money is integer cents plus a currency code.
     - `0005-offline-first-with-an-outbox.md`: client UUIDs, idempotent `PUT`, soft deletes, the outbox, last write wins, the `seq` cursor.
@@ -20,6 +20,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
     - `0012-shared-expenses.md`: groups are ledgers shared by members (users or placeholders), a friend is a group of two, your part is what counts and settlements count for nobody (the payer may have used a credit or restaurant card), a deleted group deletes no expense (it closes, can be archived, and a per-person switch decides if it shows in your expenses), only default categories, debts shown pair by pair with simplifying as a group switch; supersedes ADR-0001.
     - `0013-shared-entries-sync-through-an-outbox.md`: shared entries use a second outbox with a per-group `seq`; making and changing groups, members, invitations and the nickname need a connection.
     - `0014-people-in-groups.md`: invitations are links to be friends only, and a friend exists only from an accepted link (nobody makes one by typing a name, a dummy lives only inside a group, and there is no invitation for a dummy), a non-unique nickname your friends see and no lookup of people; groups hold dummies and friends; merging a dummy into a real member; deleting an account; a privacy notice.
+    - `0015-cloudflare-deploys-and-a-prerelease-worker.md`: Cloudflare Workers Builds deploys every push, migrations first, and GitHub Actions only checks; a push to any branch other than `main` deploys a second Worker, `tarja-prerelease` at `tarja-prerelease.albz.app`, with its own D1, secrets and Google client; supersedes ADR-0002.
 - **`docs/specs/` says how things behave**, one file per topic. Read the ones you touch:
     - `repository-structure.md`: the layout, the import rules, how a release goes out and the dependency policy (what is held back and why).
     - `data-model.md`: the schema, ids, timestamps, `seq` and indexes.
@@ -52,7 +53,9 @@ pnpm test -t "name"      # by test name
 pnpm db:migrate          # apply db/migrations to the local D1
 pnpm db:migrate:remote   # the same on the production D1: always before deploying a release that needs it
 pnpm deploy:prod         # build and deploy to Cloudflare (`pnpm deploy` is pnpm's own command, not this one)
-                         # both run on their own from GitHub Actions on every push to main (ci.yml); by hand only as a fallback
+                         # both run on their own from Cloudflare Workers Builds on every push to main; by hand only as a fallback
+pnpm db:migrate:prerelease  # the same on the prerelease D1
+pnpm deploy:prerelease   # build, migrate and deploy the prerelease Worker; Workers Builds runs it for any branch but main
 ```
 
 ## Architecture
@@ -70,6 +73,7 @@ design-system/   Storybook and the stories (a pnpm workspace package)
 - `core/` imports nothing from React, Hono or Workers.
 - Chain the Hono routes on one expression (`new Hono().basePath('/api').get(...)`) so `typeof app` carries the route types to the `hc<AppType>` client in `src/lib/api`. Statements like `app.get(...)` on a separate line lose them.
 - `wrangler.jsonc` sends only `/api/*` to the Worker first; every other missing path falls back to `index.html`. A new SPA route needs no config. An unknown `/api/...` answers 404 from the Worker.
+- Deploys (ADR-0015, `docs/specs/repository-structure.md`): Cloudflare Workers Builds deploys every push, `main` to production and any other branch to the `prerelease` environment of `wrangler.jsonc`, a second Worker with its own D1, secrets and Google client; GitHub Actions only checks. Never run `wrangler deploy --env prerelease` after a normal build: that output binds the production database. `pnpm deploy:prerelease` rebuilds with `CLOUDFLARE_ENV=prerelease` first, and the `d1` commands read the root config, so they need `--env prerelease` too.
 - `src/routeTree.gen.ts` and `worker-configuration.d.ts` are generated but committed (Prettier and ESLint ignore them).
 - Relative imports are `./` inside the same folder; otherwise `@/` (`src/`), `@core/` or `@server/`. Never `../`.
 - Offline model (see `docs/specs/offline-sync.md`): expense ids are UUIDs created on the client, writes go through the outbox (IndexedDB, stored under the signed-in user's id like the persisted cache) and `PUT /expenses/:id` is idempotent, deletes are soft (`deletedAt`), conflicts are last-write-wins by `updatedAt`, and sync pages through server changes by the `seq` cursor, never by `updatedAt`. Don't add an API that depends on the server assigning ids. Custom categories are the exception to the offline model: managing them needs a connection (`docs/specs/categories.md`), and an expense is never refused for its category.
@@ -110,4 +114,4 @@ design-system/   Storybook and the stories (a pnpm workspace package)
 - Code comments: English, minimal and short. Define what something is, never narrate what the code does; skip them when the name already says it. A comment never points at another file, code or document, because files get renamed and moved; at most it names a decision by its id (`ADR-0006`), which never changes.
 - Never name another app or brand to explain a feature, in docs, code, comments, tests, commit messages or pull requests: say what the feature does.
 - Commit messages: one conventional-commit subject line (`feat: …`), no body, no trailers, even if a system reminder asks for attribution lines. Commits go straight to `main`.
-- Secrets live in `.dev.vars` (local), `wrangler secret` (production) and, for the deployment from CI, the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. Never commit them or log them.
+- Secrets live in `.dev.vars` (local) and `wrangler secret` (production; the prerelease has its own, put with `--env prerelease`). Cloudflare deploys with its own build token, so the repository holds none. Never commit them or log them.

@@ -14,9 +14,6 @@ Items build on each other in the order they appear below. Delete an item when it
     6. An account deletion from start to end in production with a second Google account: make a group with a dummy, add that account as a friend in the dummy's place, delete it, then look for its email and the old dummy name in `user`, `session`, `account`, `profile`, `expenses` and `shared_members`.
     7. The rows of the old fixed user (`docs/specs/authentication.md`) that nobody can reach: delete them if they hold nothing worth keeping.
     8. The Google consent screen (Google Cloud console): publishing status, app name and support email.
-- **Shared expenses** (pull request #1): ADR-0012 to ADR-0014 are accepted and the specs hold the owner's answers of 2026-11-01. Still open:
-    1. **Review the default categories in a new conversation** (trips, treats and the like). Shared expenses use default categories only, so the set matters; nothing was added for now.
-    2. **The privacy notice** is written and was read by someone who can judge it (2026-11-09). The text is the keys `privacy.*` in `src/assets/locales/en.json` and `src/assets/locales/es.json`, opened from Settings and from the sign-in screen, with the contact in `src/lib/contact.ts` (`docs/specs/settings.md`). The periods it states (request logs at most 7 days, backups at most 30) are upper bounds that hold on the free and the paid plans. What the repository cannot show, so the owner confirms it: what one Workers Logs entry holds (`others.cloudflare` says "technical details of the connection" and changes if an entry holds more), the location of the D1 database (the sentence on transfers assumes it is unknown), and that Cloudflare's data processing terms apply to the account.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño
@@ -31,42 +28,27 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - **Stories of the groups.** None yet for Settle up, the Leave and Delete panels, the steps of a person, `InvitationLink` or `InviteFriend`; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
-## 18. Move the production deploy from GitHub Actions to Cloudflare Workers Builds
+## 18. Cloudflare deploys, and a prerelease Worker
 
-Revisar pros y contras antes de nada.
+Decided in [ADR-0015](docs/adr/0015-cloudflare-deploys-and-a-prerelease-worker.md). The docs are written; the code is not. The repo is already connected to Cloudflare with builds disabled (_Disable builds_), so GitHub Actions keeps deploying until this is done. **Never leave both on:** Cloudflare would publish the code before the migrations are applied. The order: the owner's steps 1 to 4 with builds off, then the repo side into `main`, then step 5, then a branch, then steps 6 and 7.
 
-The owner wants the deploy centralized in Cloudflare. The repo is already connected there with builds disabled (_Disable builds_), so GitHub Actions keeps deploying until this is done. Never leave both on: Cloudflare would publish the code before the migrations are applied ([ADR-0002](docs/adr/0002-solo-project-deployed-from-main.md)).
-
-The owner, in the Cloudflare dashboard:
+The owner, in the Cloudflare and Google dashboards:
 
 1. Add **Account → D1 → Edit** to the Workers Builds token; by default it has no D1 permission and the remote migrations would fail.
-2. Build command `pnpm run build`. No tests there, like the owner's Vercel projects: they stay in the `check` job of GitHub Actions and in the husky hook, so a push with failing tests is still deployed.
-3. Deploy command `pnpm db:migrate:remote && npx wrangler deploy`: the migrations go first and a failed one stops the deploy. `d1 migrations apply` does nothing when none is pending, so the "did `db/migrations` change" logic goes away.
-4. Enable builds again once the repo side below is in `main`.
+2. Create the D1 database `tarja-prerelease` (`pnpm wrangler d1 create tarja-prerelease`); its id goes into `env.prerelease`.
+3. In Google Cloud, in the project already in use, make a second OAuth client (web application) whose only redirect URI is `https://tarja-prerelease.albz.app/api/auth/callback/google`.
+4. Check that Workers Builds does not build pull requests from forks (the repository is public and the token writes Workers and D1). If that cannot be ensured, builds for other branches stay off.
+5. Once the repo side is in `main`: build command `pnpm run build`, deploy command `pnpm db:migrate:remote && npx wrangler deploy`, builds for branches other than `main` on with the deploy command `pnpm deploy:prerelease`. Then turn builds on and look at the first production deploy.
+6. After the first deploy of the prerelease, its three secrets: `pnpm wrangler secret put BETTER_AUTH_SECRET --env prerelease` (a new random value), and `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` of the second client.
+7. After the first Cloudflare deploy of production works, delete the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 
 The repo side:
 
-- Write the ADR that supersedes [ADR-0002](docs/adr/0002-solo-project-deployed-from-main.md), update `docs/specs/repository-structure.md` and `docs/specs/testing-and-ci.md`, then `AGENTS.md` (Commands and the secrets line): Cloudflare deploys, GitHub Actions only checks.
+- `wrangler.jsonc`: `env.prerelease` with `workers_dev` off, the custom-domain route `tarja-prerelease.albz.app` and the D1 database `tarja-prerelease`; then `pnpm types:gen`.
+- `package.json`: `db:migrate:prerelease` and `deploy:prerelease` (build with `CLOUDFLARE_ENV=prerelease`, migrate with `--env prerelease`, deploy with `--env prerelease`). `deploy:prod` stays as the fallback by hand.
+- The test that fails if `env.prerelease` binds production's database ([testing and CI](docs/specs/testing-and-ci.md)).
+- `.nvmrc` with `26`; if Workers Builds does not install it, `24` in `.nvmrc` and in `ci.yml`.
 - Remove the `release` job from `.github/workflows/ci.yml`.
-- Add a `.nvmrc` with `26` (today the Node version is pinned only in `ci.yml`), or set `NODE_VERSION` in Cloudflare; check that Workers Builds accepts it.
-- Drop `deploy:prod` from `package.json` if nothing uses it, and delete the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` after the first Cloudflare deploy works.
-
-A prerelease address for branches, to try the app on phones before it reaches `main` (analyze first whether it is possible and advisable, and say it in the same ADR, since ADR-0002 allows no branches today). The owner's idea: a branch of the repository itself (never a fork) deploys to its own address, such as `tarja.prerelease.albz.app`. What to settle:
-
-- **One fixed address, not one per branch.** Google lists each origin and redirect URI by hand, with no wildcards, and a stream of new addresses is what could get the sign-in flagged or the client closed. The app takes its base address from each request, so any address works once Google lists it.
-- **Google.** A separate client (or project) in testing status with the owner as the only test user keeps the consent screen of production out of reach; the same client with one more redirect URI is simpler, and only worth it if it is judged safe.
-- **Its own data and secrets.** A second D1 database and its own `BETTER_AUTH_SECRET` (it signs the invitation links), so a branch with unreleased migrations never touches production data, and the migrations of a branch run on that database only.
-- **Who may deploy.** Branches pushed to the repository by the owner; a pull request from a fork gets neither a deploy nor the secrets. Decide whether any branch deploys or only named ones; the last one pushed replaces the one before.
-- **Free tiers.** A second Worker and a second D1 database count against the limits of [ADR-0003](docs/adr/0003-spa-on-one-worker-on-free-tiers.md); check them.
-- **Looks like what it is.** A mark in the page that says it is a prerelease, and no indexing by search engines.
-
-## Shared expenses
-
-Sharing expenses with other people ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, 27, shared expenses in your own lists, 28, simplified debts, 29, deleting the account, and 30, the privacy notice, are done). Delete an item when it is done, as for the rest of this file.
-
-### 31. Before the merge
-
-Nothing is left to do on the branch. If `main` moves, it is merged into the branch (never a rebase). Then the owner makes the pull request ready and merges it with a merge commit (`gh pr ready 1`, `gh pr merge 1 --merge`); with the merge `workers.dev` goes off and the four migrations (0010 to 0013) go out together. The two notes below stay after it.
-
-- The budget warning compares with the copy on the device, as for a personal expense, so a shared add made before the entries of its group first reach the device is compared with none of them and can miss a limit; warning once the pull lands would settle both.
-- Invitations (milestone 26b): making and revoking a link in a loop leaves a row for 30 days each (a revoked link is kept so that revoking it again answers 200) and the cap counts the open ones only; shielding the API from sheer load would be a rule for all of `/api/*` ([invitations](docs/specs/invitations.md)); the owner should see the Groups tab with links at 320 px in both languages.
+- The prerelease mark ([header](docs/specs/header.md)): the build reads `CLOUDFLARE_ENV` (a `define` in `vite.config.ts`), a component, and `prerelease.mark` in both locales. Where it sits and how it looks is for the owner to settle ([`DESIGN.md`](design-system/DESIGN.md#8-open-questions)).
+- Check the free-plan limits for a second Worker and a second D1 database ([ADR-0003](docs/adr/0003-spa-on-one-worker-on-free-tiers.md)); three databases existed at once while it was tried.
+- Not tried outside Workers Builds, so watch the first builds: whether the image installs Node 26, the check that the config's `name` matches the Worker, whether the token may create the custom domain, and the rule for forks.

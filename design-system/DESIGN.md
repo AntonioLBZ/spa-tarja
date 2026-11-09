@@ -197,3 +197,4 @@ Add here what comes up, and ask the owner before settling it.
 
 - **Category colors.** The owner is thinking of dropping them, so that a category takes the accent instead of a color of its own. Not decided: the palette in §2 stays as it is. The colors as a whole wait for a review with the owner, among them the amber accent next to the orange and yellow category icons.
 - **The Dot Matrix logo.** It reads well on Android, but the owner is not sure the face fits the identity: it recalls the Nothing phone brand.
+- **The prerelease mark.** The build for the prerelease ([ADR-0015](../docs/adr/0015-cloudflare-deploys-and-a-prerelease-worker.md)) must say it is not the real app, since both install as "Tarja". A word beside the logo, or a thin strip above the header, are the two ways in sight. Not decided: ask the owner when it is built. It must keep the logo in the middle at 320 px in both languages ([header](../docs/specs/header.md)).
