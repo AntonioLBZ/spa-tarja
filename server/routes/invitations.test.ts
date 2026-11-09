@@ -395,6 +395,18 @@ describe('a link to be friends, opened by somebody', () => {
         expect(await countRows('shared_groups')).toBe(1);
     });
 
+    it('answers gone, as to anybody else, to the person who took it once the friend is closed for them', async () => {
+        const token = await linkOf();
+        const friend = await groupOf(await accept(bruno, token));
+        await send(bruno, 'DELETE', `/groups/${friend.id}`);
+
+        const again = await accept(bruno, token);
+
+        expect(await error(again.clone(), 410)).toBe('gone');
+        expect(await again.json()).toEqual(await (await accept(bruno, respelled(token))).json());
+        expect(await error(await accept(carla, token), 410)).toBe('gone');
+    });
+
     it('serves one person when two accept at the same moment, and makes no second friend', async () => {
         const token = await linkOf();
 
@@ -583,7 +595,7 @@ describe('a link to be friends, opened by somebody', () => {
         expect(JSON.stringify(await storedRows())).not.toContain(bruno.userId);
     });
 
-    it('is revoked when who made it deletes their account, while a friend it made stays to answer again, closed', async () => {
+    it('is revoked when who made it deletes their account, and the friend it made no longer answers a second accept', async () => {
         const open = await linkOf();
         const used = await linkOf();
         const friend = await groupOf(await accept(bruno, used));
@@ -596,9 +608,9 @@ describe('a link to be friends, opened by somebody', () => {
             created_by: null,
             revoked_at: expect.any(Number),
         });
-        const again = await groupOf(await accept(bruno, used));
-        expect(again).toMatchObject({ id: friend.id, closed: 'deleted' });
-        expect(again.members.find((member) => member.id === again.me)?.role).toBe('owner');
+        expect(await error(await accept(bruno, used), 410)).toBe('gone');
+        const [stays] = await listGroups(bruno);
+        expect(stays).toMatchObject({ id: friend.id, closed: 'deleted' });
     });
 });
 

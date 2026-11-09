@@ -108,7 +108,11 @@ const invitationsRoutes = new Hono<AppEnv>()
         const userId = c.var.userId;
         const invitation = await invitationOf(c.env, c.req.valid('json').token);
         if (!invitation) return c.json(GONE, 410);
-        const answer = async (friendId: string) => c.json(await readSharedGroup(db, userId, friendId), 200);
+        // The friend, unless it is closed for the caller by now: then the link is as good as used up
+        const answer = async (friendId: string) => {
+            const friend = await readSharedGroup(db, userId, friendId);
+            return friend.closed ? c.json(GONE, 410) : c.json(friend, 200);
+        };
 
         // Sent again after an answer that never came
         if (invitation.acceptedBy === userId && invitation.groupId !== null) return answer(invitation.groupId);
