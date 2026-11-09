@@ -152,22 +152,22 @@
         "intro": "What Tarja keeps about you, why, and what you can do about it.",
         "who": {
             "title": "Who is responsible",
-            "text": "Tarja is run by Antonio López Benítez, in La Coruña, España. For anything about your data, write to:",
+            "text": "Tarja is run by Antonio López Benítez, in La Coruña, Spain. For anything about your data, write to:",
             "portfolio": "Portfolio"
         },
         "stored": {
             "title": "What is stored, and why",
             "intro": "Only what the app needs to work. It isn't used for anything else.",
-            "google": "From your Google account: your name, your email and the address of your picture. You sign in with Google, so Tarja never stores a password.",
-            "nickname": "Your nickname, if you set one. Your friends see it.",
+            "google": "From your Google account, when you first sign in: your name, your email, the address of your picture and the number that identifies the account. You sign in with Google, so Tarja never stores a password.",
+            "nickname": "Your nickname, if you set one: the name your friends see, and the one you start with in each group you make or are added to.",
             "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in your groups.",
             "invitations": "The invitation links you make. Each works once, for 14 days.",
-            "sessions": "Each time you sign in, a session: a cookie in your browser and, on the server, the IP address and the browser it was opened from.",
-            "device": "On your device: a copy of your data, so the app works offline, and your language, theme and color. Signing out removes the copy, unless something is still waiting to be sent."
+            "sessions": "Each time you sign in, a session: cookies in your browser that keep you signed in and, on the server, the IP address and the browser it was opened from. Signing out deletes the session; one you stop using stays until you delete your account.",
+            "device": "On your device: a copy of your data, so the app works offline, and your language, theme, color and list grouping. The copy is removed when you sign out, or when the app finds out your session has ended, unless something is still waiting to be sent; clearing this site's data in the browser removes it too."
         },
         "sees": {
             "title": "Who sees it",
-            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account.",
+            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account. A friend can add you to their groups without asking, so people you don't know may see that name and what you share there. Whoever opens an invitation link you made sees the same name while the link is open.",
             "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody."
         },
         "others": {
@@ -180,13 +180,13 @@
             "title": "How long, and deleting your account",
             "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
             "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends where you are the only person with an account are deleted completely, with every name and expense in them.",
-            "stays": "The shared expenses in your groups and with your friends stay for the others, because they are also their record. They show as “Deleted user”, without your name, and your friends no longer have you among their friends.",
+            "stays": "The shared expenses in your groups and with your friends stay for the others, because they are also their record. The names of the groups and of the people in them stay too. There you show as “Deleted user”, without your name, and a name a group had given you before you joined is deleted too. Your friends no longer have you among their friends.",
             "backups": "The backups Cloudflare keeps to recover the service expire on their own."
         },
         "rights": {
             "title": "Your rights",
-            "see": "See and download your data: in {settings}, under “{data}”.",
-            "correct": "Correct it: change your nickname in {settings}, under “{profile}”, and edit your expenses and the rest of what you wrote.",
+            "see": "See and download what you wrote and the groups you are in: in {settings}, under “{data}”. For the rest, such as your account details and sessions, write to the contact above.",
+            "correct": "Correct it: change your nickname in {settings}, under “{profile}”, rename yourself in an open group from its list of people, and edit your expenses and the rest of what you wrote. For anything else, such as the name Tarja took from Google, write to the contact above.",
             "delete": "Delete it: in {settings}, press “{delete}”.",
             "write": "Ask anything about your data by writing to the contact above.",
             "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos."
@@ -259,7 +259,7 @@
                 "open": "Delete account",
                 "title": "Delete your account?",
                 "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends where you are the only person with an account, with every name and expense in them. This can't be undone.",
-                "stays": "The shared expenses in your groups and with your friends stay for the others, under “Deleted user”. Your friends no longer have you among their friends.",
+                "stays": "The shared expenses in your groups and with your friends stay for the others, and you show in them as “Deleted user”, without your name or the one a group had given you before you joined. Your friends no longer have you among their friends.",
                 "backups": "The backups kept to recover the service expire on their own.",
                 "export": "Download your data first",
                 "label": "Your email",
