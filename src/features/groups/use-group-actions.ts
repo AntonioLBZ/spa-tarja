@@ -42,7 +42,7 @@ interface NewGroupInput {
     others: readonly Placeholder[];
 }
 
-// One of the person's friends who is a real person, by the id of that friend, as a new member or in place of a dummy
+// One of the person's open friends, by the id of that friend, as a new member or in place of a dummy
 interface FriendInput {
     friend: string;
     replaces?: string;

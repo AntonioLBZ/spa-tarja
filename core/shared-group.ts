@@ -99,8 +99,8 @@ const groupChangeSchema = v.object({
 // A body with a kind makes the group, and is read as a change when the group is there already
 const groupWriteSchema = v.union([newGroupSchema, groupChangeSchema]);
 
-// A dummy by name, or a new name for a member; or one of the caller's friends who is a real person, the friend group
-// named by its id, as a new member or in place of a dummy
+// A dummy by name, or a new name for a member; or one of the caller's open friends, the friend group named by its id,
+// as a new member or in place of a dummy
 const memberWriteSchema = v.union([
     v.object({ friend: groupIdSchema, replaces: v.optional(memberIdSchema) }),
     v.object({ friend: v.optional(v.never()), name: sharedNameSchema }),

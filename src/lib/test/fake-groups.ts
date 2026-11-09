@@ -184,7 +184,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             }
             const friend = groupOf(input.friend);
             const other = friend?.members.find((candidate) => candidate.id !== friend.me);
-            if (!other?.claimed) return { status: 422, error: 'unknown-friend' };
+            if (!friend || friend.closed !== null || !other?.claimed) return { status: 422, error: 'unknown-friend' };
             group.members.push(newMember(memberId, other.name, true));
             const dummy = input.replaces === undefined ? undefined : member(input.replaces);
             if (dummy) Object.assign(dummy, { mergedInto: memberId, leftAt: Date.now() });
