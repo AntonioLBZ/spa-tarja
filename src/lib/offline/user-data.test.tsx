@@ -11,6 +11,7 @@ import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import { PERSIST_BUSTER, createPersister } from './persister';
+import { readSharedWith, rememberSharedWith } from './shared-with';
 import { createUserStorage } from './user-storage';
 
 import type { AuthUser } from '@/lib/auth';
@@ -260,5 +261,109 @@ describe('a window left open while the browser changes account', () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         expect(api.writes.map((expense) => expense.id)).toEqual([unsent.id]);
         expect(await storage.get(`tarja:outbox:${BEA.id}`)).toBeUndefined();
+    });
+});
+
+describe('a session that ends', () => {
+    async function openWithACopy(waiting: 'nothing' | 'expense' | 'entry') {
+        const storage = createMemoryStorage();
+        await leaveCopy(storage, TEST_USER, [{ ...unsent, id: crypto.randomUUID(), text: 'Copied' }]);
+        await leaveCopy(storage, BEA, [{ ...unsent, id: crypto.randomUUID(), text: 'Of Bea' }]);
+        if (waiting === 'expense') await leaveUnsent(storage, TEST_USER);
+        if (waiting === 'entry') {
+            const entry = sampleEntry(sampleGroup());
+            await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [entry]);
+        }
+        rememberSharedWith(TEST_USER.id, 'a-group');
+        rememberSharedWith(BEA.id, 'another-group');
+        const api = createFakeApi();
+        api.state.offline = true;
+        stubApi(api.handler);
+        onlineManager.setOnline(false);
+        const fakeAuth = createFakeAuth();
+        const app = renderApp({ storage, fakeAuth });
+        await screen.findByText('Copied');
+        await app.outbox.ready;
+        await app.groupOutbox.ready;
+        return { storage, fakeAuth, api };
+    }
+
+    async function theServerSaysNobodyIsSignedIn(fakeAuth: ReturnType<typeof createFakeAuth>) {
+        fakeAuth.state.session = null;
+        await fakeAuth.auth.check();
+        await screen.findByRole('heading', { name: en.auth.title });
+    }
+
+    async function settle() {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    it('deletes the copy of that user, and nobody else’s, when nothing is waiting to be sent', async () => {
+        const { storage, fakeAuth } = await openWithACopy('nothing');
+
+        await theServerSaysNobodyIsSignedIn(fakeAuth);
+
+        await waitFor(async () => expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeUndefined());
+        expect(readSharedWith(TEST_USER.id)).toBeNull();
+        expect(await storage.get(`tarja:query-cache:${BEA.id}`)).toBeDefined();
+        expect(readSharedWith(BEA.id)).toBe('another-group');
+    });
+
+    it('deletes the copy when a request answers 401 and the server then says nobody is signed in', async () => {
+        const { storage, fakeAuth, api } = await openWithACopy('nothing');
+        api.state.offline = false;
+        api.state.unauthorized = true;
+        onlineManager.setOnline(true);
+        fakeAuth.state.session = null;
+
+        await screen.findByRole('heading', { name: en.auth.title });
+
+        await waitFor(async () => expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeUndefined());
+    });
+
+    it('keeps everything while an expense is waiting to be sent', async () => {
+        const { storage, fakeAuth } = await openWithACopy('expense');
+
+        await theServerSaysNobodyIsSignedIn(fakeAuth);
+        await settle();
+
+        expect(await storage.get(`tarja:outbox:${TEST_USER.id}`)).toEqual([unsent]);
+        expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        expect(readSharedWith(TEST_USER.id)).toBe('a-group');
+    });
+
+    it('keeps everything while an expense of a group is waiting to be sent', async () => {
+        const { storage, fakeAuth } = await openWithACopy('entry');
+
+        await theServerSaysNobodyIsSignedIn(fakeAuth);
+        await settle();
+
+        expect(await storage.get(`tarja:group-outbox:${TEST_USER.id}`)).toHaveLength(1);
+        expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        expect(readSharedWith(TEST_USER.id)).toBe('a-group');
+    });
+
+    it('deletes nothing when the server cannot be asked, and the user stays signed in', async () => {
+        const { storage, fakeAuth } = await openWithACopy('nothing');
+
+        fakeAuth.state.offline = true;
+        await fakeAuth.auth.check();
+        await settle();
+
+        expect(fakeAuth.auth.getState()).toMatchObject({ status: 'signed-in', user: TEST_USER });
+        expect(screen.queryByRole('heading', { name: en.auth.title })).toBeNull();
+        expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        expect(readSharedWith(TEST_USER.id)).toBe('a-group');
+    });
+
+    it('deletes nothing when another account takes over the browser', async () => {
+        const { storage, fakeAuth } = await openWithACopy('nothing');
+
+        fakeAuth.state.session = BEA;
+        await fakeAuth.auth.check();
+        await settle();
+
+        expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        expect(readSharedWith(TEST_USER.id)).toBe('a-group');
     });
 });

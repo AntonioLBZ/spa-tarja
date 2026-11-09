@@ -25,19 +25,29 @@ interface UserDataProviderProps {
     children: ReactNode;
 }
 
-// The outboxes and the cache of the signed-in user, kept on the device apart from any other account's
+// The outboxes and the cache of the signed-in user, kept on the device apart from any other account's. When the user is
+// signed out, by the button or by the server saying so, their copy goes with the session unless a write is still
+// waiting to be sent in either outbox, which stays for their next sign-in.
 const UserDataProvider = (props: UserDataProviderProps) => {
     const { storage, children } = props;
     const user = useUser();
-    const { check } = useAuth();
+    const { check, getState } = useAuth();
     const [data] = useState(() => {
         const mine = createUserStorage(storage, user.id);
+        const outbox = createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY);
+        const groupOutbox = createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY);
+        const discardWhenIdle = async () => {
+            await Promise.all([outbox.ready, groupOutbox.ready]);
+            const waiting = outbox.getState().pending.length + groupOutbox.getState().pending.length;
+            if (waiting === 0) await mine.discard();
+        };
         return {
-            outbox: createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY),
-            groupOutbox: createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY),
+            outbox,
+            groupOutbox,
             queryClient: createQueryClient({ onUnauthorized: check }),
             persistOptions: createPersistOptions(mine.storage),
             userData: { discard: mine.discard },
+            discardWhenIdle,
         };
     });
 
@@ -50,8 +60,9 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             unbind();
             data.outbox.pause();
             data.groupOutbox.pause();
+            if (getState().status === 'signed-out') void data.discardWhenIdle().catch(() => undefined);
         };
-    }, [user.id, data]);
+    }, [user.id, data, getState]);
 
     return (
         <UserDataContext value={data.userData}>

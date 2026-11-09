@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
-import { useGroupOutbox, useOutbox, useUserData } from '@/lib/offline';
+import { useGroupOutbox, useOutbox } from '@/lib/offline';
 
 import { DeleteAccount } from './delete-account';
 import { PrivacyNotice } from './privacy-notice';
@@ -15,7 +15,6 @@ const Account = () => {
     const t = useTranslations('settings.account');
     const user = useUser();
     const { signOut } = useAuth();
-    const { discard } = useUserData();
     const outbox = useOutbox();
     const groupOutbox = useGroupOutbox();
     const { pending } = useSyncExternalStore(outbox.subscribe, outbox.getState);
@@ -28,11 +27,7 @@ const Account = () => {
             await signOut();
         } catch {
             setPhase('failed');
-            return;
         }
-        // What hasn't synced stays on the device for the next time this user signs in
-        await Promise.all([outbox.ready, groupOutbox.ready]);
-        if (outbox.getState().pending.length === 0 && groupOutbox.getState().pending.length === 0) await discard();
     };
 
     return (

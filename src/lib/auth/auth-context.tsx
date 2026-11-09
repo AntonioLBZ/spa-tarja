@@ -44,11 +44,18 @@ const AuthProvider = (props: AuthProviderProps) => {
     return <AuthContext value={auth}>{children}</AuthContext>;
 };
 
-const useAuth = (): Pick<Auth, 'check' | 'signIn' | 'signOut' | 'forget'> & { state: AuthState } => {
+const useAuth = (): Pick<Auth, 'check' | 'getState' | 'signIn' | 'signOut' | 'forget'> & { state: AuthState } => {
     const auth = use(AuthContext);
     if (auth === null) throw new Error('useAuth needs an AuthProvider');
     const state = useSyncExternalStore(auth.subscribe, auth.getState);
-    return { state, check: auth.check, signIn: auth.signIn, signOut: auth.signOut, forget: auth.forget };
+    return {
+        state,
+        check: auth.check,
+        getState: auth.getState,
+        signIn: auth.signIn,
+        signOut: auth.signOut,
+        forget: auth.forget,
+    };
 };
 
 interface UserProviderProps {
