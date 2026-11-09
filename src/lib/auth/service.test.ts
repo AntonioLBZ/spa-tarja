@@ -14,12 +14,16 @@ afterEach(() => {
     window.history.replaceState(null, '', '/');
 });
 
-async function callbackFrom(pathname: string) {
+async function signInBodyFrom(pathname: string) {
     window.history.replaceState(null, '', `${window.location.origin}${pathname}`);
     const fetchMock = stubApi(() => Response.json({ url: 'https://accounts.google.com/o/oauth2/auth' }));
     await createAuthService().startSignIn();
     const [, init] = fetchMock.mock.calls[0] ?? [];
-    return JSON.parse(String(init?.body)).callbackURL;
+    return JSON.parse(String(init?.body));
+}
+
+async function callbackFrom(pathname: string) {
+    return (await signInBodyFrom(pathname)).callbackURL;
 }
 
 describe('auth service', () => {
@@ -107,6 +111,12 @@ describe('auth service', () => {
             expect(await callbackFrom(`/join/${TOKEN}`)).toBe(`/join/${TOKEN}`);
         });
 
+        it('comes back to the link of an invitation also when the sign-in fails', async () => {
+            expect(await signInBodyFrom(`/join/${TOKEN}`)).toMatchObject({
+                errorCallbackURL: `/join/${TOKEN}?signin=failed`,
+            });
+        });
+
         it.each([
             ['another page', '/settings'],
             ['the join page with nothing after it', '/join/'],
@@ -119,7 +129,10 @@ describe('auth service', () => {
             ['an encoded slash in front of the token', `/join/%2Fevil.example%2F${TOKEN}`],
             ['the token under another prefix', `/groups/join/${TOKEN}`],
         ])('comes back home from %s', async (_, pathname) => {
-            expect(await callbackFrom(pathname)).toBe('/');
+            expect(await signInBodyFrom(pathname)).toMatchObject({
+                callbackURL: '/',
+                errorCallbackURL: '/?signin=failed',
+            });
         });
 
         it('fails when the server refuses', async () => {

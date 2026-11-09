@@ -109,6 +109,39 @@ describe('/api/auth', () => {
         expect(google.searchParams.get('redirect_uri')).toBe(`${ORIGIN}/api/auth/callback/google`);
     });
 
+    it('sends a failed sign-in started from an invitation back to that invitation', async () => {
+        const path = `/join/${crypto.randomUUID()}.${'A'.repeat(43)}`;
+        const started = await post('/api/auth/sign-in/social', {
+            provider: 'google',
+            callbackURL: path,
+            errorCallbackURL: `${path}?signin=failed`,
+        });
+        expect(started.status).toBe(200);
+        const { url } = (await started.json()) as { url: string };
+        const state = new URL(url).searchParams.get('state');
+        const cookie = started.headers
+            .getSetCookie()
+            .map((line) => line.split(';')[0])
+            .join('; ');
+
+        const back = await request(`/api/auth/callback/google?state=${state}&error=access_denied`, {
+            headers: { cookie },
+        });
+
+        expect(back.status).toBe(302);
+        expect(back.headers.get('location')).toBe(`${path}?signin=failed&error=access_denied`);
+    });
+
+    it('refuses an error address on another site', async () => {
+        const response = await post('/api/auth/sign-in/social', {
+            provider: 'google',
+            callbackURL: '/',
+            errorCallbackURL: 'https://evil.example/?signin=failed',
+        });
+
+        expect(response.status).toBe(403);
+    });
+
     it('refuses to send the person to another site once signed in', async () => {
         const response = await post('/api/auth/sign-in/social', {
             provider: 'google',

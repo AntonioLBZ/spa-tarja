@@ -9,7 +9,8 @@ import { authUserSchema, type AuthUser } from './user';
 interface AuthService {
     // The signed-in user, or null when the server says nobody is. Anything else, even an unreadable answer, throws.
     getSession: () => Promise<AuthUser | null>;
-    // The Google page to send the person to, who comes back to the link of an invitation they opened, else home
+    // The Google page to send the person to, who comes back to the link of an invitation they opened, else home,
+    // also when the sign-in fails
     startSignIn: () => Promise<string>;
     signOut: () => Promise<void>;
 }
@@ -34,7 +35,7 @@ const createAuthService = (): AuthService => {
         },
         startSignIn: async () => {
             const callbackURL = invitationPath(window.location.pathname) ?? '/';
-            const body = { provider: 'google', callbackURL, errorCallbackURL: '/?signin=failed' };
+            const body = { provider: 'google', callbackURL, errorCallbackURL: `${callbackURL}?signin=failed` };
             const answer = await send('/api/auth/sign-in/social', {
                 method: 'POST',
                 headers: JSON_HEADERS,

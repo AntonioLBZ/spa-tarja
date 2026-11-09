@@ -117,6 +117,16 @@ describe('sign-in gate', () => {
             expect((await screen.findByRole('alert')).textContent).toBe(en.auth.failed);
         });
 
+        it('tells the person a failed sign-in started from an invitation, and still shows the invitation', async () => {
+            const token = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
+            window.history.replaceState(null, '', `/join/${token}?signin=failed&error=access_denied`);
+            renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+            expect((await screen.findByRole('alert')).textContent).toBe(en.auth.failed);
+            expect(screen.getByText(en.auth.invited)).toBeDefined();
+            expect(window.location.pathname).toBe(`/join/${token}`);
+        });
+
         it('lets the person try again after coming back from Google with the back button', async () => {
             const fakeAuth = createFakeAuth({ session: null });
             renderApp({ fakeAuth });

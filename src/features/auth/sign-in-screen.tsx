@@ -12,7 +12,7 @@ import './sign-in-screen.css';
 
 type Phase = 'idle' | 'opening' | 'failed';
 
-// Google sends the person back to `/?signin=failed` when the sign-in didn't go through
+// Google sends the person back with `?signin=failed` when the sign-in didn't go through
 const cameBackFailed = (): boolean => {
     return new URLSearchParams(window.location.search).get('signin') === 'failed';
 };
