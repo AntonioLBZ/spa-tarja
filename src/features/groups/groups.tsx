@@ -1,8 +1,10 @@
-import { useId, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useId, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
+import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
@@ -30,8 +32,16 @@ interface ListSectionProps {
 const Groups = () => {
     const t = useTranslations('groups');
     const online = useOnline();
+    const client = useQueryClient();
     const { hasData, isError, isWaitingForNetwork } = useGroups();
     const { ledgers } = useLedgers();
+
+    // Opening the tab reads the groups and the links again, so a link accepted meanwhile is a friend and not a link
+    useEffect(() => {
+        for (const queryKey of [GROUPS_KEY, PENDING_INVITATIONS_KEY]) {
+            void client.invalidateQueries({ queryKey }, { cancelRefetch: false });
+        }
+    }, [client]);
 
     const open = ledgers.filter((ledger) => ledger.group.closed === null);
     const groups = open.filter((ledger) => ledger.group.kind === 'group');

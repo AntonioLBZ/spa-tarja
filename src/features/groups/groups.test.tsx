@@ -259,6 +259,26 @@ describe('the lists', () => {
         ]);
     });
 
+    it('read the links and the groups again each time the tab opens, also within the minute', async () => {
+        const id = crypto.randomUUID();
+        const api = createFakeApi({
+            groups: [sampleGroup({ name: 'Lisbon' })],
+            pending: [{ id, token: `${id}.${'A'.repeat(43)}`, expiresAt: Date.now() + 60_000 }],
+        });
+        stubApi(api.handler);
+        renderApp({ path: '/groups' });
+        await screen.findByRole('textbox', { name: text.invite.link });
+
+        api.pendingInvitations.splice(0);
+        api.groups.push(sampleGroup({ kind: 'direct', name: null }));
+        fireEvent.click(screen.getAllByRole('link', { name: en.nav.expenses })[0]!);
+        await screen.findByRole('heading', { name: en.expenses.form.title });
+        fireEvent.click(screen.getAllByRole('link', { name: en.nav.groups })[0]!);
+
+        await waitFor(() => expect(rows(text.lists.friends)).toHaveLength(1));
+        expect(screen.queryByRole('textbox', { name: text.invite.link })).toBeNull();
+    });
+
     it('lead each row to its group', async () => {
         const lisbon = sampleGroup({ name: 'Lisbon' });
         open([lisbon]);
