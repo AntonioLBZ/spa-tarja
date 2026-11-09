@@ -55,6 +55,11 @@ const HAND_OVER = `
 // The screens call a member with no name "Deleted user"
 const FORGET_NAMES = `UPDATE shared_members SET name = '' WHERE user_id = ?1`;
 
+// The names a group gave them before they joined: the placeholders merged into their members
+const FORGET_ALIASES = `
+    UPDATE shared_members SET name = ''
+    WHERE merged_into IN (SELECT id FROM shared_members WHERE user_id = ?1)`;
+
 const readEmail = async (db: D1Database, userId: string): Promise<string | null> => {
     const row = await db.prepare('SELECT email FROM "user" WHERE id = ?1').bind(userId).first<{ email: string }>();
     return row?.email ?? null;
@@ -75,6 +80,7 @@ const deleteAccount = async (db: D1Database, userId: string): Promise<void> => {
         db.prepare(STEP_DOWN).bind(userId),
         db.prepare(HAND_OVER).bind(userId),
         db.prepare(FORGET_NAMES).bind(userId),
+        db.prepare(FORGET_ALIASES).bind(userId),
         ...OWN_TABLES.map((table) => db.prepare(`DELETE FROM ${table} WHERE user_id = ?1`).bind(userId)),
         db.prepare('DELETE FROM "user" WHERE id = ?1').bind(userId),
     ]);

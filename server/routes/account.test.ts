@@ -660,6 +660,48 @@ describe('the groups of a deleted account', () => {
         expect(response.status).toBe(200);
     }
 
+    it('forgets the name a group gave them before they joined: a dummy merged into them is nameless too', async () => {
+        const flat = await makeGroup(carla, ['Antonio López', 'Dan'], 'Flat');
+        const dummy = memberNamed(flat, 'Antonio López');
+        const friend = await befriend(carla, ana);
+        const added = await send(carla, 'PUT', `/groups/${flat.id}/members/${crypto.randomUUID()}`, {
+            friend: friend.id,
+            replaces: dummy,
+        });
+        const joined = (await groupOf(added)).members.find((member) => member.id !== flat.me && member.claimed);
+        expect(joined).toBeDefined();
+        await writeEntry(carla, flat.id, 'Rent', dummy, [dummy, flat.me]);
+        expect(await mentions('Antonio')).toEqual([1]);
+
+        await deleteAccount(ana);
+
+        expect(await mentions('Antonio', 'Ana')).toEqual([0, 0]);
+        const [seen] = await listGroups(carla);
+        expect(JSON.stringify(seen)).not.toContain('Antonio');
+        expect(seen?.members.find((member) => member.id === dummy)).toMatchObject({
+            name: '',
+            mergedInto: joined?.id,
+        });
+        expect(seen?.members.find((member) => member.id === joined?.id)?.name).toBe('');
+        expect(seen?.members.find((member) => member.name === 'Dan')).toBeDefined();
+    });
+
+    it('keeps the name of a dummy merged into somebody else', async () => {
+        const flat = await makeGroup(carla, ['Antonio López'], 'Flat');
+        const dummy = memberNamed(flat, 'Antonio López');
+        const friend = await befriend(carla, bruno);
+        await send(carla, 'PUT', `/groups/${flat.id}/members/${crypto.randomUUID()}`, {
+            friend: friend.id,
+            replaces: dummy,
+        });
+        const withAna = await befriend(carla, ana);
+        await send(carla, 'PUT', `/groups/${flat.id}/members/${crypto.randomUUID()}`, { friend: withAna.id });
+
+        await deleteAccount(ana);
+
+        expect(await mentions('Antonio')).toEqual([1]);
+    });
+
     it('erases a group where nobody else used the app: its name, people and entries', async () => {
         const family = await makeGroup(ana, ['Mom', 'Mother', 'Dan'], 'Family secrets');
         const [mom, mother] = ['Mom', 'Mother'].map((name) => memberNamed(family, name));
