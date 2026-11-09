@@ -52,6 +52,16 @@ describe('ButtonLink', () => {
         expect(link.className).toBe('button button--block');
     });
 
+    it('is text only when it is a ghost, for a link on paper or inside another edge', async () => {
+        const link = await renderInRouter(
+            <ButtonLink to="/categories" ghost>
+                Categories
+            </ButtonLink>
+        );
+
+        expect(link.className).toBe('button button--ghost');
+    });
+
     it('draws a glyph in a box with even padding and is named by its label', async () => {
         const link = await renderInRouter(
             <ButtonLink to="/categories" glyph aria-label="Categories">

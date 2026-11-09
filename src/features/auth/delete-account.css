@@ -1,0 +1,9 @@
+/* A ghost among the paragraphs of the dialog, as wide as its words */
+.delete-account__export {
+    justify-self: start;
+}
+
+/* The email in the hint has no spaces to break at, and may be longer than a narrow screen */
+.delete-account__confirm {
+    overflow-wrap: anywhere;
+}

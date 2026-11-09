@@ -1,5 +1,4 @@
 import { AuthGate } from './features/auth/auth-gate';
-import { AppMoved } from './features/pwa/app-moved';
 import { AccentProvider } from './lib/accent';
 import { AuthProvider, type Auth } from './lib/auth';
 import { LocaleProvider } from './lib/i18n';
@@ -23,7 +22,6 @@ const AppProviders = (props: AppProvidersProps) => {
         <LocaleProvider>
             <ThemeProvider>
                 <AccentProvider>
-                    <AppMoved />
                     <AuthProvider auth={auth}>
                         <AuthGate>
                             <UserDataProvider storage={storage}>{children}</UserDataProvider>

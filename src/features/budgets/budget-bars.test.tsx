@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { BUDGETS_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 
 import type { Budget } from '@core/budget';
@@ -91,6 +92,19 @@ describe('the bars of the limits in the summary', () => {
             expect.stringContaining(en.categories.leisure),
             expect.stringContaining('Gym'),
         ]);
+    });
+
+    it('count your part of a shared expense', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const group = sampleGroup({ members: [ana, person('Bea')], me: ana.id });
+        await open({
+            expenses: [expense({ amountCents: 12_000 })],
+            budgets: [limit('2026-10', 'food', 30_000)],
+            groups: [group],
+            entries: [sampleEntry(group, { paidBy: group.members[1]!.id })],
+        });
+
+        await waitFor(() => expect(itemOf(en.categories.food).textContent).toContain('€140.00 of €300.00'));
     });
 
     it('say what was spent of the limit and the use as a whole percentage', async () => {

@@ -1,0 +1,69 @@
+.checkbox {
+    display: grid;
+    gap: var(--size-1);
+}
+
+/* The box and its label are one target, as tall as a touch */
+.checkbox__row {
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    gap: var(--size-3);
+    min-height: var(--size-touch);
+}
+
+.checkbox__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* A field with the notch; the mark shows only once it is checked */
+.checkbox__box {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    color: transparent;
+    display: flex;
+    flex: none;
+    height: var(--size-8);
+    justify-content: center;
+    transition:
+        background-color var(--duration-base) var(--ease-standard),
+        border-color var(--duration-base) var(--ease-standard),
+        color var(--duration-base) var(--ease-standard);
+    width: var(--size-8);
+}
+
+.checkbox__input:checked + .checkbox__box {
+    background: var(--color-bg-accent);
+    color: var(--color-content-on-accent);
+}
+
+.checkbox__input:focus-visible + .checkbox__box {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.checkbox__input:disabled + .checkbox__box {
+    border-color: var(--color-border-subtle);
+}
+
+.checkbox__input:disabled:checked + .checkbox__box {
+    background: var(--color-bg-secondary);
+    color: var(--color-content-secondary);
+}
+
+.checkbox__input:disabled ~ .checkbox__label {
+    color: var(--color-content-secondary);
+}
+
+.checkbox__row:has(.checkbox__input:disabled) {
+    cursor: default;
+}
+
+.checkbox__hint {
+    color: var(--color-content-secondary);
+    margin: 0;
+}

@@ -1,0 +1,15 @@
+/* `minmax(0, 1fr)` keeps the leaders of the rows, which are as long as they can be, from widening the page */
+.group-ledger {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-ledger__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.group-ledger__more {
+    justify-self: start;
+}

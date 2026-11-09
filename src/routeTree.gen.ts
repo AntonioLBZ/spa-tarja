@@ -15,6 +15,10 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SummaryRouteImport } from './routes/summary'
+import { Route as GroupsIndexRouteImport } from './routes/groups.index'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
+import { Route as GroupsGroupIdIndexRouteImport } from './routes/groups.$groupId.index'
+import { Route as GroupsGroupIdEditRouteImport } from './routes/groups.$groupId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +50,26 @@ const SummaryRoute = SummaryRouteImport.update({
   path: '/summary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupsIndexRoute = GroupsIndexRouteImport.update({
+  id: '/groups/',
+  path: '/groups/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsGroupIdIndexRoute = GroupsGroupIdIndexRouteImport.update({
+  id: '/groups/$groupId/',
+  path: '/groups/$groupId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsGroupIdEditRoute = GroupsGroupIdEditRouteImport.update({
+  id: '/groups/$groupId/edit',
+  path: '/groups/$groupId/edit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +78,10 @@ export interface FileRoutesByFullPath {
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/join/$token': typeof JoinTokenRoute
+  '/groups/': typeof GroupsIndexRoute
+  '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId/': typeof GroupsGroupIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +90,10 @@ export interface FileRoutesByTo {
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/join/$token': typeof JoinTokenRoute
+  '/groups': typeof GroupsIndexRoute
+  '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId': typeof GroupsGroupIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +103,36 @@ export interface FileRoutesById {
   '/charts': typeof ChartsRoute
   '/settings': typeof SettingsRoute
   '/summary': typeof SummaryRoute
+  '/join/$token': typeof JoinTokenRoute
+  '/groups/': typeof GroupsIndexRoute
+  '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId/': typeof GroupsGroupIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/budgets' | '/categories' | '/charts' | '/settings' | '/summary'
+    | '/'
+    | '/budgets'
+    | '/categories'
+    | '/charts'
+    | '/settings'
+    | '/summary'
+    | '/join/$token'
+    | '/groups/'
+    | '/groups/$groupId/edit'
+    | '/groups/$groupId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/budgets' | '/categories' | '/charts' | '/settings' | '/summary'
+  to:
+    | '/'
+    | '/budgets'
+    | '/categories'
+    | '/charts'
+    | '/settings'
+    | '/summary'
+    | '/join/$token'
+    | '/groups'
+    | '/groups/$groupId/edit'
+    | '/groups/$groupId'
   id:
     | '__root__'
     | '/'
@@ -86,6 +141,10 @@ export interface FileRouteTypes {
     | '/charts'
     | '/settings'
     | '/summary'
+    | '/join/$token'
+    | '/groups/'
+    | '/groups/$groupId/edit'
+    | '/groups/$groupId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +154,10 @@ export interface RootRouteChildren {
   ChartsRoute: typeof ChartsRoute
   SettingsRoute: typeof SettingsRoute
   SummaryRoute: typeof SummaryRoute
+  JoinTokenRoute: typeof JoinTokenRoute
+  GroupsIndexRoute: typeof GroupsIndexRoute
+  GroupsGroupIdEditRoute: typeof GroupsGroupIdEditRoute
+  GroupsGroupIdIndexRoute: typeof GroupsGroupIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +204,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SummaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/groups/': {
+      id: '/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof GroupsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/$groupId/': {
+      id: '/groups/$groupId/'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId/'
+      preLoaderRoute: typeof GroupsGroupIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/$groupId/edit': {
+      id: '/groups/$groupId/edit'
+      path: '/groups/$groupId/edit'
+      fullPath: '/groups/$groupId/edit'
+      preLoaderRoute: typeof GroupsGroupIdEditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +242,10 @@ const rootRouteChildren: RootRouteChildren = {
   ChartsRoute: ChartsRoute,
   SettingsRoute: SettingsRoute,
   SummaryRoute: SummaryRoute,
+  JoinTokenRoute: JoinTokenRoute,
+  GroupsIndexRoute: GroupsIndexRoute,
+  GroupsGroupIdEditRoute: GroupsGroupIdEditRoute,
+  GroupsGroupIdIndexRoute: GroupsGroupIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

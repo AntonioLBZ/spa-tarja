@@ -9,7 +9,7 @@ import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useExpenses } from '@/features/expenses/use-expenses';
+import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { categoriesQuery } from '@/lib/api';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import {
@@ -37,7 +37,7 @@ type Problem = 'rangeInvalid' | 'rangeTooLong';
 const Charts = () => {
     const t = useTranslations('charts');
     const id = useId();
-    const { expenses } = useExpenses();
+    const { expenses } = useYourExpenses();
     const { options, labelOf, styleOf } = useCategoryOptions();
     const categories = useQuery(categoriesQuery());
 

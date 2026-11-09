@@ -19,3 +19,15 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
+
+/* What signing in gives the app, in a line under the button */
+.sign-in__summary {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+/* A ghost under the button, as wide as its words */
+.sign-in__privacy {
+    justify-self: start;
+}

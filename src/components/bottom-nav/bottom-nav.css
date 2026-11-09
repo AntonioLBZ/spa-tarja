@@ -1,0 +1,61 @@
+/* Fixed to the bottom of a phone. The page pads itself by `--bottom-nav-height` and the safe area to keep clear. */
+.bottom-nav {
+    background: var(--color-bg-secondary);
+    border-top: var(--size-px) solid var(--color-border);
+    inset-block-end: 0;
+    inset-inline: 0;
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    position: fixed;
+    transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-standard);
+    view-transition-name: bottom-nav;
+}
+
+/* Out of the way while a field has the focus, so the keyboard doesn't leave it floating. Hidden for good once it is
+   out, so Tab can't land on it. */
+:root:has(input:not([type='checkbox'], [type='radio']):focus, textarea:focus, [role='combobox']:focus) .bottom-nav {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100%);
+    transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-standard),
+        visibility 0s var(--duration-base);
+    visibility: hidden;
+}
+
+.bottom-nav__list {
+    display: grid;
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.bottom-nav__link {
+    align-items: center;
+    block-size: var(--bottom-nav-height);
+    border-top: var(--size-1) solid transparent;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--font-size-s);
+    gap: var(--size-1);
+    justify-content: center;
+    text-decoration: none;
+}
+
+.bottom-nav__link:focus-visible {
+    outline-offset: var(--focus-inset);
+}
+
+/* No fill and no accent: the mark is an ink bar on the top edge */
+.bottom-nav__link--current {
+    border-top-color: var(--color-border);
+}
+
+.bottom-nav__word {
+    white-space: nowrap;
+}

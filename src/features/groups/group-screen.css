@@ -1,0 +1,16 @@
+.group-screen {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-screen__title {
+    font-size: var(--font-size-l);
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* A ghost lines up with the text, so it doesn't stretch across the column */
+.group-screen__edit {
+    justify-self: start;
+}

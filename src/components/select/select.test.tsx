@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
-import { useState } from 'react';
+import { createRef, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Select, type SelectOption } from './select';
@@ -87,6 +87,23 @@ describe('the field', () => {
         const combobox = screen.getByRole('combobox');
         expect(combobox.getAttribute('aria-describedby')).toBe('hint');
         expect(combobox.getAttribute('aria-invalid')).toBe('true');
+    });
+
+    it('hands its field to a ref, so a screen can put the focus on it', () => {
+        const ref = createRef<HTMLButtonElement>();
+        render(<Select ref={ref} id="category" label="Category" options={OPTIONS} value="food" onChange={() => {}} />);
+
+        expect(ref.current).toBe(screen.getByRole('combobox'));
+    });
+
+    it('can be turned off, and then does not open', () => {
+        render(<Select disabled id="category" label="Category" options={OPTIONS} value="food" onChange={() => {}} />);
+
+        const combobox = screen.getByRole('combobox') as HTMLButtonElement;
+        fireEvent.click(combobox);
+
+        expect(combobox.disabled).toBe(true);
+        expect(screen.queryByRole('listbox')).toBeNull();
     });
 
     it('says nothing about either unless it is told', () => {

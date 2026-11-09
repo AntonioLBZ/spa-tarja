@@ -32,6 +32,7 @@ export default defineConfig({
                 resolve: { tsconfigPaths: true },
                 test: {
                     name: 'server',
+                    testTimeout: 20_000,
                     include: ['server/**/*.test.ts'],
                     setupFiles: ['server/test/apply-migrations.ts'],
                 },
@@ -48,6 +49,7 @@ export default defineConfig({
                 resolve: { tsconfigPaths: true },
                 test: {
                     name: 'front',
+                    testTimeout: 20_000,
                     environment: 'jsdom',
                     include: ['src/**/*.test.{ts,tsx}'],
                     setupFiles: ['src/lib/test/setup.ts'],

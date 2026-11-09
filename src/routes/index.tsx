@@ -6,6 +6,7 @@ import { Notice } from '@/components/notice/notice';
 import { AddExpense } from '@/features/expenses/add-expense';
 import { ExpenseList } from '@/features/expenses/expense-list';
 import { SyncStatus } from '@/features/expenses/sync-status';
+import { EntryRefusals } from '@/features/groups/entry-refusals';
 import { healthQuery } from '@/lib/api';
 
 import './index.css';
@@ -22,6 +23,7 @@ const Home = () => {
             <h1 className="visually-hidden">Tarja</h1>
             <AddExpense />
             <SyncStatus />
+            <EntryRefusals />
             <ExpenseList />
             <Notice tone={TONES[state]} role="status">
                 {t(`health.${state}`)}

@@ -14,11 +14,10 @@ const Story: Meta<DialogStoryProps> = {
     title: 'Components/Dialog',
     args: {
         open: true,
-        title: 'Tarja has moved',
-        message:
-            'The app now lives at tarja.albz.app. If you installed it on your device, please uninstall it and install it again from the new address.',
-        action: 'Go to tarja.albz.app',
-        dismiss: 'Stay here for now',
+        title: 'Delete your account?',
+        message: "Your expenses, categories, income, budgets and nickname go for good. This can't be undone.",
+        action: 'Delete',
+        dismiss: 'Cancel',
     },
     argTypes: {
         title: { control: 'text' },

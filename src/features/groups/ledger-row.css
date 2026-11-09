@@ -1,0 +1,8 @@
+/* A row with nothing to open: as tall as one that opens, with its amount where theirs ends, by the room of their
+   chevron, so that it lines up with the total */
+.ledger-row {
+    align-items: center;
+    display: flex;
+    min-height: var(--size-touch);
+    padding-inline-end: calc(1.5rem + var(--size-2));
+}

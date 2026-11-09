@@ -5,6 +5,7 @@ import { ButtonLink } from '@/components/button/button-link';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Account } from '@/features/auth/account';
 import { YourData } from '@/features/export/your-data';
+import { Profile } from '@/features/profile/profile';
 import { ACCENTS, useAccent } from '@/lib/accent';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { THEMES, useTheme } from '@/lib/theme';
@@ -41,6 +42,7 @@ const Settings = () => {
                 value={accent}
                 onChange={setAccent}
             />
+            <Profile />
             <section className="settings__section">
                 <h2 className="settings__heading">{t('categories.title')}</h2>
                 <p className="settings__hint">{t('categories.description')}</p>

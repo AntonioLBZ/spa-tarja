@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { FALLBACK_CATEGORY_ID } from './categories';
 import {
+    JUST_ME,
     NO_FILTERS,
     activeFilterCount,
     buildList,
@@ -12,12 +13,14 @@ import {
     limitRows,
     listItems,
     openingFilters,
+    shownExpense,
     type ListContext,
     type ListFilters,
     type ListGrouping,
 } from './expense-list';
 
 import type { Expense } from './expense';
+import type { SharedExpenseRow } from './shared-expense';
 
 function expense(id: string, overrides: Partial<Expense> = {}): Expense {
     return {
@@ -58,6 +61,7 @@ const NAMES: Record<string, string> = {
 const ctx: ListContext = {
     categoryOf: (id) => (id in NAMES ? id : FALLBACK_CATEGORY_ID),
     labelOf: (id) => NAMES[id] ?? NAMES[FALLBACK_CATEGORY_ID]!,
+    groupNameOf: () => '',
 };
 
 function filters(overrides: Partial<ListFilters>): ListFilters {
@@ -495,6 +499,56 @@ describe('the paid with filter', () => {
 
     it('keeps everything for any', () => {
         expect(ids(list, { paidWith: 'any' })).toHaveLength(5);
+    });
+});
+
+describe('the shared with filter', () => {
+    const TRIP = 'b1a6c7e4-0f43-4b8e-9d2a-6f4f7c1b2a01';
+    const BEA = 'b1a6c7e4-0f43-4b8e-9d2a-6f4f7c1b2a02';
+
+    function sharedRow(id: string, groupId: string): SharedExpenseRow {
+        return { ...expense(id), shared: { groupId, paidBy: 'someone', totalCents: 300 } };
+    }
+
+    const list = [
+        expense('lunch'),
+        ...plan('sofa', 3),
+        sharedRow('dinner', TRIP),
+        sharedRow('museum', TRIP),
+        sharedRow('coffee', BEA),
+    ];
+
+    it('keeps everything for anyone', () => {
+        expect(ids(list, { sharedWith: '' })).toHaveLength(5);
+    });
+
+    it('keeps your own expenses only, plans included, for just you', () => {
+        expect(ids(list, { sharedWith: JUST_ME }).toSorted()).toEqual(['lunch', 'sofa']);
+    });
+
+    it('keeps the rows of one group or friend', () => {
+        expect(ids(list, { sharedWith: TRIP }).toSorted()).toEqual(['dinner', 'museum']);
+        expect(ids(list, { sharedWith: BEA })).toEqual(['coffee']);
+    });
+
+    it('lets a search find a row by the name of its group or friend, and no expense of yours by it', () => {
+        const named: ListContext = { ...ctx, groupNameOf: (id) => (id === TRIP ? 'Trip to Lisboa' : 'Bea Ruiz') };
+        const found = (query: string) =>
+            buildList([...list, expense('trip')], filters({ query }), 'day', named)
+                .flatMap((group) => group.items.map((item) => shownExpense(item).id))
+                .toSorted();
+
+        expect(found('LISBOA trip')).toEqual(['dinner', 'museum']);
+        expect(found('ruiz')).toEqual(['coffee']);
+        expect(found('ruiz coffee')).toEqual(['coffee']);
+        expect(found('lisboa coffee')).toEqual([]);
+    });
+
+    it('counts as one filter, and adding an expense clears it', () => {
+        expect(activeFilterCount(filters({ sharedWith: TRIP }))).toBe(1);
+        expect(activeFilterCount(filters({ sharedWith: JUST_ME, paidWith: 'credit' }))).toBe(2);
+        expect(hasFilters(filters({ sharedWith: JUST_ME }))).toBe(true);
+        expect(filtersAfterAdding('2026-10-24', '2026-10-24').sharedWith).toBe('');
     });
 });
 

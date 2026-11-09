@@ -5,20 +5,32 @@ const DEPTHS: Record<string, number> = {
     '/': 0,
     '/settings': 1,
     '/summary': 1,
+    '/groups': 1,
     '/categories': 2,
     '/charts': 2,
     '/budgets': 2,
 };
 
+const GROUP_PATH = /^\/groups\/[^/]+$/;
+const GROUP_SETTINGS_PATH = /^\/groups\/([^/]+)\/edit$/;
+
+// The screens of one group, and the page of an invitation, by the shape of their path
+const PATH_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
+    [GROUP_PATH, 2],
+    [GROUP_SETTINGS_PATH, 3],
+    [/^\/join\/[^/]+$/, 1],
+];
+
 const routeDepth = (pathname: string): number => {
-    return DEPTHS[pathname] ?? 0;
+    return DEPTHS[pathname] ?? PATH_DEPTHS.find(([shape]) => shape.test(pathname))?.[1] ?? 0;
 };
 
-type NavSection = '/' | '/summary' | '/settings';
+type NavSection = '/' | '/groups' | '/summary' | '/settings';
 
 // The header word a screen falls under, which carries the underline: a deeper screen falls under the one it is reached
 // from
 const SECTIONS: Record<string, NavSection> = {
+    '/groups': '/groups',
     '/summary': '/summary',
     '/charts': '/summary',
     '/budgets': '/summary',
@@ -27,7 +39,18 @@ const SECTIONS: Record<string, NavSection> = {
 };
 
 const navSection = (pathname: string): NavSection => {
-    return SECTIONS[pathname] ?? '/';
+    const underGroups = pathname.startsWith('/groups/') || pathname.startsWith('/join/');
+    return SECTIONS[pathname] ?? (underGroups ? '/groups' : '/');
+};
+
+type BackTarget = { to: NavSection } | { to: '/groups/$groupId'; params: { groupId: string } };
+
+// Where the link back of a screen deeper than a tab leads: its parent, whatever the history, so it is the same after
+// the screen was opened from a link. A group's settings lead to the group; the others to the tab they fall under.
+const backTarget = (pathname: string): BackTarget | undefined => {
+    if (routeDepth(pathname) < 2) return undefined;
+    const groupId = GROUP_SETTINGS_PATH.exec(pathname)?.[1];
+    return groupId ? { to: '/groups/$groupId', params: { groupId } } : { to: navSection(pathname) };
 };
 
 interface LocationChange {
@@ -47,4 +70,4 @@ const slideTypes = (change: LocationChange): string[] | false => {
     return [to > from ? 'forward' : 'back'];
 };
 
-export { navSection, routeDepth, slideTypes, type NavSection };
+export { backTarget, navSection, routeDepth, slideTypes, type BackTarget, type NavSection };

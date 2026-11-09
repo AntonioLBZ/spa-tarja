@@ -22,7 +22,7 @@ const Seed = (props: SeedProps) => {
             sampleExpense(`33333333-3333-4333-8333-33333333333${index}`, '2026-10-29')
         );
         void Promise.all(made.map((expense) => outbox.put(expense))).then(() =>
-            Promise.all(made.slice(unsent).map((expense) => outbox.reject(expense)))
+            Promise.all(made.slice(unsent).map((expense) => outbox.reject(expense, null)))
         );
     }, [outbox, unsent, refused]);
 

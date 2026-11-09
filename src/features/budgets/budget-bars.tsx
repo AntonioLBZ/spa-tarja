@@ -5,7 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Card, CardList } from '@/components/card/card';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useExpenses } from '@/features/expenses/use-expenses';
+import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { useLocale } from '@/lib/i18n';
 import { TOTAL_SCOPE, budgetUses } from '@core/budget';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
@@ -24,7 +24,7 @@ const BudgetBars = (props: BudgetBarsProps) => {
     const { month } = props;
     const t = useTranslations('budgets');
     const { locale } = useLocale();
-    const { expenses } = useExpenses();
+    const { expenses } = useYourExpenses();
     const { budgets, scopes, categoryOf } = useBudgets();
     const { labelOf, styleOf } = useCategoryOptions();
 

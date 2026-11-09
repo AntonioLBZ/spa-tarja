@@ -1,0 +1,22 @@
+.join {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.join__title {
+    font-size: var(--font-size-l);
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.join__text {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.join__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
