@@ -565,7 +565,7 @@
             "leave": {
                 "button": "Salir del grupo",
                 "question": "¿Salir de {name}?",
-                "what": "El grupo se cierra para ti tal como está hoy. Sus gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "what": "El grupo se cierra para ti tal como está hoy. Sus gastos siguen en tu lista, y puedes quitarlos aquí. Si un amigo tuyo del grupo te vuelve a añadir, verás todo lo que se haya escrito mientras tanto.",
                 "confirm": "Salir",
                 "unsettled": "Tu saldo en {name} no está a cero. Salda cuentas antes de salir."
             },

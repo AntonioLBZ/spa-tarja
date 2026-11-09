@@ -565,7 +565,7 @@
             "leave": {
                 "button": "Leave the group",
                 "question": "Leave {name}?",
-                "what": "The group closes for you as it is today. Its expenses stay in your list, and you can turn them off here.",
+                "what": "The group closes for you as it is today. Its expenses stay in your list, and you can turn them off here. If a friend of yours in the group adds you back, you will see everything written in the meantime.",
                 "confirm": "Leave",
                 "unsettled": "Your balance in {name} isn't zero. Settle up before you leave."
             },
