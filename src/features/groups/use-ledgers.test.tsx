@@ -2,6 +2,7 @@ import { focusManager, onlineManager, useQueryClient } from '@tanstack/react-que
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { GROUPS_KEY, deleteMember, groupEntriesKey, type GroupEntriesState } from '@/lib/api';
 import { createUserStorage, useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
@@ -227,6 +228,57 @@ describe('useLedgers, with a closed group', () => {
 
         await waitFor(() => expect(entryRequests(api, group).length).toBeGreaterThan(2));
         expect(entryRequests(api, porto)).toHaveLength(2);
+    });
+
+    it('pulls what the group wrote while the person was away as soon as they are brought back, from its cursor', async () => {
+        const trip = sampleGroup({ name: 'Lisbon' });
+        const first = sampleEntry(trip);
+        const api = createFakeApi({ groups: [trip], entries: [first] });
+        stubApi(api.handler);
+        const { result } = renderWithClient();
+        await waitFor(() => expect(result.current.ledgers[0]?.hasData).toBe(true));
+        await act(() => deleteMember(trip.id, trip.me));
+        api.serverWriteEntry(sampleEntry(trip, { text: 'While away' }), trip.members[1]!.id);
+        api.serverWriteEntry({ ...first, text: 'Edited while away', updatedAt: 2 }, trip.members[1]!.id);
+        await act(() => result.current.client.invalidateQueries({ queryKey: GROUPS_KEY }));
+        await waitFor(() => expect(result.current.ledgers[0]!.group.closed).toBe('left'));
+        await comeBack();
+        await waitFor(() => expect(entryRequests(api, trip)).toHaveLength(2));
+        expect(result.current.ledgers[0]!.entries.map((entry) => entry.text)).toEqual(['Dinner']);
+
+        api.bringBack(trip.id, trip.me);
+        await act(() => result.current.client.invalidateQueries({ queryKey: GROUPS_KEY }));
+
+        await waitFor(() => expect(result.current.ledgers[0]!.group.closed).toBeNull());
+        await waitFor(() =>
+            expect(result.current.ledgers[0]!.entries.map((entry) => entry.text)).toEqual([
+                'Edited while away',
+                'While away',
+            ])
+        );
+        expect(api.requests.at(-1)).toBe(`GET /api/groups/${trip.id}/entries?after=1`);
+    });
+
+    it('pulls it at once also when the device never pulled the group once it was closed for the person', async () => {
+        const trip = sampleGroup({ name: 'Lisbon' });
+        const api = createFakeApi({ groups: [trip], entries: [sampleEntry(trip)] });
+        stubApi(api.handler);
+        const { result } = renderWithClient();
+        await waitFor(() => expect(result.current.ledgers[0]?.hasData).toBe(true));
+        await act(() => deleteMember(trip.id, trip.me));
+        api.serverWriteEntry(sampleEntry(trip, { text: 'While away' }), trip.members[1]!.id);
+        await act(() => result.current.client.invalidateQueries({ queryKey: GROUPS_KEY }));
+        await waitFor(() => expect(result.current.ledgers[0]!.group.closed).toBe('left'));
+        expect(entryRequests(api, trip)).toHaveLength(1);
+
+        api.bringBack(trip.id, trip.me);
+        await act(() => result.current.client.invalidateQueries({ queryKey: GROUPS_KEY }));
+
+        await waitFor(() =>
+            expect(result.current.ledgers[0]!.entries.map((entry) => entry.text)).toEqual(['Dinner', 'While away'])
+        );
+        const state = result.current.client.getQueryData<GroupEntriesState>(groupEntriesKey(trip.id));
+        expect(state?.final).toBeUndefined();
     });
 
     it('keeps sending a write of the person waiting for a closed group', async () => {

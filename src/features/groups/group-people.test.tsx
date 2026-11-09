@@ -490,8 +490,12 @@ describe('adding a friend', () => {
 
     const eva = friendOf('Eva');
 
-    async function editWith(group: SharedGroup, friends: SharedGroup[] = [eva, friendOf('Fran', 'deleted')]) {
-        const api = createFakeApi({ groups: [group, ...friends] });
+    async function editWith(
+        group: SharedGroup,
+        friends: SharedGroup[] = [eva, friendOf('Fran', 'deleted')],
+        memberUsers: Record<string, string> = {}
+    ) {
+        const api = createFakeApi({ groups: [group, ...friends], memberUsers });
         stubApi(api.handler);
         const app = renderApp({ path: `/groups/${group.id}/edit` });
         await screen.findByRole('heading', { level: 2, name: text.title });
@@ -539,6 +543,59 @@ describe('adding a friend', () => {
         expect(rows()[2]).toMatch(/^Eva/);
         const added = members().at(-1)!;
         expect(members().find((member) => member.id === cris.id)?.mergedInto).toBe(added.id);
+    });
+
+    describe('who is a member already', () => {
+        const friendDani = friendOf('Dani');
+        const friendBea = friendOf('Bea');
+        const users = {
+            [friendDani.members[1]!.id]: 'dani',
+            [dani.id]: 'dani',
+            [friendBea.members[1]!.id]: 'bea',
+            [bea.id]: 'bea',
+        };
+
+        it('offers a friend who left like the rest, and brings them back into the row they had', async () => {
+            const { members } = await editWith(trip(), [friendDani, friendBea], users);
+
+            fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
+            expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+                text.friendNone,
+                'Dani',
+                'Bea',
+            ]);
+            fireEvent.click(screen.getByRole('option', { name: 'Dani' }));
+            fireEvent.click(button(text.addFriend));
+
+            await waitFor(() => expect(rows()).toHaveLength(4));
+            expect(rows()[3]).toBe(`Dani${t('groups.balance.memberSettled', { name: 'Dani' })}`);
+            expect(members()).toHaveLength(4);
+            expect(members().find((member) => member.id === dani.id)?.leftAt).toBeNull();
+        });
+
+        it('puts a friend who left in place of a dummy, merged into the row they had', async () => {
+            const { members } = await editWith(trip(), [friendDani], users);
+
+            choose('Dani');
+            fireEvent.click(screen.getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+            fireEvent.click(button(text.addFriend));
+
+            await waitFor(() => expect(rows()).toHaveLength(3));
+            expect(rows()[2]).toMatch(/^Dani/);
+            expect(members().find((member) => member.id === cris.id)?.mergedInto).toBe(dani.id);
+            expect(members()).toHaveLength(4);
+        });
+
+        it('says in words that a friend who has not left is in the group already', async () => {
+            const { members } = await editWith(trip(), [friendDani, friendBea], users);
+
+            choose('Bea');
+            fireEvent.click(button(text.addFriend));
+
+            expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.alreadyMember);
+            expect(rows()).toHaveLength(3);
+            expect(members()).toHaveLength(4);
+        });
     });
 
     it('chooses no friend again when the friend chosen is gone after a sync', async () => {

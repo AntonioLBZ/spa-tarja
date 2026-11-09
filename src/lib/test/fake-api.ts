@@ -279,6 +279,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         cursorOf: fakeGroups.cursorOf,
         pendingInvitations: fakeGroups.pendingInvitations,
         serverWriteEntry: fakeGroups.serverWriteEntry,
+        bringBack: fakeGroups.bringBack,
     };
 };
 

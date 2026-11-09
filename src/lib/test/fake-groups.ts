@@ -44,6 +44,9 @@ interface FakeGroupsOptions {
     incoming?: IncomingInvitation[];
     // The open links to be friends the test user made, newest first
     pending?: PendingInvitation[];
+    // Who is behind a member, by member id: two members with the same user are one person, so adding a friend whose
+    // other member is a member of a group already is told so, or brings them back if they left
+    memberUsers?: Record<string, string>;
 }
 
 interface FakeGroupsState {
@@ -79,6 +82,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
     const groupRequests: string[] = [];
     const entryAttempts: SharedEntry[] = [];
     const entryWrites: LedgerEntry[] = [];
+    const users = new Map(Object.entries(options.memberUsers ?? {}));
     const links = new Map((options.incoming ?? []).map((link) => [link.token, link]));
     const pending: PendingInvitation[] = structuredClone(options.pending ?? []);
 
@@ -101,6 +105,15 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             updatedBy: updatedBy === undefined ? me : updatedBy,
         });
     }
+
+    // A member who left, back in the group as the server leaves their row: only what leaving and archiving set is cleared
+    const reopen = (group: SharedGroup, member: GroupMember) => {
+        member.leftAt = null;
+        if (member.id !== group.me) return;
+        group.closed = null;
+        group.archived = false;
+        leftSeq.delete(group.id);
+    };
 
     const newGroup = (groupId: string, body: unknown): SharedGroup | Refusal => {
         const parsed = v.safeParse(groupWriteSchema, body);
@@ -185,9 +198,16 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             const friend = groupOf(input.friend);
             const other = friend?.members.find((candidate) => candidate.id !== friend.me);
             if (!friend || friend.closed !== null || !other?.claimed) return { status: 422, error: 'unknown-friend' };
-            group.members.push(newMember(memberId, other.name, true));
+            const person = users.get(other.id);
+            const known =
+                person === undefined
+                    ? undefined
+                    : group.members.find((candidate) => users.get(candidate.id) === person);
+            if (known && known.leftAt === null) return { status: 409, error: 'already-member' };
+            if (known) reopen(group, known);
+            else group.members.push(newMember(memberId, other.name, true));
             const dummy = input.replaces === undefined ? undefined : member(input.replaces);
-            if (dummy) Object.assign(dummy, { mergedInto: memberId, leftAt: Date.now() });
+            if (dummy) Object.assign(dummy, { mergedInto: known?.id ?? memberId, leftAt: Date.now() });
             return null;
         }
         return { status: 404 };
@@ -311,6 +331,12 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         // Another member writes an entry, from their own device
         serverWriteEntry: ({ groupId, ...entry }: SeededEntry, by: string) =>
             storeEntry(groupId, { ...entry, createdBy: by, updatedBy: by }),
+        // Another person adds a member who left back to the group, from their own device
+        bringBack: (groupId: string, memberId: string) => {
+            const group = groupOf(groupId);
+            const member = group?.members.find((candidate) => candidate.id === memberId);
+            if (group && member) reopen(group, member);
+        },
     };
 };
 

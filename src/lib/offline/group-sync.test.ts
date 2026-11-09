@@ -105,6 +105,55 @@ describe('pulling a group', () => {
     });
 });
 
+describe('pulling a group the person was brought back to', () => {
+    async function left() {
+        const first = sampleEntry(group);
+        const trip = setup({ entries: [first, sampleEntry(group)] });
+        await trip.sync();
+        await deleteMember(group.id, group.me);
+        await trip.client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+        trip.api.serverWriteEntry({ ...first, text: 'Edited while away', updatedAt: 2 }, bea);
+        trip.api.serverWriteEntry(sampleEntry(group, { text: 'While away' }), bea);
+        expect((await trip.sync()).final).toBe(true);
+        return trip;
+    }
+
+    async function broughtBack({ api, client }: Awaited<ReturnType<typeof left>>) {
+        api.bringBack(group.id, group.me);
+        await client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+    }
+
+    it('goes on from its cursor with what the group wrote meanwhile, edits included, and is no longer final', async () => {
+        const trip = await left();
+        expect(trip.cached()?.entries.map((entry) => entry.text)).toEqual(['Dinner', 'Dinner']);
+
+        await broughtBack(trip);
+        const state = await trip.sync();
+
+        expect(trip.api.requests.at(-1)).toBe(`GET /api/groups/${group.id}/entries?after=2`);
+        expect(state.final).toBeUndefined();
+        expect(state.entries.map((entry) => entry.text).sort()).toEqual(['Dinner', 'Edited while away', 'While away']);
+    });
+
+    it('marks what it read as stale, however recent, so the next trigger pulls it', async () => {
+        const trip = await left();
+        const stale = () => trip.client.getQueryState(groupEntriesKey(group.id))?.isInvalidated;
+        expect(stale()).toBe(false);
+
+        await broughtBack(trip);
+
+        expect(stale()).toBe(true);
+    });
+
+    it('leaves what it read alone while the group stays closed', async () => {
+        const trip = await left();
+
+        await trip.client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+
+        expect(trip.client.getQueryState(groupEntriesKey(group.id))?.isInvalidated).toBe(false);
+    });
+});
+
 describe('pushing the entries of a group', () => {
     it("sends the group's pending entries in the order they were saved, before pulling, and keeps the others", async () => {
         const [a, b, c, elsewhere] = [sampleEntry(group), sampleEntry(group), sampleEntry(group), sampleEntry(other)];
