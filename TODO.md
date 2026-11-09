@@ -62,6 +62,15 @@ The repo side:
 - Add a `.nvmrc` with `26` (today the Node version is pinned only in `ci.yml`), or set `NODE_VERSION` in Cloudflare; check that Workers Builds accepts it.
 - Drop `deploy:prod` from `package.json` if nothing uses it, and delete the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` after the first Cloudflare deploy works.
 
+A prerelease address for branches, to try the app on phones before it reaches `main` (analyze first whether it is possible and advisable, and say it in the same ADR, since ADR-0002 allows no branches today). The owner's idea: a branch of the repository itself (never a fork) deploys to its own address, such as `tarja.prerelease.albz.app`. What to settle:
+
+- **One fixed address, not one per branch.** Google lists each origin and redirect URI by hand, with no wildcards, and a stream of new addresses is what could get the sign-in flagged or the client closed. The app takes its base address from each request, so any address works once Google lists it.
+- **Google.** A separate client (or project) in testing status with the owner as the only test user keeps the consent screen of production out of reach; the same client with one more redirect URI is simpler, and only worth it if it is judged safe.
+- **Its own data and secrets.** A second D1 database and its own `BETTER_AUTH_SECRET` (it signs the invitation links), so a branch with unreleased migrations never touches production data, and the migrations of a branch run on that database only.
+- **Who may deploy.** Branches pushed to the repository by the owner; a pull request from a fork gets neither a deploy nor the secrets. Decide whether any branch deploys or only named ones; the last one pushed replaces the one before.
+- **Free tiers.** A second Worker and a second D1 database count against the limits of [ADR-0003](docs/adr/0003-spa-on-one-worker-on-free-tiers.md); check them.
+- **Looks like what it is.** A mark in the page that says it is a prerelease, and no indexing by search engines.
+
 ## Shared expenses
 
 Sharing expenses with other people, on the branch `feat/shared-expenses` ([ADR-0012](docs/adr/0012-shared-expenses.md), [ADR-0013](docs/adr/0013-shared-entries-sync-through-an-outbox.md), [ADR-0014](docs/adr/0014-people-in-groups.md)). The numbers stay when an item is deleted (19, the bottom navigation, 20, the nickname, 21, the maths, 22, the groups on the server, 23, the groups on the device, 24, the screens of groups and friends, 25, sharing an expense, 26, friends by invitation, 27, shared expenses in your own lists, 28, simplified debts, 29, deleting the account, and 30, the privacy notice, are done). Each item gets its task plan when it starts, ends with `pnpm format:check`, `types:check`, `lint`, `test` and `build` green, updates the docs it touches in the same commits, and stays on the branch until the last item. Delete an item when it is done, as for the rest of this file.
