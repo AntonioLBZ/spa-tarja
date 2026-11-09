@@ -483,14 +483,14 @@ describe('making someone owner', () => {
 });
 
 describe('adding a friend', () => {
-    function friendOf(name: string, claimed = true) {
+    function friendOf(name: string, closed: SharedGroup['closed'] = null) {
         const me = person(TEST_USER.name, { role: 'owner' });
-        return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, { claimed })], me: me.id });
+        return sampleGroup({ kind: 'direct', name: null, members: [me, person(name)], me: me.id, closed });
     }
 
     const eva = friendOf('Eva');
 
-    async function editWith(group: SharedGroup, friends: SharedGroup[] = [eva, friendOf('Fran', false)]) {
+    async function editWith(group: SharedGroup, friends: SharedGroup[] = [eva, friendOf('Fran', 'deleted')]) {
         const api = createFakeApi({ groups: [group, ...friends] });
         stubApi(api.handler);
         const app = renderApp({ path: `/groups/${group.id}/edit` });
@@ -504,7 +504,7 @@ describe('adding a friend', () => {
         fireEvent.click(screen.getByRole('option', { name }));
     }
 
-    it('lists the friends who use the app and adds one as a new member, who has joined', async () => {
+    it('lists the open friends and adds one as a new member, who has joined', async () => {
         const { members } = await editWith(trip());
 
         fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
@@ -603,16 +603,16 @@ describe('adding a friend', () => {
         expect(rows()).toHaveLength(3);
     });
 
-    it('does not offer a friend who deleted their account', async () => {
-        await editWith(trip(), [eva, friendOf('')]);
+    it('does not offer a friend who is no longer one', async () => {
+        await editWith(trip(), [eva, friendOf('', 'deleted')]);
 
         fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
 
         expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.friendNone, 'Eva']);
     });
 
-    it('is not there when no friend uses the app', async () => {
-        await editWith(trip(), [friendOf('Fran', false)]);
+    it('is not there when no friend is open', async () => {
+        await editWith(trip(), [friendOf('Fran', 'deleted')]);
 
         expect(screen.queryByRole('combobox', { name: text.friend })).toBeNull();
     });

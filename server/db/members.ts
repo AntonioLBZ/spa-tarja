@@ -26,12 +26,12 @@ const MERGE = `
     WHERE id = ?1 AND merged_into IS NULL AND left_at IS NULL
         AND EXISTS (SELECT 1 FROM shared_members AS target WHERE target.id = ?2)`;
 
-// The other side of a friend of the user's that is open: the user it is, or null once they deleted their account
+// The other side of a friend of the user's that is open: the user it is
 const FRIEND = `
     SELECT other.user_id AS userId
     FROM shared_groups g
     JOIN shared_members mine ON mine.group_id = g.id AND mine.user_id = ?2 AND mine.left_at IS NULL
-    JOIN shared_members other ON other.group_id = g.id AND other.id <> mine.id
+    JOIN shared_members other ON other.group_id = g.id AND other.id <> mine.id AND other.user_id IS NOT NULL
     WHERE g.id = ?1 AND g.kind = 'direct' AND g.deleted_at IS NULL`;
 
 // A user who goes into a group, under the name they start with there
@@ -146,12 +146,8 @@ const saveMySwitches = async (db: D1Database, memberId: string, switches: MySwit
 };
 
 // Nothing when the group isn't an open friend of the user's
-const findFriend = async (
-    db: D1Database,
-    userId: string,
-    friendId: string
-): Promise<{ userId: string | null } | null> => {
-    return db.prepare(FRIEND).bind(friendId, userId).first<{ userId: string | null }>();
+const findFriend = async (db: D1Database, userId: string, friendId: string): Promise<{ userId: string } | null> => {
+    return db.prepare(FRIEND).bind(friendId, userId).first<{ userId: string }>();
 };
 
 // The friend and, in place of a dummy, the dummy merged into them, all or nothing

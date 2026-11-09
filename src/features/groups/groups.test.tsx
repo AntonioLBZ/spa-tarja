@@ -497,12 +497,7 @@ describe('making a group with friends', () => {
         return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, overrides)], me: me.id, closed });
     }
 
-    const friends = [
-        friendOf('Bea'),
-        friendOf('Cris', { claimed: false }),
-        friendOf('Dani', {}, 'deleted'),
-        friendOf('Eva'),
-    ];
+    const friends = [friendOf('Bea'), friendOf('Dani', {}, 'deleted'), friendOf('Eva')];
 
     function friendField() {
         return screen.getByRole('combobox', { name: text.new.friend });
@@ -535,7 +530,7 @@ describe('making a group with friends', () => {
         });
     }
 
-    it('lists only the open friends who use the app, each added once', async () => {
+    it('lists only the open friends, each added once', async () => {
         await start();
 
         fireEvent.click(friendField());
@@ -653,10 +648,10 @@ describe('making a group with friends', () => {
         ).toEqual([TEST_USER.name, 'Gus', 'Hana', 'Bea']);
     });
 
-    it('leaves the friends out when none of them uses the app', async () => {
-        stubApi(createFakeApi({ groups: [friendOf('Cris', { claimed: false })] }).handler);
+    it('leaves the friends out when none of them is open', async () => {
+        stubApi(createFakeApi({ groups: [friendOf('Dani', {}, 'deleted')] }).handler);
         renderApp({ path: '/groups' });
-        await screen.findByText(text.balance.allSettled);
+        await screen.findByRole('button', { name: text.lists.closed });
         fireEvent.click(newGroupToggle());
 
         expect(screen.queryByRole('combobox', { name: text.new.friend })).toBeNull();

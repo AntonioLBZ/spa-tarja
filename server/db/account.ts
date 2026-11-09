@@ -34,12 +34,13 @@ const REVOKE_INVITATIONS = `
     WHERE created_by = ?1 AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL`;
 
 // The open groups they are in where nobody else would be left who uses the app, since everybody else with an account
-// has left
+// has left, and the friends they are in, which an account that is gone ends for the other person: the friends nobody
+// else could read are erased before, so each one that is left has somebody on the other side
 const CLOSE_GROUPS = `
     UPDATE shared_groups SET deleted_at = ?2, updated_at = ?2
     WHERE deleted_at IS NULL AND id IN (
-        SELECT m.group_id FROM shared_members m
-        WHERE m.user_id = ?1 AND m.left_at IS NULL AND NOT EXISTS (${OTHER_USER}))`;
+        SELECT m.group_id FROM shared_members m JOIN shared_groups g ON g.id = m.group_id
+        WHERE m.user_id = ?1 AND m.left_at IS NULL AND (g.kind = 'direct' OR NOT EXISTS (${OTHER_USER})))`;
 
 const STEP_DOWN = `UPDATE shared_members SET role = 'member' WHERE user_id = ?1 AND role = 'owner'`;
 

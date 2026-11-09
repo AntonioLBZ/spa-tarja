@@ -597,7 +597,7 @@ describe('a link to be friends, opened by somebody', () => {
         expect(JSON.stringify(await storedRows())).not.toContain(bruno.userId);
     });
 
-    it('is revoked when who made it deletes their account, while a friend it made stays to answer again', async () => {
+    it('is revoked when who made it deletes their account, while a friend it made stays to answer again, closed', async () => {
         const open = await linkOf();
         const used = await linkOf();
         const friend = await groupOf(await accept(bruno, used));
@@ -611,7 +611,7 @@ describe('a link to be friends, opened by somebody', () => {
             revoked_at: expect.any(Number),
         });
         const again = await groupOf(await accept(bruno, used));
-        expect(again).toMatchObject({ id: friend.id, closed: null });
+        expect(again).toMatchObject({ id: friend.id, closed: 'deleted' });
         expect(again.members.find((member) => member.id === again.me)?.role).toBe('owner');
     });
 });

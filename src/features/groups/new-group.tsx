@@ -12,8 +12,8 @@ import { Select } from '@/components/select/select';
 import { MAX_GROUP_MEMBERS, SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
+import { useFriends } from './use-friends';
 import { useGroupActions } from './use-group-actions';
-import { useRealFriends } from './use-real-friends';
 
 import './new-group.css';
 
@@ -30,7 +30,7 @@ interface Person {
     friend?: string;
 }
 
-// The name of a group and its people, added one at a time: dummies by name and friends who use the app. The ids are made
+// The name of a group and its people, added one at a time: dummies by name and friends. The ids are made
 // once and kept while the screen is open, so a group sent again after an answer that never came is the same group.
 const NewGroup = (props: NewGroupProps) => {
     const { disabled } = props;
@@ -38,7 +38,7 @@ const NewGroup = (props: NewGroupProps) => {
     const failureWords = useFailureWords();
     const navigate = useNavigate();
     const { createGroup, savePerson, addFriend, removeMember } = useGroupActions();
-    const friends = useRealFriends();
+    const friends = useFriends();
     const [ids] = useState(() => ({ group: crypto.randomUUID(), me: crypto.randomUUID() }));
 
     const [name, setName] = useState('');

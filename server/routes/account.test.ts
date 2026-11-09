@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { MAX_CLOSED_GROUPS } from '@core/shared-group';
 import { app } from '@server/app';
+import { countClosedGroups } from '@server/db/groups';
 import {
     befriend,
     claim,
@@ -438,24 +439,84 @@ describe('the groups of a deleted account', () => {
         expect(seen?.closed).toBe('left');
     });
 
-    it('keeps a friend with somebody who uses the app open, and that person owns it', async () => {
+    it('closes a friend with somebody who uses the app, owned by that person, and keeps what they shared', async () => {
         const made = await befriend(ana, bruno);
         const joined = await befriend(carla, ana);
+        await writeEntry(ana, made.id, 'Friend lunch', made.a, [made.a, made.b]);
+
+        const response = await deleteAccount(ana);
+
+        expect(response.status).toBe(204);
+        expect(await isClosed(made.id)).toBe(true);
+        expect(await ownerOf(made.id)).toBe(made.b);
+        expect(await isClosed(joined.id)).toBe(true);
+        expect(await ownerOf(joined.id)).toBe(joined.a);
+        const [friend] = await listGroups(bruno);
+        expect(friend).toMatchObject({ id: made.id, kind: 'direct', closed: 'deleted' });
+        expect(friend?.members.find((member) => member.id === made.a)).toMatchObject({ name: '', role: 'member' });
+        expect((await listGroups(carla))[0]).toMatchObject({ id: joined.id, closed: 'deleted' });
+        const ledger = await send(bruno, 'GET', `/groups/${made.id}/entries`);
+        const { entries } = (await ledger.json()) as { entries: Array<{ text: string }> };
+        expect(entries.map((entry) => entry.text)).toEqual(['Friend lunch']);
+        const write = await send(
+            bruno,
+            'PUT',
+            `/groups/${made.id}/entries/${crypto.randomUUID()}`,
+            dinner(made.b, { [made.a]: 500, [made.b]: 500 })
+        );
+        expect(write.status).toBe(409);
+    });
+
+    it('refuses to add the friend of a deleted account to a group, as it does any closed friend', async () => {
+        const friend = await befriend(carla, ana);
+        const group = await makeGroup(carla);
+        await deleteAccount(ana);
+
+        const add = await send(carla, 'PUT', `/groups/${group.id}/members/${crypto.randomUUID()}`, {
+            friend: friend.id,
+        });
+
+        expect([add.status, await add.json()]).toEqual([422, { error: 'unknown-friend' }]);
+    });
+
+    it('lets the person left archive the friend, which frees its place', async () => {
+        const friend = await befriend(ana, bruno);
+        await deleteAccount(ana);
+        expect(await countClosedGroups(env.DB, bruno.userId)).toBe(1);
+
+        const archived = await send(bruno, 'PUT', `/groups/${friend.id}/me`, { archived: true });
+
+        expect(archived.status).toBe(200);
+        expect(await countClosedGroups(env.DB, bruno.userId)).toBe(0);
+        expect((await listGroups(bruno))[0]).toMatchObject({ id: friend.id, closed: 'deleted', archived: true });
+    });
+
+    it('closes the friend all the same for a person who is at the limit of closed groups', async () => {
+        const friend = await befriend(ana, bruno);
+        await seedClosedGroups(bruno.userId, MAX_CLOSED_GROUPS);
+
+        const response = await deleteAccount(ana);
+
+        expect(response.status).toBe(204);
+        expect(await isClosed(friend.id)).toBe(true);
+        expect((await listGroups(bruno)).find((group) => group.id === friend.id)?.closed).toBe('deleted');
+    });
+
+    it('leaves a friend closed before as it was', async () => {
+        const friend = await befriend(ana, bruno);
+        await env.DB.prepare('UPDATE shared_groups SET deleted_at = 5, updated_at = 5 WHERE id = ?1')
+            .bind(friend.id)
+            .run();
 
         await deleteAccount(ana);
 
-        expect(await isClosed(made.id)).toBe(false);
-        expect(await ownerOf(made.id)).toBe(made.b);
-        expect(await isClosed(joined.id)).toBe(false);
-        expect(await ownerOf(joined.id)).toBe(joined.a);
-        const [friend] = await listGroups(bruno);
-        expect(friend?.members.find((member) => member.id === made.a)).toMatchObject({ name: '', role: 'member' });
+        expect((await rowsOfGroup(friend.id)).group[0]).toMatchObject({ deleted_at: 5, updated_at: 5 });
     });
 
     it('erases a friend whose other side had deleted their account before', async () => {
         const friend = await befriend(bruno, ana);
         await deleteAccount(bruno, 'bruno@example.com');
-        expect(await isClosed(friend.id)).toBe(false);
+        expect(await isClosed(friend.id)).toBe(true);
         expect(await ownerOf(friend.id)).toBe(friend.b);
 
         await deleteAccount(ana);
@@ -471,7 +532,7 @@ describe('the groups of a deleted account', () => {
         const [invitation] = (await rowsOfGroup(friend.id)).invitations;
         expect(invitation).toMatchObject({ accepted_by: null, revoked_at: null });
         expect(invitation?.accepted_at).not.toBeNull();
-        expect(await isClosed(friend.id)).toBe(false);
+        expect(await isClosed(friend.id)).toBe(true);
     });
 
     it('names them nowhere in the shared tables, and leaves no owner without a user', async () => {
@@ -711,7 +772,7 @@ describe('the groups of a deleted account', () => {
         const friend = await befriend(ana, bruno);
         await writeEntry(ana, friend.id, 'Friend lunch', friend.a, [friend.a, friend.b]);
         await deleteAccount(bruno, 'bruno@example.com');
-        expect(await isClosed(friend.id)).toBe(false);
+        expect(await isClosed(friend.id)).toBe(true);
         expect(await mentions('Friend lunch')).toEqual([1]);
 
         await deleteAccount(ana);

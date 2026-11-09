@@ -1,19 +1,18 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { isUser } from './is-user';
 import { memberNames } from './member-names';
 import { useGroups } from './use-ledgers';
 
-// A friend who uses the app: the id of the friend, which adding them to a group names, and the other person's name
-interface RealFriend {
+// A friend: the id of the friend, which adding them to a group names, and the other person's name
+interface Friend {
     id: string;
     name: string;
 }
 
-// The person's open friends whose other member has joined, the ones a group can take. A member carries no user, so
-// whether one of them is in a group already is the server's to say.
-const useRealFriends = (): RealFriend[] => {
+// The person's open friends, the ones a group can take. A member carries no user, so whether one of them is in a group
+// already is the server's to say.
+const useFriends = (): Friend[] => {
     const { groups } = useGroups();
     const t = useTranslations('groups.names');
 
@@ -21,7 +20,7 @@ const useRealFriends = (): RealFriend[] => {
         const others = groups.flatMap((group) => {
             if (group.kind !== 'direct' || group.closed !== null) return [];
             const other = group.members.find((member) => member.id !== group.me);
-            return other && isUser(other) ? [{ id: group.id, member: other }] : [];
+            return other ? [{ id: group.id, member: other }] : [];
         });
         const names = memberNames(
             others.map(({ member }) => member),
@@ -31,4 +30,4 @@ const useRealFriends = (): RealFriend[] => {
     }, [groups, t]);
 };
 
-export { useRealFriends, type RealFriend };
+export { useFriends, type Friend };

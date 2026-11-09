@@ -59,14 +59,13 @@ const membersRoutes = new Hono<AppEnv>()
 
         if (existing) {
             const friend = await findFriend(db, userId, input.friend);
-            const sentAgain = existing.userId !== null && existing.userId === friend?.userId;
+            const sentAgain = existing.userId === friend?.userId;
             return sentAgain ? answer() : c.json({ error: 'id-taken' }, 409);
         }
         if (state.group.kind === 'direct') return c.json({ error: 'direct' }, 409);
         const friend = await findFriend(db, userId, input.friend);
         if (!friend) return c.json({ error: 'unknown-friend' }, 422);
         const friendUser = friend.userId;
-        if (friendUser === null) return c.json({ error: 'not-a-user' }, 409);
         if (state.members.some((member) => member.userId === friendUser)) {
             return c.json({ error: 'already-member' }, 409);
         }

@@ -292,13 +292,13 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
         expect((await listGroups(ana)).find((candidate) => candidate.id === group.id)?.members).toHaveLength(1);
     });
 
-    it('refuses a friend whose other side deleted their account', async () => {
+    it('refuses a friend whose other side deleted their account, as it does any closed friend', async () => {
         const group = await makeGroup(ana);
         const friend = await befriend(ana, bruno);
         await send(bruno, 'DELETE', '/account', { email: 'bruno@example.com' });
 
-        expect(await error(await putMember(ana, group.id, crypto.randomUUID(), { friend: friend.id }), 409)).toBe(
-            'not-a-user'
+        expect(await error(await putMember(ana, group.id, crypto.randomUUID(), { friend: friend.id }), 422)).toBe(
+            'unknown-friend'
         );
     });
 

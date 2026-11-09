@@ -15,9 +15,9 @@ import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@cor
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
 import { isOwner } from './is-owner';
 import { PersonRow } from './person-row';
+import { useFriends } from './use-friends';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
-import { useRealFriends } from './use-real-friends';
 
 import type { Ledger } from './use-ledgers';
 
@@ -135,7 +135,7 @@ const AddPerson = (props: AddPersonProps) => {
     );
 };
 
-// One of the person's friends who use the app, at once: as a new member or, for the owner, in place of a dummy, who is
+// One of the person's friends, at once: as a new member or, for the owner, in place of a dummy, who is
 // merged into them. The member id is kept until the friend is added, so one sent again is the same; choosing another
 // friend makes a new one.
 const AddFriendMember = (props: AddPersonProps) => {
@@ -144,7 +144,7 @@ const AddFriendMember = (props: AddPersonProps) => {
     const failureWords = useFailureWords();
     const words = useGroupWords(group);
     const { addFriend } = useGroupActions();
-    const friends = useRealFriends();
+    const friends = useFriends();
     const placeName = useId();
     const field = useRef<HTMLButtonElement>(null);
     const [id, setId] = useState(() => crypto.randomUUID());
