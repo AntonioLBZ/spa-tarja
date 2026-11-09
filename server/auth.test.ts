@@ -1,6 +1,6 @@
 import { getMigrations } from 'better-auth/db/migration';
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
@@ -166,6 +166,94 @@ describe('/api/auth', () => {
         const after = await request('/api/auth/get-session', asSession());
         expect(await after.json()).toBeNull();
         expect((await request('/api/expenses', asSession())).status).toBe(401);
+    });
+});
+
+describe('the Google sign-in', () => {
+    const TOKENS = { access: 'google-access-token', refresh: 'google-refresh-token' };
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    function encode(part: unknown) {
+        return btoa(JSON.stringify(part)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+    }
+
+    function googleAnswers(email: string) {
+        const idToken = [
+            encode({ alg: 'RS256' }),
+            encode({ sub: 'google-sub-1', email, email_verified: true, name: 'Dani', picture: 'https://p.example/d' }),
+            'signature',
+        ].join('.');
+        vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+            const url = input instanceof Request ? input.url : String(input);
+            if (url !== 'https://oauth2.googleapis.com/token') throw new Error(`Unexpected request to ${url}`);
+            return Response.json({
+                access_token: TOKENS.access,
+                refresh_token: TOKENS.refresh,
+                id_token: idToken,
+                expires_in: 3600,
+                token_type: 'Bearer',
+                scope: 'email profile openid',
+            });
+        });
+    }
+
+    async function comeBackFromGoogle() {
+        const started = await post('/api/auth/sign-in/social', { provider: 'google', callbackURL: '/' });
+        const { url } = (await started.json()) as { url: string };
+        const state = new URL(url).searchParams.get('state');
+        const cookie = started.headers
+            .getSetCookie()
+            .map((line) => line.split(';')[0])
+            .join('; ');
+        return request(`/api/auth/callback/google?state=${state}&code=a-code`, { headers: { cookie } });
+    }
+
+    async function accountsOf(email: string) {
+        const { results } = await env.DB.prepare(
+            `SELECT a.* FROM "account" a JOIN "user" u ON u.id = a."userId" WHERE u.email = ?1`
+        )
+            .bind(email)
+            .all<Record<string, unknown>>();
+        return results;
+    }
+
+    it('signs a new person in, and keeps the Google account id but none of the tokens', async () => {
+        googleAnswers('dani@example.com');
+
+        const back = await comeBackFromGoogle();
+
+        expect(back.status).toBe(302);
+        const cookie = back.headers
+            .getSetCookie()
+            .map((line) => line.split(';')[0])
+            .join('; ');
+        expect((await request('/api/expenses', { headers: { cookie } })).status).toBe(200);
+        const [account, ...others] = await accountsOf('dani@example.com');
+        expect(others).toEqual([]);
+        expect(account).toMatchObject({
+            providerId: 'google',
+            accountId: 'google-sub-1',
+            accessToken: null,
+            refreshToken: null,
+            idToken: null,
+        });
+        expect(JSON.stringify(account)).not.toContain(TOKENS.access);
+    });
+
+    it('signs a person back in, and the tokens of that sign-in are not kept either', async () => {
+        googleAnswers('dani@example.com');
+        await comeBackFromGoogle();
+
+        const again = await comeBackFromGoogle();
+
+        expect(again.status).toBe(302);
+        expect(again.headers.getSetCookie().some((line) => line.startsWith('better-auth.session_token='))).toBe(true);
+        const [account, ...others] = await accountsOf('dani@example.com');
+        expect(others).toEqual([]);
+        expect(account).toMatchObject({ accessToken: null, refreshToken: null, idToken: null });
     });
 });
 
