@@ -67,11 +67,13 @@
     grid-column: 2;
 }
 
-/* The chevron has room of its own, so the name follows it with no gap. The name never wraps. */
+/* The chevron has room of its own, so the name follows it with no gap. The name never wraps. Its drawing starts a third
+   of the way into its box, so the link is pulled back by that much to put the drawing on the margin of the page. */
 .root__back {
     font-size: var(--font-size-s);
     grid-column: 1;
     justify-self: start;
+    margin-inline-start: calc(-1 * var(--size-2));
     white-space: nowrap;
 }
 
