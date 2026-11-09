@@ -1,6 +1,6 @@
 # ADR-0012: Shared expenses: a group is a ledger its members share
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 ## Context

@@ -1,6 +1,6 @@
 # ADR-0013: Shared entries sync through an outbox; the shape of a group needs a connection
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 ## Context

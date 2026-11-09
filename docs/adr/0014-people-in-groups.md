@@ -1,6 +1,6 @@
 # ADR-0014: People: nicknames, friends by invitation link, merging a dummy and deleting an account
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-01
 
 ## Context
