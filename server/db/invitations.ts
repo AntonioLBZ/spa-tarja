@@ -6,7 +6,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 // An invitation that nobody answered or revoked and that hasn't expired; ?2 is the time now
 const PENDING = `
-    member_id IS NULL AND accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL AND expires_at > ?2`;
+    accepted_at IS NULL AND declined_at IS NULL AND revoked_at IS NULL AND expires_at > ?2`;
 
 // Only while the person has room for one more, counted in the same statement, so that makes at the same moment can't
 // pass the limit
@@ -18,7 +18,7 @@ const INSERT_INVITATION = `
 // The invitations of ?1 that ended before ?2 without being accepted: revoked, declined, or past their end
 const PURGE_ENDED = `
     DELETE FROM friend_invitations
-    WHERE created_by = ?1 AND member_id IS NULL AND accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ?2`;
+    WHERE created_by = ?1 AND accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ?2`;
 
 // The rowid breaks a tie of two made in the same millisecond, as it grows with every invitation made
 const LIST_PENDING = `
@@ -27,7 +27,7 @@ const LIST_PENDING = `
 
 const REVOKE = `UPDATE friend_invitations SET revoked_at = ?2 WHERE id = ?3 AND created_by = ?1 AND ${PENDING}`;
 
-const OWNED = 'SELECT 1 FROM friend_invitations WHERE id = ?3 AND created_by = ?1 AND member_id IS NULL';
+const OWNED = 'SELECT 1 FROM friend_invitations WHERE id = ?3 AND created_by = ?1';
 
 // An invitation with what decides whether it can still be taken
 interface InvitationState {
@@ -49,7 +49,7 @@ interface Taker {
 
 // ?2 is the time now
 const OPEN = `
-    i.member_id IS NULL AND i.accepted_at IS NULL AND i.declined_at IS NULL AND i.revoked_at IS NULL
+    i.accepted_at IS NULL AND i.declined_at IS NULL AND i.revoked_at IS NULL
     AND i.expires_at > ?2 AND i.created_by IS NOT NULL`;
 
 const READ = `

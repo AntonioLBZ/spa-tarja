@@ -104,7 +104,7 @@ describe('making a link to be friends', () => {
         expect(made.expiresAt).toBeGreaterThanOrEqual(before + INVITATION_DAYS * DAY);
         expect(made.expiresAt).toBeLessThanOrEqual(Date.now() + INVITATION_DAYS * DAY);
         expect(await storedRows()).toEqual([
-            expect.objectContaining({ id: made.id, group_id: null, member_id: null, created_by: ana.userId }),
+            expect.objectContaining({ id: made.id, group_id: null, created_by: ana.userId }),
         ]);
         expect(JSON.stringify(await storedRows())).not.toContain(made.token.slice(37));
     });
@@ -381,7 +381,7 @@ describe('a link to be friends, opened by somebody', () => {
         const [seen] = await listGroups(ana);
         expect(seen).toEqual({ ...friend, me: friend.members[0]?.id });
         expect(await storedRows()).toEqual([
-            expect.objectContaining({ group_id: friend.id, member_id: null, accepted_by: bruno.userId }),
+            expect.objectContaining({ group_id: friend.id, accepted_by: bruno.userId }),
         ]);
         expect(await pendingIn(await listLinks(ana))).toEqual([]);
     });
@@ -515,20 +515,6 @@ describe('a link to be friends, opened by somebody', () => {
         ['that is a number', async () => 7],
         ['that is null', async () => null],
         ['that is far too long', async () => 'x'.repeat(5000)],
-        [
-            'of an older kind that names a member of a group',
-            async () => {
-                const group = await makeGroup(ana, ['Bruno']);
-                const id = crypto.randomUUID();
-                await env.DB.prepare(
-                    `INSERT INTO friend_invitations (id, group_id, member_id, created_by, created_at, expires_at)
-                     VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
-                )
-                    .bind(id, group.id, memberNamed(group, 'Bruno'), ana.userId, Date.now(), Date.now() + DAY)
-                    .run();
-                return signInvitation(env.BETTER_AUTH_SECRET, id);
-            },
-        ],
     ];
 
     it.each(goneCases)('answers the same 410, byte for byte, when it was %s', async (_, make) => {
