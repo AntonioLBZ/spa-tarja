@@ -16,4 +16,4 @@ Migrations have to reach production before the code that needs them ([ADR-0004](
 
 - A commit on `main` is a release.
 - How the deploy runs (the baseline for the migrations, the secrets, doing it by hand) is in [testing and CI](../specs/testing-and-ci.md) and [repository structure](../specs/repository-structure.md).
-- Moving the deploy to Cloudflare Workers Builds is planned in `TODO.md`; doing it supersedes this ADR.
+- [ADR-0015](0015-github-actions-deploys-and-a-prerelease-worker.md) supersedes this ADR: it allows a branch, to try work on a phone in a prerelease. Production is still deployed from `main` by GitHub Actions.

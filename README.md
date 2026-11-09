@@ -23,6 +23,6 @@ pnpm build
 
 ## Deployment
 
-Cloudflare builds and deploys every push to `main`, applying the new migrations to the production D1 first; GitHub Actions only runs the checks. A push to any other branch deploys a prerelease at `tarja-prerelease.albz.app`, with its own database.
+GitHub Actions deploys every push to `main` that passes the checks, applying the new migrations to the production D1 first. A push to any other branch deploys a prerelease at `tarja-prerelease.albz.app`, with its own database.
 
 Decisions are in [docs/adr](docs/adr), how each part behaves in [docs/specs](docs/specs) and the visual rules in [design-system/DESIGN.md](design-system/DESIGN.md).
