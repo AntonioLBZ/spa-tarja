@@ -125,7 +125,9 @@
         "dismiss": "Dismiss"
     },
     "nav": {
+        "back": "Back to {place}",
         "expenses": "Expenses",
+        "group": "Group",
         "groups": "Groups",
         "label": "Main",
         "settings": "Settings",

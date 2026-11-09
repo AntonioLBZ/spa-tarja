@@ -11,10 +11,13 @@ const DEPTHS: Record<string, number> = {
     '/budgets': 2,
 };
 
+const GROUP_PATH = /^\/groups\/[^/]+$/;
+const GROUP_SETTINGS_PATH = /^\/groups\/([^/]+)\/edit$/;
+
 // The screens of one group, and the page of an invitation, by the shape of their path
 const PATH_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
-    [/^\/groups\/[^/]+$/, 2],
-    [/^\/groups\/[^/]+\/edit$/, 3],
+    [GROUP_PATH, 2],
+    [GROUP_SETTINGS_PATH, 3],
     [/^\/join\/[^/]+$/, 1],
 ];
 
@@ -40,6 +43,16 @@ const navSection = (pathname: string): NavSection => {
     return SECTIONS[pathname] ?? (underGroups ? '/groups' : '/');
 };
 
+type BackTarget = { to: NavSection } | { to: '/groups/$groupId'; params: { groupId: string } };
+
+// Where the link back of a screen deeper than a tab leads: its parent, whatever the history, so it is the same after
+// the screen was opened from a link. A group's settings lead to the group; the others to the tab they fall under.
+const backTarget = (pathname: string): BackTarget | undefined => {
+    if (routeDepth(pathname) < 2) return undefined;
+    const groupId = GROUP_SETTINGS_PATH.exec(pathname)?.[1];
+    return groupId ? { to: '/groups/$groupId', params: { groupId } } : { to: navSection(pathname) };
+};
+
 interface LocationChange {
     fromLocation?: ParsedLocation;
     toLocation: ParsedLocation;
@@ -57,4 +70,4 @@ const slideTypes = (change: LocationChange): string[] | false => {
     return [to > from ? 'forward' : 'back'];
 };
 
-export { navSection, routeDepth, slideTypes, type NavSection };
+export { backTarget, navSection, routeDepth, slideTypes, type BackTarget, type NavSection };

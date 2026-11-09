@@ -1,10 +1,14 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
+import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { stubViewport } from '@/lib/test/viewport';
+
+const t = createTranslator({ locale: 'en', messages: en });
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -340,5 +344,116 @@ describe('bottom navigation', () => {
 
         expect(screen.getAllByRole('navigation')).toHaveLength(1);
         expect(document.querySelector('.bottom-nav')).not.toBeNull();
+    });
+});
+
+describe('the way back on a phone', () => {
+    const group = sampleGroup({ name: 'Lisbon' });
+    const other = sampleGroup({ name: 'Porto' });
+
+    async function phone(path: string) {
+        const viewport = stubViewport(false);
+        stubApi(createFakeApi({ groups: [group, other] }).handler);
+        renderApp({ path });
+        const header = within(await screen.findByRole('banner'));
+        return { header, viewport };
+    }
+
+    function backName(place: string) {
+        return t('nav.back', { place });
+    }
+
+    it.each([
+        ['/categories', en.nav.settings, '/settings'],
+        ['/charts', en.nav.summary, '/summary'],
+        ['/budgets', en.nav.summary, '/summary'],
+        [`/groups/${group.id}`, en.nav.groups, '/groups'],
+        [`/groups/${group.id}/edit`, en.nav.group, `/groups/${group.id}`],
+    ])('leads from %s back to %s', async (path, place, href) => {
+        const { header } = await phone(path);
+
+        const link = header.getByRole('link', { name: backName(place) });
+        expect(link.getAttribute('href')).toBe(href);
+        expect(link.textContent).toBe(place);
+        expect(header.getAllByRole('link')).toHaveLength(2);
+    });
+
+    it('takes the group of the address, not another one', async () => {
+        const { header } = await phone(`/groups/${other.id}/edit`);
+
+        expect(header.getByRole('link', { name: backName(en.nav.group) }).getAttribute('href')).toBe(
+            `/groups/${other.id}`
+        );
+    });
+
+    it('comes first in the header, ahead of the logo, with a chevron that is only decoration', async () => {
+        const { header } = await phone('/charts');
+
+        const links = header.getAllByRole('link');
+        expect(links.map((item) => item.textContent)).toEqual([en.nav.summary, 'Tarja']);
+        const chevron = links[0]!.querySelector('svg')!;
+        expect(chevron.getAttribute('data-icon')).toBe('chevron_left');
+        expect(chevron.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('is named for the place it leads to, with the words that show in it', async () => {
+        const { header } = await phone('/categories');
+
+        const link = header.getByRole('link', { name: backName(en.nav.settings) });
+        expect(link.getAttribute('aria-label')).toContain(link.textContent);
+    });
+
+    it.each([
+        ['the home screen', '/'],
+        ['Groups', '/groups'],
+        ['Summary', '/summary'],
+        ['Settings', '/settings'],
+        ['the page of an invitation', `/join/${group.id}.token`],
+        ['a page that does not exist', '/nowhere'],
+    ])('has none on %s', async (_, path) => {
+        const { header } = await phone(path);
+
+        expect(header.getAllByRole('link').map((item) => item.textContent)).toEqual(['Tarja']);
+    });
+
+    it('goes to the parent whatever the history, from a screen opened by its address', async () => {
+        await phone(`/groups/${group.id}/edit`);
+
+        fireEvent.click(screen.getByRole('link', { name: backName(en.nav.group) }));
+        expect(await screen.findByRole('heading', { level: 1, name: group.name! })).toBeDefined();
+
+        fireEvent.click(screen.getByRole('link', { name: backName(en.nav.groups) }));
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
+        expect(screen.queryByRole('link', { name: backName(en.nav.groups) })).toBeNull();
+    });
+
+    it('goes from the charts to the summary', async () => {
+        await phone('/charts');
+
+        fireEvent.click(screen.getByRole('link', { name: backName(en.nav.summary) }));
+
+        expect(await screen.findByRole('heading', { name: en.summary.title })).toBeDefined();
+        expect(screen.queryByRole('link', { name: backName(en.nav.summary) })).toBeNull();
+    });
+
+    it('is on a phone only: a wide screen has none, and gets it back when it narrows', async () => {
+        const { header, viewport } = await phone('/charts');
+        expect(header.queryByRole('link', { name: backName(en.nav.summary) })).not.toBeNull();
+
+        act(() => viewport.setWide(true));
+
+        expect(screen.queryByRole('link', { name: backName(en.nav.summary) })).toBeNull();
+
+        act(() => viewport.setWide(false));
+
+        expect(screen.queryByRole('link', { name: backName(en.nav.summary) })).not.toBeNull();
+    });
+
+    it('is not drawn when the browser cannot tell the width', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/charts' });
+        await screen.findByRole('navigation');
+
+        expect(screen.queryByRole('link', { name: backName(en.nav.summary) })).toBeNull();
     });
 });

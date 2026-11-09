@@ -4,10 +4,12 @@ import { useTranslations } from 'use-intl';
 
 import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-nav';
 import { Brand } from '@/components/brand/brand';
+import { ButtonLink } from '@/components/button/button-link';
+import { Icon } from '@/components/icon/icon';
 import { ToastProvider } from '@/components/toast/toast';
 import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
 import { AppUpdate } from '@/features/pwa/app-update';
-import { navSection, type NavSection } from '@/lib/route-transition';
+import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
 import { useWide } from '@/lib/use-wide';
 
 import type { MouseEvent } from 'react';
@@ -19,12 +21,14 @@ const opensElsewhere = (event: MouseEvent) => {
     return event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
 };
 
-// The section of the screen already shown, not of the one being opened: the underline has to be in its old place when
-// the view transition takes its first picture, or it doesn't slide
+// The path of the screen already shown, not of the one being opened: the header has to be in its old state when the
+// view transition takes its first picture (the underline would not slide otherwise), and changes inside it
+const useShownPathname = () => {
+    return useRouterState({ select: (state) => (state.resolvedLocation ?? state.location).pathname });
+};
+
 const useSection = () => {
-    return useRouterState({
-        select: (state) => navSection((state.resolvedLocation ?? state.location).pathname),
-    });
+    return navSection(useShownPathname());
 };
 
 const RootLayout = () => {
@@ -35,7 +39,7 @@ const RootLayout = () => {
         <AddFormProvider>
             <ToastProvider>
                 <div className={rootClsx}>
-                    {wide ? <RootHeader /> : <RootLogo />}
+                    {wide ? <RootHeader /> : <RootPhoneHeader />}
                     <main className="root__main">
                         <Outlet />
                     </main>
@@ -65,10 +69,51 @@ const RootBrand = () => {
     );
 };
 
-// On a phone the header holds only the logo; the destinations are the bar at the bottom
-const RootLogo = () => {
+const BACK_WORDS = {
+    '/': 'expenses',
+    '/groups': 'groups',
+    '/groups/$groupId': 'group',
+    '/summary': 'summary',
+    '/settings': 'settings',
+} as const satisfies Record<BackTarget['to'], string>;
+
+// The link back to the parent of a screen deeper than a tab, named for the place it leads to
+const RootBack = () => {
+    const t = useTranslations('nav');
+    const target = backTarget(useShownPathname());
+
+    if (!target) return null;
+    const place = t(BACK_WORDS[target.to]);
+    const content = (
+        <>
+            <Icon name="chevron_left" />
+            {place}
+        </>
+    );
+
+    return 'params' in target ? (
+        <ButtonLink
+            ghost
+            className="root__back"
+            to={target.to}
+            params={target.params}
+            aria-label={t('back', { place })}
+        >
+            {content}
+        </ButtonLink>
+    ) : (
+        <ButtonLink ghost className="root__back" to={target.to} aria-label={t('back', { place })}>
+            {content}
+        </ButtonLink>
+    );
+};
+
+// On a phone the header holds the logo in the middle and, below a tab, the link back at its left; the destinations are
+// the bar at the bottom
+const RootPhoneHeader = () => {
     return (
         <header className="root__header">
+            <RootBack />
             <RootBrand />
         </header>
     );

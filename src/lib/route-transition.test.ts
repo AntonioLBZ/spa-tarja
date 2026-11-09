@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { navSection, routeDepth, slideTypes } from './route-transition';
+import { backTarget, navSection, routeDepth, slideTypes } from './route-transition';
 
 function at(pathname: string) {
     return { pathname } as never;
@@ -61,6 +61,46 @@ describe('navSection', () => {
     it('takes a page it does not know for the home screen', () => {
         expect(navSection('/nowhere')).toBe('/');
     });
+});
+
+describe('backTarget', () => {
+    const group = '0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f';
+
+    it('leads a screen below a tab to the tab it is reached from', () => {
+        expect(backTarget('/categories')).toEqual({ to: '/settings' });
+        expect(backTarget('/charts')).toEqual({ to: '/summary' });
+        expect(backTarget('/budgets')).toEqual({ to: '/summary' });
+        expect(backTarget(`/groups/${group}`)).toEqual({ to: '/groups' });
+    });
+
+    it('leads the settings of a group to the group of the address', () => {
+        expect(backTarget(`/groups/${group}/edit`)).toEqual({ to: '/groups/$groupId', params: { groupId: group } });
+    });
+
+    it('leads nowhere from the home screen, the tabs, the page of an invitation and a page it does not know', () => {
+        for (const pathname of ['/', '/groups', '/summary', '/settings', `/join/${group}.token`, '/nowhere']) {
+            expect(backTarget(pathname)).toBeUndefined();
+        }
+    });
+
+    it('gives one to every screen deeper than a tab and to no other', () => {
+        const paths = ['/', '/settings', '/summary', '/groups', '/categories', '/charts', '/budgets'];
+        paths.push(`/groups/${group}`, `/groups/${group}/edit`, `/join/${group}.token`);
+
+        for (const pathname of paths) {
+            expect(backTarget(pathname) !== undefined).toBe(routeDepth(pathname) >= 2);
+        }
+    });
+
+    it.each(['/categories', '/charts', '/budgets', `/groups/${group}`, `/groups/${group}/edit`])(
+        'slides back from %s, since the parent is shallower',
+        (pathname) => {
+            const target = backTarget(pathname)!;
+            const parent = 'params' in target ? `/groups/${target.params.groupId}` : target.to;
+
+            expect(between(pathname, parent)).toEqual(['back']);
+        }
+    );
 });
 
 describe('slideTypes', () => {

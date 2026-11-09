@@ -54,11 +54,25 @@
     view-transition-name: nav-underline;
 }
 
-/* On a phone the header holds the logo alone, in the middle */
+/* On a phone the header holds the logo in the middle and, below a tab, the link back at its left. The side columns grow
+   alike while there is room, which keeps the logo in the middle with or without the link. */
 .root--tabs .root__header {
     align-items: center;
-    display: flex;
-    justify-content: center;
+    column-gap: var(--size-2);
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+}
+
+.root--tabs .root__brand {
+    grid-column: 2;
+}
+
+/* The chevron has room of its own, so the name follows it with no gap. The name never wraps. */
+.root__back {
+    font-size: var(--font-size-s);
+    grid-column: 1;
+    justify-self: start;
+    white-space: nowrap;
 }
 
 .root__main {

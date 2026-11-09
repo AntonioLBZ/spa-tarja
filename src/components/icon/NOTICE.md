@@ -9,3 +9,5 @@ The shapes in `icon-paths.ts` come from Material Symbols (Sharp style, weight 40
 `groups`, `bar_chart` and `settings` are icons of the interface too (`UI_ICONS`): two of the tabs of the bottom bar, the other two being `receipt_long` and `groups`. They are the `d` of `sharp/groups.svg`, `sharp/bar_chart.svg` and `sharp/settings.svg` of the same package version.
 
 `chevron_right`, the end of a row that leads to another screen, and `check`, the mark of a `Checkbox`, are icons of the interface too: the `d` of `sharp/chevron_right.svg` and `sharp/check.svg` of the same package version.
+
+`chevron_left`, the mark of the link back in the header of a phone, is an icon of the interface too: the `d` of `sharp/chevron_left.svg` of the same package version.

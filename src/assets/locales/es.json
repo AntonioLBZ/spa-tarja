@@ -125,7 +125,9 @@
         "dismiss": "Cerrar"
     },
     "nav": {
+        "back": "Volver a {place}",
         "expenses": "Gastos",
+        "group": "Grupo",
         "groups": "Grupos",
         "label": "Principal",
         "settings": "Ajustes",

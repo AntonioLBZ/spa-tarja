@@ -5,6 +5,8 @@ import type { ButtonVariant, GlyphName } from './button';
 import type { AnyRouter, LinkComponentProps, RegisteredRouter } from '@tanstack/react-router';
 import type { ComponentPropsWithRef, ReactElement } from 'react';
 
+import './button.css';
+
 interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
     variant?: ButtonVariant;
     glyph?: boolean;
