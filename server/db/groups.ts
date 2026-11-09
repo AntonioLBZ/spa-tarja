@@ -39,7 +39,7 @@ interface StoredGroup {
 // A member with what only the server knows of it: the user behind it never leaves the server
 interface StoredMember extends GroupMember {
     userId: string | null;
-    // The nickname of that user, which a friend shows live
+    // The nickname of that user, which an open friend shows live
     nickname: string | null;
     createdAt: number;
     // The cursor of the group when they left, which is as far as they read it
@@ -139,16 +139,18 @@ const manages = ({ group, me }: GroupState): boolean => {
 };
 
 // The people as the caller may see them, picked one by one so that nothing the server keeps for itself can reach an
-// answer. A person who left sees only those who were there then, as they were then but for their names.
+// answer. A person who left sees only those who were there then, as they were then but for their names. An open friend
+// shows the other side by their nickname, live; a closed one by the name stored on their member.
 const visibleMembers = ({ group, members, me }: GroupState): GroupMember[] => {
     const until = me.leftAt ?? Infinity;
+    const live = group.kind === 'direct' && group.deletedAt === null;
     return members
         .filter((member) => member.createdAt <= until)
         .map((member) => {
             const leftThen = member.leftAt !== null && member.leftAt <= until;
             return {
                 id: member.id,
-                name: group.kind === 'direct' ? (member.nickname ?? member.name) : member.name,
+                name: live ? (member.nickname ?? member.name) : member.name,
                 role: member.role,
                 claimed: member.claimed,
                 leftAt: leftThen ? member.leftAt : null,

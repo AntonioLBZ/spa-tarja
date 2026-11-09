@@ -790,4 +790,21 @@ describe('the names of people', () => {
             'Bruno Díaz'
         );
     });
+
+    it('shows the other side of a friend that closed by the name stored on their member, whatever the nickname becomes', async () => {
+        const friend = await befriend(ana, bruno);
+        await send(bruno, 'PUT', '/profile', { nickname: 'Bruni' });
+        const nameIn = async (as: TestSession, member: string) =>
+            (await listGroups(as))
+                .find((candidate) => candidate.id === friend.id)
+                ?.members.find((candidate) => candidate.id === member)?.name;
+        expect(await nameIn(ana, friend.b)).toBe('Bruni');
+
+        await groupOf(await remove(bruno, friend.id));
+        await send(bruno, 'PUT', '/profile', { nickname: 'Bruno Real' });
+        await send(ana, 'PUT', '/profile', { nickname: 'Anita Real' });
+
+        expect(await nameIn(ana, friend.b)).toBe('Bruno Díaz');
+        expect(await nameIn(bruno, friend.a)).toBe('Ana García');
+    });
 });
