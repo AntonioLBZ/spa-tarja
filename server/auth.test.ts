@@ -1,4 +1,5 @@
 import { getMigrations } from 'better-auth/db/migration';
+import { type D1Migration } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -498,5 +499,36 @@ describe('the schema', () => {
 
         expect(toBeCreated).toEqual([]);
         expect(toBeAdded).toEqual([]);
+    });
+});
+
+describe('the migration that clears the Google tokens', () => {
+    const { TEST_MIGRATIONS } = env as unknown as { TEST_MIGRATIONS: D1Migration[] };
+
+    it('empties the tokens of the rows saved before the hook, and keeps the rest of each row', async () => {
+        const migration = TEST_MIGRATIONS.find((candidate) => candidate.name === '0013_clear_google_tokens.sql');
+        expect(migration).toBeDefined();
+        await env.DB.prepare(
+            `INSERT INTO "account" ("id", "accountId", "providerId", "userId", "accessToken", "refreshToken", "idToken",
+                "accessTokenExpiresAt", "scope", "createdAt", "updatedAt")
+             VALUES ('a-row', 'google-sub-1', 'google', ?1, 'an-access-token', 'a-refresh-token', 'an-id-token', 5,
+                'email profile openid', 1, 1)`
+        )
+            .bind(session.userId)
+            .run();
+
+        for (const query of migration?.queries ?? []) await env.DB.prepare(query).run();
+
+        const row = await env.DB.prepare('SELECT * FROM "account" WHERE "id" = \'a-row\'').first();
+        expect(row).toMatchObject({
+            accountId: 'google-sub-1',
+            providerId: 'google',
+            userId: session.userId,
+            accessTokenExpiresAt: 5,
+            scope: 'email profile openid',
+            accessToken: null,
+            refreshToken: null,
+            idToken: null,
+        });
     });
 });
