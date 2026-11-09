@@ -343,6 +343,21 @@ describe('a session that ends', () => {
         expect(readSharedWith(TEST_USER.id)).toBe('a-group');
     });
 
+    it.each([
+        ['tarja:outbox', [unsent]],
+        ['tarja:group-outbox', [sampleEntry(sampleGroup())]],
+    ])('keeps everything while another window has saved a write in %s since this one opened', async (key, saved) => {
+        const { storage, fakeAuth } = await openWithACopy('nothing');
+        await createUserStorage(storage, TEST_USER.id).storage.set(key, saved);
+
+        await theServerSaysNobodyIsSignedIn(fakeAuth);
+        await settle();
+
+        expect(await storage.get(`${key}:${TEST_USER.id}`)).toEqual(saved);
+        expect(await storage.get(`tarja:query-cache:${TEST_USER.id}`)).toBeDefined();
+        expect(readSharedWith(TEST_USER.id)).toBe('a-group');
+    });
+
     it('deletes nothing when the server cannot be asked, and the user stays signed in', async () => {
         const { storage, fakeAuth } = await openWithACopy('nothing');
 

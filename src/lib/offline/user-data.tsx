@@ -36,10 +36,15 @@ const UserDataProvider = (props: UserDataProviderProps) => {
         const mine = createUserStorage(storage, user.id);
         const outbox = createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY);
         const groupOutbox = createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY);
+        // Nothing waits in this window, nor on the device: another window may have saved a write since this one opened
         const discardWhenIdle = async () => {
             await Promise.all([outbox.ready, groupOutbox.ready]);
             const waiting = outbox.getState().pending.length + groupOutbox.getState().pending.length;
-            if (waiting === 0) await mine.discard();
+            if (waiting > 0) return;
+            const saved = await Promise.all(
+                [OUTBOX_STORAGE_KEY, GROUP_OUTBOX_STORAGE_KEY].map((key) => mine.storage.get<unknown[]>(key))
+            );
+            if (saved.every((items) => !items?.length)) await mine.discard();
         };
         return {
             outbox,
