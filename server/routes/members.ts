@@ -14,7 +14,15 @@ import {
 } from '@core/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import { closedFor, countClosedGroups, countOpenGroups, manages, readGroup, readSharedGroup } from '@server/db/groups';
-import { addFriend, addPlaceholder, findFriend, leaveGroup, mergeMember, renameMember } from '@server/db/members';
+import {
+    addFriend,
+    addPlaceholder,
+    findFriend,
+    leaveGroup,
+    mergeMember,
+    renameMember,
+    reopenMember,
+} from '@server/db/members';
 import { readProfile } from '@server/db/profile';
 
 import { CLOSED, NOT_FOUND } from './groups';
@@ -66,9 +74,9 @@ const membersRoutes = new Hono<AppEnv>()
         const friend = await findFriend(db, userId, input.friend);
         if (!friend) return c.json({ error: 'unknown-friend' }, 422);
         const friendUser = friend.userId;
-        if (state.members.some((member) => member.userId === friendUser)) {
-            return c.json({ error: 'already-member' }, 409);
-        }
+        // A person has one row in a group for good, so one who left comes back by reopening it
+        const known = state.members.find((member) => member.userId === friendUser);
+        if (known?.leftAt === null) return c.json({ error: 'already-member' }, 409);
 
         if (input.replaces !== undefined) {
             // In place of a dummy is a merge, which only the owner makes
@@ -81,6 +89,17 @@ const membersRoutes = new Hono<AppEnv>()
         if ((await countOpenGroups(db, friendUser, 'group')) >= MAX_OPEN_GROUPS) {
             return c.json({ error: 'too-many-groups' }, 409);
         }
+
+        if (known) {
+            // The closed group they leave behind is this one, and no row is made
+            if (await reopenMember(db, known.id, input.replaces ?? null, added.at)) return answer();
+            // Another request may have brought them back first, or closed the group, or filled it
+            const now = await readGroup(db, userId, groupId);
+            if (!now || closedFor(now)) return c.json(CLOSED, 409);
+            const back = now.members.find((member) => member.id === known.id);
+            return c.json({ error: back?.leftAt === null ? 'already-member' : 'too-many-members' }, 409);
+        }
+
         if ((await countClosedGroups(db, friendUser)) >= MAX_CLOSED_GROUPS) {
             return c.json({ error: 'too-many-closed-groups' }, 409);
         }

@@ -16,6 +16,19 @@ const INSERT_PLACEHOLDER = `
     INSERT INTO shared_members (id, group_id, name, role, created_by, created_at)
     SELECT ?1, ?2, ?3, 'member', ?4, ?5 WHERE ${room('NULL')}`;
 
+// A user who left, in a group that is open and has room for one more besides the dummy ?1 they replace, counted in the
+// statement that brings them back like an add is. ?2 is their member, `member` its alias.
+const canReturn = (member: string) => `
+    ${member}.id = ?2 AND ${member}.user_id IS NOT NULL AND ${member}.left_at IS NOT NULL AND ${member}.merged_into IS NULL
+    AND EXISTS (SELECT 1 FROM shared_groups g WHERE g.id = ${member}.group_id AND g.deleted_at IS NULL)
+    AND (SELECT COUNT(*) FROM shared_members live WHERE live.group_id = ${member}.group_id AND live.left_at IS NULL
+        AND live.id IS NOT ?1) < ${MAX_GROUP_MEMBERS}`;
+
+// The row they left comes back as it was, keeping its name, role, switch and place; only what leaving and archiving
+// set is cleared
+const REOPEN = `
+    UPDATE shared_members AS m SET left_at = NULL, left_seq = NULL, archived_at = NULL WHERE ${canReturn('m')}`;
+
 // Where the group's cursor stands, which is how far a member who leaves now reads afterwards
 const CURSOR = '(SELECT COALESCE(MAX(seq), 0) FROM shared_entries WHERE group_id = shared_members.group_id)';
 
@@ -25,6 +38,13 @@ const MERGE = `
     UPDATE shared_members SET merged_into = ?2, left_at = ?3, left_seq = ${CURSOR}
     WHERE id = ?1 AND merged_into IS NULL AND left_at IS NULL
         AND EXISTS (SELECT 1 FROM shared_members AS target WHERE target.id = ?2)`;
+
+// The dummy ?1 merged into the member ?2 who comes back, and only while they can. It runs first and reads the same
+// conditions as the statement that brings them back, which the dummy leaving doesn't change, so the two go together.
+const MERGE_BEFORE_RETURN = `
+    UPDATE shared_members SET merged_into = ?2, left_at = ?3, left_seq = ${CURSOR}
+    WHERE id = ?1 AND merged_into IS NULL AND left_at IS NULL
+        AND EXISTS (SELECT 1 FROM shared_members AS m WHERE ${canReturn('m')})`;
 
 // The other side of a friend of the user's that is open: the user it is
 const FRIEND = `
@@ -168,6 +188,21 @@ const addFriend = async (
     }
 };
 
+// A member who left comes back by reopening their row, with the dummy they replace merged into it, all or nothing.
+// Whether they came back: not when they hadn't left, when the group was deleted or when it has no room, including when
+// another request brought them back first.
+const reopenMember = async (
+    db: D1Database,
+    memberId: string,
+    replaces: string | null,
+    at: number
+): Promise<boolean> => {
+    const statements = [db.prepare(REOPEN).bind(replaces, memberId)];
+    if (replaces !== null) statements.unshift(db.prepare(MERGE_BEFORE_RETURN).bind(replaces, memberId, at));
+    const results = await db.batch(statements);
+    return (results.at(-1)?.meta.changes ?? 0) > 0;
+};
+
 export {
     addFriend,
     addPlaceholder,
@@ -179,6 +214,7 @@ export {
     leaveGroup,
     mergeMember,
     renameMember,
+    reopenMember,
     saveMySwitches,
     type Person,
 };
