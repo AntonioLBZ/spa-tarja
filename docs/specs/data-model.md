@@ -10,7 +10,7 @@ Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrat
 - Indexes: `(user_id, date)` for listing and `(user_id, seq)` for the sync by delta. Soft deletes travel as rows with `deleted_at` set, so the delta query sees them.
 - `categories` holds the custom categories ([categories](categories.md)), in migration `0002`; migration `0004` adds their `color` and `icon`.
 - Rows belong to the signed-in user ([authentication](authentication.md)), resolved in a single place in the server.
-- `account` (Better Auth's table, migration `0003`) keeps no Google token: a hook nulls `accessToken`, `refreshToken` and `idToken` whenever a row is created or updated ([authentication](authentication.md)), and migration `0013` set them to null in the rows that already held them. The columns stay.
+- `account` (Better Auth's table, migration `0003`) keeps no Google token: a hook nulls `accessToken`, `refreshToken` and `idToken` whenever a row is created or updated ([authentication](authentication.md)), and migration `0013` set them to null in the rows that already held them. The columns stay. `user.image`, the address of the Google picture, is never written either (the profile is mapped without it) and migration `0013` set it to null in the rows that held one.
 
 ## Shared expenses
 

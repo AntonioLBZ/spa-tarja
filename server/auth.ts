@@ -6,13 +6,22 @@ const SESSION_CACHE_SECONDS = 5 * 60;
 // The app never calls Google after the sign-in, so none of the tokens it sends is kept
 const withoutTokens = async () => ({ data: { accessToken: null, refreshToken: null, idToken: null } });
 
+// The app never shows the picture, so its address is not kept: this overrides the one Google sends with nothing
+const withoutPicture = () => ({ image: undefined });
+
 // Google is the only way in. `baseURL` is where the request came from (ADR-0008).
 const authOptions = (env: Env, baseURL: string) => {
     return {
         baseURL,
         secret: env.BETTER_AUTH_SECRET,
         database: env.DB,
-        socialProviders: { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET } },
+        socialProviders: {
+            google: {
+                clientId: env.GOOGLE_CLIENT_ID,
+                clientSecret: env.GOOGLE_CLIENT_SECRET,
+                mapProfileToUser: withoutPicture,
+            },
+        },
         session: {
             expiresIn: SESSION_DAYS * 24 * 60 * 60,
             cookieCache: { enabled: true, maxAge: SESSION_CACHE_SECONDS },

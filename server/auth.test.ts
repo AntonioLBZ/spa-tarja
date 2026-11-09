@@ -244,6 +244,30 @@ describe('the Google sign-in', () => {
         expect(JSON.stringify(account)).not.toContain(TOKENS.access);
     });
 
+    async function userOf(email: string) {
+        return env.DB.prepare('SELECT * FROM "user" WHERE email = ?1').bind(email).first<Record<string, unknown>>();
+    }
+
+    it('keeps the name and the email of a new person, but not the address of the picture', async () => {
+        googleAnswers('dani@example.com');
+
+        await comeBackFromGoogle();
+
+        const user = await userOf('dani@example.com');
+        expect(user).toMatchObject({ name: 'Dani', email: 'dani@example.com', emailVerified: 1, image: null });
+        expect(JSON.stringify(user)).not.toContain('p.example');
+    });
+
+    it('still keeps no picture address when the person signs back in', async () => {
+        googleAnswers('dani@example.com');
+        await comeBackFromGoogle();
+
+        const again = await comeBackFromGoogle();
+
+        expect(again.status).toBe(302);
+        expect(await userOf('dani@example.com')).toMatchObject({ image: null });
+    });
+
     it('signs a person back in, and the tokens of that sign-in are not kept either', async () => {
         googleAnswers('dani@example.com');
         await comeBackFromGoogle();
@@ -502,12 +526,15 @@ describe('the schema', () => {
     });
 });
 
-describe('the migration that clears the Google tokens', () => {
+describe('the migration that clears the Google data the app does not use', () => {
     const { TEST_MIGRATIONS } = env as unknown as { TEST_MIGRATIONS: D1Migration[] };
 
-    it('empties the tokens of the rows saved before the hook, and keeps the rest of each row', async () => {
-        const migration = TEST_MIGRATIONS.find((candidate) => candidate.name === '0013_clear_google_tokens.sql');
+    it('empties the tokens and the picture address of the rows saved before, and keeps the rest of each row', async () => {
+        const migration = TEST_MIGRATIONS.find((candidate) => candidate.name === '0013_clear_unused_google_data.sql');
         expect(migration).toBeDefined();
+        await env.DB.prepare('UPDATE "user" SET "image" = \'https://p.example/a\' WHERE id = ?1')
+            .bind(session.userId)
+            .run();
         await env.DB.prepare(
             `INSERT INTO "account" ("id", "accountId", "providerId", "userId", "accessToken", "refreshToken", "idToken",
                 "accessTokenExpiresAt", "scope", "createdAt", "updatedAt")
@@ -519,6 +546,8 @@ describe('the migration that clears the Google tokens', () => {
 
         for (const query of migration?.queries ?? []) await env.DB.prepare(query).run();
 
+        const user = await env.DB.prepare('SELECT * FROM "user" WHERE id = ?1').bind(session.userId).first();
+        expect(user).toMatchObject({ email: 'ana@example.com', image: null });
         const row = await env.DB.prepare('SELECT * FROM "account" WHERE "id" = \'a-row\'').first();
         expect(row).toMatchObject({
             accountId: 'google-sub-1',
