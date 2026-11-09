@@ -131,7 +131,7 @@ describe('the totals', () => {
             screen.queryByText(t('groups.balance.owed', { amount: euros(900) }), { selector: '.notice' })
         ).toBeNull();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
-        expect(await screen.findByText(text.totalsWait)).toBeDefined();
+        expect((await screen.findByText(text.totalsWait)).getAttribute('role')).toBe('status');
     });
 
     it('say nothing of the kind while every group has its expenses', async () => {
@@ -235,7 +235,7 @@ describe('the sections', () => {
         stubApi(api.handler);
         renderApp({ path: '/groups' });
 
-        expect(await screen.findByText(text.group.loadFailed)).toBeDefined();
+        expect((await screen.findByText(text.group.loadFailed)).getAttribute('role')).toBe('status');
         expect(within(section(text.lists.groups)).getByRole('button', { name: text.new.title })).toBeDefined();
         expect(within(section(text.lists.friends)).getByRole('button', { name: text.links.make })).toBeDefined();
         expect(screen.queryByText(text.lists.friendsNone)).toBeNull();

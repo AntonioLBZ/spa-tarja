@@ -54,7 +54,11 @@ const Groups = () => {
             <h1 className="groups__title">{t('title')}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <EntryRefusals />
-            {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.loadFailed')}</Notice>}
+            {!hasData && (isError || isWaitingForNetwork) && (
+                <Notice role="status" tone="danger">
+                    {t('group.loadFailed')}
+                </Notice>
+            )}
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
             <ListSection title={t('lists.groups')}>
                 <NewGroup disabled={!online} />
@@ -106,7 +110,11 @@ const GroupTotals = (props: GroupTotalsProps) => {
 
     const missing = ledgers.filter((ledger) => !ledger.hasData);
     if (missing.some((ledger) => ledger.isError || ledger.isWaitingForNetwork)) {
-        return <Notice tone="danger">{t('totalsWait')}</Notice>;
+        return (
+            <Notice role="status" tone="danger">
+                {t('totalsWait')}
+            </Notice>
+        );
     }
     if (missing.length > 0) return null;
 

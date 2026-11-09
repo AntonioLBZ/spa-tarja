@@ -29,7 +29,7 @@ const GroupGate = (props: GroupGateProps) => {
 
     return (
         <section className="group-gate">
-            <Notice>{hasData ? t('missing') : t('loadFailed')}</Notice>
+            <Notice role="status">{hasData ? t('missing') : t('loadFailed')}</Notice>
             <ButtonLink block to="/groups">
                 {t('back')}
             </ButtonLink>

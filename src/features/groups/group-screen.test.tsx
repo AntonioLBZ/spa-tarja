@@ -525,7 +525,7 @@ describe('a group out of reach', () => {
     it('says so, with a way back to Groups, for a group the device does not hold', async () => {
         open([groupOf([ana, bea], ana)], [], `/groups/${crypto.randomUUID()}`);
 
-        expect(await screen.findByText(text.group.missing)).toBeDefined();
+        expect((await screen.findByText(text.group.missing)).getAttribute('role')).toBe('status');
         expect(screen.getByRole('link', { name: text.group.back }).getAttribute('href')).toBe('/groups');
         expect(screen.queryByRole('heading', { name: text.debts.label })).toBeNull();
     });
@@ -538,7 +538,7 @@ describe('a group out of reach', () => {
 
         renderApp({ path: `/groups/${crypto.randomUUID()}` });
 
-        expect(await screen.findByText(text.group.loadFailed)).toBeDefined();
+        expect((await screen.findByText(text.group.loadFailed)).getAttribute('role')).toBe('status');
         expect(screen.getByRole('link', { name: text.group.back }).getAttribute('href')).toBe('/groups');
     });
 
@@ -551,7 +551,7 @@ describe('a group out of reach', () => {
 
         renderApp({ path: `/groups/${group.id}` });
 
-        expect(await screen.findByText(text.group.entriesFailed)).toBeDefined();
+        expect((await screen.findByText(text.group.entriesFailed)).getAttribute('role')).toBe('status');
         expect(screen.getByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
     });

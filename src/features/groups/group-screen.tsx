@@ -106,7 +106,11 @@ const GroupView = (props: GroupViewProps) => {
                     />
                 </Disclosure>
             )}
-            {!hasData && (isError || isWaitingForNetwork) && <Notice tone="danger">{t('group.entriesFailed')}</Notice>}
+            {!hasData && (isError || isWaitingForNetwork) && (
+                <Notice role="status" tone="danger">
+                    {t('group.entriesFailed')}
+                </Notice>
+            )}
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
             {hasData && (
                 <GroupLedger
