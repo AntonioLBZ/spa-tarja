@@ -44,6 +44,18 @@ const scripts = () => {
     return (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts;
 };
 
+const workflow = (name: string) => {
+    return read(`.github/workflows/${name}`);
+};
+
+// One job of a workflow: from its name to the next job, or to the end
+const job = (text: string, name: string) => {
+    const start = text.indexOf(`\n    ${name}:\n`);
+    expect(start).toBeGreaterThan(-1);
+    const next = text.slice(start + 1).search(/\n {4}[a-z-]+:\n/);
+    return next === -1 ? text.slice(start) : text.slice(start, start + 1 + next);
+};
+
 describe('the prerelease environment', () => {
     it('binds a database of its own as DB', () => {
         const config = wrangler();
@@ -100,5 +112,79 @@ describe('the prerelease icons', () => {
         expect(prerelease).toContain('#ff6b6b');
         expect(prerelease).not.toContain('#8aa4ff');
         expect(read('public/favicon.svg')).toContain('#8aa4ff');
+    });
+});
+
+describe('the prerelease workflow', () => {
+    it('runs on a push to a branch other than main, and on nothing else', () => {
+        const text = workflow('prerelease.yml');
+
+        expect(text).toMatch(/\non:\n {4}push:\n {8}branches-ignore: \[main\]\n/);
+        expect(text).not.toContain('pull_request');
+    });
+
+    it('deploys the prerelease and names no production script', () => {
+        const text = workflow('prerelease.yml');
+
+        expect(text).toContain('run: pnpm deploy:prerelease');
+        expect(text).not.toContain('deploy:prod');
+        expect(text).not.toContain('db:migrate:remote');
+        expect(text).not.toContain('wrangler deploy');
+    });
+
+    it('runs one deploy at a time and lets it finish', () => {
+        expect(workflow('prerelease.yml')).toContain(
+            'concurrency:\n    group: prerelease\n    cancel-in-progress: false\n'
+        );
+    });
+
+    it('holds the Cloudflare secrets only in the step that deploys', () => {
+        const text = workflow('prerelease.yml');
+        const deploy = text.indexOf('run: pnpm deploy:prerelease');
+
+        expect(deploy).toBeGreaterThan(-1);
+        expect(text.slice(0, deploy)).not.toContain('secrets.');
+        expect(text.slice(deploy)).toContain('secrets.CLOUDFLARE_API_TOKEN');
+        expect(text.slice(deploy)).toContain('secrets.CLOUDFLARE_ACCOUNT_ID');
+    });
+});
+
+describe('the release job', () => {
+    it('is started by a push to main only, after the checks', () => {
+        const text = workflow('ci.yml');
+        const release = job(text, 'release');
+
+        expect(text).toMatch(/\non:\n {4}push:\n {8}branches: \[main\]\n {4}pull_request:\n {8}branches: \[main\]\n/);
+        expect(release).toContain('needs: check');
+        expect(release).toContain("if: github.event_name == 'push'");
+    });
+
+    it('applies the migrations before it deploys', () => {
+        const release = job(workflow('ci.yml'), 'release');
+        const migrate = release.indexOf('run: pnpm db:migrate:remote');
+        const deploy = release.indexOf('run: pnpm deploy:prod');
+
+        expect(migrate).toBeGreaterThan(-1);
+        expect(deploy).toBeGreaterThan(migrate);
+    });
+
+    it('runs one release at a time and lets it finish', () => {
+        expect(job(workflow('ci.yml'), 'release')).toContain(
+            'concurrency:\n            group: release\n            cancel-in-progress: false\n'
+        );
+    });
+
+    it('holds the Cloudflare secrets only after the install', () => {
+        const release = job(workflow('ci.yml'), 'release');
+        const install = release.indexOf('run: pnpm install');
+
+        expect(install).toBeGreaterThan(-1);
+        expect(release.slice(0, install)).not.toContain('secrets.');
+        expect(release.slice(install)).toContain('secrets.CLOUDFLARE_API_TOKEN');
+        expect(release.slice(install)).toContain('secrets.CLOUDFLARE_ACCOUNT_ID');
+    });
+
+    it('leaves the check, which a pull request starts, without any secret', () => {
+        expect(job(workflow('ci.yml'), 'check')).not.toContain('secrets.');
     });
 });
