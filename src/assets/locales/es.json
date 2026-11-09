@@ -150,16 +150,18 @@
         "title": "Aviso de privacidad",
         "close": "Cerrar",
         "intro": "Qué guarda Tarja sobre ti, para qué y qué puedes hacer al respecto.",
+        "age": "Tarja es para personas de 14 años o más.",
         "who": {
             "title": "Quién es responsable",
-            "text": "Tarja la lleva Antonio López Benítez, en La Coruña, España. Para cualquier asunto sobre tus datos, escribe a:",
+            "text": "Tarja la lleva Antonio López Benítez, a título personal, en La Coruña (España), y es quien decide qué se hace con tus datos. Para cualquier asunto sobre ellos, escribe a:",
             "portfolio": "Portfolio"
         },
         "stored": {
             "title": "Qué se guarda y para qué",
             "intro": "Solo lo que la app necesita para funcionar. No se usa para nada más.",
-            "google": "De tu cuenta de Google, la primera vez que entras: tu nombre, tu correo, la dirección de tu foto y el número que identifica la cuenta. Entras con Google, así que Tarja nunca guarda una contraseña.",
-            "nickname": "Tu apodo, si has puesto uno: el nombre que ven tus amigos y con el que empiezas en cada grupo que creas o al que te añaden.",
+            "basis": "Tarja lo guarda para darte el servicio que pides al registrarte. Las sesiones y los registros de peticiones sirven además para mantener seguro el servicio, un interés legítimo de Tarja. Los nombres que das a las personas de tus grupos se guardan para que el grupo pueda compartir gastos con ellas.",
+            "google": "De tu cuenta de Google, la primera vez que entras: tu nombre, tu correo y el número que identifica la cuenta. Entras con Google, así que Tarja nunca guarda una contraseña, y tampoco guarda la dirección de tu foto ni los códigos de acceso que envía Google.",
+            "nickname": "Tu apodo, si lo has puesto: el nombre que ven tus amigos y el que usas al empezar en cada grupo que creas o al que te añaden.",
             "written": "Lo que escribes: gastos, categorías, ingresos, presupuestos, grupos, amigos, gastos compartidos, los pagos con los que se saldan las cuentas y los nombres que das a las personas de tus grupos.",
             "invitations": "Los enlaces de invitación que creas. Cada uno sirve una vez, durante 14 días.",
             "sessions": "Cada vez que inicias sesión, una sesión: unas cookies en tu navegador que la mantienen abierta y, en el servidor, la dirección IP y el navegador desde los que se abrió. Al cerrar sesión se borra; una que dejas de usar se queda hasta que eliminas tu cuenta.",
@@ -168,28 +170,30 @@
         "sees": {
             "title": "Quién lo ve",
             "members": "Las personas de un grupo contigo, y tus amigos, ven lo que se comparte en él y el nombre que se usa para ti ahí: tu apodo o, si no tienes, el nombre de tu cuenta de Google. Un amigo puede añadirte a sus grupos sin preguntarte, así que puede que gente que no conoces vea ese nombre y lo que compartas allí. Quien abre un enlace de invitación tuyo ve ese mismo nombre mientras el enlace sigue abierto.",
-            "own": "Las demás personas que usan Tarja nunca ven tu correo, y tus gastos, categorías, ingresos y presupuestos propios no se muestran a nadie."
+            "own": "Las demás personas que usan Tarja nunca ven tu correo, y tus gastos, categorías, ingresos y presupuestos propios no se muestran a nadie.",
+            "unregistered": "Cuando añadas a alguien que no usa Tarja, basta con su nombre de pila o un apodo, y mejor no escribir detalles privados de otras personas. Si alguien te ha añadido a un grupo con tu nombre, solo lo ven las personas de ese grupo: escribe al contacto de arriba y se quitará."
         },
         "others": {
             "title": "Quién más lo trata",
-            "cloudflare": "Cloudflare aloja la app y guarda su base de datos. Su plataforma también guarda registros de las peticiones que recibe la app, durante un tiempo limitado.",
-            "google": "Google gestiona el inicio de sesión.",
+            "cloudflare": "Cloudflare aloja la app y guarda su base de datos, y solo actúa según las instrucciones de Tarja. Su plataforma también guarda un registro de cada petición que recibe la app, con datos técnicos de la conexión, durante 7 días como máximo.",
+            "google": "Google gestiona el inicio de sesión: sabe que usas Tarja y le envía los datos de tu cuenta, según su propia política de privacidad.",
+            "transfers": "Las dos son empresas con sede en Estados Unidos, así que tus datos pueden tratarse fuera de la Unión Europea, con las garantías que la UE acepta para esas transferencias.",
             "none": "Tarja no tiene anuncios ni analítica, y no envía tus datos a nadie más. No se vende nada."
         },
         "keeps": {
             "title": "Cuánto tiempo y eliminar tu cuenta",
             "how": "Hasta que elimines tu cuenta. Eliminarla requiere conexión y no se puede deshacer.",
-            "goes": "Lo tuyo se borra para siempre: tu nombre, correo y dirección de la foto, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar. Los grupos y los amigos en los que eres la única persona con cuenta se borran por completo, con todos los nombres y gastos que contienen.",
+            "goes": "Lo tuyo se borra para siempre: tu nombre, correo, apodo, gastos, categorías, ingresos, presupuestos y sesiones. Los enlaces de invitación que creaste dejan de funcionar. Los grupos y los amigos en los que eres la única persona con cuenta se borran por completo, con todos los nombres y gastos que contienen.",
             "stays": "Los gastos compartidos de tus grupos y con tus amigos se quedan para los demás, porque también son su registro. También se quedan los nombres de los grupos y de las personas que hay en ellos. Ahí apareces como «Usuario eliminado», sin tu nombre, y también se borra el nombre que un grupo te había puesto antes de que entraras. Tus amigos ya no te tienen entre sus amigos.",
-            "backups": "Las copias de seguridad que Cloudflare guarda para recuperar el servicio caducan solas."
+            "backups": "Las copias de seguridad que Cloudflare guarda para recuperar el servicio caducan solas en 30 días como máximo."
         },
         "rights": {
             "title": "Tus derechos",
             "see": "Ver y descargar lo que escribiste y los grupos en los que estás: en {settings}, en «{data}». Para el resto, como los datos de tu cuenta y tus sesiones, escribe al contacto de arriba.",
             "correct": "Corregirlos: cambia tu apodo en {settings}, en «{profile}», cambia tu nombre en un grupo abierto desde su lista de personas, y edita tus gastos y el resto de lo que escribiste. Para lo demás, como el nombre que Tarja tomó de Google, escribe al contacto de arriba.",
             "delete": "Borrarlos: en {settings}, pulsa «{delete}».",
-            "write": "Preguntar lo que quieras sobre tus datos escribiendo al contacto de arriba.",
-            "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos."
+            "write": "Preguntar lo que quieras sobre tus datos, u oponerte a un uso de ellos o pedir que se limite, escribiendo al contacto de arriba. La respuesta llega en un mes como máximo.",
+            "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos (aepd.es), o ante la del país de la UE en el que vivas."
         },
         "updated": "Última actualización: 9 de noviembre de 2026."
     },
@@ -260,7 +264,7 @@
                 "title": "¿Eliminar tu cuenta?",
                 "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre, y también los grupos y los amigos en los que eres la única persona con cuenta, con todos los nombres y gastos que contienen. No se puede deshacer.",
                 "stays": "Los gastos compartidos de tus grupos y con tus amigos se quedan para los demás, y en ellos apareces como «Usuario eliminado», sin tu nombre ni el que un grupo te había puesto antes de que entraras. Tus amigos ya no te tendrán entre sus amigos.",
-                "backups": "Las copias de seguridad que se guardan para recuperar el servicio caducan solas.",
+                "backups": "Las copias de seguridad que se guardan para recuperar el servicio caducan solas en 30 días como máximo.",
                 "export": "Descarga antes tus datos",
                 "label": "Tu correo",
                 "hint": "Escribe {email} para confirmar.",

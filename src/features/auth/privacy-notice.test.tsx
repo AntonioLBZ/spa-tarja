@@ -143,6 +143,52 @@ describe('privacy notice in the settings', () => {
             expect(within(dialog).getByText(messages.privacy.rights.complaint)).toBeDefined();
             expect(dialog.textContent).toContain('Agencia Española de Protección de Datos');
         });
+
+        it('says the age, the basis, who can ask for a name to be taken out, where the data goes and for how long', async () => {
+            localStorage.setItem('tarja:locale', name);
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            const dialog = await openNotice(messages);
+
+            const { privacy } = messages;
+            const lines = [
+                privacy.age,
+                privacy.stored.basis,
+                privacy.sees.unregistered,
+                privacy.others.cloudflare,
+                privacy.others.transfers,
+                privacy.keeps.backups,
+                privacy.rights.write,
+            ];
+            for (const line of lines) {
+                expect(within(dialog).getByText(line)).toBeDefined();
+            }
+        });
+
+        it('reads in the order of its sections, with each added line where it belongs', async () => {
+            localStorage.setItem('tarja:locale', name);
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            const dialog = await openNotice(messages);
+
+            const { privacy } = messages;
+            const inOrder = [
+                privacy.intro,
+                privacy.age,
+                privacy.stored.intro,
+                privacy.stored.basis,
+                privacy.stored.google,
+                privacy.sees.own,
+                privacy.sees.unregistered,
+                privacy.others.google,
+                privacy.others.transfers,
+                privacy.others.none,
+            ].map((line) => (dialog.textContent ?? '').indexOf(line));
+            expect(inOrder.every((place) => place >= 0)).toBe(true);
+            expect(inOrder).toEqual([...inOrder].sort((a, b) => a - b));
+        });
     });
 });
 

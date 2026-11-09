@@ -34,6 +34,7 @@ const PrivacyNotice = () => {
             </Button>
             <Dialog open={open} title={t('title')} actions={actions} onClose={() => setOpen(false)}>
                 <p>{t('intro')}</p>
+                <p>{t('age')}</p>
                 <section className="privacy-notice__section">
                     <h3 className="privacy-notice__heading">{t('who.title')}</h3>
                     <p>{t('who.text')}</p>
@@ -54,6 +55,7 @@ const PrivacyNotice = () => {
                 <section className="privacy-notice__section">
                     <h3 className="privacy-notice__heading">{t('stored.title')}</h3>
                     <p>{t('stored.intro')}</p>
+                    <p>{t('stored.basis')}</p>
                     <ul className="privacy-notice__list">
                         <li>{t('stored.google')}</li>
                         <li>{t('stored.nickname')}</li>
@@ -67,11 +69,13 @@ const PrivacyNotice = () => {
                     <h3 className="privacy-notice__heading">{t('sees.title')}</h3>
                     <p>{t('sees.members')}</p>
                     <p>{t('sees.own')}</p>
+                    <p>{t('sees.unregistered')}</p>
                 </section>
                 <section className="privacy-notice__section">
                     <h3 className="privacy-notice__heading">{t('others.title')}</h3>
                     <p>{t('others.cloudflare')}</p>
                     <p>{t('others.google')}</p>
+                    <p>{t('others.transfers')}</p>
                     <p>{t('others.none')}</p>
                 </section>
                 <section className="privacy-notice__section">

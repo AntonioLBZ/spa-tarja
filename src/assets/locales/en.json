@@ -150,15 +150,17 @@
         "title": "Privacy notice",
         "close": "Close",
         "intro": "What Tarja keeps about you, why, and what you can do about it.",
+        "age": "Tarja is for people aged 14 or over.",
         "who": {
             "title": "Who is responsible",
-            "text": "Tarja is run by Antonio López Benítez, in La Coruña, Spain. For anything about your data, write to:",
+            "text": "Tarja is run by Antonio López Benítez, a private individual in La Coruña, Spain, who decides what is done with your data. For anything about it, write to:",
             "portfolio": "Portfolio"
         },
         "stored": {
             "title": "What is stored, and why",
             "intro": "Only what the app needs to work. It isn't used for anything else.",
-            "google": "From your Google account, when you first sign in: your name, your email, the address of your picture and the number that identifies the account. You sign in with Google, so Tarja never stores a password.",
+            "basis": "Tarja keeps it to give you the service you sign up for. The sessions and the request logs also keep the service safe, a legitimate interest of Tarja's. The names you give to people in your groups are kept so the group can share expenses with them.",
+            "google": "From your Google account, when you first sign in: your name, your email and the number that identifies the account. You sign in with Google, so Tarja never stores a password, and it doesn't keep the address of your picture or the sign-in tokens Google sends.",
             "nickname": "Your nickname, if you set one: the name your friends see, and the one you start with in each group you make or are added to.",
             "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in your groups.",
             "invitations": "The invitation links you make. Each works once, for 14 days.",
@@ -168,28 +170,30 @@
         "sees": {
             "title": "Who sees it",
             "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account. A friend can add you to their groups without asking, so people you don't know may see that name and what you share there. Whoever opens an invitation link you made sees the same name while the link is open.",
-            "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody."
+            "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody.",
+            "unregistered": "When you add somebody who doesn't use Tarja, a first name or a nickname is enough, and private details about other people are best left out of what you write. If somebody added you to a group by name, only the people in that group see it: write to the contact above and it will be taken out."
         },
         "others": {
             "title": "Who else handles it",
-            "cloudflare": "Cloudflare hosts the app and keeps its database. Its platform also keeps logs of the requests the app receives, for a limited time.",
-            "google": "Google handles the sign-in.",
+            "cloudflare": "Cloudflare hosts the app and keeps its database, acting only on Tarja's instructions. Its platform also keeps a log of each request the app receives, with technical details of the connection, for at most 7 days.",
+            "google": "Google handles the sign-in: it learns that you use Tarja and sends it your account details, under its own privacy policy.",
+            "transfers": "Both are companies based in the United States, so your data may be handled outside the European Union, under the safeguards the EU accepts for such transfers.",
             "none": "Tarja has no ads and no analytics, and it sends your data to nobody else. Nothing is sold."
         },
         "keeps": {
             "title": "How long, and deleting your account",
             "how": "Until you delete your account. Deleting it needs a connection and can't be undone.",
-            "goes": "What is yours is deleted for good: your name, email and picture address, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends where you are the only person with an account are deleted completely, with every name and expense in them.",
+            "goes": "What is yours is deleted for good: your name, email, nickname, expenses, categories, income, budgets and sessions. The invitation links you made stop working. Groups and friends where you are the only person with an account are deleted completely, with every name and expense in them.",
             "stays": "The shared expenses in your groups and with your friends stay for the others, because they are also their record. The names of the groups and of the people in them stay too. There you show as “Deleted user”, without your name, and a name a group had given you before you joined is deleted too. Your friends no longer have you among their friends.",
-            "backups": "The backups Cloudflare keeps to recover the service expire on their own."
+            "backups": "The backups Cloudflare keeps to recover the service expire on their own, after 30 days at most."
         },
         "rights": {
             "title": "Your rights",
             "see": "See and download what you wrote and the groups you are in: in {settings}, under “{data}”. For the rest, such as your account details and sessions, write to the contact above.",
             "correct": "Correct it: change your nickname in {settings}, under “{profile}”, rename yourself in an open group from its list of people, and edit your expenses and the rest of what you wrote. For anything else, such as the name Tarja took from Google, write to the contact above.",
             "delete": "Delete it: in {settings}, press “{delete}”.",
-            "write": "Ask anything about your data by writing to the contact above.",
-            "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos."
+            "write": "Ask anything about your data, or object to a use of it or ask to limit it, by writing to the contact above. You'll get an answer within a month.",
+            "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos (aepd.es), or to the one of the EU country where you live."
         },
         "updated": "Last updated: 9 November 2026."
     },
@@ -260,7 +264,7 @@
                 "title": "Delete your account?",
                 "goes": "Your expenses, categories, income, budgets and nickname go for good, and so do the groups and friends where you are the only person with an account, with every name and expense in them. This can't be undone.",
                 "stays": "The shared expenses in your groups and with your friends stay for the others, and you show in them as “Deleted user”, without your name or the one a group had given you before you joined. Your friends no longer have you among their friends.",
-                "backups": "The backups kept to recover the service expire on their own.",
+                "backups": "The backups kept to recover the service expire on their own, after 30 days at most.",
                 "export": "Download your data first",
                 "label": "Your email",
                 "hint": "Type {email} to confirm.",
