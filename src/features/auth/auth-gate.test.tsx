@@ -3,6 +3,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 import { readCachedUser } from '@/lib/auth';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
@@ -54,6 +55,22 @@ describe('sign-in gate', () => {
             expect(googleButton()).toBeDefined();
             expect(screen.queryByRole('heading', { name: en.expenses.form.title })).toBeNull();
             expect(screen.queryByRole('link', { name: en.nav.settings })).toBeNull();
+        });
+
+        it.each([
+            { name: 'en', messages: en },
+            { name: 'es', messages: es },
+        ])('says in $name what signing in gives Tarja, between the Google button and the notice', async (locale) => {
+            localStorage.setItem('tarja:locale', locale.name);
+            const fakeAuth = createFakeAuth({ session: null });
+
+            renderApp({ fakeAuth });
+
+            const line = await screen.findByText(locale.messages.auth.privacy);
+            const google = screen.getByRole('button', { name: locale.messages.auth.google });
+            const notice = screen.getByRole('button', { name: locale.messages.privacy.open });
+            expect(google.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(line.compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
         it('does not flash the sign-in screen while it asks the server', async () => {

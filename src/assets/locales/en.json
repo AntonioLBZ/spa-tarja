@@ -138,6 +138,7 @@
         "description": "Your expenses stay with your account, on every device you use.",
         "google": "Continue with Google",
         "opening": "Opening Google…",
+        "privacy": "Signing in gives Tarja your name and email from Google, to keep your expenses in your account. You can download them and delete your account at any time.",
         "loading": "Checking your session…",
         "unreachable": "Can't reach Tarja. Check your connection and try again.",
         "failed": "Couldn't sign you in. Try again.",

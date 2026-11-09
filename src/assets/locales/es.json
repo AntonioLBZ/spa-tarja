@@ -138,6 +138,7 @@
         "description": "Tus gastos quedan en tu cuenta, en todos los dispositivos que uses.",
         "google": "Continuar con Google",
         "opening": "Abriendo Google…",
+        "privacy": "Al entrar, Google le da a Tarja tu nombre y tu correo, para guardar tus gastos en tu cuenta. Puedes descargarlos y eliminar tu cuenta cuando quieras.",
         "loading": "Comprobando tu sesión…",
         "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
         "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",

@@ -72,6 +72,7 @@ const SignInScreen = (props: SignInScreenProps) => {
             <Button disabled={phase === 'opening'} onClick={start}>
                 {phase === 'opening' ? t('opening') : t('google')}
             </Button>
+            <p className="sign-in__summary">{t('privacy')}</p>
             <div className="sign-in__privacy">
                 <PrivacyNotice />
             </div>
