@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { MAX_OPEN_GROUPS } from '@core/shared-group';
 import { countClosedGroups, readGroup } from '@server/db/groups';
 import { claim, makeGroup, memberNamed } from '@server/test/groups';
 import { signIn, type TestSession } from '@server/test/session';
@@ -58,7 +59,7 @@ describe('readGroup', () => {
         const group = await makeGroup(ana, ['Bruno', 'Carla']);
         const alone = await rowsToRead(group);
 
-        for (let made = 0; made < 20; made++) await makeGroup(ana, ['Bruno', 'Carla']);
+        for (let made = 1; made < MAX_OPEN_GROUPS; made++) await makeGroup(ana, ['Bruno', 'Carla']);
 
         expect(await rowsToRead(group)).toBeLessThan(alone * 2);
     });

@@ -7,22 +7,22 @@ import type { Profile } from './profile';
 import type { SharedMember } from './shared-member';
 
 // Per user, counting only the groups that aren't closed for them
-const MAX_OPEN_GROUPS = 30;
+const MAX_OPEN_GROUPS = 20;
 
 const MAX_FRIENDS = 100;
 
 // Per user, counting the groups and friends that are closed for them, deleted or left, and that they haven't archived:
 // a person is not put in more of them than this, nor makes more, until they archive some
-const MAX_CLOSED_GROUPS = 100;
+const MAX_CLOSED_GROUPS = 20;
 
 // Counting only the members who haven't left
 const MAX_GROUP_MEMBERS = 30;
 
 // Counting every member the group ever had, those who left and were merged included, as their rows are never deleted
-const MAX_GROUP_MEMBER_ROWS = 100;
+const MAX_GROUP_MEMBER_ROWS = 50;
 
 // Per user, the invitations that are still open: a link holds no place for anybody, so a person keeps only a few
-const MAX_OPEN_INVITATIONS = 20;
+const MAX_OPEN_INVITATIONS = 5;
 
 const SHARED_NAME_MAX_LENGTH = 40;
 
