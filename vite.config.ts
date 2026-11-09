@@ -41,4 +41,5 @@ export default defineConfig({
         }),
     ],
     resolve: { tsconfigPaths: true },
+    define: { 'import.meta.env.VITE_PRERELEASE': JSON.stringify(String(process.env.CLOUDFLARE_ENV === 'prerelease')) },
 });
