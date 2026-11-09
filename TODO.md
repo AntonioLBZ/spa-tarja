@@ -30,25 +30,18 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 
 ## 18. Cloudflare deploys, and a prerelease Worker
 
-Decided in [ADR-0015](docs/adr/0015-cloudflare-deploys-and-a-prerelease-worker.md). The docs are written; the code is not. The repo is already connected to Cloudflare with builds disabled (_Disable builds_), so GitHub Actions keeps deploying until this is done. **Never leave both on:** Cloudflare would publish the code before the migrations are applied. The order: the owner's steps 1 to 4 with builds off, then the repo side into `main`, then step 5, then a branch, then steps 6 and 7.
+Decided in [ADR-0015](docs/adr/0015-cloudflare-deploys-and-a-prerelease-worker.md). The code is written (the `prerelease` environment, `pnpm deploy:prerelease`, the guard test, the name and the red icon of the prerelease, the workflow with no `release` job); what is left is the cutover. The repo is connected to Cloudflare with builds disabled (_Disable builds_), and once the repo side is in `main` GitHub Actions deploys nothing, so production is not deployed again until step 4 turns the Cloudflare builds on.
 
-The owner, in the Cloudflare and Google dashboards:
+In the Cloudflare and Google dashboards:
 
 1. Add **Account → D1 → Edit** to the Workers Builds token; by default it has no D1 permission and the remote migrations would fail.
-2. Create the D1 database `tarja-prerelease` (`pnpm wrangler d1 create tarja-prerelease`); its id goes into `env.prerelease`.
-3. In Google Cloud, in the project already in use, make a second OAuth client (web application) whose only redirect URI is `https://tarja-prerelease.albz.app/api/auth/callback/google`.
-4. Check that Workers Builds does not build pull requests from forks (the repository is public and the token writes Workers and D1). If that cannot be ensured, builds for other branches stay off.
-5. Once the repo side is in `main`: build command `pnpm run build`, deploy command `pnpm db:migrate:remote && npx wrangler deploy`, builds for branches other than `main` on with the deploy command `pnpm deploy:prerelease`. Then turn builds on and look at the first production deploy.
-6. After the first deploy of the prerelease, its three secrets: `pnpm wrangler secret put BETTER_AUTH_SECRET --env prerelease` (a new random value), and `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` of the second client.
-7. After the first Cloudflare deploy of production works, delete the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+2. In Google Cloud, the second OAuth client exists with the right redirect URI (`https://tarja-prerelease.albz.app/api/auth/callback/google`); its JavaScript origin is misspelled (`tarja-prelease`) and the sign-in uses none, so delete it or fix it.
+3. Check that Workers Builds does not build pull requests from forks (the repository is public and the token writes Workers and D1). If that cannot be ensured, builds for other branches stay off and the prerelease is deployed by hand with `pnpm deploy:prerelease`.
+4. Once the repo side is in `main`: build command `pnpm run build`, deploy command `pnpm db:migrate:remote && npx wrangler deploy`, builds for branches other than `main` on with the deploy command `pnpm deploy:prerelease`. Turn builds on and look at the first production deploy: its log must show `Executing on remote database DB (5d0422c9-…)` and `No migrations to apply`.
+5. Push a branch. The log of the prerelease deploy must show the prerelease database, `48700b9c-…`, and never `5d0422c9-…`; if it does, turn the branch builds off. Then put the three secrets of the prerelease with `pnpm wrangler secret put <NAME> --env prerelease`: a new random `BETTER_AUTH_SECRET` and the id and secret of the second Google client.
+6. After the first Cloudflare deploy of production works, delete the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 
-The repo side:
+Also:
 
-- `wrangler.jsonc`: `env.prerelease` with `workers_dev` off, the custom-domain route `tarja-prerelease.albz.app` and the D1 database `tarja-prerelease`; then `pnpm types:gen`.
-- `package.json`: `db:migrate:prerelease` and `deploy:prerelease` (build with `CLOUDFLARE_ENV=prerelease`, migrate with `--env prerelease`, deploy with `--env prerelease`). `deploy:prod` stays as the fallback by hand.
-- The test that fails if `env.prerelease` binds production's database ([testing and CI](docs/specs/testing-and-ci.md)).
-- `.nvmrc` with `26`; if Workers Builds does not install it, `24` in `.nvmrc` and in `ci.yml`.
-- Remove the `release` job from `.github/workflows/ci.yml`.
-- What tells the prerelease apart ([header](docs/specs/header.md), [repository structure](docs/specs/repository-structure.md)): the build reads `CLOUDFLARE_ENV` (a `define` in `vite.config.ts`), the logo reads `Tarja-pre`, the manifest name and the title are `Tarja Pre`, and the icons are the red ones in `public/prerelease/`.
 - Check the free-plan limits for a second Worker and a second D1 database ([ADR-0003](docs/adr/0003-spa-on-one-worker-on-free-tiers.md)); three databases existed at once while it was tried.
-- Not tried outside Workers Builds, so watch the first builds: whether the image installs Node 26, the check that the config's `name` matches the Worker, whether the token may create the custom domain, and the rule for forks.
+- Not tried outside Workers Builds, so watch the first builds: whether the image installs Node 26 (if not, `24` in `.nvmrc`, which CI reads too, and in [repository structure](docs/specs/repository-structure.md)), the check that the config's `name` matches the Worker, whether the token may create the custom domain, and the rule for forks.
