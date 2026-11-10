@@ -142,6 +142,84 @@ describe('Dialog', () => {
         expect(screen.getByRole('dialog').querySelector('.dialog__actions')).toBeNull();
     });
 
+    it('is a plain dialog unless it is a sheet', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog.classList.contains('dialog')).toBe(true);
+        expect(dialog.classList.contains('dialog--sheet')).toBe(false);
+    });
+
+    it('is a sheet when asked', () => {
+        render(
+            <Dialog open variant="sheet" title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(screen.getByRole('dialog').classList.contains('dialog--sheet')).toBe(true);
+    });
+
+    it('has no close button without a label', () => {
+        render(
+            <Dialog open variant="sheet" title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(within(screen.getByRole('dialog')).queryByRole('button')).toBeNull();
+    });
+
+    it('closes from its close button and tells the page', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open variant="sheet" title="Moved" closeLabel="Close" onClose={onClose}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(dialog.open).toBe(false);
+    });
+
+    it('puts the focus on what initialFocus returns', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} initialFocus={() => screen.getByLabelText('Amount')}>
+                <input aria-label="Amount" />
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByLabelText('Amount'));
+    });
+
+    it('keeps the focus on itself when initialFocus returns nothing', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} initialFocus={() => null}>
+                <input aria-label="Amount" />
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByRole('dialog'));
+    });
+
+    it('keeps its content in the page while it is closed', () => {
+        render(
+            <Dialog open={false} variant="sheet" title="Moved" onClose={vi.fn()}>
+                <input aria-label="Amount" defaultValue="12" />
+            </Dialog>
+        );
+
+        expect((screen.getByLabelText('Amount', { selector: 'input' }) as HTMLInputElement).value).toBe('12');
+    });
+
     it('keeps its buttons working', () => {
         const onPress = vi.fn();
         render(

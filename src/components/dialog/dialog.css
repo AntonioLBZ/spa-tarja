@@ -63,9 +63,24 @@
     outline: none;
 }
 
+/* The title takes the room, and the close button of a sheet ends the row */
+.dialog__head {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    justify-content: space-between;
+    margin: 0 0 var(--size-4);
+}
+
 .dialog__title {
     font-size: var(--font-size-l);
-    margin: 0 0 var(--size-4);
+    margin: 0;
+}
+
+.dialog__close {
+    align-items: center;
+    display: inline-flex;
+    justify-content: flex-end;
 }
 
 .dialog__body {
@@ -83,4 +98,54 @@
     flex-wrap: wrap;
     gap: var(--size-4);
     margin-top: var(--size-4);
+}
+
+/* A sheet holds the form of a task. On a phone it is anchored to the bottom edge and as wide as the screen, with a
+   hairline on top instead of the notch, which makes no sense against the edges of the screen. It comes up from below. */
+.dialog--sheet {
+    border-width: var(--size-px) 0 0;
+    inline-size: 100%;
+    margin: auto 0 0;
+    max-block-size: calc(100dvh - env(safe-area-inset-top) - var(--size-8));
+    max-inline-size: none;
+    overscroll-behavior: contain;
+    padding-block-end: calc(var(--size-4) + env(safe-area-inset-bottom));
+    padding-inline: max(var(--size-4), env(safe-area-inset-left)) max(var(--size-4), env(safe-area-inset-right));
+    transform: translateY(100%);
+}
+
+.dialog--sheet[open] {
+    @starting-style {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+}
+
+/* A phone would scroll the page behind a modal, which the browser only makes inert */
+:root:has(dialog[open]) {
+    overflow: hidden;
+}
+
+/* From 40 rem a sheet is the dialog above */
+@media (width >= 40rem) {
+    .dialog--sheet {
+        border-width: 0 0 var(--size-1) var(--size-1);
+        inline-size: calc(100% - var(--size-8));
+        margin: auto;
+        max-block-size: calc(100dvh - var(--size-8));
+        max-inline-size: 32rem;
+        padding: var(--size-4);
+        transform: translateY(var(--size-2));
+    }
+
+    .dialog--sheet[open] {
+        @starting-style {
+            opacity: 0;
+            transform: translateY(var(--size-2));
+        }
+    }
+
+    :root:has(dialog[open]) {
+        overflow: visible;
+    }
 }

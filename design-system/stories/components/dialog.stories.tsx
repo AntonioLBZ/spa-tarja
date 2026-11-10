@@ -15,12 +15,16 @@ const Story: Meta<DialogStoryProps> = {
     args: {
         open: true,
         title: 'Delete your account?',
+        variant: 'dialog',
+        closeLabel: 'Close',
         message: "Your expenses, categories, income, budgets and nickname go for good. This can't be undone.",
         action: 'Delete',
         dismiss: 'Cancel',
     },
     argTypes: {
         title: { control: 'text' },
+        variant: { control: 'inline-radio', options: ['dialog', 'sheet'] },
+        closeLabel: { control: 'text' },
         message: { control: 'text' },
         action: { control: 'text' },
         dismiss: { control: 'text' },
