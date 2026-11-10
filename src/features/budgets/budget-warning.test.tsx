@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -264,7 +264,7 @@ describe('the warning after sharing an expense', () => {
         fireEvent.click((await screen.findByText('Dinner')).closest('button')!);
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.duplicateItem', { name: 'Dinner' }) }));
 
-        fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: en.expenses.form.submit }));
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
 
         await waitFor(() => expect(toastText()).toBe('Food of October is at 90 % of its limit'));
     });

@@ -1,7 +1,7 @@
 import { createContext, use, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
+import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 
 // What the form copies into a new expense: the expense, or every part of its plan. `serial` tells one press of
@@ -11,8 +11,13 @@ interface Copy {
     serial: number;
 }
 
-// A shared expense, with its group, that the form copies into a new one of that group
-interface EntryCopy extends SharedRowSource {
+// A shared expense with its group, as the form edits it or copies it into a new one of that group
+interface EntrySource {
+    group: SharedGroup;
+    entry: SharedExpenseEntry;
+}
+
+interface EntryCopy extends EntrySource {
     serial: number;
 }
 
@@ -44,14 +49,16 @@ interface ExpenseSheetState {
     endCopy: (options?: { refocus?: boolean }) => void;
     // The shared expense of a row, with its group, that the form is editing or copying, never together with anything
     // else; `endEdit` and `endCopy` end them too
-    editingEntry: SharedRowSource | null;
-    startEditEntry: (source: SharedRowSource) => void;
+    editingEntry: EntrySource | null;
+    startEditEntry: (source: EntrySource) => void;
     copyingEntry: EntryCopy | null;
-    startCopyEntry: (source: SharedRowSource) => void;
+    startCopyEntry: (source: EntrySource) => void;
     // The expense or entry was deleted: an edit or a copy of it is over
     forget: (id: string) => void;
     // The expense whose row should take the focus, until the list has given it
     refocus: string | null;
+    // Asks for the focus on the row of an expense or entry, after something other than the sheet ended
+    requestRefocus: (id: string) => void;
     clearRefocus: () => void;
     // The last expense the form has added, a new object each time; the list watches it to drop the filters that would
     // hide the new one
@@ -74,7 +81,7 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
     const [startGroup, setStartGroup] = useState<SharedGroup | null>(null);
     const [editing, setEditing] = useState<readonly Expense[] | null>(null);
     const [copying, setCopying] = useState<Copy | null>(null);
-    const [editingEntry, setEditingEntry] = useState<SharedRowSource | null>(null);
+    const [editingEntry, setEditingEntry] = useState<EntrySource | null>(null);
     const [copyingEntry, setCopyingEntry] = useState<EntryCopy | null>(null);
     const copies = useRef(0);
     const drafting = useRef(false);
@@ -145,13 +152,13 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
             },
             endCopy,
             editingEntry,
-            startEditEntry: (source: SharedRowSource) => {
+            startEditEntry: (source: EntrySource) => {
                 clear();
                 setEditingEntry(source);
                 setOpen(true);
             },
             copyingEntry,
-            startCopyEntry: (source: SharedRowSource) => {
+            startCopyEntry: (source: EntrySource) => {
                 clear();
                 setCopyingEntry({ ...source, serial: ++copies.current });
                 setOpen(true);
@@ -161,6 +168,7 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
                 if (copying?.parts[0]?.id === id || copyingEntry?.entry.id === id) endCopy();
             },
             refocus,
+            requestRefocus: (id: string) => setRefocus(id),
             clearRefocus: () => setRefocus(null),
             added,
             noteAdded: (day: string) => setAdded({ day }),

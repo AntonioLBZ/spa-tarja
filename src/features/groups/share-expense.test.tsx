@@ -827,15 +827,13 @@ describe('the category of a shared expense', () => {
 });
 
 describe('on the screen of a group', () => {
-    it('has the form collapsed under its heading, shared in the group with nothing to choose', async () => {
+    it('starts the expense from the plus shared in the group, paid by you with everybody in', async () => {
         await openGroup(trip());
-        const toggle = within(screen.getByRole('main')).getByRole('button', { name: form.title });
-        expect(toggle.getAttribute('aria-expanded')).toBe('false');
 
-        fireEvent.click(toggle);
+        await openAddSheet();
 
-        expect(screen.queryByRole('radio', { name: form.forShared })).toBeNull();
-        expect(screen.queryByRole('combobox', { name: share.with })).toBeNull();
+        expect(forChoice(form.forShared).checked).toBe(true);
+        expect(chosenOption(share.with)).toBe('Trip');
         expect(chosenOption(share.paidBy)).toBe(you);
         expect(rows()).toEqual([you, 'Bea', 'Cris']);
     });
@@ -845,13 +843,14 @@ describe('on the screen of a group', () => {
         const { app } = await openGroup(group);
         expect(balance()).toBe(en.groups.balance.allSettled);
         onlineManager.setOnline(false);
-        fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: form.title }));
+        await openAddSheet();
 
         fill({ amount: '30', text: 'Dinner' });
         fireEvent.click(addButton());
 
         await waitFor(() => expect(balance()).toBe(t('groups.balance.owed', { amount: euros(2000) })));
         expect(app.groupOutbox.getState().pending).toMatchObject([{ groupId: group.id, amountCents: 3000 }]);
+        await openAddSheet();
         expect(field(form.amount).value).toBe('');
         expect(chosenOption(share.paidBy)).toBe(you);
     });
@@ -870,7 +869,7 @@ describe('on the screen of a group', () => {
         const group = trip();
         const { api, app } = await openGroup(group);
         api.state.loseEntryAnswers = true;
-        fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: form.title }));
+        await openAddSheet();
 
         fill({ amount: '30', text: 'Dinner' });
         fireEvent.click(addButton());

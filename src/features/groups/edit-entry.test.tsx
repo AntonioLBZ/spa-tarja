@@ -11,6 +11,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { openAddSheet } from '@/lib/test/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -84,10 +85,6 @@ function shareValues() {
         .map((input) => (input as HTMLInputElement).value);
 }
 
-function heading(name: string) {
-    return within(screen.getByRole('main')).getByRole('button', { name });
-}
-
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(NOW);
@@ -109,8 +106,8 @@ describe('editing a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
 
-        expect(document.activeElement).toBe(heading(form.editTitle));
-        expect(heading(form.editTitle).getAttribute('aria-expanded')).toBe('true');
+        const dialog = screen.getByRole('dialog', { name: form.editTitle });
+        expect(document.activeElement).toBe(dialog);
         expect(field(form.amount).value).toBe('10.00');
         expect(field(form.text).value).toBe('Dinner');
         expect(field(form.date).value).toBe('2026-10-20');
@@ -193,27 +190,27 @@ describe('editing a shared expense', () => {
         fireEvent.click(screen.getByRole('button', { name: form.cancel }));
 
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(api.entryAttempts).toEqual([]);
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
         fireEvent.click(screen.getByRole('button', { name: form.save }));
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(heading(form.title)).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('replaces a half typed expense, which is not kept once it is over', async () => {
         const group = trip();
         await open(group, [dinner(group)]);
-        fireEvent.click(heading(form.title));
-        fireEvent.change(field(form.amount), { target: { value: '99' } });
+        const typing = await openAddSheet();
+        fireEvent.change(within(typing).getByLabelText(form.amount), { target: { value: '99' } });
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
         expect(field(form.amount).value).toBe('10.00');
         fireEvent.click(screen.getByRole('button', { name: form.cancel }));
 
-        expect(field(form.amount).value).toBe('');
+        const again = await openAddSheet();
+        expect((within(again).getByLabelText(form.amount) as HTMLInputElement).value).toBe('');
     });
 
     it('keeps the card of the payer when somebody else edits it', async () => {
@@ -336,8 +333,7 @@ describe('editing a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'deleteItem'));
 
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 });
 
@@ -357,7 +353,7 @@ describe('duplicating a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'duplicateItem'));
 
-        expect(document.activeElement).toBe(heading(form.copyTitle));
+        expect(document.activeElement).toBe(screen.getByRole('dialog', { name: form.copyTitle }));
         expect(field(form.amount).value).toBe('10.00');
         expect(field(form.date).value).toBe('2026-10-27');
         expect(chosenOption(share.paidBy)).toBe('Bea');
@@ -379,7 +375,7 @@ describe('duplicating a shared expense', () => {
         await waitFor(() => expect(within(theLedger()).getAllByText('Dinner')).toHaveLength(2));
         const original = within(theLedger()).getAllByText('Dinner')[1];
         await waitFor(() => expect(document.activeElement).toBe(original!.closest('button')));
-        expect(heading(form.title)).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('draws the cents left again, as for a new expense, instead of keeping those of the original', async () => {
@@ -472,12 +468,11 @@ describe('duplicating a shared expense', () => {
         const group = trip();
         await open(group, [dinner(group)]);
         fireEvent.click(actionOf('Dinner', 'duplicateItem'));
-        expect(heading(form.copyTitle)).toBeDefined();
+        expect(screen.getByRole('dialog', { name: form.copyTitle })).toBeDefined();
 
         fireEvent.click(actionOf('Dinner', 'deleteItem'));
 
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 });
 
@@ -602,5 +597,50 @@ describe('editing a settlement', () => {
             actionOf(t('groups.ledger.paidYou', { name: t('groups.names.left', { name: 'Dani' }) }), 'editItem')
                 .disabled
         ).toBe(true);
+    });
+});
+
+describe('the group screen without a form of its own', () => {
+    it('has no add form: adding is the plus', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        expect(within(screen.getByRole('main')).queryByRole('button', { name: form.title })).toBeNull();
+        expect(screen.queryByRole('form')).toBeNull();
+    });
+
+    it('opens the sheet to edit an entry, fixed to its group', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        fireEvent.click(actionOf('Dinner', 'editItem'));
+
+        const dialog = await screen.findByRole('dialog', { name: form.editTitle });
+        expect((within(dialog).getByLabelText(form.amount) as HTMLInputElement).value).toBe('10.00');
+        expect(within(dialog).queryByRole('radio', { name: form.forShared })).toBeNull();
+        expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
+        expect(within(dialog).getByRole('group', { name: share.people })).toBeDefined();
+    });
+
+    it('opens the sheet to duplicate an entry as a new one of the same group', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
+
+        const dialog = await screen.findByRole('dialog', { name: form.copyTitle });
+        expect((within(dialog).getByLabelText(form.text) as HTMLInputElement).value).toBe('Dinner');
+        expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
+    });
+
+    it('ends the edit when the entry is deleted', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+        fireEvent.click(actionOf('Dinner', 'editItem'));
+        await screen.findByRole('dialog', { name: form.editTitle });
+
+        fireEvent.click(actionOf('Dinner', 'deleteItem'));
+
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
 });

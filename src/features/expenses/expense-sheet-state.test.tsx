@@ -209,6 +209,16 @@ describe('ExpenseSheetProvider', () => {
         expect(result.current.open).toBe(false);
     });
 
+    it('asks for the focus on a row, until it is given', () => {
+        const { result } = setup();
+
+        act(() => result.current.requestRefocus('a'));
+        expect(result.current.refocus).toBe('a');
+
+        act(() => result.current.clearRefocus());
+        expect(result.current.refocus).toBeNull();
+    });
+
     it('keeps the day of the last expense added, for the list to watch', () => {
         const { result } = setup();
 
