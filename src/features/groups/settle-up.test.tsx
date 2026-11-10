@@ -81,7 +81,12 @@ function toggle() {
 }
 
 function settleUp() {
-    return toggle().closest('.disclosure') as HTMLElement;
+    return screen.getByRole('dialog') as HTMLElement;
+}
+
+function closeSheet() {
+    act(() => settleUp().dispatchEvent(new Event('cancel', { cancelable: true })));
+    act(() => (settleUp() as HTMLDialogElement).close());
 }
 
 function select(label: string) {
@@ -117,6 +122,39 @@ afterEach(() => {
     localStorage.clear();
     onlineManager.setOnline(true);
     vi.unstubAllGlobals();
+});
+
+describe('the sheet of Settle up', () => {
+    it('opens from its button, titled and with the form in it', async () => {
+        const group = trip();
+        await open(group, debts(group));
+
+        fireEvent.click(toggle());
+
+        const dialog = screen.getByRole('dialog', { name: text.title });
+        expect(within(dialog).getByRole('heading', { level: 2, name: text.title })).toBeDefined();
+        expect(within(dialog).getByLabelText(text.amount)).toBeDefined();
+    });
+
+    it('has a button to close it, which keeps what was typed', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(toggle());
+        fireEvent.change(amount(), { target: { value: '7' } });
+
+        fireEvent.click(within(settleUp()).getByRole('button', { name: text.close }));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        fireEvent.click(toggle());
+
+        expect(amount().value).toBe('7');
+    });
+
+    it('is not in the page of a closed group', async () => {
+        const group = trip({ closed: 'deleted' });
+        await open(group, debts(group));
+
+        expect(screen.queryByRole('button', { name: text.title })).toBeNull();
+    });
 });
 
 describe('settling up from a line', () => {
@@ -162,7 +200,7 @@ describe('settling up from a line', () => {
                 deletedAt: null,
             },
         ]);
-        expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull();
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(document.activeElement).toBe(toggle());
     });
 
@@ -210,7 +248,7 @@ describe('settling up from a line', () => {
         fireEvent.click(save());
         fireEvent.click(save());
 
-        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
         expect(app.groupOutbox.getState().pending).toHaveLength(1);
     });
 
@@ -224,7 +262,7 @@ describe('settling up from a line', () => {
         fireEvent.submit(form);
         fireEvent.submit(form);
 
-        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
         expect(app.groupOutbox.getState().pending).toHaveLength(1);
     });
 
@@ -240,7 +278,7 @@ describe('settling up from a line', () => {
 
         expect(save().disabled).toBe(true);
         release();
-        await waitFor(() => expect(within(settleUp()).queryByLabelText(text.amount)).toBeNull());
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
 
     it('saves nothing when the form is sent with a day that is not a day', async () => {
@@ -512,7 +550,8 @@ describe('the form', () => {
         expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([you, 'Bea', 'Cris']);
         fireEvent.click(screen.getByRole('option', { name: 'Cris' }));
         fireEvent.change(amount(), { target: { value: '3' } });
-        fireEvent.click(toggle());
+        closeSheet();
+        expect(screen.queryByRole('dialog')).toBeNull();
         fireEvent.click(toggle());
 
         expect(select(text.to).textContent).toBe('Cris');
@@ -686,9 +725,7 @@ describe('settling up in Spanish', () => {
         const button = await screen.findByRole('button', { name: tEs('groups.settle.lineItem', { debt }) });
 
         fireEvent.click(button);
-        const panel = screen
-            .getByRole('button', { name: es.groups.settle.title })
-            .closest('.disclosure') as HTMLElement;
+        const panel = screen.getByRole('dialog', { name: es.groups.settle.title });
         const field = within(panel).getByLabelText(es.groups.settle.amount) as HTMLInputElement;
         expect(field.value).toBe('15,00');
         fireEvent.change(field, { target: { value: '12,50' } });

@@ -72,7 +72,8 @@ function actionOf(name: string, action: 'editItem' | 'duplicateItem' | 'deleteIt
 }
 
 function field(label: string) {
-    return screen.getByLabelText(label) as HTMLInputElement;
+    const dialog = screen.queryByRole('dialog');
+    return (dialog ? within(dialog) : screen).getByLabelText(label) as HTMLInputElement;
 }
 
 function people() {
@@ -493,9 +494,8 @@ describe('editing a settlement', () => {
 
         fireEvent.click(actionOf(paidYou(), 'editItem'));
 
-        const title = screen.getByRole('button', { name: settle.editTitle });
-        expect(title.getAttribute('aria-expanded')).toBe('true');
-        expect(document.activeElement).toBe(title);
+        const dialog = screen.getByRole('dialog', { name: settle.editTitle });
+        expect(document.activeElement).toBe(dialog);
         expect(chosenOption(settle.from)).toBe('Bea');
         expect(chosenOption(settle.to)).toBe(you);
         expect(settleField(settle.amount).value).toBe('5.00');
@@ -523,7 +523,7 @@ describe('editing a settlement', () => {
             updatedAt: NOW,
         });
         await waitFor(() => expect(document.activeElement).toBe(toggle(paidYou())));
-        expect(screen.getByRole('button', { name: settle.title }).getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('writes nothing on Cancel, and Settle up starts over', async () => {
@@ -642,5 +642,24 @@ describe('the group screen without a form of its own', () => {
         fireEvent.click(actionOf('Dinner', 'deleteItem'));
 
         await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    });
+});
+
+describe('closing the sheet of a settlement being edited', () => {
+    it('ends the edit, with the focus on the row, and Settle up starts over', async () => {
+        const group = trip();
+        const { api } = await open(group, [sampleSettlement(group, bea.id, ana.id, 500)]);
+        fireEvent.click(actionOf(t('groups.ledger.paidYou', { name: 'Bea' }), 'editItem'));
+        const dialog = screen.getByRole('dialog', { name: en.groups.settle.editTitle });
+
+        fireEvent.click(within(dialog).getByRole('button', { name: en.groups.settle.close }));
+
+        await waitFor(() => expect(document.activeElement).toBe(toggle(t('groups.ledger.paidYou', { name: 'Bea' }))));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: en.groups.settle.title }));
+        expect(
+            (within(screen.getByRole('dialog')).getByLabelText(en.groups.settle.amount) as HTMLInputElement).value
+        ).toBe('');
+        expect(api.entryAttempts).toEqual([]);
     });
 });

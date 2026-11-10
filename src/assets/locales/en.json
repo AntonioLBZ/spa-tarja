@@ -416,6 +416,7 @@
                 "settled": "After this, {from} and {to} are settled"
             },
             "editTitle": "Edit the settlement",
+            "close": "Close",
             "cancel": "Cancel"
         },
         "share": {

@@ -416,6 +416,7 @@
                 "settled": "Con esto, {from} y {to} quedan en paz"
             },
             "editTitle": "Editar el pago",
+            "close": "Cerrar",
             "cancel": "Cancelar"
         },
         "share": {

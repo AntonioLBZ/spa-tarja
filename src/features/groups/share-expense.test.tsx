@@ -73,7 +73,8 @@ function forChoice(name: string) {
 }
 
 function field(label: string) {
-    return screen.getByLabelText(label) as HTMLInputElement;
+    const dialog = screen.queryByRole('dialog');
+    return (dialog ? within(dialog) : screen).getByLabelText(label) as HTMLInputElement;
 }
 
 function fill({ amount, text = '' }: { amount: string; text?: string }) {
