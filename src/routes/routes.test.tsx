@@ -59,6 +59,17 @@ describe('header', () => {
         expect(link('Tarja').getAttribute('href')).toBe('/');
     });
 
+    it('reaches the "+" of a wide screen right after the header, before the screen it adds to', async () => {
+        await home();
+
+        const plus = screen.getAllByRole('button', { name: en.nav.add }).find((button) => !button.closest('main'))!;
+
+        const header = screen.getByRole('banner');
+        const main = screen.getByRole('main');
+        expect(header.compareDocumentPosition(plus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(plus.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
     it('leaves what was typed in the form alone through Expenses and the logo', async () => {
         await home();
         const dialog = await openAddSheet();

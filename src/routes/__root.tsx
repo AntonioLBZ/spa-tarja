@@ -44,11 +44,11 @@ const RootLayout = () => {
             <ToastProvider>
                 <div className={rootClsx}>
                     {wide ? <RootHeader /> : <RootPhoneHeader />}
+                    {wide && <AddExpenseButton />}
                     <main className="root__main">
                         <Outlet />
                     </main>
                     {!wide && <RootTabs />}
-                    {wide && <AddExpenseButton />}
                     <ExpenseSheet />
                     <AppUpdate />
                 </div>
