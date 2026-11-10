@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -37,7 +37,7 @@ import './expense-form.css';
 type ForWhom = 'me' | 'shared';
 
 interface ExpenseFormProps {
-    // Its name, which the heading over it (AddExpense) shows too
+    // Its name, which the sheet around it (ExpenseSheet) shows too
     title: string;
     // The group of the screen the form is on, where the expense is shared with nothing to choose
     group?: SharedGroup;
@@ -52,6 +52,8 @@ interface ExpenseFormProps {
     onDone?: () => void;
     // Called once a new expense is saved, not an edit, with the day it was made
     onAdded?: (day: string) => void;
+    // Told whether a new expense holds a draft worth keeping: an amount or a description
+    onDraftChange?: (drafting: boolean) => void;
 }
 
 interface StartingFields {
@@ -135,6 +137,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         copyingEntry = null,
         onDone,
         onAdded,
+        onDraftChange,
     } = props;
     const t = useTranslations('expenses.form');
     const { locale } = useLocale();
@@ -146,7 +149,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const { options } = useCategoryOptions();
     const id = useId();
 
-    // A form edits or copies one expense for its whole life: a new one is mounted for another (AddExpense)
+    // A form edits or copies one expense for its whole life: a new one is mounted for another (ExpenseSheet)
     const source = editing ?? copying;
     const entry = editingEntry ?? copyingEntry;
     const [entrySource] = useState(() => (entry ? { entry, copy: copyingEntry !== null } : null));
@@ -166,6 +169,12 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const [amountInvalid, setAmountInvalid] = useState(false);
     const [saving, setSaving] = useState(false);
     const [failure, setFailure] = useState<'saveFailed' | 'readOnly' | null>(null);
+
+    const drafting = source === null && entry === null && (amount.trim() !== '' || text.trim() !== '');
+    useEffect(() => {
+        onDraftChange?.(drafting);
+        return () => onDraftChange?.(false);
+    }, [drafting, onDraftChange]);
 
     const totalCents = parseAmount(amount, locale);
     const payment = usePayment(start, date);
@@ -218,8 +227,8 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 onDone?.();
                 return;
             }
-            warn(expenses);
             onAdded?.(date);
+            warn(expenses);
             if (copying) {
                 onDone?.();
                 return;
@@ -239,9 +248,9 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 onDone?.();
                 return;
             }
+            onAdded?.(date);
             warn(sharedRowsOf(write.group, [write.entry]));
             rememberSharedWith(user.id, write.group.id);
-            onAdded?.(date);
             if (copyingEntry) {
                 onDone?.();
                 return;
@@ -281,7 +290,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         }
     };
 
-    // Its visible title is the heading that collapses it (AddExpense)
+    // The sheet around it shows its title (ExpenseSheet)
     return (
         <form className="expense-form" aria-label={title} onSubmit={(event) => void handleSubmit(event)}>
             <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>

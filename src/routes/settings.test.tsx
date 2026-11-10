@@ -40,7 +40,7 @@ describe('settings', () => {
         expect(await screen.findByRole('heading', { name: en.settings.title })).toBeDefined();
 
         fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
-        expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+        expect(await screen.findByRole('button', { name: en.nav.add })).toBeDefined();
     });
 
     describe('language', () => {

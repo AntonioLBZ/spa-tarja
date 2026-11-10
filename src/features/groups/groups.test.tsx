@@ -272,7 +272,7 @@ describe('the lists', () => {
         api.pendingInvitations.splice(0);
         api.groups.push(sampleGroup({ kind: 'direct', name: null }));
         fireEvent.click(screen.getAllByRole('link', { name: en.nav.expenses })[0]!);
-        await screen.findByRole('heading', { name: en.expenses.form.title });
+        await screen.findByRole('button', { name: en.nav.add });
         fireEvent.click(screen.getAllByRole('link', { name: en.nav.groups })[0]!);
 
         await waitFor(() => expect(rows(text.lists.friends)).toHaveLength(1));

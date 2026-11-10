@@ -1,0 +1,9 @@
+/* Fixed at the lower-right corner of the content column, which is 40 rem wide and centered, above the safe area */
+.add-expense-button {
+    align-items: center;
+    display: inline-flex;
+    inset-block-end: max(var(--size-4), env(safe-area-inset-bottom));
+    inset-inline-end: max(var(--size-4), calc(50% - 20rem + var(--size-4)));
+    justify-content: center;
+    position: fixed;
+}

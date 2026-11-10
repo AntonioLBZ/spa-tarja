@@ -21,6 +21,8 @@
             "title": "Añadir un gasto",
             "editTitle": "Editar el gasto",
             "copyTitle": "Duplicar el gasto",
+            "added": "Gasto añadido",
+            "close": "Cerrar",
             "amount": "Importe",
             "text": "Descripción",
             "category": "Categoría",
@@ -125,6 +127,7 @@
         "dismiss": "Cerrar"
     },
     "nav": {
+        "add": "Añadir un gasto",
         "back": "Volver a {place}",
         "expenses": "Gastos",
         "group": "Grupo",

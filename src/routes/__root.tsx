@@ -7,7 +7,10 @@ import { Brand } from '@/components/brand/brand';
 import { ButtonLink } from '@/components/button/button-link';
 import { Icon } from '@/components/icon/icon';
 import { ToastProvider } from '@/components/toast/toast';
-import { AddFormProvider, useAddForm } from '@/features/expenses/add-form-state';
+import { AddExpenseButton } from '@/features/expenses/add-expense-button';
+import { ExpenseSheet } from '@/features/expenses/expense-sheet';
+import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
+import { useOpenAdd } from '@/features/expenses/use-open-add';
 import { AppUpdate } from '@/features/pwa/app-update';
 import { isPrerelease } from '@/lib/prerelease';
 import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
@@ -17,7 +20,7 @@ import type { MouseEvent } from 'react';
 
 import './root.css';
 
-// A click that opens the link in another tab or window, which leaves the add form as it is
+// A click that opens the link in another tab or window, which leaves the page as it is
 const opensElsewhere = (event: MouseEvent) => {
     return event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
 };
@@ -37,7 +40,7 @@ const RootLayout = () => {
     const rootClsx = clsx('root', { 'root--tabs': !wide });
 
     return (
-        <AddFormProvider>
+        <ExpenseSheetProvider>
             <ToastProvider>
                 <div className={rootClsx}>
                     {wide ? <RootHeader /> : <RootPhoneHeader />}
@@ -45,26 +48,19 @@ const RootLayout = () => {
                         <Outlet />
                     </main>
                     {!wide && <RootTabs />}
+                    {wide && <AddExpenseButton />}
+                    <ExpenseSheet />
                     <AppUpdate />
                 </div>
             </ToastProvider>
-        </AddFormProvider>
+        </ExpenseSheetProvider>
     );
 };
 
-// The logo leads home to the form adding, with it open. It is never underlined.
+// The logo leads home. It is never underlined.
 const RootBrand = () => {
-    const { reveal } = useAddForm();
-
     return (
-        <Link
-            className="root__brand"
-            to="/"
-            activeOptions={{ exact: true }}
-            onClick={(event) => {
-                if (!opensElsewhere(event)) reveal();
-            }}
-        >
+        <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
             <Brand prerelease={isPrerelease()} />
         </Link>
     );
@@ -120,11 +116,9 @@ const RootPhoneHeader = () => {
     );
 };
 
-// Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home,
-// to the form adding: Expenses with it collapsed, the logo with it open.
+// Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home.
 const RootHeader = () => {
     const t = useTranslations('nav');
-    const { collapse } = useAddForm();
     const section = useSection();
 
     // The router marks only the link of its own path; a deeper screen marks the section it is reached from
@@ -139,15 +133,7 @@ const RootHeader = () => {
     return (
         <header className="root__header">
             <nav aria-label={t('label')} className="root__nav">
-                <Link
-                    className="root__link"
-                    to="/"
-                    activeOptions={{ exact: true }}
-                    aria-current={current('/')}
-                    onClick={(event) => {
-                        if (!opensElsewhere(event)) collapse();
-                    }}
-                >
+                <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
                     {t('expenses')}
                     {underline('/')}
                 </Link>
@@ -178,10 +164,10 @@ const TABS = [
     { to: '/settings', word: 'settings', icon: 'settings' },
 ] as const satisfies readonly { to: NavSection; word: string; icon: BottomNavItem['icon'] }[];
 
-// Expenses does what the header word does; pressing the tab of the screen already shown scrolls it to the top
+// Pressing the tab of the screen already shown scrolls it to the top; the "+" opens the sheet of a new expense
 const RootTabs = () => {
     const t = useTranslations('nav');
-    const { collapse } = useAddForm();
+    const openAdd = useOpenAdd();
     const section = useSection();
 
     const items = TABS.map((tab): BottomNavItem => {
@@ -192,13 +178,12 @@ const RootTabs = () => {
             current: section === tab.to,
             onClick: (event) => {
                 if (opensElsewhere(event)) return;
-                if (tab.to === '/') collapse();
                 if (section === tab.to) window.scrollTo({ top: 0 });
             },
         };
     });
 
-    return <BottomNav label={t('label')} items={items} />;
+    return <BottomNav label={t('label')} items={items} action={{ label: t('add'), icon: 'add', onPress: openAdd }} />;
 };
 
 export const Route = createRootRoute({ component: RootLayout });

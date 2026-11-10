@@ -18,7 +18,7 @@ import {
     shownExpense,
 } from '@core/expense-list';
 
-import { useAddForm } from './add-form-state';
+import { useExpenseSheet } from './expense-sheet-state';
 import { readStoredGrouping, storeGrouping } from './list-grouping';
 import { useYourExpenses } from './use-your-expenses';
 
@@ -35,7 +35,7 @@ const useExpenseList = () => {
     const { options, labelOf } = useCategoryOptions();
     const { groups: sharedGroups } = useGroups();
     const titles = useGroupTitles(sharedGroups);
-    const { added } = useAddForm();
+    const { added } = useExpenseSheet();
 
     // What the list opened on, which does not count as a filter in use
     const [opening] = useState(() => openingFilters(toDateString(new Date())));

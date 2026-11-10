@@ -21,7 +21,7 @@ interface ExpenseSheetState {
     close: () => void;
     // Opens the sheet on a new expense
     openAdd: () => void;
-    // A new expense was saved: the sheet closes and the next one starts empty
+    // A new expense was saved: the sheet closes. The form has emptied itself, so the next "+" starts a new one.
     endAdd: () => void;
     // Changes when the next add must start a new form rather than keep the one in the page
     addKey: number;
@@ -119,10 +119,7 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
                 if (!drafting.current) setAddKey((key) => key + 1);
                 setOpen(true);
             },
-            endAdd: () => {
-                setAddKey((key) => key + 1);
-                setOpen(false);
-            },
+            endAdd: () => setOpen(false),
             addKey,
             markDraft: (isDrafting: boolean) => {
                 drafting.current = isDrafting;

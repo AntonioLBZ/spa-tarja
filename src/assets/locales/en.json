@@ -21,6 +21,8 @@
             "title": "Add an expense",
             "editTitle": "Edit the expense",
             "copyTitle": "Duplicate the expense",
+            "added": "Expense added",
+            "close": "Close",
             "amount": "Amount",
             "text": "Description",
             "category": "Category",
@@ -125,6 +127,7 @@
         "dismiss": "Dismiss"
     },
     "nav": {
+        "add": "Add an expense",
         "back": "Back to {place}",
         "expenses": "Expenses",
         "group": "Group",

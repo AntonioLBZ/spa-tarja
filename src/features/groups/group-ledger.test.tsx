@@ -254,7 +254,7 @@ describe('the ledger of a group', () => {
         const group = trip();
         await open(group, [dinner(group, { text: 'Dinner' })]);
 
-        const form = screen.getByRole('button', { name: en.expenses.form.title });
+        const form = within(screen.getByRole('main')).getByRole('button', { name: en.expenses.form.title });
         const edit = screen.getByRole('link', { name: en.groups.edit.link });
         expect(form.compareDocumentPosition(theLedger()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         expect(theLedger().compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

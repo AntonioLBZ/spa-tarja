@@ -14,6 +14,7 @@ import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
+import { ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
 import { addMonths } from '@core/date';
 import { expenseInputSchema, type Expense, type Payment } from '@core/expense';
 
@@ -49,6 +50,7 @@ function shown(isoDay: string) {
 }
 
 function field(label: string) {
+    ensureAddSheet();
     return screen.getByLabelText(label) as HTMLInputElement | HTMLSelectElement;
 }
 
@@ -175,14 +177,15 @@ describe('expense form', () => {
         stubApi(createFakeApi().handler);
 
         renderApp();
+        const dialog = await openAddSheet();
 
-        expect(((await screen.findByLabelText(en.expenses.form.date)) as HTMLInputElement).value).toBe(TODAY);
+        expect((within(dialog).getByLabelText(en.expenses.form.date) as HTMLInputElement).value).toBe(TODAY);
     });
 
     it('suggests a category while the description is typed', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
-        await screen.findByLabelText(en.expenses.form.text);
+        await openAddSheet();
 
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
 
@@ -193,7 +196,7 @@ describe('expense form', () => {
     it('stops suggesting once the user picks a category', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
-        await screen.findByLabelText(en.expenses.form.text);
+        await openAddSheet();
 
         pickOption(en.expenses.form.category, en.categories.leisure);
         fireEvent.change(field(en.expenses.form.text), { target: { value: 'Mercadona' } });
@@ -224,7 +227,7 @@ describe('expense form', () => {
         expect(screen.getByRole('listitem').textContent).toContain('Lunch');
     });
 
-    it('clears the amount and description after saving but keeps the date', async () => {
+    it('starts the next expense empty and on today after one is saved', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
         await screen.findByText(en.expenses.list.empty);
@@ -235,7 +238,7 @@ describe('expense form', () => {
         await screen.findByRole('listitem');
         expect(field(en.expenses.form.amount).value).toBe('');
         expect(field(en.expenses.form.text).value).toBe('');
-        expect(field(en.expenses.form.date).value).toBe('2026-10-20');
+        expect(field(en.expenses.form.date).value).toBe(TODAY);
     });
 
     it('rejects an invalid amount without calling the API', async () => {
@@ -263,68 +266,6 @@ describe('expense form', () => {
         expect(amount.getAttribute('aria-describedby')).toBe(alert.id);
         expect(amount.getAttribute('aria-invalid')).toBe('true');
         expect(field(en.expenses.form.text).hasAttribute('aria-describedby')).toBe(false);
-    });
-});
-
-describe('the add form', () => {
-    function formToggle() {
-        return screen.getByRole('button', { name: en.expenses.form.title });
-    }
-
-    function submitShown() {
-        return screen.queryByRole('button', { name: en.expenses.form.submit }) !== null;
-    }
-
-    it('is open to start with, under a heading that is its toggle', async () => {
-        stubApi(createFakeApi().handler);
-        renderApp();
-
-        const heading = await screen.findByRole('heading', { level: 2, name: en.expenses.form.title });
-
-        expect(heading.firstElementChild).toBe(formToggle());
-        expect(formToggle().getAttribute('aria-expanded')).toBe('true');
-        expect(formToggle().getAttribute('aria-controls')).toBe(
-            field(en.expenses.form.amount).closest('.disclosure__panel')!.id
-        );
-        expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined();
-        expect(screen.getAllByRole('heading', { name: en.expenses.form.title })).toHaveLength(1);
-        expect(submitShown()).toBe(true);
-    });
-
-    it('collapses and opens again from its heading, keeping the focus on it', async () => {
-        stubApi(createFakeApi().handler);
-        renderApp();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        const toggle = formToggle();
-        const panel = field(en.expenses.form.amount).closest('.disclosure__panel')!;
-        toggle.focus();
-
-        fireEvent.click(toggle);
-
-        expect(toggle.getAttribute('aria-expanded')).toBe('false');
-        expect(toggle.getAttribute('aria-controls')).toBe(panel.id);
-        expect(submitShown()).toBe(false);
-        expect(document.activeElement).toBe(toggle);
-
-        fireEvent.click(toggle);
-
-        expect(toggle.getAttribute('aria-expanded')).toBe('true');
-        expect(submitShown()).toBe(true);
-        expect(document.activeElement).toBe(toggle);
-    });
-
-    it('keeps what was typed while it is collapsed', async () => {
-        stubApi(createFakeApi().handler);
-        renderApp();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        fireEvent.change(field(en.expenses.form.amount), { target: { value: '12.50' } });
-        fireEvent.change(field(en.expenses.form.text), { target: { value: 'Lunch' } });
-
-        fireEvent.click(formToggle());
-        fireEvent.click(formToggle());
-
-        expect(field(en.expenses.form.amount).value).toBe('12.50');
-        expect(field(en.expenses.form.text).value).toBe('Lunch');
     });
 });
 
@@ -1090,6 +1031,7 @@ describe('category looks', () => {
         stubApi(createFakeApi({ categories: [gym] }).handler);
         const app = renderApp();
         await categoriesLoaded(app);
+        ensureAddSheet();
         const picker = () =>
             screen.getByRole('combobox', { name: en.expenses.form.category }).closest('.field') as HTMLElement;
         expect(lookOf(picker())).toEqual({ icon: 'more_horiz', color: 'gray' });
@@ -1944,8 +1886,7 @@ describe('editing an expense', () => {
     const now = () => new Date(2026, 9, 25, 12).getTime();
     const editButton = (name: string) =>
         screen.getByRole('button', { name: t('expenses.list.editItem', { name }) }) as HTMLButtonElement;
-    const addToggle = () => screen.getByRole('button', { name: en.expenses.form.title });
-    const editToggle = () => screen.getByRole('button', { name: en.expenses.form.editTitle });
+    const editSheet = () => screen.getByRole('dialog', { name: en.expenses.form.editTitle });
     const save = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
     const cancel = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.cancel }));
     const typeIn = (label: string, value: string) => fireEvent.change(field(label), { target: { value } });
@@ -2007,7 +1948,6 @@ describe('editing an expense', () => {
 
         expect(screen.getByRole('heading', { level: 2, name: en.expenses.form.editTitle })).toBeDefined();
         expect(screen.getByRole('form', { name: en.expenses.form.editTitle })).toBeDefined();
-        expect(screen.queryByRole('button', { name: en.expenses.form.title })).toBeNull();
         expect(field(en.expenses.form.amount).value).toBe('9.00');
         expect(field(en.expenses.form.text).value).toBe('Cinema');
         expect(chosenOption(en.expenses.form.category)).toBe(en.categories.leisure);
@@ -2047,11 +1987,11 @@ describe('editing an expense', () => {
 
         save();
 
-        await waitFor(() => expect(screen.queryByRole('button', { name: en.expenses.form.title })).not.toBeNull());
-        expect(field(en.expenses.form.amount).value).toBe('');
-        expect(field(en.expenses.form.text).value).toBe('');
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
         expect(screen.queryByRole('button', { name: en.expenses.form.cancel })).toBeNull();
         expect(document.activeElement).toBe(rowToggle('Brunch'));
+        expect(field(en.expenses.form.amount).value).toBe('');
+        expect(field(en.expenses.form.text).value).toBe('');
     });
 
     it('moves the row to the day it now has, with the focus still on it', async () => {
@@ -2088,7 +2028,7 @@ describe('editing an expense', () => {
         save();
 
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.saveFailed);
-        expect(editToggle()).toBeDefined();
+        expect(editSheet()).toBeDefined();
         expect(field(en.expenses.form.text).value).toBe('Brunch');
         expect(screen.getByRole('button', { name: en.expenses.form.save })).toBeDefined();
         expect(screen.getByRole('button', { name: en.expenses.form.cancel })).toBeDefined();
@@ -2103,9 +2043,9 @@ describe('editing an expense', () => {
 
         cancel();
 
-        expect(addToggle()).toBeDefined();
-        expect(field(en.expenses.form.text).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(document.activeElement).toBe(rowToggle('Lunch'));
+        expect(field(en.expenses.form.text).value).toBe('');
         await new Promise((resolve) => setTimeout(resolve, 20));
         expect(api.attempts).toHaveLength(0);
     });
@@ -2120,31 +2060,6 @@ describe('editing an expense', () => {
         cancel();
 
         expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }));
-    });
-
-    it('opens the form when it is collapsed, brings it into view and puts the focus on its heading', async () => {
-        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
-        await open([lunch]);
-        fireEvent.click(addToggle());
-
-        edit('Lunch');
-
-        expect(editToggle().getAttribute('aria-expanded')).toBe('true');
-        expect(editToggle().parentElement!.tagName).toBe('H2');
-        expect(document.activeElement).toBe(editToggle());
-        expect(scroll).toHaveBeenCalledOnce();
-        expect(scroll.mock.contexts[0]).toBe(editToggle());
-        expect(scroll).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' });
-    });
-
-    it('scrolls smoothly to the form while there is motion', async () => {
-        document.documentElement.style.setProperty('--duration-base', '200ms');
-        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
-        await open([lunch]);
-
-        edit('Lunch');
-
-        expect(scroll).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
     });
 
     it('keeps the saved category whatever the description suggests', async () => {
@@ -2401,7 +2316,7 @@ describe('editing an expense', () => {
 
         fireEvent.click(deleteButton('Lunch'));
 
-        expect(addToggle()).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(field(en.expenses.form.amount).value).toBe('');
     });
 
@@ -2411,26 +2326,8 @@ describe('editing an expense', () => {
 
         deleteExpense('Coffee');
 
-        expect(editToggle()).toBeDefined();
+        expect(editSheet()).toBeDefined();
         expect(field(en.expenses.form.text).value).toBe('Lunch');
-    });
-
-    it('ends from the header, Expenses collapsing the form and the logo opening it', async () => {
-        await open([lunch]);
-        edit('Lunch');
-
-        fireEvent.click(screen.getByRole('link', { name: en.nav.expenses }));
-
-        expect(addToggle().getAttribute('aria-expanded')).toBe('false');
-        expect(field(en.expenses.form.text).value).toBe('');
-
-        fireEvent.click(editButton('Lunch'));
-        expect(editToggle().getAttribute('aria-expanded')).toBe('true');
-
-        fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
-
-        expect(addToggle().getAttribute('aria-expanded')).toBe('true');
-        expect(field(en.expenses.form.text).value).toBe('');
     });
 
     it('takes the place of a new expense that was being typed, which is gone once the edit is over', async () => {
@@ -2455,8 +2352,7 @@ describe('duplicating an expense', () => {
         chargeDate: '2026-11-12',
         date: '2026-10-20',
     });
-    const copyToggle = () => screen.getByRole('button', { name: en.expenses.form.copyTitle });
-    const addToggle = () => screen.getByRole('button', { name: en.expenses.form.title });
+    const copySheet = () => screen.getByRole('dialog', { name: en.expenses.form.copyTitle });
     const add = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
     const cancel = () => fireEvent.click(screen.getByRole('button', { name: en.expenses.form.cancel }));
     const typeIn = (label: string, value: string) => fireEvent.change(field(label), { target: { value } });
@@ -2526,8 +2422,7 @@ describe('duplicating an expense', () => {
 
         expect(screen.getByRole('heading', { level: 2, name: en.expenses.form.copyTitle })).toBeDefined();
         expect(screen.getByRole('form', { name: en.expenses.form.copyTitle })).toBeDefined();
-        expect(screen.queryByRole('button', { name: en.expenses.form.title })).toBeNull();
-        expect(screen.queryByRole('button', { name: en.expenses.form.editTitle })).toBeNull();
+        expect(screen.queryByRole('dialog', { name: en.expenses.form.editTitle })).toBeNull();
         expect(screen.queryByRole('button', { name: en.expenses.form.save })).toBeNull();
         expect(screen.getByRole('button', { name: en.expenses.form.submit }).getAttribute('type')).toBe('submit');
         expect(screen.getByRole('button', { name: en.expenses.form.cancel }).getAttribute('type')).toBe('button');
@@ -2646,14 +2541,14 @@ describe('duplicating an expense', () => {
 
         add();
 
-        await waitFor(() => expect(screen.queryByRole('button', { name: en.expenses.form.title })).not.toBeNull());
-        expect(field(en.expenses.form.amount).value).toBe('');
-        expect(field(en.expenses.form.text).value).toBe('');
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
         expect(screen.queryByRole('button', { name: en.expenses.form.cancel })).toBeNull();
         await waitFor(() => expect(screen.getAllByText('Lunch')).toHaveLength(2));
         const [added, original] = screen.getAllByText('Lunch').map((name) => name.closest('button'));
         expect(document.activeElement).toBe(original);
         expect(document.activeElement).not.toBe(added);
+        expect(field(en.expenses.form.amount).value).toBe('');
+        expect(field(en.expenses.form.text).value).toBe('');
     });
 
     it('goes back to adding on Cancel, saving nothing, with the focus on the row it was copied from', async () => {
@@ -2663,25 +2558,11 @@ describe('duplicating an expense', () => {
 
         cancel();
 
-        expect(addToggle()).toBeDefined();
-        expect(field(en.expenses.form.text).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(document.activeElement).toBe(rowToggle('Lunch'));
+        expect(field(en.expenses.form.text).value).toBe('');
         await new Promise((resolve) => setTimeout(resolve, 20));
         expect(api.attempts).toHaveLength(0);
-    });
-
-    it('opens the form when it is collapsed, brings it into view and puts the focus on its heading', async () => {
-        const scroll = vi.spyOn(Element.prototype, 'scrollIntoView');
-        await open([lunch]);
-        fireEvent.click(addToggle());
-
-        duplicate('Lunch');
-
-        expect(copyToggle().getAttribute('aria-expanded')).toBe('true');
-        expect(document.activeElement).toBe(copyToggle());
-        expect(scroll).toHaveBeenCalledOnce();
-        expect(scroll.mock.contexts[0]).toBe(copyToggle());
-        expect(scroll).toHaveBeenCalledWith({ behavior: 'instant', block: 'start' });
     });
 
     it('replaces a new expense that was being typed, without asking', async () => {
@@ -2713,34 +2594,16 @@ describe('duplicating an expense', () => {
 
         duplicate('Lunch');
 
-        expect(copyToggle()).toBeDefined();
-        expect(screen.queryByRole('button', { name: en.expenses.form.editTitle })).toBeNull();
+        expect(copySheet()).toBeDefined();
+        expect(screen.queryByRole('dialog', { name: en.expenses.form.editTitle })).toBeNull();
         expect(field(en.expenses.form.text).value).toBe('Lunch');
 
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Coffee' }) }));
 
         expect(screen.getByRole('heading', { level: 2, name: en.expenses.form.editTitle })).toBeDefined();
-        expect(screen.queryByRole('button', { name: en.expenses.form.copyTitle })).toBeNull();
+        expect(screen.queryByRole('dialog', { name: en.expenses.form.copyTitle })).toBeNull();
         expect(field(en.expenses.form.text).value).toBe('Coffee');
         expect(screen.getByRole('button', { name: en.expenses.form.save })).toBeDefined();
-    });
-
-    it('ends from the header, Expenses collapsing the form and the logo opening it', async () => {
-        await open([lunch]);
-        duplicate('Lunch');
-
-        fireEvent.click(screen.getByRole('link', { name: en.nav.expenses }));
-
-        expect(addToggle().getAttribute('aria-expanded')).toBe('false');
-        expect(field(en.expenses.form.text).value).toBe('');
-
-        fireEvent.click(duplicateButton('Lunch'));
-        expect(copyToggle().getAttribute('aria-expanded')).toBe('true');
-
-        fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
-
-        expect(addToggle().getAttribute('aria-expanded')).toBe('true');
-        expect(field(en.expenses.form.text).value).toBe('');
     });
 
     it('drops the search, so the new row is never hidden', async () => {
@@ -2797,7 +2660,7 @@ describe('duplicating an expense', () => {
         add();
 
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.saveFailed);
-        expect(copyToggle()).toBeDefined();
+        expect(copySheet()).toBeDefined();
         expect(field(en.expenses.form.text).value).toBe('Lunch');
         expect(screen.getAllByText('Lunch')).toHaveLength(1);
     });
@@ -3090,6 +2953,7 @@ describe('searching, filtering and grouping the list', () => {
         it('do not clash with the add form, which keeps its own category field and date', async () => {
             await open(list);
             fireEvent.click(filtersToggle());
+            ensureAddSheet();
 
             expect(screen.getByRole('combobox', { name: en.expenses.form.category })).not.toBe(
                 screen.getByRole('combobox', { name: f.category })
@@ -3820,6 +3684,7 @@ describe('searching, filtering and grouping the list', () => {
         it('is not dropped when the form refuses the expense', async () => {
             const { api } = await open([cafe, shop]);
             search('cafe');
+            ensureAddSheet();
 
             fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
 

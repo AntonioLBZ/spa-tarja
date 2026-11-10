@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +8,7 @@ import { BUDGETS_KEY, EXPENSES_KEY, GROUPS_KEY, INCOME_KEY, groupEntriesKey } fr
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
 
 import type { Budget } from '@core/budget';
 import type { Expense } from '@core/expense';
@@ -38,7 +39,7 @@ async function open(options: Parameters<typeof createFakeApi>[0] = {}, path = '/
     const api = createFakeApi(options);
     stubApi(api.handler);
     const app = renderApp({ path });
-    await screen.findByRole('heading', { name: en.expenses.form.title });
+    await openAddSheet();
     await waitFor(() => {
         expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success');
         expect(app.queryClient.getQueryState(BUDGETS_KEY)?.status).toBe('success');
@@ -48,6 +49,7 @@ async function open(options: Parameters<typeof createFakeApi>[0] = {}, path = '/
 }
 
 function field(label: string) {
+    ensureAddSheet();
     return screen.getByLabelText(label) as HTMLInputElement;
 }
 
@@ -85,6 +87,14 @@ describe('the warning after adding an expense', () => {
         add('20');
 
         await waitFor(() => expect(toastText()).toBe('Food of October is at 90 % of its limit'));
+    });
+
+    it('replaces the toast that says the expense was added, away from the home screen', async () => {
+        await open({ expenses: [expense({ amountCents: 9_000 })], budgets: food }, '/summary');
+
+        add('20');
+
+        await waitFor(() => expect(toastText()).toBe('Food of October went over its limit'));
     });
 
     it('says a limit was passed', async () => {
@@ -182,6 +192,7 @@ describe('the warning after adding an expense', () => {
         const api = createFakeApi({ expenses: [expense({ amountCents: 9_000 })], budgets: food });
         stubApi(api.handler);
         renderApp({ path: '/' });
+        fireEvent.click(await screen.findByRole('button', { name: es.nav.add }));
         fireEvent.change(await screen.findByLabelText(es.expenses.form.amount), { target: { value: '20' } });
         fireEvent.change(screen.getByLabelText(es.expenses.form.text), { target: { value: 'almuerzo' } });
         fireEvent.click(screen.getByRole('button', { name: es.expenses.form.submit }));
@@ -253,7 +264,7 @@ describe('the warning after sharing an expense', () => {
         fireEvent.click((await screen.findByText('Dinner')).closest('button')!);
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.duplicateItem', { name: 'Dinner' }) }));
 
-        fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+        fireEvent.click(within(screen.getByRole('main')).getByRole('button', { name: en.expenses.form.submit }));
 
         await waitFor(() => expect(toastText()).toBe('Food of October is at 90 % of its limit'));
     });

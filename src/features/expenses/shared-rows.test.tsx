@@ -259,7 +259,7 @@ describe('changing a shared row from the list', () => {
         });
         expect(rowOf('Dinner').textContent).toContain(euros(2500));
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('does not offer Edit for an entry that names somebody who left, and still offers Duplicate', async () => {

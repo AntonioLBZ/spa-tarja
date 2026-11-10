@@ -17,10 +17,10 @@ import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { isSharedRow } from '@core/shared-expense';
 
-import { useAddForm } from './add-form-state';
 import { restoreExpenses } from './create-expenses';
 import { ExpenseListControls } from './expense-list-controls';
 import { ExpenseRow } from './expense-row';
+import { useExpenseSheet } from './expense-sheet-state';
 import { useExpenseList } from './use-expense-list';
 import { useSaveExpense } from './use-save-expense';
 
@@ -49,7 +49,7 @@ const ExpenseList = () => {
         endEdit,
         refocus,
         clearRefocus,
-    } = useAddForm();
+    } = useExpenseSheet();
     const list = useExpenseList();
     const { groups, grouping, leaving, pendingIds, hasData, neverPulled, isError, isWaitingForNetwork } = list;
     const { labelOf, styleOf } = useCategoryOptions();

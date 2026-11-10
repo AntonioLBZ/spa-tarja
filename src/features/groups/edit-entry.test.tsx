@@ -85,7 +85,7 @@ function shareValues() {
 }
 
 function heading(name: string) {
-    return screen.getByRole('button', { name });
+    return within(screen.getByRole('main')).getByRole('button', { name });
 }
 
 beforeEach(() => {

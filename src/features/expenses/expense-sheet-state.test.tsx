@@ -174,14 +174,15 @@ describe('ExpenseSheetProvider', () => {
         expect(result.current.addKey).toBeGreaterThan(before);
     });
 
-    it('closes and starts a new form when an add is over', () => {
+    it('closes when an add is over, and the next one starts a new form', () => {
         const { result } = setup();
 
         act(() => result.current.openAdd());
-        const before = result.current.addKey;
         act(() => result.current.endAdd());
-
         expect(result.current.open).toBe(false);
+        const before = result.current.addKey;
+        act(() => result.current.openAdd());
+
         expect(result.current.addKey).toBeGreaterThan(before);
     });
 
