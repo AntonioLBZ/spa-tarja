@@ -34,6 +34,17 @@
     padding: 0;
 }
 
+/* The four links share what is left of the 3rem column of the action in the middle */
+.bottom-nav__list--action {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) 3rem repeat(2, minmax(0, 1fr));
+}
+
+.bottom-nav__action {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
 .bottom-nav__link {
     align-items: center;
     block-size: var(--bottom-nav-height);
