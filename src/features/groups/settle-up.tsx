@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -148,6 +148,13 @@ const SettleUp = (props: SettleUpProps) => {
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
     const toggle = useRef<HTMLButtonElement>(null);
+    // The sheet is closing and the button that opened it takes the focus, once the page is not inert any more
+    const returnFocus = useRef(false);
+    useEffect(() => {
+        if (form.open || !returnFocus.current) return;
+        returnFocus.current = false;
+        toggle.current?.focus();
+    }, [form.open]);
     const amountInput = useRef<HTMLInputElement>(null);
     const { editing } = form;
 
@@ -231,7 +238,7 @@ const SettleUp = (props: SettleUpProps) => {
             }
             form.setDraft(null);
             form.setOpen(false);
-            toggle.current?.focus();
+            returnFocus.current = true;
         } catch (error) {
             setFailure(failureOf(error));
         } finally {
@@ -248,7 +255,7 @@ const SettleUp = (props: SettleUpProps) => {
             return;
         }
         form.setOpen(false);
-        toggle.current?.focus();
+        returnFocus.current = true;
     };
 
     return (

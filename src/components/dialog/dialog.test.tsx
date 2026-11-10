@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import { useEffect, useRef, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Dialog } from './dialog';
@@ -233,5 +234,31 @@ describe('Dialog', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Go' }));
 
         expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('is closed by the time the page hands the focus to something behind it', () => {
+        const Row = (props: { open: boolean }) => {
+            const ref = useRef<HTMLButtonElement>(null);
+            useEffect(() => {
+                if (!props.open) ref.current?.focus();
+            }, [props.open]);
+            return <button ref={ref}>Row</button>;
+        };
+        const Page = () => {
+            const [open, setOpen] = useState(true);
+            return (
+                <>
+                    <Row open={open} />
+                    <Dialog open={open} title="Moved" onClose={vi.fn()}>
+                        <button onClick={() => setOpen(false)}>Done</button>
+                    </Dialog>
+                </>
+            );
+        };
+        render(<Page />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Row' }));
     });
 });

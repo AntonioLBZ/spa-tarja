@@ -317,17 +317,6 @@ describe('changing a shared row from the list', () => {
         expect(app.groupOutbox.getState().pending).toMatchObject([{ text: 'Dinner', deletedAt: null }]);
     });
 
-    it('ends an edit of the entry it deletes', async () => {
-        await openTrip();
-        onlineManager.setOnline(false);
-        press('editItem', 'Dinner');
-        expect(screen.getByRole('form', { name: en.expenses.form.editTitle })).toBeDefined();
-
-        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.deleteItem', { name: 'Dinner' }) }));
-
-        await waitFor(() => expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined());
-    });
-
     it('says under the title why a delete the device refuses did nothing, and keeps the row as it was', async () => {
         document.documentElement.style.setProperty('--duration-base', '200ms');
         const { app, group } = await openTrip();

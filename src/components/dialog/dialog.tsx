@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useEffect, useEffectEvent, useId, useRef, type ReactNode } from 'react';
+import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
@@ -47,7 +47,9 @@ const Dialog = (props: DialogProps) => {
         (initialFocus?.() ?? dialog).focus();
     });
 
-    useEffect(() => {
+    // Before the passive effects of the page, which hand the focus to a row once the sheet is gone: while a modal is
+    // open the rest of the page is inert and the focus would not take
+    useLayoutEffect(() => {
         const dialog = ref.current;
         if (!dialog) return;
         if (open && !dialog.open) {

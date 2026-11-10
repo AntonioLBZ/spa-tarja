@@ -1,4 +1,5 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { expect } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 
@@ -20,4 +21,10 @@ const ensureAddSheet = (): HTMLElement => {
     return screen.getByRole('dialog', { name: en.expenses.form.title });
 };
 
-export { ensureAddSheet, openAddSheet };
+// Presses Close on the sheet that is open: the page behind it answers nothing until then
+const closeSheet = async () => {
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en.expenses.form.close }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+};
+
+export { closeSheet, ensureAddSheet, openAddSheet };

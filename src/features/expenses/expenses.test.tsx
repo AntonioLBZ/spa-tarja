@@ -14,7 +14,7 @@ import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
-import { ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
+import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
 import { addMonths } from '@core/date';
 import { expenseInputSchema, type Expense, type Payment } from '@core/expense';
 
@@ -2310,29 +2310,10 @@ describe('editing an expense', () => {
         await waitFor(() => expect(screen.queryByText(en.expenses.list.pending)).toBeNull());
     });
 
-    it('ends when the expense under edit is deleted', async () => {
-        await open([lunch, expense({ text: 'Coffee' })]);
-        edit('Lunch');
-
-        fireEvent.click(deleteButton('Lunch'));
-
-        expect(screen.queryByRole('dialog')).toBeNull();
-        expect(field(en.expenses.form.amount).value).toBe('');
-    });
-
-    it('goes on when another expense is deleted', async () => {
-        await open([lunch, expense({ text: 'Coffee' })]);
-        edit('Lunch');
-
-        deleteExpense('Coffee');
-
-        expect(editSheet()).toBeDefined();
-        expect(field(en.expenses.form.text).value).toBe('Lunch');
-    });
-
     it('takes the place of a new expense that was being typed, which is gone once the edit is over', async () => {
         await open([lunch]);
         typeIn(en.expenses.form.amount, '3');
+        await closeSheet();
 
         edit('Lunch');
         expect(field(en.expenses.form.amount).value).toBe('12.50');
@@ -2569,6 +2550,7 @@ describe('duplicating an expense', () => {
         await open([lunch]);
         typeIn(en.expenses.form.amount, '3');
         typeIn(en.expenses.form.text, 'Half typed');
+        await closeSheet();
 
         duplicate('Lunch');
 
@@ -2580,6 +2562,7 @@ describe('duplicating an expense', () => {
         await open([lunch]);
         duplicate('Lunch');
         typeIn(en.expenses.form.text, 'Changed');
+        await closeSheet();
 
         fireEvent.click(duplicateButton('Lunch'));
 
@@ -2591,12 +2574,14 @@ describe('duplicating an expense', () => {
         fireEvent.click(rowToggle('Coffee'));
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Coffee' }) }));
         expect(screen.getByRole('heading', { level: 2, name: en.expenses.form.editTitle })).toBeDefined();
+        await closeSheet();
 
         duplicate('Lunch');
 
         expect(copySheet()).toBeDefined();
         expect(screen.queryByRole('dialog', { name: en.expenses.form.editTitle })).toBeNull();
         expect(field(en.expenses.form.text).value).toBe('Lunch');
+        await closeSheet();
 
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Coffee' }) }));
 
@@ -3645,18 +3630,6 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(screen.getByRole('button', { name: en.expenses.form.cancel }));
 
             expect(document.activeElement).toBe(rowToggle('Weekly shop'));
-        });
-
-        it('gives the focus to the list title when the filter hides the row it edited', async () => {
-            await open([cafe, shop]);
-            fireEvent.click(rowToggle('Weekly shop'));
-            fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Weekly shop' }) }));
-            search('cafe');
-            expect(screen.queryByText('Weekly shop')).toBeNull();
-
-            fireEvent.click(screen.getByRole('button', { name: en.expenses.form.cancel }));
-
-            expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }));
         });
     });
 

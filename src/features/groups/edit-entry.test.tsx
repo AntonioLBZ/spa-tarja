@@ -11,7 +11,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { openAddSheet } from '@/lib/test/sheet';
+import { closeSheet, openAddSheet } from '@/lib/test/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -205,6 +205,7 @@ describe('editing a shared expense', () => {
         await open(group, [dinner(group)]);
         const typing = await openAddSheet();
         fireEvent.change(within(typing).getByLabelText(form.amount), { target: { value: '99' } });
+        await closeSheet();
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
         expect(field(form.amount).value).toBe('10.00');
@@ -325,16 +326,6 @@ describe('editing a shared expense', () => {
         await waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
         expect(api.entriesOf(group.id)).toMatchObject([{ id: saved.id, text: 'Supper' }]);
         expect(api.entryWrites).toHaveLength(1);
-    });
-
-    it('is over when the entry is deleted', async () => {
-        const group = trip();
-        await open(group, [dinner(group)]);
-        fireEvent.click(actionOf('Dinner', 'editItem'));
-
-        fireEvent.click(actionOf('Dinner', 'deleteItem'));
-
-        expect(screen.queryByRole('dialog')).toBeNull();
     });
 });
 
@@ -463,17 +454,6 @@ describe('duplicating a shared expense', () => {
         fireEvent.click(submit);
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
-    });
-
-    it('is over when the entry being copied is deleted', async () => {
-        const group = trip();
-        await open(group, [dinner(group)]);
-        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
-        expect(screen.getByRole('dialog', { name: form.copyTitle })).toBeDefined();
-
-        fireEvent.click(actionOf('Dinner', 'deleteItem'));
-
-        expect(screen.queryByRole('dialog')).toBeNull();
     });
 });
 
@@ -631,17 +611,6 @@ describe('the group screen without a form of its own', () => {
         const dialog = await screen.findByRole('dialog', { name: form.copyTitle });
         expect((within(dialog).getByLabelText(form.text) as HTMLInputElement).value).toBe('Dinner');
         expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
-    });
-
-    it('ends the edit when the entry is deleted', async () => {
-        const group = trip();
-        await open(group, [dinner(group)]);
-        fireEvent.click(actionOf('Dinner', 'editItem'));
-        await screen.findByRole('dialog', { name: form.editTitle });
-
-        fireEvent.click(actionOf('Dinner', 'deleteItem'));
-
-        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
 });
 

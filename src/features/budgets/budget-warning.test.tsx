@@ -8,7 +8,7 @@ import { BUDGETS_KEY, EXPENSES_KEY, GROUPS_KEY, INCOME_KEY, groupEntriesKey } fr
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
+import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
 
 import type { Budget } from '@core/budget';
 import type { Expense } from '@core/expense';
@@ -167,6 +167,7 @@ describe('the warning after adding an expense', () => {
 
     it('says nothing when an expense is edited past a limit', async () => {
         await open({ expenses: [expense({ amountCents: 7_000 })], budgets: food });
+        await closeSheet();
         fireEvent.click(screen.getByText('Lunch').closest('button')!);
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Lunch' }) }));
 
@@ -179,6 +180,7 @@ describe('the warning after adding an expense', () => {
 
     it('says it when an expense is duplicated past a limit', async () => {
         await open({ expenses: [expense({ amountCents: 7_000 })], budgets: food });
+        await closeSheet();
         fireEvent.click(screen.getByText('Lunch').closest('button')!);
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.duplicateItem', { name: 'Lunch' }) }));
 
@@ -261,6 +263,7 @@ describe('the warning after sharing an expense', () => {
             },
             `/groups/${group.id}`
         );
+        await closeSheet();
         fireEvent.click((await screen.findByText('Dinner')).closest('button')!);
         fireEvent.click(screen.getByRole('button', { name: t('expenses.list.duplicateItem', { name: 'Dinner' }) }));
 
