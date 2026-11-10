@@ -25,6 +25,7 @@ const ExpenseSheet = () => {
         copying,
         editingEntry,
         copyingEntry,
+        startGroup,
         endEdit,
         endCopy,
         noteAdded,
@@ -68,6 +69,7 @@ const ExpenseSheet = () => {
                     key={key}
                     title={title}
                     group={entry?.group}
+                    startGroup={isEdit || isCopy ? undefined : (startGroup ?? undefined)}
                     editing={editing}
                     copying={copying?.parts ?? null}
                     editingEntry={editingEntry?.entry ?? null}

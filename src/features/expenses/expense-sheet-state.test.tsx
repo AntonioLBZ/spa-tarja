@@ -130,6 +130,17 @@ describe('ExpenseSheetProvider', () => {
         expect(result.current.open).toBe(true);
     });
 
+    it('starts the expense in the group that openAdd is given, and in none otherwise', () => {
+        const group = sampleGroup();
+        const { result } = setup();
+
+        act(() => result.current.openAdd({ group }));
+        expect(result.current.startGroup).toBe(group);
+
+        act(() => result.current.openAdd());
+        expect(result.current.startGroup).toBeNull();
+    });
+
     it('adds on openAdd after an edit', () => {
         const { result } = setup();
 

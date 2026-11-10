@@ -2,6 +2,7 @@ import { createContext, use, useMemo, useRef, useState, type ReactNode } from 'r
 
 import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
+import type { SharedGroup } from '@core/shared-group';
 
 // What the form copies into a new expense: the expense, or every part of its plan. `serial` tells one press of
 // Duplicate from the next, so pressing it again starts over.
@@ -19,8 +20,10 @@ interface ExpenseSheetState {
     open: boolean;
     // Closes the sheet. An add keeps what was typed; an edit or a copy ends, as Cancel does.
     close: () => void;
-    // Opens the sheet on a new expense
-    openAdd: () => void;
+    // Opens the sheet on a new expense. `group` is where a shared one starts, the open group of the screen.
+    openAdd: (options?: { group?: SharedGroup | null }) => void;
+    // The group the form being added starts in; null for none
+    startGroup: SharedGroup | null;
     // A new expense was saved: the sheet closes. The form has emptied itself, so the next "+" starts a new one.
     endAdd: () => void;
     // Changes when the next add must start a new form rather than keep the one in the page
@@ -68,6 +71,7 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
     const { children } = props;
     const [open, setOpen] = useState(false);
     const [addKey, setAddKey] = useState(0);
+    const [startGroup, setStartGroup] = useState<SharedGroup | null>(null);
     const [editing, setEditing] = useState<readonly Expense[] | null>(null);
     const [copying, setCopying] = useState<Copy | null>(null);
     const [editingEntry, setEditingEntry] = useState<SharedRowSource | null>(null);
@@ -114,11 +118,13 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
                 }
                 setOpen(false);
             },
-            openAdd: () => {
+            openAdd: (options) => {
                 clear();
+                setStartGroup(options?.group ?? null);
                 if (!drafting.current) setAddKey((key) => key + 1);
                 setOpen(true);
             },
+            startGroup,
             endAdd: () => setOpen(false),
             addKey,
             markDraft: (isDrafting: boolean) => {
@@ -159,7 +165,7 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
             added,
             noteAdded: (day: string) => setAdded({ day }),
         };
-    }, [open, addKey, editing, copying, editingEntry, copyingEntry, refocus, added]);
+    }, [open, addKey, startGroup, editing, copying, editingEntry, copyingEntry, refocus, added]);
 
     return <ExpenseSheetContext value={value}>{children}</ExpenseSheetContext>;
 };

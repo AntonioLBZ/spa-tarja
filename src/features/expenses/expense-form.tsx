@@ -41,6 +41,8 @@ interface ExpenseFormProps {
     title: string;
     // The group of the screen the form is on, where the expense is shared with nothing to choose
     group?: SharedGroup;
+    // Where a new expense starts shared, a group or friend the person can still change; without it, it starts as Just me
+    startGroup?: SharedGroup;
     // The expense, or every part of its plan, to change; without it the form adds a new one
     editing?: readonly Expense[] | null;
     // The expense, or every part of its plan, to start a new one from
@@ -131,6 +133,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const {
         title,
         group,
+        startGroup,
         editing = null,
         copying = null,
         editingEntry = null,
@@ -159,7 +162,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             : startingFields(source && draftOf(source), locale, copying !== null)
     );
     const isEdit = editing !== null || editingEntry !== null;
-    const startFor: ForWhom = group ? 'shared' : 'me';
+    const startFor: ForWhom = group || startGroup ? 'shared' : 'me';
     const suggest = useSuggestCategory(source === null && entry === null);
     const [amount, setAmount] = useState(start.amount);
     const [text, setText] = useState(start.text);
@@ -179,7 +182,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const totalCents = parseAmount(amount, locale);
     const payment = usePayment(start, date);
     const personal = usePersonalTail(start, totalCents, date, payment.payment);
-    const shared = useSharedTail(group, totalCents, payment, entrySource);
+    const shared = useSharedTail(group, totalCents, payment, entrySource, startGroup?.id);
     const isShared = forWhom === 'shared';
 
     // A new expense's category follows the description until the user picks one (the keywords, else the person's own
