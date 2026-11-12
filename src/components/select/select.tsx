@@ -1,5 +1,17 @@
 import clsx from 'clsx';
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type Ref } from 'react';
+import {
+    useEffect,
+    useId,
+    useLayoutEffect,
+    useRef,
+    useState,
+    type CSSProperties,
+    type KeyboardEvent,
+    type ReactNode,
+    type Ref,
+} from 'react';
+
+import { placeList, type ListPlacement } from './place-list';
 
 import './select.css';
 
@@ -31,7 +43,7 @@ const TYPING_MEMORY_MS = 500;
 
 // A list of options with an icon beside each name if they have one, which a native select can't draw. It follows the
 // select-only combobox pattern: the focus stays on the field, and the active option is the one `aria-activedescendant`
-// names.
+// names. It opens under the field, or over it when that is where the room is.
 const Select = <Value extends string>(props: SelectProps<Value>) => {
     const {
         id,
@@ -46,12 +58,15 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
     } = props;
     const listId = useId();
     const root = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
     const typed = useRef('');
     const typedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(0);
     // Whether the arrow keys, and not the pointer, put the active option where it is
     const [byKeys, setByKeys] = useState(false);
+    // Where the list goes, measured as it opens; none while it is closed
+    const [placement, setPlacement] = useState<ListPlacement | null>(null);
 
     const chosenIndex = Math.max(
         0,
@@ -59,6 +74,8 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
     );
     const chosen = options[chosenIndex];
     const hasIcons = options.some((option) => option.icon);
+    const listClsx = clsx('select__list', { 'select__list--above': placement?.above });
+    const listStyle = placement ? ({ '--select-room': `${placement.room}px` } as CSSProperties) : undefined;
     const optionId = (index: number) => `${listId}-${index}`;
 
     useEffect(() => () => clearTimeout(typedTimer.current), []);
@@ -73,11 +90,19 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
         return () => document.removeEventListener('pointerdown', close);
     }, [open]);
 
+    // Before the list is painted, so it never shows where it doesn't fit
+    useLayoutEffect(() => {
+        if (!open || !root.current || !listRef.current) return;
+        setPlacement(placeList(root.current, listRef.current.offsetHeight));
+        return () => setPlacement(null);
+    }, [open]);
+
+    // Once the list has its place: scrolling before would move the sheet around a list that is about to move
     useEffect(() => {
-        if (open) document.getElementById(optionId(active))?.scrollIntoView?.({ block: 'nearest' });
+        if (open && placement) document.getElementById(optionId(active))?.scrollIntoView?.({ block: 'nearest' });
         // optionId only depends on listId
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [open, active]);
+    }, [open, placement, active]);
 
     const show = (index = chosenIndex) => {
         setActive(index);
@@ -195,8 +220,10 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
             </button>
             {open && (
                 <ul
-                    className="select__list"
+                    className={listClsx}
                     id={listId}
+                    ref={listRef}
+                    style={listStyle}
                     aria-label={label}
                     role="listbox"
                     // Keeps the focus on the field while an option is pressed

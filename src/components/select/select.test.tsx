@@ -614,3 +614,87 @@ describe('the ring on the row the keys are on', () => {
         expect(activeOption()!.classList.contains(ring)).toBe(true);
     });
 });
+
+describe('where the list opens', () => {
+    const fieldRect = (top: number, bottom: number) => {
+        const rect = { top, bottom, height: bottom - top, left: 0, right: 0, width: 0, x: 0, y: top };
+        vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+            const own = this === field().parentElement;
+            return { ...(own ? rect : { ...rect, top: 0, bottom: 0, height: 0, y: 0 }), toJSON: () => ({}) };
+        });
+    };
+
+    const room = () => list().style.getPropertyValue('--select-room');
+
+    const closeList = () => key('Escape');
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
+    const wanting = (height: number) => {
+        vi.stubGlobal('innerHeight', 800);
+        vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(height);
+    };
+
+    it('opens under the field when the list fits there, and says how much room there is', () => {
+        wanting(300);
+        fieldRect(100, 144);
+        render(<Harness />);
+
+        open();
+
+        expect(list().className).not.toContain('select__list--above');
+        expect(room()).toBe(`${800 - 144 - 8}px`);
+    });
+
+    it('opens over the field when the list does not fit under it and there is more room over it', () => {
+        wanting(300);
+        fieldRect(600, 644);
+        render(<Harness />);
+
+        open();
+
+        expect(list().className).toContain('select__list--above');
+        expect(room()).toBe(`${600 - 8}px`);
+    });
+
+    it('limits the list to the room under the field when neither side has enough', () => {
+        wanting(300);
+        vi.stubGlobal('innerHeight', 400);
+        fieldRect(150, 194);
+        render(<Harness />);
+
+        open();
+
+        expect(list().className).not.toContain('select__list--above');
+        expect(room()).toBe(`${400 - 194 - 8}px`);
+    });
+
+    it('measures again every time it opens, as the field may have moved', () => {
+        wanting(300);
+        fieldRect(100, 144);
+        render(<Harness />);
+        open();
+        expect(list().className).not.toContain('select__list--above');
+        closeList();
+
+        fieldRect(600, 644);
+        open();
+
+        expect(list().className).toContain('select__list--above');
+        expect(room()).toBe(`${600 - 8}px`);
+    });
+
+    it('still lists every option, in order, whichever side it opens on', () => {
+        wanting(300);
+        fieldRect(600, 644);
+        render(<Harness />);
+
+        open();
+
+        expect(options().map((option) => option.textContent)).toEqual(OPTIONS.map((option) => option.label));
+        expect(activeOption()?.textContent).toBe('Food');
+    });
+});

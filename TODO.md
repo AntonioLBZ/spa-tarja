@@ -28,7 +28,3 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - **The same component, another variant.** Not answered yet: the row of actions copied in `category-row`, `expense-row`, `expense-form` and `dialog` (a component or leave it), and the titles and hints repeated in eight CSS files (`:where(h1)` and `:where(h2)` in `base.css`, or leave them).
 - **Stories of the groups.** None yet for Settle up, the Leave and Delete panels, the steps of a person, `InvitationLink` or `InviteFriend`; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
-
-## 19. Selects whose menu does not fit
-
-Review `Select` when its list of options does not fit in the space below it (a short phone, the keyboard open, the bottom of a sheet): where it opens, whether it flips upward or scrolls inside, and that the active option stays in view. Part of the phone checklist of the sheets (the list at the bottom of the bottom sheet), not yet looked at on a real device.
