@@ -12,6 +12,35 @@
     view-transition-name: bottom-nav;
 }
 
+/* The shadow it casts on the content under it (ADR-0018): full until the page is scrolled to its end. Where
+   scroll-driven animations are missing it stays invisible and the hairline is the only edge. */
+.bottom-nav::after {
+    box-shadow: 0 calc(-1 * var(--size-1)) var(--size-3) var(--color-shadow);
+    content: '';
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+@keyframes bottom-nav-shadow {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@supports (animation-timeline: scroll()) {
+    .bottom-nav::after {
+        animation: bottom-nav-shadow linear both;
+        animation-range: calc(100% - var(--size-6)) 100%;
+        animation-timeline: scroll(root block);
+    }
+}
+
 /* Out of the way while a field has the focus, so the keyboard doesn't leave it floating. Hidden for good once it is
    out, so Tab can't land on it. A field in a dialog doesn't count: the dialog covers the bar, and closing it must be
    able to give the focus back to the "+". */

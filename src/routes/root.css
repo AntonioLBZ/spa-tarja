@@ -30,6 +30,31 @@
     z-index: 1;
 }
 
+/* The shadow it casts on the content under it (ADR-0018): invisible at the top of the page, full after a short scroll.
+   Where scroll-driven animations are missing it stays invisible and the hairline is the only edge. */
+.root__header::after {
+    box-shadow: var(--shadow-popup);
+    content: '';
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+@keyframes root-header-shadow {
+    to {
+        opacity: 1;
+    }
+}
+
+@supports (animation-timeline: scroll()) {
+    .root__header::after {
+        animation: root-header-shadow linear both;
+        animation-range: 0 var(--size-6);
+        animation-timeline: scroll(root block);
+    }
+}
+
 .root__header--hidden {
     transform: translateY(-100%);
 }

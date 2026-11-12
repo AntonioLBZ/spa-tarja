@@ -13,6 +13,8 @@ On a phone the destinations are a bar at the bottom; from 40 rem up they stay in
 
 - **It doesn't hide on scroll.** The header slides out when the page goes down and back in when it comes up ([header](header.md)); the bar stays, because it is the navigation of a phone and the thumb's reach, and a bar that came and went would move the "+" from under the thumb. It hides for a field with the focus and for nothing else.
 
+- **Shadow over it** ([ADR-0018](../adr/0018-a-shadow-where-content-scrolls-under-an-edge.md)). While content is under the bar, it casts a soft shadow (`--color-shadow`) upward, over the hairline: full unless the page is scrolled to its last `--size-6`, nothing at the end. A pseudo-element of the bar holds it and only its `opacity` follows the scroll (scroll-driven animation, no script); where the browser lacks it there is no shadow. It goes with the bar when a field has the focus.
+
 ## Screen
 
 - `BottomNav`, a shared component (`src/components/bottom-nav`, with its story), fixed to the bottom on `--color-bg-secondary` with an ink hairline on top, `--bottom-nav-height` (3.75rem) tall, plus `env(safe-area-inset-bottom)`, and padded at the sides by the safe areas of a landscape phone. It is a `<nav>` with a list of five columns of equal width: the four links and the "+" in the middle one. Each is an icon over its word, at `--font-size-s`; the icon is decorative (`aria-hidden`) and the word is always there. A link is `--bottom-nav-height` tall, so above `--size-touch`.

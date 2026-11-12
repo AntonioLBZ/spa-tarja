@@ -15,26 +15,26 @@ Source of truth for the visual and interaction rules of the design system. `src/
 
 ### Flat colors
 
-Solid colors only: no gradients, no blur. Separation comes from borders and from the two surface tones, not from elevation. The one exception is the soft shadow (`--shadow-popup`) around a list that opens over the page, such as the options of a `Select`: it tells the list from what lies under it. Nothing else casts a shadow.
+Solid colors only: no gradients, no blur. Separation comes from borders and from the two surface tones, not from elevation. The one exception is the soft shadow (`--shadow-popup`) around a list that opens over the page, such as the options of a `Select`: it tells the list from what lies under it. The same shadow, with the same color, is cast by the bottom bar of a phone and the sticky header onto the content scrolled under them, and only while there is some ([ADR-0018](../docs/adr/0018-a-shadow-where-content-scrolls-under-an-edge.md)). Nothing else casts a shadow.
 
 ### Palette
 
 The base is white (light theme) or black (dark theme), with text in the opposite one. The dark theme is true black. Everything else is a neutral gray, one accent (picked from a fixed list), one danger color and the category palette.
 
-| Token                       | Light       | Dark        | Use                                                                               |
-| --------------------------- | ----------- | ----------- | --------------------------------------------------------------------------------- |
-| `--color-bg-primary`        | `#fff`      | `#000`      | Page background, and the text of a toast                                          |
-| `--color-bg-secondary`      | `#f4f4f4`   | `#141414`   | Header and raised surfaces. The browser toolbar matches it                        |
-| `--color-content-primary`   | `#000`      | `#fff`      | Text and icons                                                                    |
-| `--color-content-secondary` | `#595959`   | `#a3a3a3`   | Secondary text, and the thumb of a scrollbar                                      |
-| `--color-border`            | `#000`      | `#fff`      | Structural borders (ink), and the fill of a toast                                 |
-| `--color-border-subtle`     | `#d4d4d4`   | `#2e2e2e`   | Hairline dividers                                                                 |
-| `--color-accent`            | `#404040`   | `#d4d4d4`   | The interface hue: links, selection, primary action (gray by default, see Accent) |
-| `--color-bg-accent`         | accent      | accent      | Fill behind a primary action                                                      |
-| `--color-content-on-accent` | `#fff`      | `#000`      | Text on that fill                                                                 |
-| `--color-border-focus`      | accent      | accent      | Focus ring                                                                        |
-| `--color-danger`            | `#c81e1e`   | `#f87171`   | Errors and destructive actions only                                               |
-| `--color-shadow`            | `#0000002e` | `#ffffff24` | The soft shadow around a list that opens over the page (`--shadow-popup`)         |
+| Token                       | Light       | Dark        | Use                                                                                                                                                  |
+| --------------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--color-bg-primary`        | `#fff`      | `#000`      | Page background, and the text of a toast                                                                                                             |
+| `--color-bg-secondary`      | `#f4f4f4`   | `#141414`   | Header and raised surfaces. The browser toolbar matches it                                                                                           |
+| `--color-content-primary`   | `#000`      | `#fff`      | Text and icons                                                                                                                                       |
+| `--color-content-secondary` | `#595959`   | `#a3a3a3`   | Secondary text, and the thumb of a scrollbar                                                                                                         |
+| `--color-border`            | `#000`      | `#fff`      | Structural borders (ink), and the fill of a toast                                                                                                    |
+| `--color-border-subtle`     | `#d4d4d4`   | `#2e2e2e`   | Hairline dividers                                                                                                                                    |
+| `--color-accent`            | `#404040`   | `#d4d4d4`   | The interface hue: links, selection, primary action (gray by default, see Accent)                                                                    |
+| `--color-bg-accent`         | accent      | accent      | Fill behind a primary action                                                                                                                         |
+| `--color-content-on-accent` | `#fff`      | `#000`      | Text on that fill                                                                                                                                    |
+| `--color-border-focus`      | accent      | accent      | Focus ring                                                                                                                                           |
+| `--color-danger`            | `#c81e1e`   | `#f87171`   | Errors and destructive actions only                                                                                                                  |
+| `--color-shadow`            | `#0000002e` | `#ffffff24` | The soft shadow around a list that opens over the page (`--shadow-popup`) and under the header and the bottom bar while content scrolls beneath them |
 
 Rules:
 
@@ -209,5 +209,4 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 Add here what comes up, and ask the owner before settling it.
 
 - **Category colors.** The owner is thinking of dropping them, so that a category takes the accent instead of a color of its own. Not decided: the palette in §2 stays as it is. The colors as a whole wait for a review with the owner, among them the amber accent next to the orange and yellow category icons.
-- **Scroll edges.** Whether something shows where content slides under the header, the bottom bar or the footer of a sheet (a soft shadow, a rule that appears only then, a fade, or nothing). A shadow and a fade break "Flat" (§2); `Lab/Scroll edges` in Storybook shows four options side by side. Nothing is built in the app until the owner picks.
 - **The Dot Matrix logo.** It reads well on Android, but the owner is not sure the face fits the identity: it recalls the Nothing phone brand.
