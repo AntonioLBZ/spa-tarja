@@ -1,60 +1,63 @@
-/* A new expense comes in from above; a deleted one fades out and moves aside before it goes */
+/* A new expense lands from above with a spring; a deleted one fades out and moves aside before it goes */
 .expense-item {
     transition:
         opacity var(--duration-base) var(--ease-enter),
-        transform var(--duration-base) var(--ease-enter);
+        transform var(--duration-slow) var(--ease-spring);
 
     @starting-style {
         opacity: 0;
-        transform: translateY(calc(-1 * var(--size-2)));
+        transform: translateY(calc(-1 * var(--size-3))) scale(0.98);
     }
 }
 
 .expense-item--leaving {
     opacity: 0;
     pointer-events: none;
-    transform: translateX(var(--size-4));
+    transform: translateX(var(--size-6));
     transition-timing-function: var(--ease-exit);
 }
 
-/* What the toggle shows: the name and the amount, and the details under them. The row of the details exists only when
-   there are some, so a row without them has no gap under it */
+/* What the toggle shows: the sticker, the name with its details under it, and the amount */
 .expense-item__body {
     align-items: center;
     display: grid;
     flex: 1;
-    gap: var(--size-1) var(--size-3);
-    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--size-3);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     min-width: 0;
     padding-block: var(--size-2);
 }
 
-.expense-item__name {
-    align-items: center;
-    display: flex;
-    gap: var(--size-2);
-    grid-area: 1 / 1;
+/* An entry with no sticker, a settlement, starts at the left edge */
+.expense-item__body--plain {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.expense-item__main {
+    display: grid;
     min-width: 0;
 }
 
 .expense-item__text {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-strong);
+    line-height: 1.2;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
 .expense-item__amount {
-    font-variant-numeric: tabular-nums;
-    grid-area: 1 / 2;
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-display);
     white-space: nowrap;
 }
 
 .expense-item__meta {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     display: flex;
     flex-wrap: wrap;
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
-    grid-area: 2 / 1 / auto / -1;
     min-width: 0;
 }
 
@@ -62,18 +65,10 @@
     font-style: italic;
 }
 
+/* Under the name, in line with it: the sticker and its gap are left clear */
 .expense-item__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-/* The name is joined to the amount by a leader of dots, which gives way when the name wraps */
-.expense-item__name::after {
-    color: var(--color-content-secondary);
-    content: var(--leader-dots) / '';
-    flex: 1 1 0;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
+    gap: var(--size-2);
+    padding-inline-start: calc(3rem + var(--size-3));
 }

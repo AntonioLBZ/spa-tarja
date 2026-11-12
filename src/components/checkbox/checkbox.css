@@ -17,13 +17,11 @@
     overflow-wrap: anywhere;
 }
 
-/* A field with the notch; the mark shows only once it is checked */
+/* A soft square; the mark shows only once it is checked, and pops in */
 .checkbox__box {
     align-items: center;
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    background: var(--color-surface);
+    border-radius: var(--radius-s);
     color: transparent;
     display: flex;
     flex: none;
@@ -31,32 +29,29 @@
     justify-content: center;
     transition:
         background-color var(--duration-base) var(--ease-standard),
-        border-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
+        color var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-spring);
     width: var(--size-8);
 }
 
 .checkbox__input:checked + .checkbox__box {
     background: var(--color-bg-accent);
     color: var(--color-content-on-accent);
+    transform: scale(1.06);
 }
 
 .checkbox__input:focus-visible + .checkbox__box {
-    outline: var(--focus-width) solid var(--color-border-focus);
+    outline: var(--focus-width) solid var(--color-focus);
     outline-offset: var(--focus-offset);
 }
 
-.checkbox__input:disabled + .checkbox__box {
-    border-color: var(--color-border-subtle);
-}
-
 .checkbox__input:disabled:checked + .checkbox__box {
-    background: var(--color-bg-secondary);
-    color: var(--color-content-secondary);
+    background: var(--color-surface-strong);
+    color: var(--color-ink-muted);
 }
 
 .checkbox__input:disabled ~ .checkbox__label {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
 }
 
 .checkbox__row:has(.checkbox__input:disabled) {
@@ -64,6 +59,7 @@
 }
 
 .checkbox__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
+    font-size: var(--font-size-s);
     margin: 0;
 }

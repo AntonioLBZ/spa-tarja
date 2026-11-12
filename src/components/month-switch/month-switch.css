@@ -6,7 +6,8 @@
 }
 
 .month-switch__name {
-    font-weight: 700;
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-display);
 }
 
 .month-switch__name::first-letter {

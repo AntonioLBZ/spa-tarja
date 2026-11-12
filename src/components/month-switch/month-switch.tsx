@@ -1,4 +1,5 @@
 import { Button } from '@/components/button/button';
+import { Icon } from '@/components/icon/icon';
 
 import './month-switch.css';
 
@@ -18,11 +19,11 @@ const MonthSwitch = (props: MonthSwitchProps) => {
     return (
         <div className="month-switch">
             <Button glyph aria-label={labels.previous} onClick={onPrevious}>
-                ←
+                <Icon name="chevron_left" />
             </Button>
             <span className="month-switch__name">{monthName}</span>
             <Button glyph aria-label={labels.next} onClick={onNext}>
-                →
+                <Icon name="chevron_right" />
             </Button>
         </div>
     );

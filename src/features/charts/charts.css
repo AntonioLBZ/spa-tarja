@@ -4,11 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.charts__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
 .charts__reset {
     justify-self: start;
 }

@@ -16,7 +16,7 @@
 .spending-chart__ticks {
     align-self: start;
     block-size: calc(var(--size-2) + var(--plot));
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     display: grid;
     font-size: var(--font-size-s);
     font-variant-numeric: tabular-nums;
@@ -30,18 +30,17 @@
     white-space: nowrap;
 }
 
-/* The notch of the plot box: the axis on the left and the baseline at the bottom. A chart wider than the box, with a
-   column for each of 400 days on a phone, scrolls inside it */
+/* The plot sits on a tinted box. A chart wider than the box, with a column for each of 400 days on a phone, scrolls
+   inside it */
 .spending-chart__scroller {
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    background: var(--color-surface);
+    border-radius: var(--radius-m);
     overflow-x: auto;
 }
 
 /* The box would clip the ring of the plot, so the ring goes around the box */
 .spending-chart__scroller:has(.spending-chart__plot:focus-visible) {
-    outline: var(--focus-width) solid var(--color-border-focus);
+    outline: var(--focus-width) solid var(--color-focus);
     outline-offset: var(--focus-offset);
 }
 
@@ -63,10 +62,10 @@
     fill: transparent;
 }
 
-/* The frame is twice as thick as the one of today, and a mark of shape where the accent is close to ink */
+/* The frame is twice as thick as the one of today, and a mark of shape that doesn't depend on color */
 .spending-chart__slot--selected {
-    fill: var(--color-bg-secondary);
-    stroke: var(--color-border);
+    fill: var(--color-surface-strong);
+    stroke: var(--color-ink);
     stroke-width: calc(var(--size-1) / 2);
     vector-effect: non-scaling-stroke;
 }
@@ -74,7 +73,7 @@
 .spending-chart__grid {
     pointer-events: none;
     shape-rendering: crispedges;
-    stroke: var(--color-border-subtle);
+    stroke: var(--color-line);
     stroke-width: 1;
 }
 
@@ -98,20 +97,20 @@
 }
 
 .spending-chart__column--selected {
-    fill: var(--color-border);
+    fill: var(--color-ink);
 }
 
 /* Today's row, framed from the top of the plot to the baseline so it shows with nothing spent */
 .spending-chart__today {
     fill: none;
     pointer-events: none;
-    stroke: var(--color-border);
+    stroke: var(--color-ink);
     stroke-width: 1;
 }
 
 /* The cap of the biggest column, drawn on the baseline and lifted with the top of the column */
 .spending-chart__peak {
-    fill: var(--color-border);
+    fill: var(--color-ink);
     pointer-events: none;
     transform: translateY(calc(var(--lift) * var(--size-px) * -1));
     transition: transform var(--duration-base) var(--ease-standard);
@@ -122,7 +121,7 @@
 }
 
 .spending-chart__axis {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     display: flex;
     font-size: var(--font-size-s);
     gap: var(--size-2);
@@ -150,14 +149,14 @@
 
 .spending-chart__table th,
 .spending-chart__table td {
-    border-bottom: var(--size-px) solid var(--color-border-subtle);
-    font-weight: 400;
+    border-bottom: var(--size-px) solid var(--color-line);
+    font-weight: var(--font-weight-body);
     padding-block: var(--size-1);
     text-align: start;
 }
 
 .spending-chart__table thead th {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
 }
 

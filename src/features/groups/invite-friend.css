@@ -9,7 +9,7 @@
 }
 
 .invite-friend__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
     overflow-wrap: anywhere;

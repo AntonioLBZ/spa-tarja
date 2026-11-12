@@ -12,8 +12,8 @@ afterEach(() => {
 
 describe('accents', () => {
     it('are a fixed list, the default first', () => {
-        expect(ACCENTS).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
-        expect(DEFAULT_ACCENT).toBe('gray');
+        expect(ACCENTS).toEqual(['tangerine', 'cobalt', 'pine', 'grape', 'rose', 'ink']);
+        expect(DEFAULT_ACCENT).toBe('tangerine');
     });
 
     it('are the only values isAccent accepts', () => {
@@ -24,21 +24,21 @@ describe('accents', () => {
 });
 
 describe('stored accent', () => {
-    it('defaults to gray', () => {
-        expect(readStoredAccent()).toBe('gray');
+    it('defaults to tangerine', () => {
+        expect(readStoredAccent()).toBe('tangerine');
     });
 
     it('reads back what was stored', () => {
-        storeAccent('violet');
+        storeAccent('grape');
 
-        expect(readStoredAccent()).toBe('violet');
-        expect(localStorage.getItem('tarja:accent')).toBe('violet');
+        expect(readStoredAccent()).toBe('grape');
+        expect(localStorage.getItem('tarja:accent')).toBe('grape');
     });
 
     it('ignores a stored value that is not an accent', () => {
         localStorage.setItem('tarja:accent', 'red');
 
-        expect(readStoredAccent()).toBe('gray');
+        expect(readStoredAccent()).toBe('tangerine');
     });
 
     it('survives storage being blocked', () => {
@@ -49,22 +49,22 @@ describe('stored accent', () => {
             throw new Error('blocked');
         });
 
-        expect(readStoredAccent()).toBe('gray');
-        expect(() => storeAccent('blue')).not.toThrow();
+        expect(readStoredAccent()).toBe('tangerine');
+        expect(() => storeAccent('cobalt')).not.toThrow();
     });
 });
 
 describe('applyAccent', () => {
     it('picks the preset through data-accent on the root', () => {
-        applyAccent('green');
+        applyAccent('pine');
 
-        expect(root.dataset.accent).toBe('green');
+        expect(root.dataset.accent).toBe('pine');
     });
 
-    it('leaves the root bare for gray, which is what the tokens start with', () => {
-        applyAccent('green');
+    it('leaves the root bare for tangerine, which is what the tokens start with', () => {
+        applyAccent('pine');
 
-        applyAccent('gray');
+        applyAccent('tangerine');
 
         expect(root.hasAttribute('data-accent')).toBe(false);
     });

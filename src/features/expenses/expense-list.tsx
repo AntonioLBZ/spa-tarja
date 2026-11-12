@@ -12,7 +12,7 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/group-failure';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useLocale } from '@/lib/i18n';
-import { fromDateString } from '@core/date';
+import { fromDateString, toDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { isSharedRow } from '@core/shared-expense';
@@ -157,6 +157,17 @@ const ExpenseList = () => {
         };
     }, [locale, list.spansYears]);
 
+    // Today and yesterday by their word, any other day by its date
+    const relative = useMemo(() => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }), [locale]);
+    const dayWord = (key: string) => {
+        const days = Math.round(
+            (fromDateString(key).getTime() - fromDateString(toDateString(new Date())).getTime()) / 86_400_000
+        );
+        if (days !== 0 && days !== -1) return null;
+        const word = relative.format(days, 'day');
+        return word.charAt(0).toLocaleUpperCase(locale) + word.slice(1);
+    };
+
     const labelOfGroup = (group: ListGroup) => {
         if (grouping === 'category') {
             return (
@@ -167,7 +178,9 @@ const ExpenseList = () => {
             );
         }
         const day = fromDateString(group.key);
-        return grouping === 'week' ? t('weekOf', { date: formats.week.format(day) }) : formats[grouping].format(day);
+        if (grouping === 'week') return t('weekOf', { date: formats.week.format(day) });
+        const word = grouping === 'day' ? dayWord(group.key) : null;
+        return word ?? formats[grouping].format(day);
     };
 
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
@@ -180,7 +193,7 @@ const ExpenseList = () => {
 
     return (
         <section className="expense-list">
-            <h2 className="expense-list__title" ref={title} tabIndex={-1}>
+            <h2 className="expense-list__title visually-hidden" ref={title} tabIndex={-1}>
                 {t('title')}
             </h2>
 
@@ -210,7 +223,13 @@ const ExpenseList = () => {
             )}
 
             {groups.map((group) => (
-                <Sheet key={group.key} label={labelOfGroup(group)} level="h3" labelClassName={labelClsx}>
+                <Sheet
+                    key={group.key}
+                    id={grouping === 'day' ? `day-${group.key}` : undefined}
+                    label={labelOfGroup(group)}
+                    level="h3"
+                    labelClassName={labelClsx}
+                >
                     <CardList flush>
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];

@@ -8,6 +8,7 @@ import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { Page } from '@/features/shell/page';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -100,86 +101,86 @@ const Budgets = () => {
     };
 
     return (
-        <section className="budgets">
-            <h1 className="budgets__title">{t('title')}</h1>
+        <Page title={t('title')}>
+            <div className="budgets">
+                <MonthSwitch
+                    monthName={monthName}
+                    labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
+                    onPrevious={() => setMonth(shiftMonth(month, -1))}
+                    onNext={() => setMonth(shiftMonth(month, 1))}
+                />
 
-            <MonthSwitch
-                monthName={monthName}
-                labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
-                onPrevious={() => setMonth(shiftMonth(month, -1))}
-                onNext={() => setMonth(shiftMonth(month, 1))}
-            />
-
-            <p className="budgets__hint">{t('hint')}</p>
-            {isError && (
-                <p className="budgets__hint" role="alert">
-                    {t('loadFailed')}
-                </p>
-            )}
-            {!online && <Notice role="status">{t('offline')}</Notice>}
-
-            <form className="budgets__form" onSubmit={(event) => void handleSubmit(event)}>
-                {scopes.map((scope) => {
-                    const since = held.get(scope)?.since;
-                    const cents = centsOf(scope);
-                    const lines = [
-                        since !== undefined && since !== month ? t('setIn', { month: sinceName(since) }) : null,
-                        incomeCents !== null && cents !== null && cents > 0
-                            ? t('ofIncome', { percent: percentOf(cents, incomeCents) })
-                            : null,
-                    ].filter((line) => line !== null);
-
-                    return (
-                        <Field
-                            key={scope}
-                            label={
-                                scope === TOTAL_SCOPE ? (
-                                    t('total')
-                                ) : (
-                                    <span className="budgets__label">
-                                        <CategoryBadge style={styleOf(scope)} />
-                                        {labelOf(scope)}
-                                    </span>
-                                )
-                            }
-                            hint={
-                                lines.length > 0
-                                    ? lines.map((line) => (
-                                          <span key={line} className="budgets__hint-line">
-                                              {line}
-                                          </span>
-                                      ))
-                                    : undefined
-                            }
-                            error={invalid.has(scope) ? t('invalid') : null}
-                        >
-                            {(control) => (
-                                <input
-                                    {...control}
-                                    autoComplete="off"
-                                    disabled={!online || busy}
-                                    inputMode="decimal"
-                                    type="text"
-                                    value={values[scope] ?? ''}
-                                    onChange={(event) => {
-                                        setValues({ ...values, [scope]: event.target.value });
-                                        setInvalid(new Set([...invalid].filter((item) => item !== scope)));
-                                    }}
-                                />
-                            )}
-                        </Field>
-                    );
-                })}
-                {failed && (
-                    <Notice tone="danger" role="alert">
-                        {t('saveFailed')}
-                    </Notice>
+                <p className="budgets__hint">{t('hint')}</p>
+                {isError && (
+                    <p className="budgets__hint" role="alert">
+                        {t('loadFailed')}
+                    </p>
                 )}
-                <Button disabled={!online || busy || changed.length === 0} type="submit" variant="primary">
-                    {t('save')}
-                </Button>
-            </form>
-        </section>
+                {!online && <Notice role="status">{t('offline')}</Notice>}
+
+                <form className="budgets__form" onSubmit={(event) => void handleSubmit(event)}>
+                    {scopes.map((scope) => {
+                        const since = held.get(scope)?.since;
+                        const cents = centsOf(scope);
+                        const lines = [
+                            since !== undefined && since !== month ? t('setIn', { month: sinceName(since) }) : null,
+                            incomeCents !== null && cents !== null && cents > 0
+                                ? t('ofIncome', { percent: percentOf(cents, incomeCents) })
+                                : null,
+                        ].filter((line) => line !== null);
+
+                        return (
+                            <Field
+                                key={scope}
+                                label={
+                                    scope === TOTAL_SCOPE ? (
+                                        t('total')
+                                    ) : (
+                                        <span className="budgets__label">
+                                            <CategoryBadge style={styleOf(scope)} />
+                                            {labelOf(scope)}
+                                        </span>
+                                    )
+                                }
+                                hint={
+                                    lines.length > 0
+                                        ? lines.map((line) => (
+                                              <span key={line} className="budgets__hint-line">
+                                                  {line}
+                                              </span>
+                                          ))
+                                        : undefined
+                                }
+                                error={invalid.has(scope) ? t('invalid') : null}
+                            >
+                                {(control) => (
+                                    <input
+                                        {...control}
+                                        autoComplete="off"
+                                        disabled={!online || busy}
+                                        inputMode="decimal"
+                                        type="text"
+                                        value={values[scope] ?? ''}
+                                        onChange={(event) => {
+                                            setValues({ ...values, [scope]: event.target.value });
+                                            setInvalid(new Set([...invalid].filter((item) => item !== scope)));
+                                        }}
+                                    />
+                                )}
+                            </Field>
+                        );
+                    })}
+                    {failed && (
+                        <Notice tone="danger" role="alert">
+                            {t('saveFailed')}
+                        </Notice>
+                    )}
+                    <Button disabled={!online || busy || changed.length === 0} type="submit" variant="primary">
+                        {t('save')}
+                    </Button>
+                </form>
+            </div>
+        </Page>
     );
 };
 

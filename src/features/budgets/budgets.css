@@ -4,13 +4,8 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.budgets__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
 .budgets__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }

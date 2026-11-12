@@ -1,0 +1,39 @@
+.hero-stat {
+    display: grid;
+}
+
+.hero-stat__label {
+    color: var(--color-on-field-muted);
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-strong);
+    margin: 0;
+}
+
+/* The one big thing of a screen, in the heaviest weight, with its figures all the same width */
+.hero-stat__amount {
+    font-size: var(--font-size-hero);
+    font-weight: var(--font-weight-display);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin: var(--size-2) 0 var(--size-1);
+    overflow-wrap: anywhere;
+}
+
+.hero-stat__sub {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-strong);
+    margin: 0;
+    min-block-size: 1.7em;
+}
+
+.hero-stat__sub a {
+    color: inherit;
+    text-decoration-thickness: 0.125rem;
+}
+
+/* A sentence at the size of a title: "They owe you 20,00 €" */
+.hero-stat__amount--title {
+    font-size: var(--font-size-2xl);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}

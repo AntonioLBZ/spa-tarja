@@ -19,7 +19,7 @@
 }
 
 .person-row__detail {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     display: flex;
     flex-wrap: wrap;
     font-size: var(--font-size-s);

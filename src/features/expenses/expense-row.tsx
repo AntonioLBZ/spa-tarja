@@ -80,21 +80,21 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     const expenseClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
     const body = (
         <span className="expense-item__body">
-            <span className="expense-item__name">
-                <CategoryBadge style={styleOf(expense.categoryId)} />
+            <CategoryBadge sticker style={styleOf(expense.categoryId)} />
+            <span className="expense-item__main">
                 <span className="expense-item__text">{name}</span>
+                {(showDate || expense.text || shared || pending || charged || paid) && (
+                    <span className="expense-item__meta">
+                        {showDate && <span>{shortDate(expense.date)}</span>}
+                        {expense.text && <span>{category}</span>}
+                        {shared && <SharedRowDetails row={shared.row} group={shared.group} />}
+                        {charged && <span>{charged}</span>}
+                        {paid && <span>{paid}</span>}
+                        {pending && <span className="expense-item__pending">{t('pending')}</span>}
+                    </span>
+                )}
             </span>
             <span className="expense-item__amount">{formatAmount(amountCents, expense.currency, locale)}</span>
-            {(showDate || expense.text || shared || pending || charged || paid) && (
-                <span className="expense-item__meta">
-                    {showDate && <span>{shortDate(expense.date)}</span>}
-                    {expense.text && <span>{category}</span>}
-                    {shared && <SharedRowDetails row={shared.row} group={shared.group} />}
-                    {charged && <span>{charged}</span>}
-                    {paid && <span>{paid}</span>}
-                    {pending && <span className="expense-item__pending">{t('pending')}</span>}
-                </span>
-            )}
         </span>
     );
 
@@ -112,7 +112,6 @@ const ExpenseRow = (props: ExpenseRowProps) => {
         <Disclosure as="li" className={expenseClsx} chevron toggleRef={toggleRef} summary={body}>
             <div className="expense-item__actions">
                 <Button
-                    ghost
                     aria-describedby={editable ? undefined : reasonId}
                     aria-label={t('editItem', { name })}
                     disabled={leaving || !editable}
@@ -121,7 +120,6 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                     {t('edit')}
                 </Button>
                 <Button
-                    ghost
                     aria-describedby={copyable ? undefined : reasonId}
                     aria-label={t('duplicateItem', { name })}
                     disabled={leaving || !copyable}
@@ -130,7 +128,6 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                     {t('duplicate')}
                 </Button>
                 <Button
-                    ghost
                     variant="danger"
                     aria-label={t('deleteItem', { name })}
                     disabled={leaving}

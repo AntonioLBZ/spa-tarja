@@ -68,22 +68,22 @@ const LedgerRow = (props: LedgerRowProps) => {
 
     const name = words.entryName(entry);
     const body = (
-        <span className="expense-item__body">
-            <span className="expense-item__name">
-                {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
+        <span className={clsx('expense-item__body', { 'expense-item__body--plain': entry.kind !== 'expense' })}>
+            {entry.kind === 'expense' && <CategoryBadge sticker style={styleOf(entry.categoryId)} />}
+            <span className="expense-item__main">
                 <span className="expense-item__text">{name}</span>
+                {(date || details.length > 0 || wrote || pending) && (
+                    <span className="expense-item__meta">
+                        {date && <span>{date}</span>}
+                        {details.map((detail) => (
+                            <span key={detail}>{detail}</span>
+                        ))}
+                        {wrote && <span>{wrote}</span>}
+                        {pending && <span className="expense-item__pending">{tList('pending')}</span>}
+                    </span>
+                )}
             </span>
             <span className="expense-item__amount">{money(entry.amountCents)}</span>
-            {(date || details.length > 0 || wrote || pending) && (
-                <span className="expense-item__meta">
-                    {date && <span>{date}</span>}
-                    {details.map((detail) => (
-                        <span key={detail}>{detail}</span>
-                    ))}
-                    {wrote && <span>{wrote}</span>}
-                    {pending && <span className="expense-item__pending">{tList('pending')}</span>}
-                </span>
-            )}
         </span>
     );
     const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
@@ -102,7 +102,6 @@ const LedgerRow = (props: LedgerRowProps) => {
             <div className="expense-item__actions">
                 {onEdit && (
                     <Button
-                        ghost
                         aria-describedby={blocked ? reasonId : undefined}
                         aria-label={tList('editItem', { name })}
                         disabled={leaving || blocked}
@@ -113,7 +112,6 @@ const LedgerRow = (props: LedgerRowProps) => {
                 )}
                 {entry.kind === 'expense' && onDuplicate && (
                     <Button
-                        ghost
                         aria-label={tList('duplicateItem', { name })}
                         disabled={leaving}
                         onClick={() => onDuplicate(entry)}
@@ -122,7 +120,6 @@ const LedgerRow = (props: LedgerRowProps) => {
                     </Button>
                 )}
                 <Button
-                    ghost
                     variant="danger"
                     aria-label={tList('deleteItem', { name })}
                     disabled={leaving}

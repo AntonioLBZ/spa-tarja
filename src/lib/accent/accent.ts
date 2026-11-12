@@ -1,8 +1,8 @@
-const ACCENTS = ['gray', 'amber', 'blue', 'green', 'violet', 'pink'] as const;
+const ACCENTS = ['tangerine', 'cobalt', 'pine', 'grape', 'rose', 'ink'] as const;
 
 type Accent = (typeof ACCENTS)[number];
 
-const DEFAULT_ACCENT: Accent = 'gray';
+const DEFAULT_ACCENT: Accent = 'tangerine';
 
 const STORAGE_KEY = 'tarja:accent';
 

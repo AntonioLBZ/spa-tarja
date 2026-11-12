@@ -4,12 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.join__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-    overflow-wrap: anywhere;
-}
-
 .join__text {
     margin: 0;
     overflow-wrap: anywhere;

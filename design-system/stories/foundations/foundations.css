@@ -14,7 +14,7 @@
 
 .swatch__chip {
     block-size: var(--size-12);
-    border: var(--size-px) solid var(--color-border-subtle);
+    border: var(--size-px) solid var(--color-line);
 }
 
 .swatch__name {
@@ -23,7 +23,7 @@
 }
 
 .swatch__value {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     overflow-wrap: anywhere;
 }
@@ -31,10 +31,10 @@
 /* The tokens made from the accent are resolved on the root, so an accent set on a box has to make them again */
 .accent-sample {
     --color-bg-accent: var(--color-accent);
-    --color-border-focus: var(--color-accent);
+    --color-focus: var(--color-accent);
 
     align-items: center;
-    background: var(--color-bg-secondary);
+    background: var(--color-surface);
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-4);
@@ -65,19 +65,19 @@
 }
 
 .spacing-row__value {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
 }
 
 .type-sample {
-    border-bottom: var(--size-px) solid var(--color-border-subtle);
+    border-bottom: var(--size-px) solid var(--color-line);
     display: grid;
     gap: var(--size-1);
     padding-block: var(--size-3);
 }
 
 .type-sample__meta {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
 }
 
@@ -93,12 +93,12 @@
 }
 
 .motion-grid__head {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
 }
 
 .motion-track {
-    background: var(--color-bg-secondary);
+    background: var(--color-surface);
     block-size: var(--size-8);
     container-type: inline-size;
 }
@@ -115,7 +115,7 @@
 }
 
 .motion-note {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin-block: var(--size-4) 0;
 }
@@ -141,7 +141,7 @@
 }
 
 .icon-grid__name {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     overflow-wrap: anywhere;
 }

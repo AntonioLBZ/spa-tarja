@@ -6,6 +6,7 @@ import { Button } from '@/components/button/button';
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { Page } from '@/features/shell/page';
 import { useOnline } from '@/lib/offline';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
@@ -53,19 +54,20 @@ const SettingsView = (props: SettingsViewProps) => {
     const open = group.closed === null;
 
     return (
-        <section className="group-settings">
-            <h1 className="group-settings__title">{t('edit.title', { name: words.title })}</h1>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
-            <PersonalSwitches group={group} disabled={!online} />
-            {open && group.kind === 'group' && isOwner(group) && (
-                <>
-                    <GroupName group={group} disabled={!online} />
-                    <SimplifyDebts group={group} disabled={!online} />
-                </>
-            )}
-            {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
-            {open && <CloseGroup ledger={ledger} disabled={!online} />}
-        </section>
+        <Page title={t('edit.title', { name: words.title })}>
+            <div className="group-settings">
+                {!online && <Notice role="status">{t('offline')}</Notice>}
+                <PersonalSwitches group={group} disabled={!online} />
+                {open && group.kind === 'group' && isOwner(group) && (
+                    <>
+                        <GroupName group={group} disabled={!online} />
+                        <SimplifyDebts group={group} disabled={!online} />
+                    </>
+                )}
+                {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
+                {open && <CloseGroup ledger={ledger} disabled={!online} />}
+            </div>
+        </Page>
     );
 };
 

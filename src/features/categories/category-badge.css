@@ -34,3 +34,13 @@
 .category-badge--gray {
     color: var(--color-category-gray);
 }
+
+/* The color tints the square and paints the icon, which keeps its 3:1 against the tint */
+.category-badge--sticker {
+    align-items: center;
+    background: color-mix(in oklab, currentcolor 16%, var(--color-sheet));
+    block-size: 3rem;
+    border-radius: var(--radius-m);
+    inline-size: 3rem;
+    justify-content: center;
+}

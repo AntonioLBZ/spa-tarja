@@ -5,7 +5,8 @@
 
 /* Every segment spans the strip and is moved to its start and cut to its share by transform, so a change animates */
 .category-split__strip {
-    block-size: var(--size-4);
+    block-size: 1.25rem;
+    border-radius: var(--radius-pill);
     overflow: hidden;
     position: relative;
 }
@@ -63,7 +64,7 @@
 }
 
 .category-split__gap::before {
-    background: var(--color-bg-primary);
+    background: var(--color-sheet);
     block-size: 100%;
     content: '';
     display: block;
@@ -90,7 +91,7 @@
 }
 
 .category-split__share {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     min-width: 4ch;
     text-align: end;
 }

@@ -1,7 +1,1 @@
-/* The logo only: this font holds only the letters of the name */
-@font-face {
-    font-display: swap;
-    font-family: 'Dot Matrix';
-    font-weight: 400;
-    src: url('../fonts/dot-matrix.woff2') format('woff2');
-}
+@import url('@fontsource-variable/gabarito/wght.css');

@@ -3,8 +3,38 @@ import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from '
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
+import { DURATION, EASE, MOTION_QUERY, canAnimate, gsap } from '@/lib/motion/gsap';
 
 import './dialog.css';
+
+// A sheet blooms out of what opened it: a circle that grows from the middle of that control until it holds the whole sheet,
+// and what is inside it follows in a short stagger
+const bloom = (dialog: HTMLDialogElement, from: DOMRect) => {
+    const box = dialog.getBoundingClientRect();
+    const x = from.left + from.width / 2 - box.left;
+    const y = from.top + from.height / 2 - box.top;
+    const reach = Math.hypot(Math.max(x, box.width - x), Math.max(y, box.height - y));
+
+    gsap.fromTo(
+        dialog,
+        { clipPath: `circle(${from.width / 2}px at ${x}px ${y}px)` },
+        {
+            clipPath: `circle(${reach}px at ${x}px ${y}px)`,
+            duration: DURATION.slow * 1.6,
+            ease: EASE.enter,
+            clearProps: 'clipPath',
+        }
+    );
+    gsap.from(dialog.querySelectorAll('.dialog__head, .dialog__body > *, .dialog__actions'), {
+        y: 18,
+        opacity: 0,
+        duration: DURATION.slow,
+        ease: EASE.enter,
+        stagger: 0.04,
+        delay: 0.1,
+        clearProps: 'transform,opacity',
+    });
+};
 
 interface DialogProps {
     open: boolean;
@@ -53,10 +83,17 @@ const Dialog = (props: DialogProps) => {
         const dialog = ref.current;
         if (!dialog) return;
         if (open && !dialog.open) {
+            const trigger = variant === 'sheet' ? document.activeElement : null;
+            const from =
+                trigger instanceof HTMLElement && trigger !== document.body ? trigger.getBoundingClientRect() : null;
+            const animate = from !== null && canAnimate() && window.matchMedia(MOTION_QUERY).matches;
+            if (animate) dialog.dataset.bloom = '';
+            else delete dialog.dataset.bloom;
             dialog.showModal();
             focusStart(dialog);
+            if (animate) bloom(dialog, from);
         } else if (!open && dialog.open) dialog.close();
-    }, [open]);
+    }, [open, variant]);
 
     return (
         <dialog

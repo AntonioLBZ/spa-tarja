@@ -1,7 +1,7 @@
 /* Fixed to the bottom of a phone. The page pads itself by `--bottom-nav-height` and the safe area to keep clear. */
 .bottom-nav {
-    background: var(--color-bg-secondary);
-    border-top: var(--size-px) solid var(--color-border);
+    background: var(--color-sheet);
+    border-top: var(--size-px) solid var(--color-line);
     inset-block-end: 0;
     inset-inline: 0;
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
@@ -10,6 +10,7 @@
         opacity var(--duration-base) var(--ease-standard),
         transform var(--duration-base) var(--ease-standard);
     view-transition-name: bottom-nav;
+    z-index: 5;
 }
 
 /* Out of the way while a field has the focus, so the keyboard doesn't leave it floating. Hidden for good once it is
@@ -38,31 +39,74 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    position: relative;
+}
+
+/* The pill that glides: drawn once the script has placed it, and then the links draw none of their own */
+.bottom-nav__pill {
+    background: var(--color-surface-strong);
+    border-radius: var(--radius-pill);
+    inset: 0 auto auto 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
 }
 
 .bottom-nav__link {
     align-items: center;
     block-size: var(--bottom-nav-height);
-    border-top: var(--size-1) solid transparent;
-    color: inherit;
+    color: var(--color-ink-muted);
     display: flex;
     flex-direction: column;
-    font-size: var(--font-size-s);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-label);
     gap: var(--size-1);
     justify-content: center;
     text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
 }
 
-/* The action is a column like the links, so all of it is the button */
+.bottom-nav__link--current {
+    color: var(--color-ink);
+    font-weight: var(--font-weight-display);
+}
+
+.bottom-nav__icon {
+    align-items: center;
+    block-size: 2rem;
+    border-radius: var(--radius-pill);
+    display: flex;
+    inline-size: 3.5rem;
+    justify-content: center;
+    position: relative;
+    transition: transform var(--duration-base) var(--ease-spring);
+}
+
+/* Without the script the pill is the icon's own background */
+.bottom-nav__link--current .bottom-nav__icon {
+    background: var(--color-surface-strong);
+}
+
+.bottom-nav__link:active .bottom-nav__icon {
+    transform: scale(0.9);
+}
+
+.bottom-nav__list[data-glide] .bottom-nav__link--current .bottom-nav__icon {
+    background: transparent;
+}
+
+/* The action is a column like the links, so all of it is the button; its square is raised over the bar */
 .bottom-nav__button {
     align-items: center;
+    background: transparent;
     block-size: var(--bottom-nav-height);
-    border-width: 0;
-    color: inherit;
+    border-radius: 0;
+    color: var(--color-ink);
     display: flex;
     flex-direction: column;
-    font-size: var(--font-size-s);
-    font-weight: 700;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-display);
     gap: var(--size-1);
     inline-size: 100%;
     justify-content: center;
@@ -70,32 +114,42 @@
     text-align: center;
 }
 
-.bottom-nav__button:focus-visible,
-.bottom-nav__link:focus-visible {
-    outline-offset: var(--focus-inset);
+.bottom-nav__button:active {
+    transform: none;
 }
 
-/* Flat: no notch, since it stands inside the edge of the bar. The thicker plus keeps its center, which a notch would
-   move. */
 .bottom-nav__square {
     align-items: center;
-    background: var(--color-bg-accent);
-    block-size: var(--size-8);
-    color: var(--color-content-on-accent);
+    background: var(--color-spark);
+    block-size: 3.5rem;
+    border: var(--size-1) solid var(--color-sheet);
+    border-radius: 1.25rem;
+    box-sizing: content-box;
+    color: var(--color-on-spark);
     display: flex;
-    inline-size: var(--size-8);
+    inline-size: 3.5rem;
     justify-content: center;
+    margin-block: calc(-1 * var(--bottom-nav-lift)) calc(-1 * var(--size-1));
+    transition: transform var(--duration-base) var(--ease-spring);
 }
 
-.bottom-nav__square path {
-    stroke: currentcolor;
-    stroke-linejoin: miter;
-    stroke-width: 70px;
+.bottom-nav__button:active .bottom-nav__square {
+    transform: scale(0.92);
 }
 
-/* No fill and no accent: the mark is an ink bar on the top edge */
-.bottom-nav__link--current {
-    border-top-color: var(--color-border);
+.bottom-nav__square .icon {
+    block-size: 2rem;
+    inline-size: 2rem;
+    transition: transform var(--duration-slow) var(--ease-spring);
+}
+
+.bottom-nav__button:active .icon {
+    transform: rotate(90deg);
+}
+
+.bottom-nav__button:focus-visible,
+.bottom-nav__link:focus-visible {
+    outline-offset: calc(-1 * var(--size-1));
 }
 
 .bottom-nav__word {

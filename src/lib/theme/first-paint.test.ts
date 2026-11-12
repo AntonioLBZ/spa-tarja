@@ -27,7 +27,7 @@ afterEach(() => {
 });
 
 describe('the script that runs before the first paint', () => {
-    it('leaves the root bare when nothing was saved, which is the light theme and the gray accent', () => {
+    it('leaves the root bare when nothing was saved, which is the light theme and the tangerine accent', () => {
         runFirstPaint();
 
         expect(root.hasAttribute('data-theme')).toBe(false);
@@ -43,11 +43,11 @@ describe('the script that runs before the first paint', () => {
     });
 
     it('puts a saved accent on the root', () => {
-        localStorage.setItem('tarja:accent', 'violet');
+        localStorage.setItem('tarja:accent', 'grape');
 
         runFirstPaint();
 
-        expect(root.dataset.accent).toBe('violet');
+        expect(root.dataset.accent).toBe('grape');
     });
 
     it('does not let a value that is not a theme or an accent through', () => {
@@ -79,7 +79,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#f4f4f4']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#ff6a3d', '#ff6a3d']);
     });
 
     it('points every toolbar color at the dark header surface for a saved dark theme', () => {
@@ -88,7 +88,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#141414', '#141414']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#ff7448', '#ff7448']);
     });
 
     it('leaves one toolbar color per OS preference for the system theme', () => {
@@ -97,7 +97,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#ff6a3d', '#ff7448']);
     });
 
     it('points the toolbar at the light header surface when the storage is blocked', () => {
@@ -108,7 +108,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#f4f4f4']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#ff6a3d', '#ff6a3d']);
     });
 
     it('lets the app put the per-preference colors back on a switch to the system theme', () => {
@@ -117,6 +117,6 @@ describe('the script that runs before the first paint', () => {
 
         syncThemeColor('system');
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#ff6a3d', '#ff7448']);
     });
 });

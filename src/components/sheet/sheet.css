@@ -1,41 +1,43 @@
-/* The surface tone, closed by a double rule. `minmax(0, 1fr)` keeps what is as long as it can be, like the leaders of
-   an expense, from widening the page */
+/* A group of rows under a heading that stays at the top while its rows scroll by. `minmax(0, 1fr)` keeps what is as
+   long as it can be from widening the page */
 .sheet {
-    background: var(--color-bg-secondary);
-    border-block-end: var(--size-1) double var(--color-border);
     display: grid;
-    gap: var(--size-2);
     grid-template-columns: minmax(0, 1fr);
-    padding: var(--size-4) var(--size-4) var(--size-3);
 }
 
-/* Centered in capitals over a dashed rule */
 .sheet__label {
-    border-block-end: var(--size-px) dashed var(--color-border);
-    color: var(--color-content-secondary);
+    align-items: center;
+    background: var(--color-sheet);
+    color: var(--color-ink-muted);
+    display: flex;
     font-size: var(--font-size-s);
-    font-weight: 400;
-    letter-spacing: 0.1em;
+    font-weight: var(--font-weight-strong);
+    gap: var(--size-2);
+    inset-block-start: calc(var(--page-bar-height) + env(safe-area-inset-top));
+    letter-spacing: 0;
     margin: 0;
-    min-width: 0;
+    min-inline-size: 0;
     overflow-wrap: anywhere;
-    padding-block-end: var(--size-3);
-    text-align: center;
-    text-transform: uppercase;
+    padding-block: var(--size-3) var(--size-2);
+    position: sticky;
+    z-index: 2;
 }
 
-/* A row that opens, on paper: no notch on its toggle, and what it opens right under it, with the room left under that
-   before the next row */
+@media (width >= 40rem) {
+    .sheet__label {
+        inset-block-start: var(--page-bar-height);
+    }
+}
+
 .sheet .disclosure {
     gap: 0;
 }
 
+/* A row that opens, on the sheet itself: no surface of its own */
 .sheet .disclosure__toggle {
-    border-width: 0;
+    background: transparent;
+    border-radius: 0;
+    font-weight: inherit;
+    min-height: 0;
     padding-inline: 0;
-}
-
-.sheet .disclosure__panel {
-    padding-block: 0 var(--size-3);
-    padding-inline-start: 0;
 }

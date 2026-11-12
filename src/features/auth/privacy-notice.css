@@ -9,7 +9,7 @@
 }
 
 .privacy-notice__heading {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-l);
     margin: 0;
 }
 
@@ -29,6 +29,6 @@
 }
 
 .privacy-notice__updated {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
 }

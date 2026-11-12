@@ -1,8 +1,7 @@
 .card {
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
-    padding: var(--size-2) var(--size-3);
+    background: var(--color-surface);
+    border-radius: var(--radius-m);
+    padding: var(--size-3) var(--size-4);
 }
 
 .card-list {
@@ -13,6 +12,13 @@
     padding: 0;
 }
 
+/* Rows with no surface of their own: they sit on the sheet, a day's worth of them under their heading */
 .card-list--flush {
     gap: 0;
+}
+
+.card-list--flush > .card {
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
 }

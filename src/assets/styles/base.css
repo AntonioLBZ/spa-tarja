@@ -4,57 +4,125 @@
     box-sizing: border-box;
 }
 
-/* Inheriting the 16px body size keeps iOS from zooming in on focus. No rounded corners: the browser's own are reset */
+html {
+    background: var(--color-sheet);
+    scroll-padding-block-start: calc(var(--page-bar-height) + env(safe-area-inset-top) + var(--size-4));
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+}
+
+body {
+    background: var(--color-sheet);
+    color: var(--color-ink);
+    font-family: var(--font-family);
+    font-size: var(--font-size-m);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: var(--font-weight-body);
+    line-height: 1.45;
+    margin: 0;
+}
+
+/* Amounts line up in a column and don't shift while they count */
+:where(body) {
+    font-variant-numeric: tabular-nums;
+}
+
+::selection {
+    background: var(--color-field);
+    color: var(--color-on-field);
+}
+
+/* Inheriting the 16px body size keeps iOS from zooming in on focus */
 button,
 input,
 select,
 textarea {
-    border-radius: 0;
     font: inherit;
 }
 
-/* The notch: a thick edge on the left and at the bottom of every box, none on top or on the right */
+:where(h1, h2, h3) {
+    font-weight: var(--font-weight-display);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+/* A field: a tinted surface with no edge until it has the focus */
 input,
-select {
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
-    color: var(--color-content-primary);
-    min-height: var(--size-touch);
-    padding: 0 var(--size-3);
+select,
+textarea {
+    background: var(--color-surface);
+    border: var(--size-px) solid transparent;
+    border-radius: var(--radius-s);
+    color: var(--color-ink);
+    min-height: 3.25rem;
+    padding: 0 var(--size-4);
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
     width: 100%;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-ink-muted);
+    opacity: 0.75;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    background: var(--color-sheet);
+    border-color: var(--color-focus);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    color: var(--color-ink-muted);
+    opacity: 0.6;
 }
 
 /* Zero specificity here and for links: where the stylesheets of the components land relative to this one depends on
    how the build splits the chunks, so a class (`.button--primary`) must beat these whatever the order */
 :where(a) {
     color: var(--color-accent);
+    text-decoration-thickness: var(--size-px);
+    text-underline-offset: 0.2em;
 }
 
 /* A link that does what a button does takes the class `button` and looks like one */
 :where(button, .button) {
-    background: transparent;
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
-    color: var(--color-content-primary);
+    align-items: center;
+    background: var(--color-surface);
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: var(--color-ink);
     cursor: pointer;
+    display: inline-flex;
+    font-weight: var(--font-weight-strong);
+    gap: var(--size-2);
+    justify-content: center;
     min-height: var(--size-touch);
     min-width: var(--size-touch);
     padding-block: 0;
-    padding-inline: var(--size-4) var(--size-12);
-    text-align: start;
+    padding-inline: var(--size-5);
+    text-align: center;
+    text-decoration: none;
+    touch-action: manipulation;
     transition:
-        background-color var(--duration-base) var(--ease-standard),
-        border-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
+        background-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard),
+        transform var(--duration-base) var(--ease-spring);
 }
 
-button:disabled {
-    border-color: var(--color-border-subtle);
-    color: var(--color-content-secondary);
+:where(button, .button):active {
+    transform: scale(0.97);
+}
+
+:where(button):disabled {
     cursor: default;
+    opacity: 0.5;
 }
 
 /* Hidden on screen, still read by assistive technology */
@@ -75,19 +143,19 @@ button:disabled {
     transition:
         background-color var(--duration-slow) var(--ease-standard),
         border-color var(--duration-slow) var(--ease-standard),
-        color var(--duration-slow) var(--ease-standard);
-}
-
-body {
-    background: var(--color-bg-primary);
-    color: var(--color-content-primary);
-    font-family: var(--font-family);
-    font-size: var(--font-size-m);
-    line-height: 1.5;
-    margin: 0;
+        color var(--duration-slow) var(--ease-standard),
+        fill var(--duration-slow) var(--ease-standard);
 }
 
 :focus-visible {
-    outline: var(--focus-width) solid var(--color-border-focus);
+    outline: var(--focus-width) solid var(--color-focus);
     outline-offset: var(--focus-offset);
+}
+
+/* The edge of a ticket: half circles of the field's color bitten out of the top of a sheet of paper */
+.perforated {
+    background:
+        radial-gradient(circle at 0.75rem 0, var(--color-field) 0.5rem, transparent calc(0.5rem + var(--size-px))) 0 0 /
+            1.5rem 1.5rem repeat-x,
+        var(--color-sheet);
 }

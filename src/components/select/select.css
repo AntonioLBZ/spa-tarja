@@ -5,24 +5,34 @@
 /* The look of the other fields; only what a button needs to hold an icon and a name differs */
 .select__field {
     align-items: center;
-    background: var(--color-bg-secondary);
+    background: var(--color-surface);
+    border: var(--size-px) solid transparent;
+    border-radius: var(--radius-s);
     display: flex;
-    gap: var(--size-2);
+    font-weight: var(--font-weight-body);
+    gap: var(--size-3);
     justify-content: flex-start;
-    padding-inline: var(--size-3);
+    min-height: 3.25rem;
+    padding-inline: var(--size-4);
     text-align: start;
     width: 100%;
 }
 
+.select__field:focus-visible,
+.select__field[aria-expanded='true'] {
+    background: var(--color-sheet);
+    border-color: var(--color-focus);
+}
+
 .select__field::after {
     block-size: 0.5rem;
-    border-bottom: var(--size-px) solid currentcolor;
-    border-right: var(--size-px) solid currentcolor;
+    border-bottom: 0.125rem solid currentcolor;
+    border-right: 0.125rem solid currentcolor;
     content: '';
     inline-size: 0.5rem;
     margin-inline-start: auto;
     transform: rotate(45deg);
-    transition: transform var(--duration-base) var(--ease-standard);
+    transition: transform var(--duration-base) var(--ease-spring);
 }
 
 .select__field[aria-expanded='true']::after {
@@ -41,17 +51,17 @@
     inline-size: 1.5rem;
 }
 
+/* A floating sheet of options: flat, with a line around it, since a shadow would be the only one in the app */
 .select__list {
-    background: var(--color-bg-primary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    background: var(--color-sheet);
+    border: var(--size-px) solid var(--color-line);
+    border-radius: var(--radius-m);
     inset-inline: 0;
     list-style: none;
-    margin: 0;
+    margin: var(--size-1) 0 0;
     max-block-size: max(min(24rem, 50dvh, var(--select-room, 24rem)), calc(2 * var(--size-touch)));
     overflow-y: auto;
-    padding: 0;
+    padding: var(--size-1);
     position: absolute;
     top: 100%;
     transition:
@@ -61,40 +71,42 @@
 
     @starting-style {
         opacity: 0;
-        transform: translateY(calc(-1 * var(--size-2)));
+        transform: translateY(calc(-1 * var(--size-2))) scale(0.98);
     }
 }
 
 /* Over the field when that is where the room is, so it comes in from below */
 .select__list--above {
     bottom: 100%;
+    margin: 0 0 var(--size-1);
     top: auto;
 
     @starting-style {
-        transform: translateY(var(--size-2));
+        transform: translateY(var(--size-2)) scale(0.98);
     }
 }
 
 .select__option {
     align-items: center;
-    border-left: var(--size-1) solid transparent;
+    border-radius: var(--radius-s);
     cursor: pointer;
     display: flex;
-    gap: var(--size-2);
+    gap: var(--size-3);
     min-height: var(--size-touch);
     padding-inline: var(--size-3);
 }
 
 .select__option--active {
-    background: var(--color-bg-secondary);
+    background: var(--color-surface);
 }
 
-/* The ring of the row the arrow keys are on: inside it and past the thick edge of the chosen one */
+/* The ring of the row the arrow keys are on */
 .select__option--keys {
-    outline: var(--focus-width) solid var(--color-border-focus);
-    outline-offset: var(--focus-inset);
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: calc(-1 * var(--focus-width));
 }
 
 .select__option--chosen {
-    border-left-color: var(--color-border);
+    background: var(--color-surface-strong);
+    font-weight: var(--font-weight-strong);
 }

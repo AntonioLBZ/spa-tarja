@@ -6,11 +6,11 @@
         <!-- Only the origin goes along with a request, never a path such as the link of an invitation -->
         <meta name="referrer" content="strict-origin" />
         <title>Tarja</title>
-        <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#ff6a3d" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#ff7448" media="(prefers-color-scheme: dark)" />
         <script>
             // Puts the saved theme and accent on the page before it paints, so a choice other than the defaults (light
-            // and gray) doesn't flash. The keys and the values are those of src/lib/theme and src/lib/accent.
+            // and tangerine) doesn't flash. The keys and the values are those of src/lib/theme and src/lib/accent.
             var theme = 'light';
             try {
                 var saved = {
@@ -21,7 +21,7 @@
                     theme = saved.theme;
                     document.documentElement.dataset.theme = theme;
                 }
-                if (['amber', 'blue', 'green', 'violet', 'pink'].indexOf(saved.accent) !== -1) {
+                if (['cobalt', 'pine', 'grape', 'rose', 'ink'].indexOf(saved.accent) !== -1) {
                     document.documentElement.dataset.accent = saved.accent;
                 }
             } catch (error) {

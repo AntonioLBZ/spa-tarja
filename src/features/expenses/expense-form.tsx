@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { useBudgetWarning } from '@/features/budgets/use-budget-warning';
@@ -170,6 +171,10 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const [date, setDate] = useState(start.date);
     const [forWhom, setForWhom] = useState<ForWhom>(startFor);
     const [amountInvalid, setAmountInvalid] = useState(false);
+    // The day and the way it was paid are what most expenses leave as they come: tucked away unless they were set
+    const [moreOpen, setMoreOpen] = useState(
+        source !== null || start.date !== toDateString(new Date()) || start.payment !== 'direct'
+    );
     const [saving, setSaving] = useState(false);
     const [failure, setFailure] = useState<'saveFailed' | 'readOnly' | null>(null);
 
@@ -274,11 +279,15 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             return;
         }
 
-        if (isShared ? !shared.valid : !personal.check()) return;
+        if (isShared ? !shared.valid : !personal.check()) {
+            setMoreOpen(true);
+            return;
+        }
 
         const chargeDate = isShared ? shared.chargeDate : payment.chargeDate;
         if (chargeDate !== null && chargeDate < date) {
             payment.setChargeInvalid(true);
+            setMoreOpen(true);
             return;
         }
 
@@ -293,25 +302,46 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         }
     };
 
+    const dateField = (
+        <Field label={t('date')}>
+            {(control) => (
+                <input
+                    {...control}
+                    required
+                    type="date"
+                    value={date}
+                    onChange={(event) => {
+                        setDate(event.target.value);
+                        payment.setChargeInvalid(false);
+                    }}
+                />
+            )}
+        </Field>
+    );
+
     // The sheet around it shows its title (ExpenseSheet)
     return (
         <form className="expense-form" aria-label={title} onSubmit={(event) => void handleSubmit(event)}>
-            <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
-                {(control) => (
-                    <input
-                        {...control}
-                        autoComplete="off"
-                        inputMode="decimal"
-                        required
-                        type="text"
-                        value={amount}
-                        onChange={(event) => {
-                            setAmount(event.target.value);
-                            setAmountInvalid(false);
-                        }}
-                    />
-                )}
-            </Field>
+            <div className="expense-form__panel">
+                <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            autoComplete="off"
+                            className="expense-form__amount"
+                            inputMode="decimal"
+                            placeholder={formatAmountInput(0, locale)}
+                            required
+                            type="text"
+                            value={amount}
+                            onChange={(event) => {
+                                setAmount(event.target.value);
+                                setAmountInvalid(false);
+                            }}
+                        />
+                    )}
+                </Field>
+            </div>
 
             <Field label={t('text')}>
                 {(control) => (
@@ -341,21 +371,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 )}
             </Field>
 
-            <Field label={t('date')}>
-                {(control) => (
-                    <input
-                        {...control}
-                        required
-                        type="date"
-                        value={date}
-                        onChange={(event) => {
-                            setDate(event.target.value);
-                            payment.setChargeInvalid(false);
-                        }}
-                    />
-                )}
-            </Field>
-
             {/* An edit keeps an expense of one person as it is */}
             {!group && !editing && (
                 <ChoiceGroup
@@ -371,9 +386,22 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             )}
 
             {isShared ? (
-                <SharedTail tail={shared} payment={payment} fixed={group !== undefined} />
+                <>
+                    {dateField}
+                    <SharedTail tail={shared} payment={payment} fixed={group !== undefined} />
+                </>
             ) : (
-                <PersonalTail tail={personal} payment={payment} />
+                <Disclosure
+                    keepMounted
+                    chevron
+                    open={moreOpen}
+                    onOpenChange={setMoreOpen}
+                    summary={t('more')}
+                    className="expense-form__more"
+                >
+                    {dateField}
+                    <PersonalTail tail={personal} payment={payment} />
+                </Disclosure>
             )}
 
             {failure && !amountInvalid && (

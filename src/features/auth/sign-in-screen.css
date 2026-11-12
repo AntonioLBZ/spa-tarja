@@ -1,13 +1,53 @@
+/* A ticket on a colored desk: the name over a comb on the field, and under a perforated edge the sheet that signs in */
 .sign-in {
-    align-content: center;
+    background: var(--color-field);
+    color: var(--color-on-field);
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+}
+
+.sign-in__field {
+    align-content: end;
+    display: grid;
+    flex: 1;
+    gap: var(--size-6);
+    margin-inline: auto;
+    max-inline-size: 28rem;
+    padding: max(var(--size-8), env(safe-area-inset-top)) max(var(--size-5), env(safe-area-inset-right)) var(--size-12)
+        max(var(--size-5), env(safe-area-inset-left));
+    width: 100%;
+}
+
+.sign-in__ticks {
+    align-items: flex-end;
+    block-size: 4rem;
+    display: flex;
+    gap: 0.25rem;
+}
+
+.sign-in__tick {
+    background: var(--color-on-field);
+    block-size: calc(0.375rem + var(--rise) * 3.625rem);
+    border-radius: var(--radius-pill);
+    flex: 1 1 0;
+    max-inline-size: 0.75rem;
+}
+
+.sign-in__tick:nth-child(8) {
+    background: var(--color-now);
+}
+
+.sign-in__sheet {
+    color: var(--color-ink);
     display: grid;
     gap: var(--size-4);
     grid-template-columns: minmax(0, 1fr);
     margin-inline: auto;
-    max-width: 24rem;
-    min-height: 100dvh;
-    padding: max(var(--size-6), env(safe-area-inset-top)) max(var(--size-4), env(safe-area-inset-right))
-        max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
+    max-inline-size: 28rem;
+    padding: var(--size-8) max(var(--size-5), env(safe-area-inset-right))
+        max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-5), env(safe-area-inset-left));
+    width: 100%;
 }
 
 .sign-in__title {
@@ -16,13 +56,13 @@
 }
 
 .sign-in__description {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     margin: 0;
 }
 
 /* What signing in gives the app, in a line under the button */
 .sign-in__summary {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }
@@ -30,4 +70,14 @@
 /* A ghost under the button, as wide as its words */
 .sign-in__privacy {
     justify-self: start;
+}
+
+@media (width >= 40rem) {
+    .sign-in {
+        justify-content: center;
+    }
+
+    .sign-in__field {
+        flex: none;
+    }
 }

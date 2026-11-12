@@ -1,19 +1,18 @@
-/* The notch, centered over the page. In with a fade and a short shift like a panel, and out the same way: `display` and
-   `overlay` wait for the transition, or the browser would drop it from the top layer at once */
+/* A rounded box centered over the page. In with a fade and a short shift like a panel, and out the same way: `display`
+   and `overlay` wait for the transition, or the browser would drop it from the top layer at once */
 .dialog {
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
-    color: var(--color-content-primary);
+    background: var(--color-sheet);
+    border: 0;
+    border-radius: var(--radius-l);
+    color: var(--color-ink);
     inline-size: calc(100% - var(--size-8));
     margin: auto;
     max-block-size: calc(100dvh - var(--size-8));
     max-inline-size: 32rem;
     opacity: 0;
     overflow: auto;
-    padding: var(--size-4);
-    transform: translateY(var(--size-2));
+    padding: var(--size-6);
+    transform: translateY(var(--size-4)) scale(0.97);
     transition:
         display var(--duration-base) allow-discrete,
         opacity var(--duration-base) var(--ease-exit),
@@ -28,17 +27,16 @@
         display var(--duration-base) allow-discrete,
         opacity var(--duration-base) var(--ease-enter),
         overlay var(--duration-base) allow-discrete,
-        transform var(--duration-base) var(--ease-enter);
+        transform var(--duration-slow) var(--ease-spring);
 
     @starting-style {
         opacity: 0;
-        transform: translateY(var(--size-2));
+        transform: translateY(var(--size-4)) scale(0.97);
     }
 }
 
-/* The page's own color over the page: it dims what is behind without a color of its own */
 .dialog::backdrop {
-    background: var(--color-bg-primary);
+    background: var(--color-veil);
     opacity: 0;
     transition:
         display var(--duration-base) allow-discrete,
@@ -47,7 +45,7 @@
 }
 
 .dialog[open]::backdrop {
-    opacity: 0.8;
+    opacity: 1;
     transition:
         display var(--duration-base) allow-discrete,
         opacity var(--duration-base) var(--ease-enter),
@@ -69,48 +67,49 @@
     display: flex;
     gap: var(--size-2);
     justify-content: space-between;
-    margin: 0 0 var(--size-4);
+    margin: 0 0 var(--size-5);
 }
 
 .dialog__title {
-    font-size: var(--font-size-l);
+    font-size: var(--font-size-xl);
     margin: 0;
 }
 
 .dialog__close {
     align-items: center;
+    background: var(--color-surface);
+    color: var(--color-ink);
     display: inline-flex;
-    justify-content: flex-end;
+    justify-content: center;
 }
 
 .dialog__body {
     display: grid;
-    gap: var(--size-4);
+    gap: var(--size-5);
 }
 
 .dialog__body > :where(p) {
     margin: 0;
 }
 
-/* The actions are ghosts, which line up with the text above them */
 .dialog__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-4);
-    margin-top: var(--size-4);
+    gap: var(--size-2);
+    margin-top: var(--size-5);
 }
 
-/* A sheet holds the form of a task. On a phone it is anchored to the bottom edge and as wide as the screen, with a
-   hairline on top instead of the notch, which makes no sense against the edges of the screen. It comes up from below. */
+/* A sheet holds the form of a task. On a phone it is anchored to the bottom edge and as wide as the screen, with the
+   large radius on its top corners. It comes up from below, or blooms out of the "+" when the script can draw that. */
 .dialog--sheet {
-    border-width: var(--size-px) 0 0;
+    border-radius: var(--radius-l) var(--radius-l) 0 0;
     inline-size: 100%;
     margin: auto 0 0;
-    max-block-size: calc(100dvh - env(safe-area-inset-top) - var(--size-8));
+    max-block-size: calc(100dvh - env(safe-area-inset-top) - var(--size-6));
     max-inline-size: none;
     overscroll-behavior: contain;
-    padding-block-end: calc(var(--size-4) + env(safe-area-inset-bottom));
-    padding-inline: max(var(--size-4), env(safe-area-inset-left)) max(var(--size-4), env(safe-area-inset-right));
+    padding-block-end: calc(var(--size-6) + env(safe-area-inset-bottom));
+    padding-inline: max(var(--size-5), env(safe-area-inset-left)) max(var(--size-5), env(safe-area-inset-right));
     transform: translateY(100%);
 }
 
@@ -118,6 +117,14 @@
     @starting-style {
         opacity: 0;
         transform: translateY(100%);
+    }
+}
+
+/* The script draws the entrance itself: it only has to be there */
+.dialog--sheet[open][data-bloom] {
+    @starting-style {
+        opacity: 1;
+        transform: none;
     }
 }
 
@@ -129,19 +136,26 @@
 /* From 40 rem a sheet is the dialog above */
 @media (width >= 40rem) {
     .dialog--sheet {
-        border-width: 0 0 var(--size-1) var(--size-1);
+        border-radius: var(--radius-l);
         inline-size: calc(100% - var(--size-8));
         margin: auto;
         max-block-size: calc(100dvh - var(--size-8));
         max-inline-size: 32rem;
-        padding: var(--size-4);
-        transform: translateY(var(--size-2));
+        padding: var(--size-6);
+        transform: translateY(var(--size-4)) scale(0.97);
     }
 
     .dialog--sheet[open] {
         @starting-style {
             opacity: 0;
-            transform: translateY(var(--size-2));
+            transform: translateY(var(--size-4)) scale(0.97);
+        }
+    }
+
+    .dialog--sheet[open][data-bloom] {
+        @starting-style {
+            opacity: 1;
+            transform: none;
         }
     }
 

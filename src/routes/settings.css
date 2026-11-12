@@ -3,9 +3,13 @@
     gap: var(--size-8);
 }
 
-.settings__title {
-    font-size: var(--font-size-l);
-    margin: 0;
+/* A color of the app drawn in its own tones: the preset is named on the dot, so it paints itself whatever is chosen */
+.settings__dot {
+    background: var(--p-field);
+    block-size: 1.75rem;
+    border: 0.125rem solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+    border-radius: 50%;
+    inline-size: 1.75rem;
 }
 
 .settings__section {
@@ -16,12 +20,12 @@
 }
 
 .settings__heading {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-l);
     margin: 0;
 }
 
 .settings__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }

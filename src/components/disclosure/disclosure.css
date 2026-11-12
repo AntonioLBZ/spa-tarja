@@ -6,38 +6,46 @@
 /* Around a toggle that titles a section: the size of the text around it, and the toggle takes its weight */
 .disclosure__heading {
     font-size: inherit;
+    letter-spacing: 0;
     margin: 0;
 }
 
-/* The notch comes from the button; the toggle only lays out what is inside it. Brought into view (the add form's
-   heading on Edit, a row taking the focus back), it keeps room for its focus ring */
+/* The toggle only lays out what is inside it. Brought into view (the add form's heading on Edit, a row taking the
+   focus back), it keeps room for its focus ring */
 .disclosure__toggle {
     align-items: center;
+    background: var(--color-surface);
+    border-radius: var(--radius-m);
     display: flex;
-    gap: var(--size-2);
+    font-weight: var(--font-weight-strong);
+    gap: var(--size-3);
     justify-content: flex-start;
-    padding-inline: var(--size-3);
+    min-height: 3.25rem;
+    padding-inline: var(--size-4);
     scroll-margin-block: var(--size-2);
     text-align: start;
     width: 100%;
 }
 
+.disclosure__toggle:active {
+    transform: scale(0.985);
+}
+
 .disclosure__chevron {
     display: flex;
     margin-inline-start: auto;
-    transition: transform var(--duration-base) var(--ease-standard);
+    transition: transform var(--duration-slow) var(--ease-spring);
 }
 
 .disclosure__toggle[aria-expanded='true'] .disclosure__chevron {
     transform: rotate(180deg);
 }
 
-/* Under the row, outside its L, and in with a fade and a short shift like a new expense */
+/* Under the row, in with a fade and a short shift like a new expense */
 .disclosure__panel {
     display: grid;
     gap: var(--size-4);
     padding-block: var(--size-2);
-    padding-inline-start: var(--size-3);
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);

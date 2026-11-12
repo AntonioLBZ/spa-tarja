@@ -50,10 +50,10 @@ const withColorTransition = (update: () => void): void => {
     colorTransitionTimer = setTimeout(() => root.removeAttribute('data-color-transition'), duration);
 };
 
-// The header surface, resolved for the current color scheme
+// The color of the field, which the browser toolbar matches, resolved for the current color scheme
 const readSurfaceColor = (): string => {
     const probe = document.createElement('div');
-    probe.style.backgroundColor = 'var(--color-bg-secondary)';
+    probe.style.backgroundColor = 'var(--color-field)';
     document.body.appendChild(probe);
     const color = getComputedStyle(probe).backgroundColor;
     probe.remove();

@@ -1,0 +1,129 @@
+/* A flex column, so the field can stick for the whole height of the page while the sheet scrolls over it */
+.page {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+}
+
+/* From 40 rem the header of the root is the bar (the page draws none), and the page stands on a quiet desk */
+@media (width >= 40rem) {
+    .page {
+        background: var(--color-surface);
+    }
+}
+
+.page__bar {
+    align-items: center;
+    background: var(--color-field);
+    block-size: calc(var(--page-bar-height) + env(safe-area-inset-top));
+    color: var(--color-on-field);
+    display: grid;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+    inset-block-start: 0;
+    padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
+        max(var(--size-4), env(safe-area-inset-left));
+    position: sticky;
+    view-transition-name: bar;
+    z-index: 3;
+}
+
+.page__bar-start {
+    display: flex;
+    justify-self: start;
+}
+
+.page__bar-end {
+    display: flex;
+    grid-column: 3;
+    justify-self: end;
+}
+
+/* What the field said, short, once the sheet has covered it */
+.page__compact {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-display);
+    grid-column: 2;
+    letter-spacing: -0.01em;
+    margin: 0;
+    max-inline-size: 40vw;
+    opacity: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: translateY(0.5rem);
+    transition:
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-enter);
+    white-space: nowrap;
+}
+
+.page[data-collapsed='true'] .page__compact {
+    opacity: 1;
+    transform: none;
+}
+
+/* The field stays where the bar ends while the sheet slides over it */
+.page__field {
+    background: var(--color-field);
+    color: var(--color-on-field);
+    inset-block-start: calc(var(--page-bar-height) + env(safe-area-inset-top));
+    padding: var(--size-2) max(var(--size-5), env(safe-area-inset-right)) var(--size-12)
+        max(var(--size-5), env(safe-area-inset-left));
+    position: sticky;
+    z-index: 0;
+}
+
+@media (width >= 40rem) {
+    .page__field {
+        inset-block-start: var(--page-bar-height);
+        padding-block-start: var(--size-6);
+    }
+}
+
+.page__field-inner {
+    margin-inline: auto;
+    max-inline-size: 40rem;
+}
+
+.page__title {
+    font-size: var(--font-size-2xl);
+    margin: 0;
+}
+
+/* The sheet carries the perforated edge (`perforated`, in the base styles) */
+.page__sheet {
+    flex: 1;
+    margin-inline: auto;
+    padding: var(--size-8) max(var(--size-5), env(safe-area-inset-right))
+        calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-8))
+        max(var(--size-5), env(safe-area-inset-left));
+    position: relative;
+    width: 100%;
+    z-index: 1;
+}
+
+@media (width >= 40rem) {
+    .page__sheet {
+        max-inline-size: 40rem;
+        padding-block-end: var(--size-12);
+    }
+}
+
+.brand-link {
+    align-items: center;
+    color: inherit;
+    display: inline-flex;
+    min-block-size: var(--size-touch);
+    text-decoration: none;
+}
+
+/* The link back sits on the field, so it takes the color of what is written on it */
+.back-link {
+    color: var(--color-on-field);
+    font-size: var(--font-size-s);
+    margin-inline-start: calc(-1 * var(--size-2));
+    white-space: nowrap;
+}
+
+.back-link:hover {
+    background: var(--color-field-tint);
+}

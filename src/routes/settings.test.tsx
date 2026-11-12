@@ -133,10 +133,10 @@ describe('settings', () => {
     });
 
     describe('accent', () => {
-        it('starts on gray, with no attribute on the root', async () => {
+        it('starts on tangerine, with no attribute on the root', async () => {
             renderApp({ path: '/settings' });
 
-            expect((await radio(en.settings.accent.gray)).checked).toBe(true);
+            expect((await radio(en.settings.accent.tangerine)).checked).toBe(true);
             expect(root.hasAttribute('data-accent')).toBe(false);
         });
 
@@ -151,45 +151,45 @@ describe('settings', () => {
         it('offers the fixed list, by name', async () => {
             renderApp({ path: '/settings' });
 
-            await radio(en.settings.accent.gray);
+            await radio(en.settings.accent.tangerine);
 
             const names = screen
                 .getAllByRole('radio')
                 .filter((input) => (input as HTMLInputElement).name === 'accent')
                 .map((input) => (input as HTMLInputElement).value);
-            expect(names).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
+            expect(names).toEqual(['tangerine', 'cobalt', 'pine', 'grape', 'rose', 'ink']);
         });
 
         it('applies a choice and remembers it', async () => {
             renderApp({ path: '/settings' });
 
-            fireEvent.click(await radio(en.settings.accent.violet));
+            fireEvent.click(await radio(en.settings.accent.grape));
 
-            expect(root.dataset.accent).toBe('violet');
-            expect(localStorage.getItem('tarja:accent')).toBe('violet');
-            expect((await radio(en.settings.accent.violet)).checked).toBe(true);
+            expect(root.dataset.accent).toBe('grape');
+            expect(localStorage.getItem('tarja:accent')).toBe('grape');
+            expect((await radio(en.settings.accent.grape)).checked).toBe(true);
 
-            fireEvent.click(await radio(en.settings.accent.amber));
-            expect(root.dataset.accent).toBe('amber');
+            fireEvent.click(await radio(en.settings.accent.cobalt));
+            expect(root.dataset.accent).toBe('cobalt');
 
-            fireEvent.click(await radio(en.settings.accent.gray));
+            fireEvent.click(await radio(en.settings.accent.tangerine));
             expect(root.hasAttribute('data-accent')).toBe(false);
         });
 
         it('comes back with the stored accent', async () => {
-            localStorage.setItem('tarja:accent', 'pink');
+            localStorage.setItem('tarja:accent', 'rose');
 
             renderApp({ path: '/settings' });
 
-            expect((await radio(en.settings.accent.pink)).checked).toBe(true);
-            await waitFor(() => expect(root.dataset.accent).toBe('pink'));
+            expect((await radio(en.settings.accent.rose)).checked).toBe(true);
+            await waitFor(() => expect(root.dataset.accent).toBe('rose'));
         });
 
         it('fades the colors while it changes', async () => {
             root.style.setProperty('--duration-slow', '50ms');
             renderApp({ path: '/settings' });
 
-            fireEvent.click(await radio(en.settings.accent.blue));
+            fireEvent.click(await radio(en.settings.accent.pine));
 
             expect(root.hasAttribute('data-color-transition')).toBe(true);
             await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));

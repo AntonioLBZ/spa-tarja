@@ -6,12 +6,12 @@
 }
 
 .your-data__title {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-l);
     margin: 0;
 }
 
 .your-data__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }

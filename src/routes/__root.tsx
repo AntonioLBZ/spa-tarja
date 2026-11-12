@@ -1,19 +1,17 @@
-import { Link, Outlet, createRootRoute, useRouterState } from '@tanstack/react-router';
-import clsx from 'clsx';
+import { Link, Outlet, createRootRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-nav';
-import { Brand } from '@/components/brand/brand';
-import { ButtonLink } from '@/components/button/button-link';
-import { Icon } from '@/components/icon/icon';
 import { ToastProvider } from '@/components/toast/toast';
 import { AddExpenseButton } from '@/features/expenses/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/expense-sheet';
 import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 import { useOpenAdd } from '@/features/expenses/use-open-add';
 import { AppUpdate } from '@/features/pwa/app-update';
-import { isPrerelease } from '@/lib/prerelease';
-import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
+import { BrandLink } from '@/features/shell/brand-link';
+import { NotFound } from '@/features/shell/not-found';
+import { useSection } from '@/features/shell/shown-path';
+import { type NavSection } from '@/lib/route-transition';
 import { useWide } from '@/lib/use-wide';
 
 import type { MouseEvent } from 'react';
@@ -25,26 +23,15 @@ const opensElsewhere = (event: MouseEvent) => {
     return event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey;
 };
 
-// The path of the screen already shown, not of the one being opened: the header has to be in its old state when the
-// view transition takes its first picture (the underline would not slide otherwise), and changes inside it
-const useShownPathname = () => {
-    return useRouterState({ select: (state) => (state.resolvedLocation ?? state.location).pathname });
-};
-
-const useSection = () => {
-    return navSection(useShownPathname());
-};
-
 const RootLayout = () => {
     const t = useTranslations('toast');
     const wide = useWide();
-    const rootClsx = clsx('root', { 'root--tabs': !wide });
 
     return (
         <ExpenseSheetProvider>
             <ToastProvider dismissLabel={t('dismiss')}>
-                <div className={rootClsx}>
-                    {wide ? <RootHeader /> : <RootPhoneHeader />}
+                <div className="root">
+                    {wide && <RootHeader />}
                     <main className="root__main">
                         <Outlet />
                     </main>
@@ -57,67 +44,8 @@ const RootLayout = () => {
     );
 };
 
-// The logo leads home. It is never underlined.
-const RootBrand = () => {
-    return (
-        <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
-            <Brand prerelease={isPrerelease()} />
-        </Link>
-    );
-};
-
-const BACK_WORDS = {
-    '/': 'expenses',
-    '/groups': 'groups',
-    '/groups/$groupId': 'group',
-    '/summary': 'summary',
-    '/settings': 'settings',
-} as const satisfies Record<BackTarget['to'], string>;
-
-// The link back to the parent of a screen deeper than a tab, named for the place it leads to
-const RootBack = () => {
-    const t = useTranslations('nav');
-    const target = backTarget(useShownPathname());
-
-    if (!target) return null;
-    const place = t(BACK_WORDS[target.to]);
-    const content = (
-        <>
-            <Icon name="chevron_left" />
-            {place}
-        </>
-    );
-
-    return 'params' in target ? (
-        <ButtonLink
-            ghost
-            className="root__back"
-            to={target.to}
-            params={target.params}
-            aria-label={t('back', { place })}
-        >
-            {content}
-        </ButtonLink>
-    ) : (
-        <ButtonLink ghost className="root__back" to={target.to} aria-label={t('back', { place })}>
-            {content}
-        </ButtonLink>
-    );
-};
-
-// On a phone the header holds the logo in the middle and, below a tab, the link back at its left; the destinations are
-// the bar at the bottom
-const RootPhoneHeader = () => {
-    return (
-        <header className="root__header">
-            <RootBack />
-            <RootBrand />
-        </header>
-    );
-};
-
-// Expenses and the action that adds on the left, the logo in the middle, the other screens on the right. Both Expenses
-// and the logo lead home.
+// From 40 rem: the logo, the four destinations and, at the far end, the action that adds. On a phone each screen has its
+// own bar and the destinations are the tabs at the bottom.
 const RootHeader = () => {
     const t = useTranslations('nav');
     const section = useSection();
@@ -127,35 +55,33 @@ const RootHeader = () => {
         return section === target ? 'true' : undefined;
     };
 
-    const underline = (target: NavSection) => {
-        return section === target && <span aria-hidden className="root__underline" />;
+    const mark = (target: NavSection) => {
+        return section === target && <span aria-hidden className="root__mark" />;
     };
 
     return (
         <header className="root__header">
             <nav aria-label={t('label')} className="root__nav">
-                <div className="root__start">
+                <BrandLink />
+                <div className="root__links">
                     <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
-                        {t('expenses')}
-                        {underline('/')}
+                        {mark('/')}
+                        <span className="root__link-text">{t('expenses')}</span>
                     </Link>
-                    <AddExpenseButton />
-                </div>
-                <RootBrand />
-                <div className="root__group">
                     <Link className="root__link" to="/groups" aria-current={current('/groups')}>
-                        {t('groups')}
-                        {underline('/groups')}
+                        {mark('/groups')}
+                        <span className="root__link-text">{t('groups')}</span>
                     </Link>
                     <Link className="root__link" to="/summary" aria-current={current('/summary')}>
-                        {t('summary')}
-                        {underline('/summary')}
+                        {mark('/summary')}
+                        <span className="root__link-text">{t('summary')}</span>
                     </Link>
                     <Link className="root__link" to="/settings" aria-current={current('/settings')}>
-                        {t('settings')}
-                        {underline('/settings')}
+                        {mark('/settings')}
+                        <span className="root__link-text">{t('settings')}</span>
                     </Link>
                 </div>
+                <AddExpenseButton />
             </nav>
         </header>
     );
@@ -182,7 +108,7 @@ const RootTabs = () => {
             current: section === tab.to,
             onClick: (event) => {
                 if (opensElsewhere(event)) return;
-                if (section === tab.to) window.scrollTo({ top: 0 });
+                if (section === tab.to) window.scrollTo({ top: 0, behavior: 'smooth' });
             },
         };
     });
@@ -196,4 +122,4 @@ const RootTabs = () => {
     );
 };
 
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRoute({ component: RootLayout, notFoundComponent: NotFound });

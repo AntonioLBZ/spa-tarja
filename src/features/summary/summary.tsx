@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { ButtonLink } from '@/components/button/button-link';
 import { Card, CardList } from '@/components/card/card';
+import { Icon } from '@/components/icon/icon';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
+import { HeroStat } from '@/features/shell/hero-stat';
+import { Page } from '@/features/shell/page';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -39,67 +42,88 @@ const Summary = () => {
         'summary__value--negative': summary.leftCents !== null && summary.leftCents < 0,
     });
 
+    const heroCents = summary.leftCents ?? summary.spentCents;
+    const link = (to: '/budgets' | '/charts', word: string) => (
+        <ButtonLink to={to}>
+            {word}
+            <Icon name="chevron_right" />
+        </ButtonLink>
+    );
+
     return (
-        <section className="summary">
-            <h1 className="summary__title">{t('title')}</h1>
-
-            <MonthSwitch
-                monthName={monthName}
-                labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
-                onPrevious={() => setMonth(shiftMonth(month, -1))}
-                onNext={() => setMonth(shiftMonth(month, 1))}
-            />
-
-            <CardList as="dl">
-                <Card className="summary__row">
-                    <dt>{t('income')}</dt>
-                    <dd className="summary__value">{set ? money(set.amountCents) : t('notSet')}</dd>
-                </Card>
-                {summary.voucherCents > 0 && (
+        <Page
+            title={t('title')}
+            titleVisible={false}
+            compact={`${monthName} · ${money(heroCents)}`}
+            hero={
+                <>
+                    <div className="summary__month">
+                        <MonthSwitch
+                            monthName={monthName}
+                            labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
+                            onPrevious={() => setMonth(shiftMonth(month, -1))}
+                            onNext={() => setMonth(shiftMonth(month, 1))}
+                        />
+                    </div>
+                    <HeroStat
+                        label={t(summary.leftCents === null ? 'heroSpent' : 'heroLeft')}
+                        amount={{ value: heroCents, format: money }}
+                        sub={
+                            summary.leftCents === null
+                                ? t('leftHint')
+                                : t('ofIncome', { income: money(summary.incomeCents ?? 0) })
+                        }
+                    />
+                </>
+            }
+        >
+            <div className="summary">
+                <CardList as="dl">
                     <Card className="summary__row">
-                        <dt>{t('voucher')}</dt>
-                        <dd className="summary__value">{money(summary.voucherCents)}</dd>
+                        <dt>{t('income')}</dt>
+                        <dd className="summary__value">{set ? money(set.amountCents) : t('notSet')}</dd>
                     </Card>
-                )}
-                {summary.paidBackCents > 0 && (
+                    {summary.voucherCents > 0 && (
+                        <Card className="summary__row">
+                            <dt>{t('voucher')}</dt>
+                            <dd className="summary__value">{money(summary.voucherCents)}</dd>
+                        </Card>
+                    )}
+                    {summary.paidBackCents > 0 && (
+                        <Card className="summary__row">
+                            <dt>{t('paidBack')}</dt>
+                            <dd className="summary__value">{money(summary.paidBackCents)}</dd>
+                        </Card>
+                    )}
                     <Card className="summary__row">
-                        <dt>{t('paidBack')}</dt>
-                        <dd className="summary__value">{money(summary.paidBackCents)}</dd>
+                        <dt>{t('spent')}</dt>
+                        <dd className="summary__value">{money(summary.spentCents)}</dd>
                     </Card>
+                    {summary.leftCents !== null && (
+                        <Card className="summary__row summary__row--left">
+                            <dt>{t('left')}</dt>
+                            <dd className={leftClsx}>{money(summary.leftCents)}</dd>
+                        </Card>
+                    )}
+                </CardList>
+
+                {income.isError && income.data === undefined && (
+                    <p className="summary__hint" role="alert">
+                        {t('loadFailed')}
+                    </p>
                 )}
-                <Card className="summary__row">
-                    <dt>{t('spent')}</dt>
-                    <dd className="summary__value">{money(summary.spentCents)}</dd>
-                </Card>
-                {summary.leftCents !== null && (
-                    <Card className="summary__row summary__row--left">
-                        <dt>{t('left')}</dt>
-                        <dd className={leftClsx}>{money(summary.leftCents)}</dd>
-                    </Card>
-                )}
-            </CardList>
-            {summary.leftCents === null && <p className="summary__hint">{t('leftHint')}</p>}
+                {!online && <Notice role="status">{t('offline')}</Notice>}
 
-            {income.isError && income.data === undefined && (
-                <p className="summary__hint" role="alert">
-                    {t('loadFailed')}
-                </p>
-            )}
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+                <BudgetBars month={month} />
 
-            <BudgetBars month={month} />
+                <IncomeForm month={month} monthName={monthName} income={set} />
 
-            <IncomeForm month={month} monthName={monthName} income={set} />
-
-            <div className="summary__links">
-                <Link className="summary__link" to="/budgets">
-                    {t('budgetsLink')}
-                </Link>
-                <Link className="summary__link" to="/charts">
-                    {t('chartsLink')}
-                </Link>
+                <div className="summary__links">
+                    {link('/budgets', t('budgetsLink'))}
+                    {link('/charts', t('chartsLink'))}
+                </div>
             </div>
-        </section>
+        </Page>
     );
 };
 

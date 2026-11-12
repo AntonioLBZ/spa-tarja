@@ -19,30 +19,31 @@
 }
 
 /* Filled with ink, the one message that is, so it stands apart from the bar and the sheets and is noticed: its text is the
-   color of the page, and so is its focus ring, which the accent would not show on. In with a fade and a short shift,
-   and out the same way. */
+   color of the page, and so is its focus ring, which the accent would not show on. It springs in from below and leaves
+   the same way. */
 .toast {
-    --color-border-focus: var(--color-bg-primary);
+    --color-focus: var(--color-sheet);
 
     align-items: center;
-    background: var(--color-border);
-    color: var(--color-bg-primary);
+    background: var(--color-ink);
+    border-radius: var(--radius-m);
+    color: var(--color-sheet);
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
     justify-content: space-between;
     max-width: 40rem;
-    padding: var(--size-2) var(--size-3);
+    padding: var(--size-2) var(--size-4);
     pointer-events: auto;
     position: relative;
     transition:
         opacity var(--duration-base) var(--ease-enter),
-        transform var(--duration-base) var(--ease-enter);
+        transform var(--duration-slow) var(--ease-spring);
     width: 100%;
 
     @starting-style {
         opacity: 0;
-        transform: translateY(var(--size-2));
+        transform: translateY(var(--size-4)) scale(0.96);
     }
 }
 
@@ -50,11 +51,13 @@
    holds with the count. It stays off the edge, where the color of the page would be lost against the page. */
 .toast::after {
     animation: toast-countdown var(--toast-duration) linear forwards;
-    background: var(--color-bg-primary);
+    background: var(--color-sheet);
     block-size: var(--size-1);
+    border-radius: var(--radius-pill);
     content: '';
     inset-block-end: var(--size-1);
-    inset-inline: var(--size-3);
+    inset-inline: var(--size-4);
+    opacity: 0.5;
     position: absolute;
     transform-origin: left;
 }
@@ -84,13 +87,18 @@
 .toast--leaving {
     opacity: 0;
     pointer-events: none;
-    transform: translateY(var(--size-2));
+    transform: translateY(var(--size-2)) scale(0.98);
     transition-timing-function: var(--ease-exit);
 }
 
 /* Its buttons are in its text color, not the ink of a button on the page */
 .toast .button {
+    background: transparent;
     color: inherit;
+}
+
+.toast .button:hover {
+    background: color-mix(in oklab, var(--color-sheet) 14%, transparent);
 }
 
 .toast__actions {

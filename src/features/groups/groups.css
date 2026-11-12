@@ -1,11 +1,12 @@
 .groups {
     display: grid;
-    gap: var(--size-6);
+    gap: var(--size-8);
     grid-template-columns: minmax(0, 1fr);
 }
 
 .groups__heading {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-xl);
+    letter-spacing: -0.02em;
     margin: 0;
 }
 
@@ -15,9 +16,20 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.groups__title {
-    font-size: var(--font-size-l);
-    margin: 0;
+/* What is owed and what is owed back are the answer of the screen: sentences at the size of a title, on the field */
+.groups__hero .notice,
+.groups__hero .notice--quiet {
+    background: transparent;
+    color: var(--color-on-field);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-display);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    padding: 0;
+}
+
+.groups__hero .notice--quiet {
+    color: var(--color-on-field-muted);
 }
 
 .groups__totals {

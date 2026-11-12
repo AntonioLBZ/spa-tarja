@@ -34,9 +34,9 @@ export const Scale = () => {
 export const Weights = () => {
     return (
         <div>
-            {[400, 700].map((weight) => (
+            {[400, 500, 600, 700, 900].map((weight) => (
                 <div className="type-sample" key={weight}>
-                    <span className="type-sample__meta">IBM Plex Mono · {weight}</span>
+                    <span className="type-sample__meta">Gabarito · {weight}</span>
                     <p className="type-sample__text" style={{ fontWeight: weight }}>
                         {SAMPLE}
                     </p>
@@ -50,11 +50,11 @@ export const Logo = () => {
     return (
         <div>
             <div className="type-sample">
-                <span className="type-sample__meta">--font-family-brand, in the header</span>
+                <span className="type-sample__meta">the logo, in the header</span>
                 <Brand />
             </div>
             <div className="type-sample">
-                <span className="type-sample__meta">--font-size-logo, as the hero</span>
+                <span className="type-sample__meta">the logo, as the hero</span>
                 <Brand size="hero" />
             </div>
         </div>

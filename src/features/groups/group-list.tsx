@@ -70,6 +70,9 @@ const GroupRow = (props: GroupRowProps) => {
 
     return (
         <Link className={rowClsx} to="/groups/$groupId" params={{ groupId: group.id }}>
+            <span className="group-row__sticker">
+                <Icon name={group.kind === 'direct' ? 'person' : 'groups'} />
+            </span>
             <span className="group-row__body">
                 <span className="group-row__name">{words.title}</span>
                 {words.closed === null ? (

@@ -1,18 +1,18 @@
 .brand {
     font-family: var(--font-family-brand);
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-weight: var(--font-weight-display);
+    letter-spacing: -0.03em;
+    text-transform: lowercase;
 }
 
-/* The face of the name has only its letters, and a dot matrix face doesn't read small */
 .brand__suffix {
-    font-family: var(--font-family);
     font-size: 0.5em;
+    font-weight: var(--font-weight-strong);
+    letter-spacing: 0;
 }
 
 .brand--header {
-    font-size: var(--font-size-l);
+    font-size: var(--font-size-xl);
 }
 
 .brand--hero {

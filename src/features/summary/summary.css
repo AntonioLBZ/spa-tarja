@@ -4,9 +4,22 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.summary__title {
+/* The month switch sits on the field: its arrows take the color written on it */
+.summary__month {
+    margin-block-end: var(--size-4);
+}
+
+.summary__month .button {
+    background: var(--color-field-tint);
+    color: var(--color-on-field);
+}
+
+.summary__month .button:hover {
+    background: var(--color-field-tint-strong);
+}
+
+.summary__month .month-switch__name {
     font-size: var(--font-size-l);
-    margin: 0;
 }
 
 .summary__row {
@@ -17,17 +30,18 @@
 }
 
 .summary__row dt {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
 }
 
 .summary__value {
+    font-weight: var(--font-weight-strong);
     margin: 0;
 }
 
 .summary__row--left dt,
 .summary__row--left .summary__value {
     color: inherit;
-    font-weight: 700;
+    font-weight: var(--font-weight-display);
 }
 
 .summary__row--left .summary__value--negative {
@@ -35,7 +49,7 @@
 }
 
 .summary__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }
@@ -43,11 +57,5 @@
 .summary__links {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.summary__link {
-    align-items: center;
-    display: inline-flex;
-    min-height: var(--size-touch);
+    gap: var(--size-2);
 }

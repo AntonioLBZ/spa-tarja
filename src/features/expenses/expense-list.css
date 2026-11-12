@@ -1,54 +1,64 @@
-/* `minmax(0, 1fr)` here and on the groups keeps the leaders, which are as long as they can be, from widening the page */
+/* `minmax(0, 1fr)` here and on the groups keeps what is as long as it can be from widening the page */
 .expense-list {
     display: grid;
-    gap: var(--size-6);
+    gap: var(--size-4);
     grid-template-columns: minmax(0, 1fr);
-}
-
-.expense-list__title {
-    font-size: var(--font-size-m);
-    margin: 0;
 }
 
 .expense-list__label--category {
     align-items: center;
     display: flex;
     gap: var(--size-2);
-    justify-content: center;
 }
 
-/* The foot: a dashed rule and the total. It stops short at the end by the width of the chevron of a row and its gap, so
-   the amounts line up */
-.expense-list__total {
-    border-block-start: var(--size-px) dashed var(--color-border);
-    color: var(--color-content-secondary);
+/* A day: its name and its total on one line that stays at the top while the day's rows scroll by. They are two boxes in
+   a wrapping row, so each sticks on its own and both stay level. */
+.expense-list .sheet {
+    align-items: flex-start;
     display: flex;
-    font-size: var(--font-size-s);
-    font-weight: 700;
-    gap: var(--size-2);
-    margin: 0;
-    padding-block-start: var(--size-3);
-    padding-inline-end: calc(1.5rem + var(--size-2));
+    flex-wrap: wrap;
+    scroll-margin-block-start: calc(var(--page-bar-height) + env(safe-area-inset-top) + var(--size-2));
 }
 
-/* The word and its leader of dots, which the box cuts where they meet the amount */
-.expense-list__total-label {
+.expense-list .sheet__label {
     flex: 1 1 0;
-    min-width: 0;
+}
+
+.expense-list .card-list {
+    flex: 0 0 100%;
+    order: 2;
+}
+
+.expense-list__total {
+    background: var(--color-sheet);
+    color: var(--color-ink-muted);
+    flex: none;
+    font-size: var(--font-size-s);
+    font-weight: var(--font-weight-strong);
+    inset-block-start: calc(var(--page-bar-height) + env(safe-area-inset-top));
+    margin: 0;
+    order: 1;
+    padding-block: var(--size-3) var(--size-2);
+    position: sticky;
+    z-index: 2;
+}
+
+@media (width >= 40rem) {
+    .expense-list__total {
+        inset-block-start: var(--page-bar-height);
+    }
+}
+
+/* The amount is what is shown; the word is for assistive technology */
+.expense-list__total-label {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
     overflow: hidden;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-.expense-list__total-label::after {
-    content: ' ' var(--leader-dots) / '';
-}
-
-.expense-list__subtotal {
-    font-variant-numeric: tabular-nums;
+    position: absolute;
     white-space: nowrap;
 }
 
 .expense-list__more {
-    justify-self: start;
+    justify-self: center;
 }

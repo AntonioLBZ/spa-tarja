@@ -1,18 +1,20 @@
+/* A message, set apart by a tinted surface. The quiet one is only a line of text: what an empty list says */
 .notice {
-    border-left: var(--size-1) solid var(--color-border);
-    color: var(--color-content-primary);
+    background: var(--color-surface);
+    border-radius: var(--radius-m);
+    color: var(--color-ink);
     margin: 0;
-    padding-left: var(--size-3);
-    transition:
-        border-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
+    padding: var(--size-3) var(--size-4);
 }
 
 .notice--danger {
-    border-left-color: var(--color-danger);
+    background: var(--color-danger-surface);
+    color: var(--color-danger);
+    font-weight: var(--font-weight-strong);
 }
 
 .notice--quiet {
-    border-left-color: var(--color-border-subtle);
-    color: var(--color-content-secondary);
+    background: transparent;
+    color: var(--color-ink-muted);
+    padding-inline: 0;
 }

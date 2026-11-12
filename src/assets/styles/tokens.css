@@ -6,59 +6,117 @@
     --size-2: 0.5rem;
     --size-3: 0.75rem;
     --size-4: 1rem;
+    --size-5: 1.25rem;
     --size-6: 1.5rem;
     --size-8: 2rem;
     --size-12: 3rem;
     --size-16: 4rem;
     --size-touch: 2.75rem;
 
-    /* The tab bar of a phone, without the safe area under it */
-    --bottom-nav-height: 3.75rem;
+    /* Shape: a rounded family with a hierarchy; a pill is for what is pressed, the large one for what slides over */
+    --radius-s: 0.75rem;
+    --radius-m: 1rem;
+    --radius-l: 1.75rem;
+    --radius-pill: 62.5rem;
 
-    /* Everything is set in monospace; the fallbacks cover the moment before the font loads and a failed load */
-    --font-family: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
+    /* The tab bar of a phone, without the safe area under it, and the lift of the "+" over it */
+    --bottom-nav-height: 4.5rem;
+    --bottom-nav-lift: 1.5rem;
 
-    /* The logo's face: only the name is set in it, falling back to the page font */
-    --font-family-brand: 'Dot Matrix', var(--font-family);
+    /* The bar at the top of a phone page */
+    --page-bar-height: 3.5rem;
 
-    /* Type scale: minor third (x1.2) from a 1rem base. Form controls stay at --font-size-m or more so iOS doesn't zoom */
-    --font-size-s: 0.833rem;
+    /* One family for everything; the fallbacks cover the moment before the font loads and a failed load */
+    --font-family: 'Gabarito Variable', ui-rounded, 'Nunito', system-ui, sans-serif;
+    --font-family-brand: var(--font-family);
+
+    /* Type scale. Form controls stay at --font-size-m or more so iOS doesn't zoom */
+    --font-size-xs: 0.8125rem;
+    --font-size-s: 0.9375rem;
     --font-size-m: 1rem;
-    --font-size-l: 1.2rem;
-    --font-size-xl: 1.44rem;
-
-    /* The logo is sized apart from the text scale */
+    --font-size-l: 1.125rem;
+    --font-size-xl: 1.5rem;
+    --font-size-2xl: 2.25rem;
+    --font-size-hero: clamp(3.75rem, 17vw, 5.5rem);
     --font-size-logo: 3rem;
-
-    /* The dots that join a name to an amount, one monospace character each; the box that holds them cuts them */
-    --leader-dots: '··································································································································';
+    --font-weight-body: 500;
+    --font-weight-label: 600;
+    --font-weight-strong: 700;
+    --font-weight-display: 900;
 
     /* Motion: reduced-motion zeroes the durations in one place */
-    --duration-fast: 120ms;
-    --duration-base: 200ms;
-    --duration-slow: 360ms;
+    --duration-fast: 140ms;
+    --duration-base: 260ms;
+    --duration-slow: 440ms;
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-    --ease-enter: cubic-bezier(0, 0, 0, 1);
-    --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+    --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+    --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+    --ease-spring: linear(
+        0,
+        0.009,
+        0.035 2.1%,
+        0.141 4.4%,
+        0.723 12.9%,
+        0.938 16.7%,
+        1.017 19.4%,
+        1.077 22.4%,
+        1.121 25.6%,
+        1.149 29.6%,
+        1.155 32.5%,
+        1.142 36.5%,
+        1.083 44.3%,
+        1.04 51.2%,
+        1.016 57.7%,
+        1.003 66%,
+        0.998 77%,
+        1
+    );
 
-    /* The focus ring: how thick it is, how far it stands from the box and, where a parent clips it, how far inside the
-       box it is drawn: past the 4 px edge of the notch and the ring's own width */
-    --focus-width: 0.125rem;
+    /* The focus ring: how thick it is and how far it stands from the box */
+    --focus-width: 0.1875rem;
     --focus-offset: 0.125rem;
-    --focus-inset: calc(-1 * (var(--size-1) + var(--focus-width)));
 
-    /* Flat colors, one set of semantic tokens resolved per theme */
-    --color-bg-primary: light-dark(#fff, #000);
-    --color-bg-secondary: light-dark(#f4f4f4, #141414);
-    --color-content-primary: light-dark(#000, #fff);
-    --color-content-secondary: light-dark(#595959, #a3a3a3);
-    --color-border: light-dark(#000, #fff);
-    --color-border-subtle: light-dark(#d4d4d4, #2e2e2e);
-    --color-border-focus: var(--color-accent);
-    --color-accent: light-dark(#404040, #d4d4d4);
-    --color-bg-accent: var(--color-accent);
-    --color-content-on-accent: light-dark(#fff, #000);
-    --color-danger: light-dark(#c81e1e, #f87171);
+    /* The app color. These raw values are what a preset (data-accent) changes, each resolved per theme: the field is the
+       colored area of a screen and what is tapped to act, the spark marks the "+" and the now color marks today on the field, the link is the accent as
+       text on the page, and the sheet and the ink are the paper and what is written on it. Tangerine is the default. */
+    --p-field: #ff6a3d;
+    --p-on-field: #1b0f2e;
+    --p-shade: #fff;
+    --p-now: #fff;
+    --p-spark: light-dark(#1b0f2e, #ffe08a);
+    --p-on-spark: light-dark(#ffe08a, #1b0f2e);
+    --p-link: light-dark(#b83210, #ff8a64);
+    --p-sheet: light-dark(#fff, #150e22);
+    --p-ink: light-dark(#1b0f2e, #f4f2fa);
+
+    /* Semantic colors, flat: separation comes from tint, whitespace and hairlines, never from shadow or gradient */
+    --color-field: var(--p-field);
+    --color-on-field: var(--p-on-field);
+    --color-on-field-muted: color-mix(in oklab, var(--p-on-field) 88%, var(--p-field));
+    --color-field-tint: color-mix(in oklab, var(--p-shade) 14%, var(--p-field));
+    --color-field-tint-strong: color-mix(in oklab, var(--p-shade) 24%, var(--p-field));
+    --color-now: var(--p-now);
+    --color-spark: var(--p-spark);
+    --color-on-spark: var(--p-on-spark);
+    --color-sheet: var(--p-sheet);
+    --color-ink: var(--p-ink);
+    --color-ink-muted: color-mix(in oklab, var(--p-ink) 66%, var(--p-sheet));
+    --color-surface: color-mix(in oklab, var(--p-field) 7%, color-mix(in oklab, var(--p-ink) 4%, var(--p-sheet)));
+    --color-surface-strong: color-mix(
+        in oklab,
+        var(--p-field) 16%,
+        color-mix(in oklab, var(--p-ink) 6%, var(--p-sheet))
+    );
+    --color-line: color-mix(in oklab, var(--p-ink) 12%, var(--p-sheet));
+    --color-accent: var(--p-link);
+    --color-bg-accent: var(--p-field);
+    --color-content-on-accent: var(--p-on-field);
+    --color-focus: var(--p-link);
+    --color-danger: light-dark(#c81e4a, #ff6b8a);
+    --color-danger-surface: color-mix(in oklab, var(--color-danger) 12%, var(--p-sheet));
+
+    /* What dims the page behind a dialog */
+    --color-veil: light-dark(rgb(27 15 46 / 55%), rgb(0 0 0 / 65%));
 
     /* Category colors: they paint the icon of a category and nothing else */
     --color-category-vermillion: light-dark(#d55e00, #d55e00);
@@ -81,25 +139,72 @@
     color-scheme: dark;
 }
 
-/* Accent presets: gray is the default, defined above. The tones are checked on both surfaces */
-[data-accent='amber'] {
-    --color-accent: light-dark(#9a5b00, #f0a830);
+/* App colors. Tangerine is the default, defined on the root; its block repeats it so a swatch can show it inside another
+   color; the shade is what tints on the field move toward, away from the text color so the text keeps its contrast. Each tone is checked on the field and on the sheet in both themes */
+[data-accent='tangerine'] {
+    --p-field: #ff6a3d;
+    --p-on-field: #1b0f2e;
+    --p-shade: #fff;
+    --p-now: #fff;
+    --p-spark: light-dark(#1b0f2e, #ffe08a);
+    --p-on-spark: light-dark(#ffe08a, #1b0f2e);
+    --p-link: light-dark(#b83210, #ff8a64);
+    --p-sheet: light-dark(#fff, #150e22);
+    --p-ink: light-dark(#1b0f2e, #f4f2fa);
 }
 
-[data-accent='blue'] {
-    --color-accent: light-dark(#1d4ed8, #8aa4ff);
+[data-accent='cobalt'] {
+    --p-field: light-dark(#2a3fe8, #3347e0);
+    --p-on-field: #fff;
+    --p-shade: #000;
+    --p-now: #ffc83d;
+    --p-spark: light-dark(#10163a, #ffc83d);
+    --p-on-spark: light-dark(#ffc83d, #10163a);
+    --p-link: light-dark(#2a3fe8, #a3b2ff);
+    --p-sheet: light-dark(#fff, #0e1226);
+    --p-ink: light-dark(#10163a, #f2f4ff);
 }
 
-[data-accent='green'] {
-    --color-accent: light-dark(#15803d, #4ade80);
+[data-accent='pine'] {
+    --p-field: light-dark(#0c5446, #0f6652);
+    --p-on-field: #f4ffe6;
+    --p-shade: #000;
+    --p-now: #ffdc5e;
+    --p-spark: light-dark(#0c2b25, #ffdc5e);
+    --p-on-spark: light-dark(#ffdc5e, #0c2b25);
+    --p-link: light-dark(#0c5446, #6fd9b9);
+    --p-sheet: light-dark(#fff, #0b1613);
+    --p-ink: light-dark(#0c2b25, #f0faf5);
 }
 
-[data-accent='violet'] {
-    --color-accent: light-dark(#6d28d9, #c4b5fd);
+[data-accent='grape'] {
+    --p-field: light-dark(#6b2fd9, #6a36d6);
+    --p-on-field: #fff;
+    --p-shade: #000;
+    --p-now: #ffd166;
+    --p-spark: light-dark(#1b0f2e, #ffd166);
+    --p-on-spark: light-dark(#ffd166, #1b0f2e);
+    --p-link: light-dark(#6b2fd9, #c9b1ff);
 }
 
-[data-accent='pink'] {
-    --color-accent: light-dark(#be185d, #f9a8d4);
+[data-accent='rose'] {
+    --p-field: light-dark(#f0508f, #f566a0);
+    --p-on-field: #2b0a1d;
+    --p-shade: #fff;
+    --p-now: #fff;
+    --p-spark: light-dark(#2b0a1d, #ffd1e5);
+    --p-on-spark: light-dark(#ffd1e5, #2b0a1d);
+    --p-link: light-dark(#b8165f, #ff8fbf);
+}
+
+[data-accent='ink'] {
+    --p-field: light-dark(#1b0f2e, #2f2050);
+    --p-on-field: #fff;
+    --p-shade: #000;
+    --p-now: #ffc83d;
+    --p-spark: light-dark(#1b0f2e, #ffc83d);
+    --p-on-spark: light-dark(#ffc83d, #1b0f2e);
+    --p-link: light-dark(#1b0f2e, #d9ccf5);
 }
 
 @media (prefers-reduced-motion: reduce) {

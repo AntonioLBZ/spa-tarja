@@ -1,4 +1,10 @@
-/* The size of the words of the header it stands beside */
+/* The spark color of the "+" of the phone bar, on the field of the header */
 .add-expense-button {
-    font-size: var(--font-size-s);
+    background: var(--color-spark);
+    color: var(--color-on-spark);
+    margin-inline-start: auto;
+}
+
+.add-expense-button:hover {
+    background: color-mix(in oklab, var(--color-spark) 86%, var(--color-on-field));
 }

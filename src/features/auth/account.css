@@ -6,7 +6,7 @@
 }
 
 .account__title {
-    font-size: var(--font-size-m);
+    font-size: var(--font-size-l);
     margin: 0;
 }
 
@@ -17,5 +17,5 @@
 }
 
 .account__email {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
 }

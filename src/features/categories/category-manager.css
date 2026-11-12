@@ -4,11 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.category-manager__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
 .category-manager__form {
     display: grid;
     gap: var(--size-1);
@@ -36,7 +31,7 @@
 }
 
 .category-manager__hint {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     font-size: var(--font-size-s);
     margin: 0;
 }

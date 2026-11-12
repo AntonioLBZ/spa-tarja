@@ -1,5 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 
+import en from '@/assets/locales/en.json';
+
 import { ensureAddSheet } from './sheet';
 
 // Drives a select the way a person does, by the label of its field
@@ -9,6 +11,9 @@ const trigger = (label: string): HTMLElement => {
     const found = screen.queryByRole('combobox', { name: label });
     if (found) return found;
     ensureAddSheet();
+    // The day and the payment of a personal expense sit under More options, which is closed until it is asked for
+    const more = screen.queryByRole('button', { name: en.expenses.form.more });
+    if (more?.getAttribute('aria-expanded') === 'false') fireEvent.click(more);
     return screen.getByRole('combobox', { name: label });
 };
 

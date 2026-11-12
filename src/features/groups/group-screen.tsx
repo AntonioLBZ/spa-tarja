@@ -3,6 +3,8 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
 import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
+import { HeroStat } from '@/features/shell/hero-stat';
+import { Page } from '@/features/shell/page';
 
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
@@ -44,53 +46,65 @@ const GroupView = (props: GroupViewProps) => {
     const open = group.closed === null;
 
     return (
-        <section className="group-screen">
-            <h1 className="group-screen__title">{words.title}</h1>
-            <EntryRefusals groupId={group.id} />
-            {hasData && (
-                <>
-                    <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
-                    <GroupBalances
-                        group={group}
-                        entries={entries}
-                        debts={debts}
-                        onSettle={open ? settle.take : undefined}
-                    />
-                    {open && (
-                        <SettleUp
+        <Page
+            title={words.title}
+            hero={
+                hasData ? (
+                    <HeroStat text={<span role="status">{words.mine(myBalance(group, entries))}</span>} size="title" />
+                ) : undefined
+            }
+        >
+            <div className="group-screen">
+                <EntryRefusals groupId={group.id} />
+                {hasData && (
+                    <>
+                        <GroupBalances
                             group={group}
-                            entries={formEntries}
-                            debts={formDebts}
-                            form={settle}
-                            onEditDone={sheet.requestRefocus}
+                            entries={entries}
+                            debts={debts}
+                            onSettle={open ? settle.take : undefined}
                         />
-                    )}
-                </>
-            )}
-            {!hasData && (isError || isWaitingForNetwork) && (
-                <Notice role="status" tone="danger">
-                    {t('group.entriesFailed')}
-                </Notice>
-            )}
-            {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
-            {hasData && (
-                <GroupLedger
-                    ledger={ledger}
-                    onEdit={(entry) => sheet.startEditEntry({ group, entry })}
-                    onEditSettlement={(entry) => settle.edit(entry, group.members)}
-                    onDuplicate={(entry) => sheet.startCopyEntry({ group, entry })}
-                    onDeleted={(entryId) => {
-                        sheet.forget(entryId);
-                        settle.forget(entryId);
-                    }}
-                    refocus={sheet.refocus}
-                    onRefocused={sheet.clearRefocus}
-                />
-            )}
-            <ButtonLink ghost className="group-screen__edit" to="/groups/$groupId/edit" params={{ groupId: group.id }}>
-                {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
-            </ButtonLink>
-        </section>
+                        {open && (
+                            <SettleUp
+                                group={group}
+                                entries={formEntries}
+                                debts={formDebts}
+                                form={settle}
+                                onEditDone={sheet.requestRefocus}
+                            />
+                        )}
+                    </>
+                )}
+                {!hasData && (isError || isWaitingForNetwork) && (
+                    <Notice role="status" tone="danger">
+                        {t('group.entriesFailed')}
+                    </Notice>
+                )}
+                {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
+                {hasData && (
+                    <GroupLedger
+                        ledger={ledger}
+                        onEdit={(entry) => sheet.startEditEntry({ group, entry })}
+                        onEditSettlement={(entry) => settle.edit(entry, group.members)}
+                        onDuplicate={(entry) => sheet.startCopyEntry({ group, entry })}
+                        onDeleted={(entryId) => {
+                            sheet.forget(entryId);
+                            settle.forget(entryId);
+                        }}
+                        refocus={sheet.refocus}
+                        onRefocused={sheet.clearRefocus}
+                    />
+                )}
+                <ButtonLink
+                    ghost
+                    className="group-screen__edit"
+                    to="/groups/$groupId/edit"
+                    params={{ groupId: group.id }}
+                >
+                    {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
+                </ButtonLink>
+            </div>
+        </Page>
     );
 };
 

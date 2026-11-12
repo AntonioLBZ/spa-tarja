@@ -4,47 +4,52 @@ a.button {
     text-decoration: none;
 }
 
+/* The colored thing is the thing to tap: the main action is filled with the field's own color */
 .button--primary,
 .button--pressed {
     background: var(--color-bg-accent);
     color: var(--color-content-on-accent);
 }
 
-/* Disabled, a filled button drops its fill and looks like any other disabled button, whose secondary text
-   would all but vanish on the accent */
+.button--primary:hover,
+.button--pressed:hover {
+    background: color-mix(in oklab, var(--color-bg-accent) 88%, var(--color-ink));
+}
+
+/* Disabled, a filled button drops its fill and looks like any other disabled button */
 .button--primary:disabled,
 .button--pressed:disabled {
-    background: transparent;
+    background: var(--color-surface);
+    color: var(--color-ink-muted);
 }
 
 .button--danger {
-    border-color: var(--color-border-subtle);
+    background: var(--color-danger-surface);
     color: var(--color-danger);
 }
 
+/* A circle that holds only a symbol */
 .button--glyph {
-    padding-inline: var(--size-4);
+    border-radius: 50%;
+    padding-inline: 0;
 }
 
-/* No box, only the text underlined: for an action inside another edge or on paper */
+/* Text only, for an action that sits inside a row or on the edge of something else */
 .button--ghost {
-    border-width: 0;
-    padding-inline: 0;
-    text-decoration: underline;
-    text-decoration-thickness: var(--size-px);
-    text-underline-offset: 0.25em;
+    background: transparent;
+    color: var(--color-accent);
+    padding-inline: var(--size-3);
 }
 
 .button--ghost:hover {
-    text-decoration-thickness: calc(2 * var(--size-px));
+    background: var(--color-surface);
 }
 
-.button--ghost:disabled {
-    text-decoration: none;
+.button--ghost.button--danger {
+    background: transparent;
+    color: var(--color-danger);
 }
 
-/* The row gives the box its tail, so the text keeps the room it would lose to one */
 .button--block {
     inline-size: 100%;
-    padding-inline-end: var(--size-2);
 }

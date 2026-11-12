@@ -1,15 +1,5 @@
 # Fonts
 
-## Dot Matrix (`dot-matrix.woff2`)
+## Gabarito
 
-Designed by Svein Kåre Gunnarson (Dionaea Fonts, <http://www.dionaea.com/information/fonts.html>) and found on <https://www.dafont.com/dot-matrix.font>. Its readme says: "The fonts are freeware". It gives no terms for redistribution, so the file holds only the letters of the logo.
-
-Made from `DOTMATRI.TTF` (the regular weight) with:
-
-```
-pyftsubset DOTMATRI.TTF --text="TARJAtarja" --flavor=woff2 --layout-features='' --output-file=dot-matrix.woff2
-```
-
-## IBM Plex Mono
-
-Copyright © 2017 IBM Corp. SIL Open Font License 1.1, <https://openfontlicense.org>. Served from the `@fontsource/ibm-plex-mono` package.
+Copyright 2022 The Gabarito Project Authors (<https://github.com/naipefoundry/gabarito>). SIL Open Font License 1.1, <https://openfontlicense.org>. Served from the `@fontsource-variable/gabarito` package, the variable file with weights 400 to 900 (`wght.css`): the latin subset, and latin-ext for the characters that need it. It is the only face of the app, and the logo is the word in its heaviest weight.

@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -16,14 +16,17 @@ afterEach(() => {
 });
 
 describe('home', () => {
-    it('shows the API as operational when the health check passes', async () => {
-        stubApi((url) =>
+    it('says nothing about the API while the health check passes', async () => {
+        const fetchMock = stubApi((url) =>
             url.pathname === '/api/health' ? Response.json({ ok: true }) : new Response(null, { status: 404 })
         );
 
         renderApp();
 
-        expect(await screen.findByText(en.home.health.ok)).toBeDefined();
+        await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.anything(), expect.anything()));
+        await screen.findByRole('navigation');
+        expect(screen.queryByText(en.home.health.error)).toBeNull();
+        expect(screen.queryByText(en.home.health.ok)).toBeNull();
     });
 
     it('shows the API as unreachable when the health check fails', async () => {
@@ -46,7 +49,7 @@ describe('header', () => {
         await screen.findByRole('navigation');
     }
 
-    it('puts Expenses first, then the logo, then Groups, Summary and Settings', async () => {
+    it('puts the logo first, then Expenses, Groups, Summary and Settings', async () => {
         await home();
 
         const nav = within(screen.getByRole('banner')).getByRole('navigation');
@@ -54,12 +57,12 @@ describe('header', () => {
             within(nav)
                 .getAllByRole('link')
                 .map((item) => item.textContent)
-        ).toEqual([en.nav.expenses, 'Tarja', en.nav.groups, en.nav.summary, en.nav.settings]);
+        ).toEqual(['Tarja', en.nav.expenses, en.nav.groups, en.nav.summary, en.nav.settings]);
         expect(link(en.nav.expenses).getAttribute('href')).toBe('/');
         expect(link('Tarja').getAttribute('href')).toBe('/');
     });
 
-    it('holds the "Add expense" action in the header, between Expenses and the logo, ahead of the screen', async () => {
+    it('holds the "Add expense" action at the end of the header, ahead of the screen', async () => {
         await home();
 
         const header = screen.getByRole('banner');
@@ -69,9 +72,8 @@ describe('header', () => {
         const stops = within(header)
             .getAllByRole('link')
             .map((item) => item.textContent);
-        expect(stops.slice(0, 2)).toEqual([en.nav.expenses, 'Tarja']);
-        expect(link(en.nav.expenses).compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        expect(action.compareDocumentPosition(link('Tarja')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(stops.slice(0, 2)).toEqual(['Tarja', en.nav.expenses]);
+        expect(link(en.nav.settings).compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         expect(
             action.compareDocumentPosition(screen.getByRole('main')) & Node.DOCUMENT_POSITION_FOLLOWING
         ).toBeTruthy();
@@ -117,14 +119,14 @@ describe('header', () => {
     });
 
     function underlined() {
-        return [...document.querySelectorAll('.root__underline')].map((mark) => mark.closest('a')!.textContent);
+        return [...document.querySelectorAll('.root__mark')].map((mark) => mark.closest('a')!.textContent);
     }
 
     it('underlines Expenses at home, with a mark that is only decoration', async () => {
         await home();
 
         expect(underlined()).toEqual([en.nav.expenses]);
-        expect(document.querySelector('.root__underline')!.getAttribute('aria-hidden')).toBe('true');
+        expect(document.querySelector('.root__mark')!.getAttribute('aria-hidden')).toBe('true');
     });
 
     it('moves the underline to the screen that was opened', async () => {
@@ -175,13 +177,13 @@ describe('header', () => {
         async (path) => {
             await home(path);
             expect(underlined()).toHaveLength(1);
-            expect(link('Tarja').querySelector('.root__underline')).toBeNull();
+            expect(link('Tarja').querySelector('.root__mark')).toBeNull();
 
             fireEvent.click(link('Tarja'));
 
             await screen.findByText(en.expenses.list.empty);
             expect(underlined()).toEqual([en.nav.expenses]);
-            expect(link('Tarja').querySelector('.root__underline')).toBeNull();
+            expect(link('Tarja').querySelector('.root__mark')).toBeNull();
         }
     );
 });
@@ -239,7 +241,7 @@ describe('bottom navigation', () => {
         expect(links.map((item) => item.getAttribute('href'))).toEqual(['/', '/groups', '/summary', '/settings']);
         const header = within(screen.getByRole('banner'));
         expect(header.getAllByRole('link').map((item) => item.textContent)).toEqual(['Tarja']);
-        expect(document.querySelectorAll('.root__underline')).toHaveLength(0);
+        expect(document.querySelectorAll('.root__mark')).toHaveLength(0);
     });
 
     it.each([
@@ -280,7 +282,7 @@ describe('bottom navigation', () => {
 
         fireEvent.click(tab(en.nav.summary));
 
-        expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
+        expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
         expect(screen.getByRole('heading', { name: en.summary.title })).toBeDefined();
     });
 
@@ -292,7 +294,7 @@ describe('bottom navigation', () => {
         fireEvent.click(tab(en.nav.settings));
         await screen.findByRole('heading', { name: en.settings.title });
 
-        expect(scrollTo).not.toHaveBeenCalledWith({ top: 0 });
+        expect(scrollTo).not.toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
     });
 
     it.each([
@@ -317,7 +319,7 @@ describe('bottom navigation', () => {
 
         expect(document.querySelector('.bottom-nav')).toBeNull();
         const words = within(screen.getByRole('banner')).getAllByRole('link');
-        expect(words.map((item) => item.textContent)).toEqual([en.nav.expenses, 'Tarja', ...TABS.slice(1)]);
+        expect(words.map((item) => item.textContent)).toEqual(['Tarja', en.nav.expenses, ...TABS.slice(1)]);
         expect((screen.getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
 
         act(() => viewport.setWide(false));

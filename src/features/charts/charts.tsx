@@ -10,6 +10,7 @@ import { Notice } from '@/components/notice/notice';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
+import { Page } from '@/features/shell/page';
 import { categoriesQuery } from '@/lib/api';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import {
@@ -84,71 +85,71 @@ const Charts = () => {
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
     return (
-        <section className="charts">
-            <h1 className="charts__title">{t('title')}</h1>
+        <Page title={t('title')}>
+            <div className="charts">
+                <ChoiceGroup
+                    legend={t('group.title')}
+                    name="granularity"
+                    options={GRANULARITIES.map((value) => ({ value, label: t(`group.${value}`) }))}
+                    value={granularity}
+                    onChange={setGranularity}
+                />
 
-            <ChoiceGroup
-                legend={t('group.title')}
-                name="granularity"
-                options={GRANULARITIES.map((value) => ({ value, label: t(`group.${value}`) }))}
-                value={granularity}
-                onChange={setGranularity}
-            />
+                <Field label={t('category')}>
+                    {(control) => (
+                        <CategorySelect
+                            {...control}
+                            label={t('category')}
+                            options={[{ id: '', label: t('allCategories') }, ...options]}
+                            value={categoryId}
+                            onChange={setCategoryId}
+                        />
+                    )}
+                </Field>
 
-            <Field label={t('category')}>
-                {(control) => (
-                    <CategorySelect
-                        {...control}
-                        label={t('category')}
-                        options={[{ id: '', label: t('allCategories') }, ...options]}
-                        value={categoryId}
-                        onChange={setCategoryId}
+                <DateRangeFields
+                    from={range.from}
+                    to={range.to}
+                    labels={{ from: t('from'), to: t('to') }}
+                    invalid={problem !== null}
+                    describedBy={problem ? `${id}-problem` : undefined}
+                    onChange={(edge, day) => setPicked({ ...range, [edge]: day })}
+                />
+                {picked && (
+                    <Button className="charts__reset" onClick={() => setPicked(null)}>
+                        {t('resetRange')}
+                    </Button>
+                )}
+
+                {problem && (
+                    <Notice tone="danger" role="alert" id={`${id}-problem`}>
+                        {t(problem)}
+                    </Notice>
+                )}
+                {problem !== 'rangeInvalid' && (
+                    <SpendingStats
+                        totalCents={total}
+                        compared={compared}
+                        partial={compared !== null && compared.current.to !== range.to}
+                        today={today}
                     />
                 )}
-            </Field>
-
-            <DateRangeFields
-                from={range.from}
-                to={range.to}
-                labels={{ from: t('from'), to: t('to') }}
-                invalid={problem !== null}
-                describedBy={problem ? `${id}-problem` : undefined}
-                onChange={(edge, day) => setPicked({ ...range, [edge]: day })}
-            />
-            {picked && (
-                <Button className="charts__reset" onClick={() => setPicked(null)}>
-                    {t('resetRange')}
-                </Button>
-            )}
-
-            {problem && (
-                <Notice tone="danger" role="alert" id={`${id}-problem`}>
-                    {t(problem)}
-                </Notice>
-            )}
-            {problem !== 'rangeInvalid' && (
-                <SpendingStats
-                    totalCents={total}
-                    compared={compared}
-                    partial={compared !== null && compared.current.to !== range.to}
-                    today={today}
-                />
-            )}
-            {problem === null && (
-                <SpendingChart
-                    buckets={buckets}
-                    granularity={granularity}
-                    today={today}
-                    category={filter === null ? null : labelOf(filter)}
-                />
-            )}
-            {problem !== 'rangeInvalid' &&
-                (totals.length > 0 ? (
-                    <CategorySplit totals={totals} labelOf={labelOf} styleOf={styleOf} />
-                ) : (
-                    <Notice tone="quiet">{t('empty')}</Notice>
-                ))}
-        </section>
+                {problem === null && (
+                    <SpendingChart
+                        buckets={buckets}
+                        granularity={granularity}
+                        today={today}
+                        category={filter === null ? null : labelOf(filter)}
+                    />
+                )}
+                {problem !== 'rangeInvalid' &&
+                    (totals.length > 0 ? (
+                        <CategorySplit totals={totals} labelOf={labelOf} styleOf={styleOf} />
+                    ) : (
+                        <Notice tone="quiet">{t('empty')}</Notice>
+                    ))}
+            </div>
+        </Page>
     );
 };
 

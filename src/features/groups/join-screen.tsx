@@ -7,6 +7,7 @@ import { Button } from '@/components/button/button';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
+import { Page } from '@/features/shell/page';
 import { ApiError, invitationQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
 
@@ -136,11 +137,12 @@ const JoinScreen = (props: JoinScreenProps) => {
     };
 
     return (
-        <section className="join">
-            <h1 className="join__title">{t('join.title')}</h1>
-            {!online && !end && <Notice role="status">{t('join.offline')}</Notice>}
-            {content()}
-        </section>
+        <Page title={t('join.title')}>
+            <div className="join">
+                {!online && !end && <Notice role="status">{t('join.offline')}</Notice>}
+                {content()}
+            </div>
+        </Page>
     );
 };
 

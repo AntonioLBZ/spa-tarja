@@ -1,99 +1,70 @@
 .root {
-    display: grid;
-    grid-template-rows: auto 1fr;
-    min-height: 100dvh;
+    min-block-size: 100dvh;
 }
 
+/* From 40 rem up the header holds the destinations, on the colored field; below it they are the bar at the bottom */
 .root__header {
-    background: var(--color-bg-secondary);
-    border-bottom: var(--size-px) solid var(--color-border);
-    min-height: calc(var(--size-touch) + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
-        max(var(--size-4), env(safe-area-inset-left));
+    align-items: center;
+    background: var(--color-field);
+    color: var(--color-on-field);
+    column-gap: var(--size-6);
+    display: flex;
+    inset-block-start: 0;
+    min-block-size: var(--page-bar-height);
+    padding-inline: max(var(--size-6), env(safe-area-inset-left)) max(var(--size-6), env(safe-area-inset-right));
+    position: sticky;
     view-transition-name: header;
+    z-index: 4;
 }
 
-/* Expenses, the logo and the other screens, from 40 rem up. The side columns grow alike while there is room, which
-   keeps the logo in the middle. */
 .root__nav {
     align-items: center;
-    column-gap: var(--size-2);
-    display: grid;
-    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
-}
-
-/* Far enough apart not to read as one phrase */
-.root__start,
-.root__group {
-    align-items: center;
+    column-gap: var(--size-1);
     display: flex;
-    gap: var(--size-4);
+    flex: 1;
 }
 
-.root__group {
-    justify-self: end;
+.root__links {
+    align-items: center;
+    column-gap: var(--size-1);
+    display: flex;
+    margin-inline-start: var(--size-6);
 }
 
-.root__brand,
 .root__link {
     align-items: center;
-    color: inherit;
+    border-radius: var(--radius-pill);
+    color: var(--color-on-field-muted);
     display: inline-flex;
-    min-height: var(--size-touch);
+    font-weight: var(--font-weight-strong);
+    min-block-size: var(--size-touch);
+    padding-inline: var(--size-4);
+    position: relative;
     text-decoration: none;
+    transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.root__link {
-    font-size: var(--font-size-s);
-    justify-self: start;
+.root__link:hover,
+.root__link[aria-current='true'] {
+    color: var(--color-on-field);
+}
+
+.root__link-text {
     position: relative;
 }
 
-/* The mark under the word of the current section, flush with the bottom of the header. There is only one, and under
-   its own name it slides from word to word when the screen changes */
-.root__underline {
-    border-bottom: var(--size-1) solid var(--color-border);
-    inset-block-end: 0;
-    inset-inline: 0;
+/* The mark behind the word of the current section. There is only one, and under its own name it slides and stretches
+   from word to word when the screen changes */
+.root__mark {
+    background: var(--color-field-tint-strong);
+    border-radius: var(--radius-pill);
+    inset: 0;
     position: absolute;
-    view-transition-name: nav-underline;
-}
-
-/* On a phone the header holds the logo in the middle and, below a tab, the link back at its left. The side columns grow
-   alike while there is room, which keeps the logo in the middle with or without the link. */
-.root--tabs .root__header {
-    align-items: center;
-    column-gap: var(--size-2);
-    display: grid;
-    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
-}
-
-.root--tabs .root__brand {
-    grid-column: 2;
-}
-
-/* The chevron has room of its own, so the name follows it with no gap. The name never wraps. Its drawing starts a third
-   of the way into its box, so the link is pulled back by that much to put the drawing on the margin of the page. */
-.root__back {
-    font-size: var(--font-size-s);
-    grid-column: 1;
-    justify-self: start;
-    margin-inline-start: calc(-1 * var(--size-2));
-    white-space: nowrap;
+    view-transition-name: nav-mark;
 }
 
 .root__main {
-    margin-inline: auto;
-    max-width: 40rem;
-    padding: var(--size-6) max(var(--size-4), env(safe-area-inset-right))
-        calc(var(--size-6) + env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
     view-transition-name: page;
-    width: 100%;
-}
-
-/* On a phone the bar has the bottom of the page: room for it, and for the safe area it pads itself with */
-.root--tabs .root__main {
-    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-6));
 }
 
 /* Screens slide. The header holds still under its own name while the page moves, and where the browser has
@@ -107,17 +78,18 @@
     animation: none;
 }
 
-/* The underline moves as one piece: its group slides and stretches from the old word to the new one, showing the new
+/* The mark moves as one piece: its group slides and stretches from the old word to the new one, showing the new
    mark only */
-::view-transition-group(nav-underline) {
-    animation-timing-function: var(--ease-standard);
+::view-transition-group(nav-mark) {
+    animation-duration: var(--duration-slow);
+    animation-timing-function: var(--ease-spring);
 }
 
-::view-transition-old(nav-underline) {
+::view-transition-old(nav-mark) {
     display: none;
 }
 
-::view-transition-new(nav-underline) {
+::view-transition-new(nav-mark) {
     animation: none;
     block-size: 100%;
 }
@@ -125,28 +97,28 @@
 @keyframes page-leave-left {
     to {
         opacity: 0;
-        transform: translateX(-2rem);
+        transform: translateX(-3rem);
     }
 }
 
 @keyframes page-leave-right {
     to {
         opacity: 0;
-        transform: translateX(2rem);
+        transform: translateX(3rem);
     }
 }
 
 @keyframes page-enter-from-right {
     from {
         opacity: 0;
-        transform: translateX(2rem);
+        transform: translateX(3rem);
     }
 }
 
 @keyframes page-enter-from-left {
     from {
         opacity: 0;
-        transform: translateX(-2rem);
+        transform: translateX(-3rem);
     }
 }
 
@@ -168,7 +140,7 @@
     }
 
     &::view-transition-new(page) {
-        animation: page-enter-from-right var(--duration-base) var(--ease-enter) both;
+        animation: page-enter-from-right var(--duration-slow) var(--ease-enter) both;
     }
 }
 
@@ -178,14 +150,14 @@
     }
 
     &::view-transition-new(page) {
-        animation: page-enter-from-left var(--duration-base) var(--ease-enter) both;
+        animation: page-enter-from-left var(--duration-slow) var(--ease-enter) both;
     }
 }
 
-/* Between two screens at the same depth the page only fades, while the underline slides */
+/* Between two screens at the same depth the page only fades, while the mark slides */
 :root:active-view-transition-type(level) {
     &::view-transition-old(page) {
-        animation: page-fade-out var(--duration-base) var(--ease-exit) both;
+        animation: page-fade-out var(--duration-fast) var(--ease-exit) both;
     }
 
     &::view-transition-new(page) {

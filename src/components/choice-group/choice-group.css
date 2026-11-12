@@ -6,55 +6,68 @@
 }
 
 .choice-group__legend {
-    font-weight: 700;
+    font-weight: var(--font-weight-strong);
     margin-bottom: var(--size-2);
     padding: 0;
 }
 
-/* One joined box: the thick left edge is the group's, and each option brings the cut under it. It clips the hairline
-   that the first option of every row pushes out of it */
+/* A track of pills; the checked one is filled with the field's color */
 .choice-group__options {
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 0 var(--size-1);
+    background: var(--color-surface);
+    border-radius: var(--radius-pill);
     display: flex;
     flex-wrap: wrap;
-    overflow: clip;
+    gap: var(--size-1);
+    padding: var(--size-1);
 }
 
-/* As many to a row as hold the widest word with their edge and room, and every row fills the line */
+/* As many to a row as hold the widest word, and every row fills the line */
 .choice-group__option {
     display: grid;
-    flex: 1 1 min(100%, calc(var(--choice-word) + var(--size-px) + var(--size-4) + var(--size-2)));
+    flex: 1 1 min(100%, calc(var(--choice-word) + var(--size-8)));
     min-width: 0;
     position: relative;
 }
 
-/* A swatch: a cell that holds what it is given, as narrow as a touch target, in the same joined box. The words of a
-   label play no part in its width */
-.choice-group--swatch .choice-group__option {
-    flex: 1 1 var(--size-touch);
-}
-
 .choice-group__text {
     align-items: center;
-    border-block-end: var(--size-1) solid var(--color-border);
-    border-inline-start: var(--size-px) solid var(--color-border-subtle);
+    border-radius: var(--radius-pill);
     cursor: pointer;
     display: flex;
-    margin-inline-start: calc(-1 * var(--size-px));
+    font-weight: var(--font-weight-strong);
+    justify-content: center;
     min-height: var(--size-touch);
     overflow-wrap: anywhere;
-    padding-block: var(--size-1);
-    padding-inline: var(--size-4) var(--size-2);
+    padding: var(--size-1) var(--size-4);
+    text-align: center;
     transition:
         background-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
+        color var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-spring);
+}
+
+.choice-group__text:active {
+    transform: scale(0.96);
+}
+
+/* A swatch: a round cell that holds what it is given, on a track that wraps */
+.choice-group--swatch .choice-group__options {
+    background: transparent;
+    border-radius: 0;
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: repeat(auto-fill, minmax(var(--size-touch), 1fr));
+    padding: 0;
+}
+
+.choice-group--swatch .choice-group__option {
+    flex: none;
 }
 
 .choice-group--swatch .choice-group__text {
-    justify-content: center;
-    padding-inline: 0;
+    background: var(--color-surface);
+    border-radius: var(--radius-m);
+    padding: 0;
 }
 
 .choice-group__input:checked + .choice-group__text {
@@ -62,18 +75,20 @@
     color: var(--color-content-on-accent);
 }
 
-/* Inside the cell, since the group clips what is outside it, and clear of the cut under it so the ring never covers
-   it; in the text color on the one that is filled with the same accent */
 .choice-group__input:focus-visible + .choice-group__text {
-    outline: var(--focus-width) solid var(--color-border-focus);
-    outline-offset: var(--focus-inset);
+    outline: var(--focus-width) solid var(--color-focus);
+    outline-offset: var(--focus-offset);
 }
 
-.choice-group__input:checked:focus-visible + .choice-group__text {
-    outline-color: var(--color-content-on-accent);
-}
-
-/* What is inside a checked cell, an icon in a color of its own, takes the text color on the accent */
-.choice-group--swatch .choice-group__input:checked + .choice-group__text * {
+/* A checked swatch keeps its own color and is marked by a ring, since its fill would hide it */
+.choice-group--swatch .choice-group__input:checked + .choice-group__text {
+    background: var(--color-surface-strong);
     color: inherit;
+    outline: 0.1875rem solid var(--color-ink);
+    outline-offset: -0.1875rem;
+}
+
+.choice-group--swatch .choice-group__input:focus-visible + .choice-group__text {
+    outline-color: var(--color-focus);
+    outline-offset: var(--focus-offset);
 }

@@ -1,26 +1,40 @@
-/* A row that leads to another screen: the text color, as tall as a touch at least. On paper it has no notch of its own */
+/* A row that leads to another screen: a sticker, the name with its balance under it, and a chevron */
 .group-row {
     align-items: center;
-    color: var(--color-content-primary);
+    color: var(--color-ink);
     display: flex;
-    gap: var(--size-2);
+    gap: var(--size-3);
     min-height: var(--size-touch);
     text-decoration: none;
+}
+
+.group-row__sticker {
+    align-items: center;
+    background: var(--color-surface-strong);
+    block-size: 3rem;
+    border-radius: var(--radius-m);
+    color: var(--color-accent);
+    display: flex;
+    flex: none;
+    inline-size: 3rem;
+    justify-content: center;
 }
 
 .group-row__body {
     display: grid;
     flex: 1;
-    gap: var(--size-1);
+    gap: 0;
     min-width: 0;
 }
 
 .group-row__name {
+    font-size: var(--font-size-l);
+    font-weight: var(--font-weight-strong);
     overflow-wrap: anywhere;
 }
 
 .group-row__detail {
-    color: var(--color-content-secondary);
+    color: var(--color-ink-muted);
     display: flex;
     flex-wrap: wrap;
     font-size: var(--font-size-s);
@@ -32,8 +46,13 @@
 /* A card whose whole box is the link, so the padding is the link's */
 .group-card {
     padding: 0;
+    transition: transform var(--duration-base) var(--ease-spring);
+}
+
+.group-card:active {
+    transform: scale(0.985);
 }
 
 .group-row--card {
-    padding: var(--size-2) var(--size-3);
+    padding: var(--size-3) var(--size-4) var(--size-3) var(--size-3);
 }

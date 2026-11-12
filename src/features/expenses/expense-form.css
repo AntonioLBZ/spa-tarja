@@ -3,13 +3,60 @@
     gap: var(--size-4);
 }
 
+/* The amount comes first and is the biggest thing on the form, in the field's color like the number it will add to */
+.expense-form__panel {
+    background: var(--color-field);
+    border-radius: var(--radius-l);
+    color: var(--color-on-field);
+    padding: var(--size-4) var(--size-5) var(--size-5);
+}
+
+.expense-form__panel .field > label {
+    color: var(--color-on-field-muted);
+    text-align: center;
+}
+
+.expense-form__panel .field {
+    --color-focus: var(--color-on-field);
+}
+
+.expense-form__amount {
+    background: transparent;
+    border-color: transparent;
+    color: inherit;
+    font-size: var(--font-size-hero);
+    font-weight: var(--font-weight-display);
+    letter-spacing: -0.04em;
+    min-height: 5.5rem;
+    padding-inline: 0;
+    text-align: center;
+}
+
+.expense-form__amount::placeholder {
+    color: var(--color-on-field-muted);
+    opacity: 0.55;
+}
+
+.expense-form__amount:focus-visible {
+    background: transparent;
+    border-color: transparent;
+    outline: none;
+}
+
+/* The ring goes around the whole panel, which is the field the person sees */
+.expense-form__panel:has(.expense-form__amount:focus-visible) {
+    outline: var(--focus-width) solid var(--color-ink);
+    outline-offset: var(--focus-offset);
+}
+
 /* The main action keeps the width of the form; Cancel, while editing, sits beside it */
 .expense-form__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-4);
+    gap: var(--size-2);
 }
 
 .expense-form__submit {
     flex: 1;
+    min-height: 3.5rem;
 }

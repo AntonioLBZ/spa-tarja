@@ -8,6 +8,7 @@ import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
+import { Page } from '@/features/shell/page';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { readDuration } from '@/lib/motion';
 import { useOnline } from '@/lib/offline';
@@ -112,97 +113,97 @@ const CategoryManager = () => {
     };
 
     return (
-        <section className="category-manager">
-            <h1 className="category-manager__title">{t('title')}</h1>
+        <Page title={t('title')}>
+            <div className="category-manager">
+                {!online && <Notice role="status">{t('offline')}</Notice>}
 
-            {!online && <Notice role="status">{t('offline')}</Notice>}
-
-            <form className="category-manager__form" ref={form} onSubmit={(event) => void handleSubmit(event)}>
-                <Field label={editing ? t('editLabel') : t('add.label')} error={failure && t(failure)}>
-                    {(control) => (
-                        <div className="category-manager__add-row">
-                            <CategoryBadge style={style} />
-                            <input
-                                {...control}
-                                ref={nameInput}
-                                className="category-manager__input"
-                                // A save that went wrong is not the fault of the name
-                                aria-invalid={failure === 'nameTaken'}
-                                autoComplete="off"
-                                disabled={!online}
-                                maxLength={CATEGORY_NAME_MAX_LENGTH}
-                                required
-                                type="text"
-                                value={name}
-                                onChange={(event) => {
-                                    setName(event.target.value);
-                                    setFailure(null);
-                                }}
-                            />
-                            <Button disabled={!online || saving} type="submit">
-                                {editing ? t('save') : t('add.submit')}
-                            </Button>
-                        </div>
+                <form className="category-manager__form" ref={form} onSubmit={(event) => void handleSubmit(event)}>
+                    <Field label={editing ? t('editLabel') : t('add.label')} error={failure && t(failure)}>
+                        {(control) => (
+                            <div className="category-manager__add-row">
+                                <CategoryBadge style={style} />
+                                <input
+                                    {...control}
+                                    ref={nameInput}
+                                    className="category-manager__input"
+                                    // A save that went wrong is not the fault of the name
+                                    aria-invalid={failure === 'nameTaken'}
+                                    autoComplete="off"
+                                    disabled={!online}
+                                    maxLength={CATEGORY_NAME_MAX_LENGTH}
+                                    required
+                                    type="text"
+                                    value={name}
+                                    onChange={(event) => {
+                                        setName(event.target.value);
+                                        setFailure(null);
+                                    }}
+                                />
+                                <Button disabled={!online || saving} type="submit">
+                                    {editing ? t('save') : t('add.submit')}
+                                </Button>
+                            </div>
+                        )}
+                    </Field>
+                    <Disclosure key={editing?.id ?? 'new'} summary={t('look.summary')} chevron>
+                        <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
+                    </Disclosure>
+                    {editing && (
+                        <Button ghost className="category-manager__cancel" onClick={() => finish(editing.id)}>
+                            {t('cancel')}
+                        </Button>
                     )}
-                </Field>
-                <Disclosure key={editing?.id ?? 'new'} summary={t('look.summary')} chevron>
-                    <StylePicker name={`${id}-look`} value={style} onChange={setPicked} />
-                </Disclosure>
-                {editing && (
-                    <Button ghost className="category-manager__cancel" onClick={() => finish(editing.id)}>
-                        {t('cancel')}
-                    </Button>
+                </form>
+
+                {query.isError && custom === undefined && (
+                    <Notice tone="danger" role="alert">
+                        {t('loadFailed')}
+                    </Notice>
                 )}
-            </form>
+                {custom?.length === 0 && <Notice tone="quiet">{t('custom.empty')}</Notice>}
+                {custom && custom.length > 0 && (
+                    <Sheet label={t('custom.title')}>
+                        <CardList flush>
+                            {custom.map((category) => (
+                                <CategoryRow
+                                    key={category.id}
+                                    category={category}
+                                    disabled={!online}
+                                    fallbackLabel={tCategory(FALLBACK_CATEGORY_ID)}
+                                    toggleRef={(node) => {
+                                        if (node) toggles.current.set(category.id, node);
+                                        return () => {
+                                            toggles.current.delete(category.id);
+                                        };
+                                    }}
+                                    onEdit={() => startEdit(category)}
+                                    onDelete={() =>
+                                        remove(category.id).then(
+                                            () => true,
+                                            () => false
+                                        )
+                                    }
+                                />
+                            ))}
+                        </CardList>
+                    </Sheet>
+                )}
 
-            {query.isError && custom === undefined && (
-                <Notice tone="danger" role="alert">
-                    {t('loadFailed')}
-                </Notice>
-            )}
-            {custom?.length === 0 && <Notice tone="quiet">{t('custom.empty')}</Notice>}
-            {custom && custom.length > 0 && (
-                <Sheet label={t('custom.title')}>
-                    <CardList flush>
-                        {custom.map((category) => (
-                            <CategoryRow
-                                key={category.id}
-                                category={category}
-                                disabled={!online}
-                                fallbackLabel={tCategory(FALLBACK_CATEGORY_ID)}
-                                toggleRef={(node) => {
-                                    if (node) toggles.current.set(category.id, node);
-                                    return () => {
-                                        toggles.current.delete(category.id);
-                                    };
-                                }}
-                                onEdit={() => startEdit(category)}
-                                onDelete={() =>
-                                    remove(category.id).then(
-                                        () => true,
-                                        () => false
-                                    )
-                                }
-                            />
-                        ))}
-                    </CardList>
-                </Sheet>
-            )}
-
-            <section className="category-manager__section">
-                <p className="category-manager__hint">{t('builtIn.note')}</p>
-                <Sheet label={t('builtIn.title')}>
-                    <CardList flush>
-                        {DEFAULT_CATEGORY_IDS.map((categoryId) => (
-                            <li className="category-manager__built-in" key={categoryId}>
-                                <CategoryBadge style={DEFAULT_CATEGORY_STYLES[categoryId]} />
-                                <span>{tCategory(categoryId)}</span>
-                            </li>
-                        ))}
-                    </CardList>
-                </Sheet>
-            </section>
-        </section>
+                <section className="category-manager__section">
+                    <p className="category-manager__hint">{t('builtIn.note')}</p>
+                    <Sheet label={t('builtIn.title')}>
+                        <CardList flush>
+                            {DEFAULT_CATEGORY_IDS.map((categoryId) => (
+                                <li className="category-manager__built-in" key={categoryId}>
+                                    <CategoryBadge style={DEFAULT_CATEGORY_STYLES[categoryId]} />
+                                    <span>{tCategory(categoryId)}</span>
+                                </li>
+                            ))}
+                        </CardList>
+                    </Sheet>
+                </section>
+            </div>
+        </Page>
     );
 };
 
