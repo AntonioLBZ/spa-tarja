@@ -355,13 +355,7 @@ const SharedTail = (props: SharedTailProps) => {
             {!fixed && (
                 <Field label={t('share.with')}>
                     {(control) => (
-                        <Select
-                            {...control}
-                            label={t('share.with')}
-                            options={options}
-                            value={group?.id ?? ''}
-                            onChange={tail.pickGroup}
-                        />
+                        <Select {...control} options={options} value={group?.id ?? ''} onChange={tail.pickGroup} />
                     )}
                 </Field>
             )}
@@ -392,7 +386,6 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 {(control) => (
                     <Select
                         {...control}
-                        label={t('paidBy')}
                         options={[
                             ...nobodyYet,
                             ...tail.present.map((member) => ({ value: member.id, label: words.nameInList(member.id) })),

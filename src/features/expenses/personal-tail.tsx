@@ -175,7 +175,6 @@ const PersonalTail = (props: PersonalTailProps) => {
                     {(control) => (
                         <Select
                             {...control}
-                            label={t('installments')}
                             options={tail.installmentChoices.map((count) => ({
                                 value: String(count),
                                 label: t('installmentsOption', { count }),

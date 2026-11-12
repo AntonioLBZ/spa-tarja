@@ -62,6 +62,8 @@
     --color-bg-accent: var(--color-accent);
     --color-content-on-accent: light-dark(#fff, #000);
     --color-danger: light-dark(#c81e1e, #f87171);
+    --color-shadow: light-dark(rgb(0 0 0 / 18%), rgb(255 255 255 / 14%));
+    --shadow-popup: 0 var(--size-1) var(--size-3) var(--color-shadow);
 
     /* Category colors: they paint the icon of a category and nothing else */
     --color-category-vermillion: light-dark(#d55e00, #d55e00);

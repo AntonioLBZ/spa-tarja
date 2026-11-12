@@ -331,13 +331,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 hint={customAside ? t('customShared') : showSuggestion ? t('suggested') : undefined}
             >
                 {(control) => (
-                    <CategorySelect
-                        {...control}
-                        label={t('category')}
-                        options={categories}
-                        value={shownCategory}
-                        onChange={setPicked}
-                    />
+                    <CategorySelect {...control} options={categories} value={shownCategory} onChange={setPicked} />
                 )}
             </Field>
 

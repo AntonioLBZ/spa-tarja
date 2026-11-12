@@ -276,7 +276,6 @@ const SettleUp = (props: SettleUpProps) => {
                         {(control) => (
                             <Select
                                 {...control}
-                                label={t('from')}
                                 options={options}
                                 value={from}
                                 onChange={(next) => change({ from: next })}
@@ -287,7 +286,6 @@ const SettleUp = (props: SettleUpProps) => {
                         {(control) => (
                             <Select
                                 {...control}
-                                label={t('to')}
                                 options={options}
                                 value={to}
                                 onChange={(next) => change({ to: next })}

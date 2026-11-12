@@ -64,7 +64,6 @@ const PaymentFields = (props: PaymentFieldsProps) => {
                 {(control) => (
                     <Select
                         {...control}
-                        label={label}
                         options={PAYMENTS.map((kind) => ({ value: kind, label: tPayment(kind) }))}
                         value={state.payment}
                         onChange={(next) => {

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 // control a step starts on when it comes, and back to the button that opened it when the first step is back
 const useStepFocus = <Step extends string>(step: Step, first: Step) => {
     const openers = useRef(new Map<Step, HTMLElement>());
-    const start = useRef<HTMLElement | null>(null);
+    const start = useRef<HTMLOrSVGElement | null>(null);
     const last = useRef(step);
 
     useEffect(() => {
@@ -19,7 +19,7 @@ const useStepFocus = <Step extends string>(step: Step, first: Step) => {
             if (element) openers.current.set(of, element);
         },
         // For the control the step showing starts on
-        start: (element: HTMLElement | null) => {
+        start: (element: HTMLOrSVGElement | null) => {
             start.current = element;
         },
     };

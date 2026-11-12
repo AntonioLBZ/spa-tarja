@@ -13,7 +13,6 @@ interface CategorySelectOption {
 
 interface CategorySelectProps {
     id: string;
-    label: string;
     options: readonly CategorySelectOption[];
     value: string;
     onChange: (id: string) => void;

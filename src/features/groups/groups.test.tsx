@@ -10,6 +10,7 @@ import { TEST_USER } from '@/lib/test/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { INVITATION_DAYS } from '@core/invitation';
 import { formatAmount } from '@core/money';
 import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
@@ -524,8 +525,7 @@ describe('making a group with friends', () => {
     }
 
     function chooseFriend(name: string) {
-        fireEvent.click(friendField());
-        fireEvent.click(screen.getByRole('option', { name }));
+        pickOption(text.new.friend, name);
         fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
     }
 
@@ -553,30 +553,23 @@ describe('making a group with friends', () => {
     it('lists only the open friends, each added once', async () => {
         await start();
 
-        fireEvent.click(friendField());
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-            text.new.friendNone,
-            'Bea',
-            'Eva',
-        ]);
-        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        expect(optionNames(text.new.friend)).toEqual([text.new.friendNone, 'Bea', 'Eva']);
+        pickOption(text.new.friend, 'Bea');
         fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
 
         expect(listed()).toEqual(['Bea']);
-        expect(friendField().textContent).toBe(text.new.friendNone);
-        fireEvent.click(friendField());
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.new.friendNone, 'Eva']);
+        expect(chosenOption(text.new.friend)).toBe(text.new.friendNone);
+        expect(optionNames(text.new.friend)).toEqual([text.new.friendNone, 'Eva']);
     });
 
     it('chooses no friend again when the friend chosen is gone after a sync', async () => {
         const api = await start();
-        fireEvent.click(friendField());
-        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        pickOption(text.new.friend, 'Bea');
 
         api.groups.find((group) => group.id === friends[0]!.id)!.closed = 'deleted';
         await api.sync();
 
-        await waitFor(() => expect(friendField().textContent).toBe(text.new.friendNone));
+        await waitFor(() => expect(chosenOption(text.new.friend)).toBe(text.new.friendNone));
         expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
     });
 
@@ -683,7 +676,7 @@ describe('making a group with friends', () => {
         onlineManager.setOnline(false);
 
         await screen.findByText(text.offline);
-        expect((friendField() as HTMLButtonElement).disabled).toBe(true);
+        expect(friendField()).toHaveProperty('disabled', true);
         expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
     });
 });

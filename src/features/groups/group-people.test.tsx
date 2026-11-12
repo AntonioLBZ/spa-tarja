@@ -10,6 +10,7 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { formatAmount } from '@core/money';
 import {
     MAX_CLOSED_GROUPS,
@@ -318,11 +319,10 @@ describe('merging', () => {
         expect(screen.getByText(t('groups.people.mergeQuestion', { name: 'Cris' }))).toBeDefined();
         expect(descriptionOf(button(text.cancel))).toBe(t('groups.people.mergeQuestion', { name: 'Cris' }));
         expect(document.activeElement).toBe(screen.getByRole('combobox', { name: text.mergeInto }));
-        expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone);
+        expect(chosenOption(text.mergeInto)).toBe(text.mergeNone);
         expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
-        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.mergeNone, you, 'Bea']);
-        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        expect(optionNames(text.mergeInto)).toEqual([text.mergeNone, you, 'Bea']);
+        pickOption(text.mergeInto, 'Bea');
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
         await waitFor(() => expect(memberOf(cris.id)?.mergedInto).toBe(bea.id));
@@ -337,24 +337,19 @@ describe('merging', () => {
 
         fireEvent.click(row('Cris'));
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
-        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.mergeNone, you, 'Bea']);
+        expect(optionNames(text.mergeInto)).toEqual([text.mergeNone, you, 'Bea']);
     });
 
     it('chooses nobody again when the one chosen leaves while the panel is open', async () => {
         const { api, sync } = await edit(trip());
         fireEvent.click(row('Cris'));
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
-        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        pickOption(text.mergeInto, 'Bea');
 
         api.groups[0]!.members.find((member) => member.id === bea.id)!.leftAt = 2;
         await sync();
 
-        await waitFor(() =>
-            expect(screen.getByRole('combobox', { name: text.mergeInto }).textContent).toBe(text.mergeNone)
-        );
+        await waitFor(() => expect(chosenOption(text.mergeInto)).toBe(text.mergeNone));
         expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
     });
 
@@ -394,8 +389,7 @@ describe('merging', () => {
 
         fireEvent.click(row('Cris'));
         fireEvent.click(button(t('groups.people.mergeItem', { name: 'Cris' })));
-        fireEvent.click(screen.getByRole('combobox', { name: text.mergeInto }));
-        fireEvent.click(screen.getByRole('option', { name: 'Bea' }));
+        pickOption(text.mergeInto, 'Bea');
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
         expect((await screen.findByRole('alert')).textContent).toBe(words);
@@ -504,23 +498,21 @@ describe('adding a friend', () => {
     }
 
     function choose(name: string) {
-        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
-        fireEvent.click(screen.getByRole('option', { name }));
+        pickOption(text.friend, name);
     }
 
     it('lists the open friends and adds one as a new member, who has joined', async () => {
         const { members } = await editWith(trip());
 
-        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.friendNone, 'Eva']);
-        fireEvent.click(screen.getByRole('option', { name: 'Eva' }));
+        expect(optionNames(text.friend)).toEqual([text.friendNone, 'Eva']);
+        choose('Eva');
         fireEvent.click(button(text.addFriend));
 
         await waitFor(() => expect(rows()).toHaveLength(4));
         expect(rows()[3]).toBe(`Eva${t('groups.balance.memberSettled', { name: 'Eva' })}`);
         expect(members().at(-1)).toMatchObject({ name: 'Eva', claimed: true });
         expect(members().find((member) => member.id === cris.id)?.mergedInto).toBeNull();
-        expect(screen.getByRole('combobox', { name: text.friend }).textContent).toBe(text.friendNone);
+        expect(chosenOption(text.friend)).toBe(text.friendNone);
     });
 
     it('lets the owner put the friend in place of a dummy, who leaves the list', async () => {
@@ -558,13 +550,8 @@ describe('adding a friend', () => {
         it('offers a friend who left like the rest, and brings them back into the row they had', async () => {
             const { members } = await editWith(trip(), [friendDani, friendBea], users);
 
-            fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
-            expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-                text.friendNone,
-                'Dani',
-                'Bea',
-            ]);
-            fireEvent.click(screen.getByRole('option', { name: 'Dani' }));
+            expect(optionNames(text.friend)).toEqual([text.friendNone, 'Dani', 'Bea']);
+            pickOption(text.friend, 'Dani');
             fireEvent.click(button(text.addFriend));
 
             await waitFor(() => expect(rows()).toHaveLength(4));
@@ -605,9 +592,7 @@ describe('adding a friend', () => {
         api.groups.find((group) => group.id === eva.id)!.closed = 'deleted';
         await sync();
 
-        await waitFor(() =>
-            expect(screen.getByRole('combobox', { name: text.friend }).textContent).toBe(text.friendNone)
-        );
+        await waitFor(() => expect(chosenOption(text.friend)).toBe(text.friendNone));
         expect(button(text.addFriend).disabled).toBe(true);
         expect(screen.queryByRole('group', { name: text.place })).toBeNull();
     });
@@ -663,9 +648,7 @@ describe('adding a friend', () => {
     it('does not offer a friend who is no longer one', async () => {
         await editWith(trip(), [eva, friendOf('', 'deleted')]);
 
-        fireEvent.click(screen.getByRole('combobox', { name: text.friend }));
-
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([text.friendNone, 'Eva']);
+        expect(optionNames(text.friend)).toEqual([text.friendNone, 'Eva']);
     });
 
     it('is not there when no friend is open', async () => {
@@ -681,7 +664,7 @@ describe('adding a friend', () => {
         onlineManager.setOnline(false);
 
         await screen.findByText(en.groups.offline);
-        expect((screen.getByRole('combobox', { name: text.friend }) as HTMLButtonElement).disabled).toBe(true);
+        expect(screen.getByRole('combobox', { name: text.friend })).toHaveProperty('disabled', true);
         expect(button(text.addFriend).disabled).toBe(true);
     });
 });

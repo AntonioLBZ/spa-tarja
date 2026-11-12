@@ -227,7 +227,6 @@ const PersonRow = (props: PersonRowProps) => {
                             <Select
                                 {...control}
                                 ref={focus.start}
-                                label={t('people.mergeInto')}
                                 options={[{ value: '', label: t('people.mergeNone') }, ...targets]}
                                 value={chosen}
                                 onChange={setInto}

@@ -14,7 +14,7 @@ Items build on each other in the order they appear below. Delete an item when it
     6. An account deletion from start to end in production with a second Google account: make a group with a dummy, add that account as a friend in the dummy's place, delete it, then look for its email and the old dummy name in `user`, `session`, `account`, `profile`, `expenses` and `shared_members`.
     7. The rows of the old fixed user (`docs/specs/authentication.md`) that nobody can reach: delete them if they hold nothing worth keeping.
     8. The Google consent screen (Google Cloud console): publishing status, app name and support email.
-- On a real phone, on the prerelease: the list of a `Select` at the bottom of a sheet (Plazos, Pago) opens above the field or shows its options, with the keyboard of the other fields closed and open, and the active option stays in view ([`DESIGN.md`](design-system/DESIGN.md#select)). Only a phone tells how `visualViewport` behaves with the keyboard.
+- On a real phone, on the prerelease: the list of a `Select` ([`DESIGN.md`](design-system/DESIGN.md#select)). On Android Chrome and on iOS Safari 27 it is the styled one, with the icons, and opens above the field at the bottom of a sheet (Plazos, Pago); on an older iOS it is the system's list, names only, and the icon of the field still follows the choice; on both, the bottom bar comes back once the list is closed.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño

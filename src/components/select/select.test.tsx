@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { createRef, useState } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { Select, type SelectOption } from './select';
 
@@ -11,11 +11,18 @@ const OPTIONS: SelectOption<string>[] = [
     { value: 'gym', label: 'Gym', icon: <span data-icon="fitness_center" /> },
 ];
 
-function Harness(props: {
+const PLAIN: SelectOption<string>[] = [
+    { value: 'direct', label: 'Direct' },
+    { value: 'credit', label: 'Credit' },
+];
+
+interface HarnessProps {
     options?: readonly SelectOption<string>[];
     initial?: string;
     onChange?: (value: string) => void;
-}) {
+}
+
+const Harness = (props: HarnessProps) => {
     const { options = OPTIONS, initial = 'food', onChange } = props;
     const [value, setValue] = useState(initial);
 
@@ -24,7 +31,6 @@ function Harness(props: {
             <label htmlFor="category">Category</label>
             <Select
                 id="category"
-                label="Category"
                 options={options}
                 value={value}
                 onChange={(next) => {
@@ -32,50 +38,43 @@ function Harness(props: {
                     onChange?.(next);
                 }}
             />
-            <button type="button">Outside</button>
         </>
     );
-}
+};
 
 const field = () => screen.getByRole('combobox', { name: 'Category' });
-const list = () => screen.getByRole('listbox', { name: 'Category' });
-const options = () => within(list()).getAllByRole('option');
-const activeOption = () => document.getElementById(field().getAttribute('aria-activedescendant') ?? '');
-const key = (name: string) => fireEvent.keyDown(field(), { key: name });
-const open = () => fireEvent.click(field());
-
-afterEach(() => {
-    vi.useRealTimers();
-});
+const chosenName = () =>
+    within(field())
+        .getAllByRole<HTMLOptionElement>('option')
+        .find((option) => option.selected)?.textContent;
+const shownIcon = () => field().parentElement?.querySelector('.select__icon');
+const choose = (value: string) => fireEvent.change(field(), { target: { value } });
 
 describe('the field', () => {
-    it('shows the icon and the name of the chosen option', () => {
+    it('is a select named by its label', () => {
         render(<Harness />);
 
-        expect(field().textContent).toBe('Food');
-        expect(field().querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('restaurant');
-    });
-
-    it('is named by its label', () => {
-        render(<Harness />);
-
+        expect(field().tagName).toBe('SELECT');
         expect(screen.getByLabelText('Category')).toBe(field());
-        expect(field().getAttribute('aria-haspopup')).toBe('listbox');
     });
 
-    it('starts closed, with no list to point at', () => {
+    it('shows the chosen option', () => {
         render(<Harness />);
 
-        expect(field().getAttribute('aria-expanded')).toBe('false');
-        expect(field().hasAttribute('aria-controls')).toBe(false);
-        expect(screen.queryByRole('listbox')).toBeNull();
+        expect(field()).toHaveProperty('value', 'food');
+        expect(chosenName()).toBe('Food');
+    });
+
+    it('shows the first option when the value is none of them', () => {
+        render(<Harness initial="long-gone" />);
+
+        expect(chosenName()).toBe('All categories');
     });
 
     it('passes on what describes it and whether it is invalid, for a Field around it', () => {
         render(
             <Select
                 id="category"
-                label="Category"
                 options={OPTIONS}
                 value="food"
                 onChange={() => {}}
@@ -84,26 +83,8 @@ describe('the field', () => {
             />
         );
 
-        const combobox = screen.getByRole('combobox');
-        expect(combobox.getAttribute('aria-describedby')).toBe('hint');
-        expect(combobox.getAttribute('aria-invalid')).toBe('true');
-    });
-
-    it('hands its field to a ref, so a screen can put the focus on it', () => {
-        const ref = createRef<HTMLButtonElement>();
-        render(<Select ref={ref} id="category" label="Category" options={OPTIONS} value="food" onChange={() => {}} />);
-
-        expect(ref.current).toBe(screen.getByRole('combobox'));
-    });
-
-    it('can be turned off, and then does not open', () => {
-        render(<Select disabled id="category" label="Category" options={OPTIONS} value="food" onChange={() => {}} />);
-
-        const combobox = screen.getByRole('combobox') as HTMLButtonElement;
-        fireEvent.click(combobox);
-
-        expect(combobox.disabled).toBe(true);
-        expect(screen.queryByRole('listbox')).toBeNull();
+        expect(screen.getByRole('combobox').getAttribute('aria-describedby')).toBe('hint');
+        expect(screen.getByRole('combobox').getAttribute('aria-invalid')).toBe('true');
     });
 
     it('says nothing about either unless it is told', () => {
@@ -113,588 +94,91 @@ describe('the field', () => {
         expect(field().hasAttribute('aria-invalid')).toBe(false);
     });
 
-    it('shows the first option when the value is none of them', () => {
-        render(<Harness initial="long-gone" />);
+    it('hands its field to a ref, so a screen can put the focus on it', () => {
+        const ref = createRef<HTMLSelectElement>();
+        render(<Select ref={ref} id="category" options={OPTIONS} value="food" onChange={() => {}} />);
 
-        expect(field().textContent).toBe('All categories');
+        expect(ref.current).toBe(screen.getByRole('combobox'));
     });
 
-    it('shows the place of an icon when the option has none, so the names line up', () => {
-        render(<Harness initial="" />);
+    it('can be turned off', () => {
+        render(<Select disabled id="category" options={OPTIONS} value="food" onChange={() => {}} />);
 
-        expect(field().querySelector('[data-icon]')).toBeNull();
-        expect(field().querySelector('.select__space')).not.toBeNull();
-    });
-
-    it('leaves no place for an icon when no option has one', () => {
-        render(
-            <Harness
-                initial="direct"
-                options={[
-                    { value: 'direct', label: 'Direct' },
-                    { value: 'credit', label: 'Credit' },
-                ]}
-            />
-        );
-        open();
-
-        expect(field().querySelector('.select__space')).toBeNull();
-        expect(list().querySelector('.select__space')).toBeNull();
+        expect(screen.getByRole('combobox')).toHaveProperty('disabled', true);
     });
 });
 
-describe('the list', () => {
-    it('opens under the field with every option, each with its icon and its name', () => {
+describe('the icon beside the field', () => {
+    it('is the icon of the chosen option, hidden from assistive technology', () => {
         render(<Harness />);
 
-        open();
+        expect(shownIcon()?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('restaurant');
+        expect(shownIcon()?.getAttribute('aria-hidden')).toBe('true');
+    });
 
-        expect(field().getAttribute('aria-expanded')).toBe('true');
-        expect(field().getAttribute('aria-controls')).toBe(list().id);
-        expect(options().map((option) => option.textContent)).toEqual(['All categories', 'Food', 'Groceries', 'Gym']);
-        expect(options().map((option) => option.querySelector('[data-icon]')?.getAttribute('data-icon'))).toEqual([
+    it('follows the choice', () => {
+        render(<Harness />);
+
+        choose('gym');
+
+        expect(shownIcon()?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('fitness_center');
+    });
+
+    it('keeps its place empty for an option that has none, so the names line up', () => {
+        render(<Harness initial="" />);
+
+        expect(shownIcon()).not.toBeNull();
+        expect(shownIcon()?.childElementCount).toBe(0);
+        expect(field().parentElement?.classList.contains('select--icons')).toBe(true);
+    });
+
+    it('is not there when no option has one', () => {
+        render(<Harness initial="direct" options={PLAIN} />);
+
+        expect(shownIcon()).toBeNull();
+        expect(field().parentElement?.classList.contains('select--icons')).toBe(false);
+    });
+});
+
+describe('the options', () => {
+    it('are every option, in order, each named by its label alone', () => {
+        render(<Harness />);
+
+        const options = within(field()).getAllByRole('option');
+
+        expect(options.map((option) => option.textContent)).toEqual(['All categories', 'Food', 'Groceries', 'Gym']);
+        expect(within(field()).getByRole('option', { name: 'Gym' })).toBe(options[3]);
+    });
+
+    it('carry their icon, and an option without one keeps its place', () => {
+        render(<Harness />);
+
+        const options = within(field()).getAllByRole('option');
+
+        expect(options.map((option) => option.querySelector('[data-icon]')?.getAttribute('data-icon'))).toEqual([
             undefined,
             'restaurant',
             'shopping_cart',
             'fitness_center',
         ]);
+        expect(options[0]?.querySelector('.select__space')?.getAttribute('aria-hidden')).toBe('true');
     });
 
-    it('keeps the chosen option marked while the active one moves about', () => {
-        render(<Harness initial="groceries" />);
-        key('ArrowDown');
-        key('ArrowDown');
+    it('leave no place for an icon when none has one', () => {
+        render(<Harness initial="direct" options={PLAIN} />);
 
-        expect(activeOption()?.textContent).toBe('Gym');
-        expect(options().map((option) => option.getAttribute('aria-selected'))).toEqual([
-            'false',
-            'false',
-            'true',
-            'false',
-        ]);
-        expect(options().map((option) => option.classList.contains('select__option--chosen'))).toEqual([
-            false,
-            false,
-            true,
-            false,
-        ]);
-    });
-
-    it('points at no option while it is closed', () => {
-        render(<Harness />);
-        expect(field().hasAttribute('aria-activedescendant')).toBe(false);
-
-        open();
-        expect(field().hasAttribute('aria-activedescendant')).toBe(true);
-
-        open();
-        expect(field().hasAttribute('aria-activedescendant')).toBe(false);
-    });
-
-    it('listens for presses elsewhere only while the list is open', () => {
-        const add = vi.spyOn(document, 'addEventListener');
-        render(<Harness />);
-        expect(add.mock.calls.filter(([type]) => type === 'pointerdown')).toHaveLength(0);
-
-        open();
-
-        expect(add.mock.calls.filter(([type]) => type === 'pointerdown')).toHaveLength(1);
-        add.mockRestore();
-    });
-
-    it('marks the chosen option, and only that one', () => {
-        render(<Harness initial="groceries" />);
-
-        open();
-
-        expect(options().map((option) => option.getAttribute('aria-selected'))).toEqual([
-            'false',
-            'false',
-            'true',
-            'false',
-        ]);
-    });
-
-    it('closes when the field is pressed again', () => {
-        render(<Harness />);
-        open();
-
-        open();
-
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(field().getAttribute('aria-expanded')).toBe('false');
-    });
-
-    it('does not take the focus from the field when it is pressed', () => {
-        render(<Harness />);
-        open();
-
-        expect(fireEvent.mouseDown(list())).toBe(false);
+        expect(field().querySelector('.select__space')).toBeNull();
     });
 });
 
-describe('choosing with the pointer', () => {
-    it('picks the option that was pressed, closes the list and keeps the focus on the field', () => {
+describe('choosing', () => {
+    it('hands on the value of the option chosen', () => {
         const onChange = vi.fn();
         render(<Harness onChange={onChange} />);
-        field().focus();
-        open();
 
-        fireEvent.click(within(list()).getByRole('option', { name: 'Gym' }));
-
-        expect(onChange).toHaveBeenCalledExactlyOnceWith('gym');
-        expect(field().textContent).toBe('Gym');
-        expect(field().querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('fitness_center');
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(document.activeElement).toBe(field());
-    });
-
-    it('lets the same option be pressed again, which closes the list', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-        open();
-
-        fireEvent.click(within(list()).getByRole('option', { name: 'Food' }));
-
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(field().textContent).toBe('Food');
-    });
-
-    it('follows the pointer with the active row', () => {
-        render(<Harness />);
-        open();
-
-        fireEvent.mouseEnter(within(list()).getByRole('option', { name: 'Groceries' }));
-
-        expect(activeOption()?.textContent).toBe('Groceries');
-    });
-
-    it('closes without choosing when the person presses anywhere else', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-        open();
-
-        fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside' }));
-
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('stays open when the press is inside the list', () => {
-        render(<Harness />);
-        open();
-
-        fireEvent.pointerDown(list());
-
-        expect(screen.getByRole('listbox')).toBeDefined();
-    });
-
-    it('closes without choosing when the focus leaves the field', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-        field().focus();
-        open();
-
-        act(() => screen.getByRole('button', { name: 'Outside' }).focus());
-
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(onChange).not.toHaveBeenCalled();
-    });
-});
-
-describe('choosing with the keyboard', () => {
-    it.each(['ArrowDown', 'ArrowUp', 'Enter', ' '])('opens the list with %j, on the chosen option', (name) => {
-        render(<Harness initial="groceries" />);
-
-        key(name);
-
-        expect(screen.getByRole('listbox')).toBeDefined();
-        expect(activeOption()?.textContent).toBe('Groceries');
-    });
-
-    it('opens the list on the first or the last option with Home and End', () => {
-        render(<Harness initial="groceries" />);
-
-        key('Home');
-        expect(activeOption()?.textContent).toBe('All categories');
-        key('Escape');
-        key('End');
-        expect(activeOption()?.textContent).toBe('Gym');
-    });
-
-    it('keeps the active option in view as it moves', () => {
-        const scrollIntoView = vi.fn();
-        Element.prototype.scrollIntoView = scrollIntoView;
-        render(<Harness />);
-
-        key('ArrowDown');
-        key('ArrowDown');
-
-        expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest' });
-        expect(scrollIntoView.mock.contexts.at(-1)).toBe(activeOption());
-        delete (Element.prototype as Partial<Element>).scrollIntoView;
-    });
-
-    it('moves the active option with the arrows, and stops at both ends', () => {
-        render(<Harness initial="food" />);
-        key('ArrowDown');
-
-        key('ArrowDown');
-        expect(activeOption()?.textContent).toBe('Groceries');
-        key('ArrowDown');
-        key('ArrowDown');
-        key('ArrowDown');
-        expect(activeOption()?.textContent).toBe('Gym');
-
-        key('ArrowUp');
-        expect(activeOption()?.textContent).toBe('Groceries');
-        key('ArrowUp');
-        key('ArrowUp');
-        key('ArrowUp');
-        expect(activeOption()?.textContent).toBe('All categories');
-    });
-
-    it('jumps to the first and the last option with Home and End', () => {
-        render(<Harness initial="groceries" />);
-        key('ArrowDown');
-
-        key('End');
-        expect(activeOption()?.textContent).toBe('Gym');
-        key('Home');
-        expect(activeOption()?.textContent).toBe('All categories');
-    });
-
-    it.each(['Enter', ' '])('chooses the active option with %j and closes the list', (name) => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-        key('ArrowDown');
-        key('ArrowDown');
-
-        key(name);
+        choose('groceries');
 
         expect(onChange).toHaveBeenCalledExactlyOnceWith('groceries');
-        expect(field().textContent).toBe('Groceries');
-        expect(screen.queryByRole('listbox')).toBeNull();
-    });
-
-    it('takes the Escape that closes the list, so nothing else closes with it', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        expect(fireEvent.keyDown(field(), { key: 'Escape' })).toBe(false);
-    });
-
-    it('leaves Escape to the page while the list is closed', () => {
-        render(<Harness />);
-
-        expect(fireEvent.keyDown(field(), { key: 'Escape' })).toBe(true);
-    });
-
-    it('closes with Escape and changes nothing', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-        key('ArrowDown');
-        key('ArrowDown');
-
-        key('Escape');
-
-        expect(screen.queryByRole('listbox')).toBeNull();
-        expect(field().textContent).toBe('Food');
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('starts from the chosen option again after a close', () => {
-        render(<Harness />);
-        key('ArrowDown');
-        key('ArrowDown');
-        key('Escape');
-
-        key('ArrowDown');
-
-        expect(activeOption()?.textContent).toBe('Food');
-    });
-
-    it('does not scroll the page with the keys it uses', () => {
-        render(<Harness />);
-
-        for (const name of ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', ' ']) {
-            expect(fireEvent.keyDown(field(), { key: name })).toBe(false);
-        }
-    });
-
-    it('leaves the other keys to the browser', () => {
-        render(<Harness />);
-
-        expect(fireEvent.keyDown(field(), { key: 'Tab' })).toBe(true);
-        expect(fireEvent.keyDown(field(), { key: 'F5' })).toBe(true);
-    });
-
-    it('does not let a Space that was pressed on the field click it again', () => {
-        render(<Harness />);
-
-        expect(fireEvent.keyUp(field(), { key: ' ' })).toBe(false);
-        expect(fireEvent.keyUp(field(), { key: 'a' })).toBe(true);
-    });
-});
-
-describe('typing a name', () => {
-    it('moves the active option to the first name that starts with the letters, while the list is open', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        key('g');
-        expect(activeOption()?.textContent).toBe('Groceries');
-        key('r');
-        expect(activeOption()?.textContent).toBe('Groceries');
-    });
-
-    it('narrows down as more letters come', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        key('g');
-        key('y');
-        key('m');
-
-        expect(activeOption()?.textContent).toBe('Gym');
-    });
-
-    it('goes through the names that share a first letter when it is pressed again', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        key('g');
-        expect(activeOption()?.textContent).toBe('Groceries');
-        key('g');
-        expect(activeOption()?.textContent).toBe('Gym');
-        key('g');
-        expect(activeOption()?.textContent).toBe('Groceries');
-    });
-
-    it('forgets the letters after a pause', () => {
-        vi.useFakeTimers();
-        render(<Harness />);
-        key('ArrowDown');
-        key('g');
-        key('y');
-
-        act(() => vi.advanceTimersByTime(600));
-        key('f');
-
-        expect(activeOption()?.textContent).toBe('Food');
-    });
-
-    it('is not case sensitive', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        key('G');
-        key('Y');
-
-        expect(activeOption()?.textContent).toBe('Gym');
-    });
-
-    it('chooses the name straight away when the list is closed', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-
-        key('g');
-
-        expect(onChange).toHaveBeenCalledExactlyOnceWith('groceries');
-        expect(field().textContent).toBe('Groceries');
-        expect(screen.queryByRole('listbox')).toBeNull();
-    });
-
-    it('keeps the active option for letters no name starts with, while the list is open', () => {
-        render(<Harness />);
-        key('ArrowDown');
-        key('ArrowDown');
-
-        key('z');
-
-        expect(activeOption()?.textContent).toBe('Groceries');
-    });
-
-    it('stays where it is when more letters still match the name it is on', () => {
-        render(
-            <Harness
-                options={[
-                    { value: 'food', label: 'Food' },
-                    { value: 'gym', label: 'Gym' },
-                    { value: 'gymnastics', label: 'Gymnastics' },
-                ]}
-            />
-        );
-        key('ArrowDown');
-
-        key('g');
-        expect(activeOption()?.textContent).toBe('Gym');
-        key('y');
-
-        expect(activeOption()?.textContent).toBe('Gym');
-    });
-
-    it('does not take the name of a key for letters', () => {
-        const onChange = vi.fn();
-        render(
-            <Harness
-                onChange={onChange}
-                options={[
-                    { value: 'food', label: 'Food' },
-                    { value: 'shift', label: 'Shift work' },
-                ]}
-            />
-        );
-
-        key('Shift');
-
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('does nothing for letters no name starts with', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-
-        key('z');
-
-        expect(onChange).not.toHaveBeenCalled();
-        expect(field().textContent).toBe('Food');
-    });
-
-    it('does not take a key that comes with Control, Alt or Meta for a letter', () => {
-        const onChange = vi.fn();
-        render(<Harness onChange={onChange} />);
-
-        for (const modifier of [{ ctrlKey: true }, { altKey: true }, { metaKey: true }]) {
-            fireEvent.keyDown(field(), { key: 'g', ...modifier });
-        }
-
-        expect(onChange).not.toHaveBeenCalled();
-    });
-});
-
-describe('the ring on the row the keys are on', () => {
-    const ring = 'select__option--keys';
-
-    it('is on the row the arrow keys moved to', () => {
-        render(<Harness />);
-
-        key('ArrowDown');
-        key('ArrowDown');
-
-        expect(activeOption()!.classList.contains(ring)).toBe(true);
-    });
-
-    it('is not there when the pointer opened the list', () => {
-        render(<Harness />);
-
-        open();
-
-        expect(activeOption()!.classList.contains(ring)).toBe(false);
-    });
-
-    it('goes when the pointer takes over the row, which keeps its tint', () => {
-        render(<Harness />);
-        key('ArrowDown');
-
-        fireEvent.mouseEnter(options()[2]!);
-
-        expect(options()[2]!.classList.contains('select__option--active')).toBe(true);
-        expect(options()[2]!.classList.contains(ring)).toBe(false);
-        expect(list().querySelector(`.${ring}`)).toBeNull();
-    });
-
-    it('comes back with the next key', () => {
-        render(<Harness />);
-        open();
-        fireEvent.mouseEnter(options()[3]!);
-
-        key('ArrowUp');
-
-        expect(activeOption()!.classList.contains(ring)).toBe(true);
-    });
-});
-
-describe('where the list opens', () => {
-    const fieldRect = (top: number, bottom: number) => {
-        const rect = { top, bottom, height: bottom - top, left: 0, right: 0, width: 0, x: 0, y: top };
-        vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-            const own = this === field().parentElement;
-            return { ...(own ? rect : { ...rect, top: 0, bottom: 0, height: 0, y: 0 }), toJSON: () => ({}) };
-        });
-    };
-
-    const room = () => list().style.getPropertyValue('--select-room');
-
-    const closeList = () => key('Escape');
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-        vi.unstubAllGlobals();
-    });
-
-    const wanting = (height: number) => {
-        vi.stubGlobal('innerHeight', 800);
-        vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(height);
-    };
-
-    it('opens under the field when the list fits there, and says how much room there is', () => {
-        wanting(300);
-        fieldRect(100, 144);
-        render(<Harness />);
-
-        open();
-
-        expect(list().className).not.toContain('select__list--above');
-        expect(room()).toBe(`${800 - 144 - 8}px`);
-    });
-
-    it('opens over the field when the list does not fit under it and there is more room over it', () => {
-        wanting(300);
-        fieldRect(600, 644);
-        render(<Harness />);
-
-        open();
-
-        expect(list().className).toContain('select__list--above');
-        expect(room()).toBe(`${600 - 8}px`);
-    });
-
-    it('limits the list to the room under the field when neither side has enough', () => {
-        wanting(300);
-        vi.stubGlobal('innerHeight', 400);
-        fieldRect(150, 194);
-        render(<Harness />);
-
-        open();
-
-        expect(list().className).not.toContain('select__list--above');
-        expect(room()).toBe(`${400 - 194 - 8}px`);
-    });
-
-    it('measures again every time it opens, as the field may have moved', () => {
-        wanting(300);
-        fieldRect(100, 144);
-        render(<Harness />);
-        open();
-        expect(list().className).not.toContain('select__list--above');
-        closeList();
-
-        fieldRect(600, 644);
-        open();
-
-        expect(list().className).toContain('select__list--above');
-        expect(room()).toBe(`${600 - 8}px`);
-    });
-
-    it('still lists every option, in order, whichever side it opens on', () => {
-        wanting(300);
-        fieldRect(600, 644);
-        render(<Harness />);
-
-        open();
-
-        expect(options().map((option) => option.textContent)).toEqual(OPTIONS.map((option) => option.label));
-        expect(activeOption()?.textContent).toBe('Food');
+        expect(chosenName()).toBe('Groceries');
     });
 });
