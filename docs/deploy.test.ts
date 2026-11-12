@@ -149,6 +149,14 @@ describe('the prerelease workflow', () => {
     });
 });
 
+describe('the version', () => {
+    it('is MAJOR.MINOR.PATCH, which the settings show and the prerelease extends with its commit', () => {
+        const { version } = JSON.parse(read('package.json')) as { version: string };
+
+        expect(version).toMatch(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/);
+    });
+});
+
 describe('the release job', () => {
     it('is started by a push to main only, after the checks', () => {
         const text = workflow('ci.yml');
@@ -186,5 +194,27 @@ describe('the release job', () => {
 
     it('leaves the check, which a pull request starts, without any secret', () => {
         expect(job(workflow('ci.yml'), 'check')).not.toContain('secrets.');
+    });
+});
+
+describe('the tag job', () => {
+    it('runs after the release, on a push, and is the only one that writes to the repository', () => {
+        const text = workflow('ci.yml');
+        const tag = job(text, 'tag');
+
+        expect(tag).toContain('needs: release');
+        expect(tag).toContain("if: github.event_name == 'push'");
+        expect(tag).toContain('permissions:\n            contents: write\n');
+        expect(tag).not.toContain('secrets.');
+        expect(text.match(/contents: write/g)).toHaveLength(1);
+        expect(text).toMatch(/\npermissions:\n {4}contents: read\n/);
+    });
+
+    it('creates the release of a version only when it does not exist yet', () => {
+        const tag = job(workflow('ci.yml'), 'tag');
+
+        expect(tag.indexOf('gh release view')).toBeGreaterThan(-1);
+        expect(tag.indexOf('gh release create')).toBeGreaterThan(tag.indexOf('gh release view'));
+        expect(tag).toContain('--target "$GITHUB_SHA"');
     });
 });

@@ -1,0 +1,31 @@
+.about {
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.about__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.about__row {
+    align-items: center;
+    display: flex;
+    gap: var(--size-3);
+    justify-content: space-between;
+}
+
+.about__row dt {
+    color: var(--color-content-secondary);
+}
+
+.about__value {
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-align: end;
+}
+
+.about__status--error {
+    color: var(--color-danger);
+}

@@ -131,6 +131,7 @@ describe('your data in the settings', () => {
             en.settings.categories.title,
             en.settings.data.title,
             en.settings.account.title,
+            en.settings.about.title,
         ]);
         expect(screen.getByText(en.settings.data.description)).toBeDefined();
         expect(screen.getByRole('button', { name: en.settings.data.json }).getAttribute('type')).toBe('button');
