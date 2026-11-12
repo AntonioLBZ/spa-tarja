@@ -1,0 +1,228 @@
+/* Four ways to say "there is more under this edge", side by side. Each frame scrolls inside itself; the edge effects
+   follow the scroll position with scroll-driven animations, so there is no script. */
+.scroll-edges {
+    display: grid;
+    gap: var(--size-8);
+}
+
+.scroll-edges__intro {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+    max-inline-size: 48rem;
+}
+
+.scroll-edges__options {
+    display: grid;
+    gap: var(--size-6) var(--size-4);
+    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+}
+
+.scroll-edges__option {
+    align-content: start;
+    display: grid;
+    gap: var(--size-2);
+    min-inline-size: 0;
+}
+
+.scroll-edges__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.scroll-edges__note {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.scroll-edges__frame {
+    block-size: 28rem;
+    border: var(--size-px) solid var(--color-border-subtle);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.scroll-edges__frame--sheet {
+    block-size: 18rem;
+}
+
+.scroll-edges__scroller {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.scroll-edges__header {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border-bottom: var(--size-px) solid var(--color-border);
+    display: flex;
+    inset-block-start: 0;
+    justify-content: center;
+    min-block-size: var(--header-height);
+    position: sticky;
+    z-index: 1;
+}
+
+.scroll-edges__content {
+    padding: var(--size-4);
+}
+
+/* The real bar is fixed to the screen; here it sticks to the bottom of the frame */
+.scroll-edges__frame .bottom-nav {
+    position: sticky;
+    view-transition-name: none;
+}
+
+.scroll-edges__sheet {
+    background: var(--color-bg-secondary);
+    border-top: var(--size-px) solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4);
+    padding: var(--size-4) var(--size-4) 0;
+}
+
+.scroll-edges__sheet-title {
+    font-size: var(--font-size-l);
+    margin: 0;
+}
+
+.scroll-edges__field {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.scroll-edges__box {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    min-block-size: var(--size-touch);
+}
+
+/* The footer of a long sheet: the actions stay where the thumb is */
+.scroll-edges__footer {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    display: flex;
+    gap: var(--size-4);
+    inset-block-end: 0;
+    justify-content: flex-end;
+    margin-inline: calc(-1 * var(--size-4));
+    padding: var(--size-2) var(--size-4);
+    position: sticky;
+    z-index: 1;
+}
+
+/* Every edge effect is a pseudo-element on the bar, the header or the footer. It shows while there is content under
+   it: the top one once the box has scrolled, the bottom one until it has scrolled to the end. */
+@keyframes scroll-edges-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scroll-edges-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.scroll-edges__frame--shadow,
+.scroll-edges__frame--rule,
+.scroll-edges__frame--fade {
+    --edge-reach: var(--size-6);
+}
+
+.scroll-edges__frame--shadow :is(.scroll-edges__header, .bottom-nav, .scroll-edges__footer)::after,
+.scroll-edges__frame--rule :is(.scroll-edges__header, .bottom-nav, .scroll-edges__footer)::after,
+.scroll-edges__frame--fade :is(.scroll-edges__header, .bottom-nav, .scroll-edges__footer)::after {
+    animation-fill-mode: both;
+    animation-name: scroll-edges-in;
+    animation-range: 0 var(--edge-reach);
+    animation-timeline: scroll(nearest block);
+    animation-timing-function: linear;
+    content: '';
+    pointer-events: none;
+    position: absolute;
+}
+
+/* The bottom edges are there until the very end */
+.scroll-edges__frame--shadow :is(.bottom-nav, .scroll-edges__footer)::after,
+.scroll-edges__frame--rule :is(.bottom-nav, .scroll-edges__footer)::after,
+.scroll-edges__frame--fade :is(.bottom-nav, .scroll-edges__footer)::after {
+    animation-name: scroll-edges-out;
+    animation-range: calc(100% - var(--edge-reach)) 100%;
+}
+
+/* B. A soft shadow cast on the content. Black in both themes: the palette has no such token, and no shadow either. */
+.scroll-edges__frame--shadow :is(.scroll-edges__header, .bottom-nav, .scroll-edges__footer)::after {
+    box-shadow: 0 var(--size-1) var(--size-3) light-dark(rgb(0 0 0 / 28%), rgb(0 0 0 / 85%));
+    inset: 0;
+}
+
+.scroll-edges__frame--shadow :is(.bottom-nav, .scroll-edges__footer)::after {
+    box-shadow: 0 calc(-1 * var(--size-1)) var(--size-3) light-dark(rgb(0 0 0 / 28%), rgb(0 0 0 / 85%));
+}
+
+/* C. The hairline becomes the thick ink edge of the notch while something is under it. */
+.scroll-edges__frame--rule .scroll-edges__header::after {
+    background: var(--color-border);
+    block-size: var(--size-1);
+    inline-size: 100%;
+    inset-block-start: 100%;
+}
+
+.scroll-edges__frame--rule .bottom-nav::after {
+    background: var(--color-border);
+    block-size: var(--size-1);
+    inline-size: 100%;
+    inset-block-start: calc(-1 * var(--size-1));
+}
+
+.scroll-edges__frame--rule .scroll-edges__footer::after {
+    background: var(--color-border);
+    block-size: var(--size-1);
+    inline-size: 100%;
+    inset-block-start: calc(-1 * var(--size-1));
+}
+
+/* D. The content fades into the page before the edge. Over a surface that isn't the page, the fade would have to be
+   in that surface's color. */
+.scroll-edges__frame--fade .scroll-edges__header::after {
+    background: linear-gradient(to bottom, var(--color-bg-primary), transparent);
+    block-size: var(--edge-reach);
+    inline-size: 100%;
+    inset-block-start: 100%;
+}
+
+.scroll-edges__frame--fade .bottom-nav::after {
+    background: linear-gradient(to top, var(--color-bg-primary), transparent);
+    block-size: var(--edge-reach);
+    inline-size: 100%;
+    inset-block-end: 100%;
+}
+
+.scroll-edges__frame--fade .scroll-edges__footer::after {
+    background: linear-gradient(to top, var(--color-bg-secondary), transparent);
+    block-size: var(--edge-reach);
+    inline-size: 100%;
+    inset-block-end: 100%;
+}
+
+.scroll-edges__places {
+    display: grid;
+    gap: var(--size-2);
+    margin: 0;
+    max-inline-size: 48rem;
+    padding-inline-start: var(--size-6);
+}

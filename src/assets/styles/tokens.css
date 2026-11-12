@@ -15,6 +15,9 @@
     /* The tab bar of a phone, without the safe area under it */
     --bottom-nav-height: 3.75rem;
 
+    /* The header: its row and its hairline, without the safe area above it */
+    --header-height: calc(var(--size-touch) + var(--size-px));
+
     /* Everything is set in monospace; the fallbacks cover the moment before the font loads and a failed load */
     --font-family: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
 

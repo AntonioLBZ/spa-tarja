@@ -1,5 +1,6 @@
 import { Link, Outlet, createRootRoute, useRouterState } from '@tanstack/react-router';
 import clsx from 'clsx';
+import { useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-nav';
@@ -14,9 +15,10 @@ import { useOpenAdd } from '@/features/expenses/use-open-add';
 import { AppUpdate } from '@/features/pwa/app-update';
 import { isPrerelease } from '@/lib/prerelease';
 import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
+import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
 import { useWide } from '@/lib/use-wide';
 
-import type { MouseEvent } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 import './root.css';
 
@@ -54,6 +56,25 @@ const RootLayout = () => {
                 </div>
             </ToastProvider>
         </ExpenseSheetProvider>
+    );
+};
+
+interface RootBannerProps {
+    children: ReactNode;
+}
+
+// The header on both screens: it slides out of sight when the page goes down and comes back when it goes up. It stays
+// in the page and in the tab order while it is out (the styles move it, nothing takes it away).
+const RootBanner = (props: RootBannerProps) => {
+    const { children } = props;
+    const header = useRef<HTMLElement>(null);
+    const hidden = useHideOnScroll(header);
+    const headerClsx = clsx('root__header', { 'root__header--hidden': hidden });
+
+    return (
+        <header className={headerClsx} ref={header}>
+            {children}
+        </header>
     );
 };
 
@@ -109,10 +130,10 @@ const RootBack = () => {
 // the bar at the bottom
 const RootPhoneHeader = () => {
     return (
-        <header className="root__header">
+        <RootBanner>
             <RootBack />
             <RootBrand />
-        </header>
+        </RootBanner>
     );
 };
 
@@ -132,7 +153,7 @@ const RootHeader = () => {
     };
 
     return (
-        <header className="root__header">
+        <RootBanner>
             <nav aria-label={t('label')} className="root__nav">
                 <div className="root__start">
                     <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
@@ -157,7 +178,7 @@ const RootHeader = () => {
                     </Link>
                 </div>
             </nav>
-        </header>
+        </RootBanner>
     );
 };
 

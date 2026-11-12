@@ -78,6 +78,26 @@ button:disabled {
         color var(--duration-slow) var(--ease-standard);
 }
 
+/* What is brought into view (Tab, scrollIntoView, a fragment) stops under the sticky header, not behind it */
+:root {
+    scroll-padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+}
+
+/* With a mouse the browser draws a classic scrollbar, which takes room from the page when it shows up and gives it back
+   when it goes: the content jumps sideways. The room is kept (also while a dialog hides the bar), and the bar is thin,
+   quiet and has no track. A touch screen draws its own over the content and is left alone. Forced colors take these
+   properties back. */
+@media (pointer: fine) {
+    :root {
+        scrollbar-color: var(--color-content-secondary) transparent;
+        scrollbar-gutter: stable;
+    }
+
+    * {
+        scrollbar-width: thin;
+    }
+}
+
 body {
     background: var(--color-bg-primary);
     color: var(--color-content-primary);
