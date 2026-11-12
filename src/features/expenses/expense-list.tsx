@@ -109,6 +109,7 @@ const ExpenseList = () => {
         setRestored(null);
         ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
         toast.show({
+            icon: 'check',
             message: t('deleted', { name: expenses[0]!.text || labelOf(expenses[0]!.categoryId) }),
             action: { label: t('undo'), onAction: () => void undo(deleted) },
         });
@@ -136,6 +137,7 @@ const ExpenseList = () => {
             setRestored(null);
             ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
             toast.show({
+                icon: 'check',
                 message: tLedger('deleted', {
                     name: row.text || labelOf(row.categoryId),
                     group: list.groupNameOf(source.group.id),

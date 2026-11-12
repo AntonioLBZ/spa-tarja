@@ -18,6 +18,8 @@ import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { readDuration } from '@/lib/motion';
 
+import type { IconName } from '@/components/icon/icon-paths';
+
 import './toast.css';
 
 // How long a toast stays, not counting the time the pointer or the focus holds it
@@ -30,6 +32,8 @@ interface ToastAction {
 
 interface ToastOptions {
     message: string;
+    // A bare mark in front of the message, for something that was done
+    icon?: IconName;
     // What the person can do about it, when there is something to do
     action?: ToastAction;
 }
@@ -52,6 +56,7 @@ interface ToastApi {
 interface ShownToast {
     id: number;
     message: string;
+    icon?: IconName;
     actions: readonly ToastAction[];
     // Fading out, about to go
     leaving: boolean;
@@ -121,6 +126,11 @@ const ToastBox = (props: ToastBoxProps) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
+            {toast.icon && (
+                <span className="toast__mark">
+                    <Icon name={toast.icon} />
+                </span>
+            )}
             <p className="toast__message">{toast.message}</p>
             {(toast.actions.length > 0 || !pinned) && (
                 <div className="toast__actions">
@@ -178,6 +188,7 @@ const ToastProvider = (props: ToastProviderProps) => {
         setToast({
             id: ++lastId.current,
             message: options.message,
+            icon: options.icon,
             actions: options.action ? [options.action] : [],
             leaving: false,
         });

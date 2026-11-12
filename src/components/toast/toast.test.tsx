@@ -23,6 +23,9 @@ function Harness(props: { onAction?: () => void }) {
             >
                 Show another
             </button>
+            <button type="button" onClick={() => toast.show({ message: 'Saved Tea', icon: 'check' })}>
+                Show done
+            </button>
             <button type="button" onClick={() => toast.show({ message: 'Close to the limit' })}>
                 Show plain
             </button>
@@ -65,6 +68,24 @@ afterEach(() => {
 });
 
 describe('Toast', () => {
+    it('puts a bare mark in front of the message when it reports something done', () => {
+        setup();
+
+        show('Show done');
+
+        const box = screen.getByText('Saved Tea').closest('.toast') as HTMLElement;
+        expect(box.firstElementChild?.className).toContain('toast__mark');
+        expect(box.querySelector('.toast__mark svg')?.getAttribute('data-icon')).toBe('check');
+    });
+
+    it('has no mark when it only warns', () => {
+        setup();
+
+        show('Show plain');
+
+        expect(document.querySelector('.toast__mark')).toBeNull();
+    });
+
     it('keeps an empty status region in the page from the start, so what comes in is announced', () => {
         setup();
 

@@ -19,7 +19,7 @@ const ToastButtons = (props: ToastStoryProps) => {
 
     return (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--size-4)' }}>
-            <Button onClick={() => toast.show({ message, action })}>Show</Button>
+            <Button onClick={() => toast.show({ message, action, icon: 'check' })}>Show</Button>
             <Button onClick={() => toast.dismiss()}>Dismiss</Button>
             <Button
                 onClick={() =>

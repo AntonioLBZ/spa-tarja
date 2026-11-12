@@ -206,6 +206,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
             const deleted = await actions.remove(group.id, entry);
             const name = words.entryName(entry);
             toast.show({
+                icon: 'check',
                 message: t(entry.kind === 'expense' ? 'deleted' : 'deletedSettlement', { name, group: words.title }),
                 action: { label: tList('undo'), onAction: () => void undo(deleted) },
             });

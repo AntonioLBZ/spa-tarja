@@ -49,7 +49,7 @@ const ExpenseSheet = () => {
     // comes right after replaces the toast.
     const handleAdded = (day: string) => {
         noteAdded(day);
-        if (away) toast.show({ message: t('added') });
+        if (away) toast.show({ icon: 'check', message: t('added') });
         if (!isCopy) endAdd();
     };
 
