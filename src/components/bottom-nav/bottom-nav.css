@@ -18,7 +18,7 @@
 :root:has(
         input:not([type='checkbox'], [type='radio'], dialog *):focus,
         textarea:not(dialog *):focus,
-        [role='combobox']:not(dialog *):focus
+        select:not(dialog *):focus-within
     )
     .bottom-nav {
     opacity: 0;

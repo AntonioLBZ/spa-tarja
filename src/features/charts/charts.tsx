@@ -99,7 +99,6 @@ const Charts = () => {
                 {(control) => (
                     <CategorySelect
                         {...control}
-                        label={t('category')}
                         options={[{ id: '', label: t('allCategories') }, ...options]}
                         value={categoryId}
                         onChange={setCategoryId}

@@ -201,7 +201,6 @@ const NewGroup = (props: NewGroupProps) => {
                                     <Select
                                         {...control}
                                         disabled={disabled}
-                                        label={t('new.friend')}
                                         options={[
                                             { value: '', label: t('new.friendNone') },
                                             ...choices.map((item) => ({ value: item.id, label: item.name })),

@@ -12,30 +12,22 @@ const trigger = (label: string): HTMLElement => {
     return screen.getByRole('combobox', { name: label });
 };
 
+const optionsOf = (field: HTMLElement): HTMLOptionElement[] => within(field).getAllByRole<HTMLOptionElement>('option');
+
 // The name of the option the field shows
 const chosenOption = (label: string): string => {
-    return trigger(label).textContent ?? '';
-};
-
-const openOptions = (label: string): HTMLElement => {
-    const field = trigger(label);
-    if (field.getAttribute('aria-expanded') !== 'true') fireEvent.click(field);
-    return screen.getByRole('listbox', { name: label });
+    return optionsOf(trigger(label)).find((option) => option.selected)?.textContent ?? '';
 };
 
 // The names of every option, in order
 const optionNames = (label: string): string[] => {
-    const list = openOptions(label);
-    const names = within(list)
-        .getAllByRole('option')
-        .map((option) => option.textContent ?? '');
-    fireEvent.keyDown(trigger(label), { key: 'Escape' });
-    return names;
+    return optionsOf(trigger(label)).map((option) => option.textContent ?? '');
 };
 
 const pickOption = (label: string, name: string): void => {
-    const list = openOptions(label);
-    fireEvent.click(within(list).getByRole('option', { name }));
+    const field = trigger(label);
+    const option = within(field).getByRole<HTMLOptionElement>('option', { name });
+    fireEvent.change(field, { target: { value: option.value } });
 };
 
-export { chosenOption, openOptions, optionNames, pickOption, trigger };
+export { chosenOption, optionNames, pickOption, trigger };

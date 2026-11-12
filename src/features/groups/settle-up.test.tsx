@@ -9,6 +9,7 @@ import { GROUPS_KEY, groupEntriesKey } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -89,13 +90,8 @@ function closeSheet() {
     act(() => (settleUp() as HTMLDialogElement).close());
 }
 
-function select(label: string) {
-    return screen.getByRole('combobox', { name: label });
-}
-
 function choose(label: string, option: string) {
-    fireEvent.click(select(label));
-    fireEvent.click(screen.getByRole('option', { name: option }));
+    pickOption(label, option);
 }
 
 function amount() {
@@ -164,8 +160,8 @@ describe('settling up from a line', () => {
 
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
 
-        expect(select(text.from).textContent).toBe(you);
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe(you);
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('15.00');
         expect(document.activeElement).toBe(amount());
     });
@@ -212,7 +208,7 @@ describe('settling up from a line', () => {
         api.groups[0]!.members.find((member) => member.id === bea.id)!.leftAt = 2;
         await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
 
-        await waitFor(() => expect(select(text.to).textContent).toBe('Cris'));
+        await waitFor(() => expect(chosenOption(text.to)).toBe('Cris'));
         fireEvent.click(save());
 
         await waitFor(() =>
@@ -363,8 +359,8 @@ describe('settling up in the simplified view', () => {
         expect(lines()).toEqual([youOweBea, crisOwesBea]);
         fireEvent.click(lineButton(crisOwesBea));
 
-        expect(select(text.from).textContent).toBe('Cris');
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe('Cris');
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('10.00');
         expect(document.activeElement).toBe(amount());
         expect(hint()).toBe(sentences(crisOwesBea, t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' })));
@@ -376,8 +372,8 @@ describe('settling up in the simplified view', () => {
 
         fireEvent.click(toggle());
 
-        expect(select(text.from).textContent).toBe(you);
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe(you);
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(hint()).toBe(sentences(youOweBea));
     });
 
@@ -452,7 +448,7 @@ describe('settling up in the simplified view', () => {
         await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
 
         await waitFor(() => expect(lines()).toEqual([youOweBea, crisOwesBea]));
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('15.00');
         expect(hint()).toBe(sentences(youOweBea, t('groups.settle.after.youSettled', { name: 'Bea' })));
     });
@@ -471,8 +467,8 @@ describe('the form', () => {
 
         fireEvent.click(toggle());
 
-        expect(select(text.from).textContent).toBe(you);
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe(you);
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('');
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         expect(save().disabled).toBe(true);
@@ -502,7 +498,7 @@ describe('the form', () => {
 
         fireEvent.click(toggle());
 
-        expect(select(text.to).textContent).toBe('Cris');
+        expect(chosenOption(text.to)).toBe('Cris');
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Cris', amount: euros(1500) })));
     });
 
@@ -536,7 +532,7 @@ describe('the form', () => {
         await waitFor(() =>
             expect(lines()).toContain(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(800) }))
         );
-        expect(select(text.to).textContent).toBe('Cris');
+        expect(chosenOption(text.to)).toBe('Cris');
         expect(amount().value).toBe('3');
     });
 
@@ -546,15 +542,14 @@ describe('the form', () => {
         await open(group, debts(group));
         fireEvent.click(toggle());
 
-        fireEvent.click(select(text.to));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([you, 'Bea', 'Cris']);
-        fireEvent.click(screen.getByRole('option', { name: 'Cris' }));
+        expect(optionNames(text.to)).toEqual([you, 'Bea', 'Cris']);
+        pickOption(text.to, 'Cris');
         fireEvent.change(amount(), { target: { value: '3' } });
         closeSheet();
         expect(screen.queryByRole('dialog')).toBeNull();
         fireEvent.click(toggle());
 
-        expect(select(text.to).textContent).toBe('Cris');
+        expect(chosenOption(text.to)).toBe('Cris');
         expect(amount().value).toBe('3');
     });
 
@@ -600,8 +595,8 @@ describe('the form', () => {
 
         fireEvent.click(lineButton(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(700) })));
 
-        expect(select(text.from).textContent).toBe('Cris');
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe('Cris');
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(hint()).toContain(t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' }));
         fireEvent.change(amount(), { target: { value: '2' } });
         expect(hint()).toContain(t('groups.settle.after.owes', { from: 'Cris', to: 'Bea', amount: euros(500) }));
@@ -648,8 +643,8 @@ describe('naming the person in From and To', () => {
         fireEvent.click(toggle());
 
         expect(you).toBe('Ana (You)');
-        expect(select(text.from).textContent).toBe(you);
-        expect(select(text.to).textContent).toBe('Bea');
+        expect(chosenOption(text.from)).toBe(you);
+        expect(chosenOption(text.to)).toBe('Bea');
         expect(screen.queryByRole('option', { name: 'You' })).toBeNull();
         fireEvent.change(amount(), { target: { value: '5' } });
         expect(hint()).toContain(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) }));
@@ -668,13 +663,8 @@ describe('naming the person in From and To', () => {
         ]);
         fireEvent.click(toggle());
 
-        expect(select(text.from).textContent).toBe('Ana (2) (You)');
-        fireEvent.click(select(text.to));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
-            'Ana',
-            'Ana (2) (You)',
-            'Bea',
-        ]);
+        expect(chosenOption(text.from)).toBe('Ana (2) (You)');
+        expect(optionNames(text.to)).toEqual(['Ana', 'Ana (2) (You)', 'Bea']);
     });
 });
 
@@ -708,9 +698,8 @@ describe('settling up in Spanish', () => {
 
         fireEvent.click(await screen.findByRole('button', { name: es.groups.settle.title }));
 
-        expect(select(es.groups.settle.from).textContent).toBe('Ana (Tú)');
-        fireEvent.click(select(es.groups.settle.to));
-        expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual(['Ana (Tú)', 'Bea', 'Cris']);
+        expect(chosenOption(es.groups.settle.from)).toBe('Ana (Tú)');
+        expect(optionNames(es.groups.settle.to)).toEqual(['Ana (Tú)', 'Bea', 'Cris']);
     });
 
     it('fills in the amount and reads what is typed the Spanish way', async () => {

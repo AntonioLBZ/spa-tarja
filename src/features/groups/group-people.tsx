@@ -146,7 +146,7 @@ const AddFriendMember = (props: AddPersonProps) => {
     const { addFriend } = useGroupActions();
     const friends = useFriends();
     const placeName = useId();
-    const field = useRef<HTMLButtonElement>(null);
+    const field = useRef<HTMLSelectElement>(null);
     const [id, setId] = useState(() => crypto.randomUUID());
     // The friend chosen, or '' for none
     const [friend, setFriend] = useState('');
@@ -194,7 +194,6 @@ const AddFriendMember = (props: AddPersonProps) => {
                         {...control}
                         ref={field}
                         disabled={disabled}
-                        label={t('people.friend')}
                         options={[
                             { value: '', label: t('people.friendNone') },
                             ...friends.map((item) => ({ value: item.id, label: item.name })),

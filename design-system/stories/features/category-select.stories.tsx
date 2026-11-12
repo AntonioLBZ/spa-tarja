@@ -11,6 +11,7 @@ import { CUSTOM_CATEGORIES, useStoryCategories } from './fixtures';
 import type { Meta } from '@storybook/react-vite';
 
 interface CategorySelectStoryProps extends Omit<CategorySelectProps, 'id' | 'options'> {
+    label: string;
     // Adds an option with no icon, like the "All categories" of the filters
     withAll: boolean;
     error: string;
@@ -42,13 +43,13 @@ const Story: Meta<CategorySelectStoryProps> = {
 
 // The choice is kept in the args, so the control follows what is clicked
 export const CategorySelect = (args: CategorySelectStoryProps) => {
-    const { withAll, error, ...props } = args;
+    const { label, withAll, error, ...props } = args;
     const [, updateArgs] = useArgs();
     const { options } = useStoryCategories();
     const shown = withAll ? [{ id: 'all', label: 'All categories' }, ...options] : options;
 
     return (
-        <Field label={props.label} error={error || undefined}>
+        <Field label={label} error={error || undefined}>
             {(control) => (
                 <CategorySelectComponent
                     {...props}

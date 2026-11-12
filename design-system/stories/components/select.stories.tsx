@@ -1,10 +1,12 @@
+import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Select as SelectComponent, type SelectProps } from '@/components/select/select';
 import { useArgs } from 'storybook/preview-api';
 
 import type { Meta } from '@storybook/react-vite';
 
-interface SelectStoryProps extends Omit<SelectProps<string>, 'options'> {
+interface SelectStoryProps extends Omit<SelectProps<string>, 'id' | 'options'> {
+    label: string;
     icons: boolean;
 }
 
@@ -17,10 +19,12 @@ const OPTIONS = [
 
 const Story: Meta<SelectStoryProps> = {
     title: 'Components/Select',
-    args: { id: 'select', label: 'Category', value: 'food', icons: true, disabled: false },
+    args: { label: 'Category', value: 'food', icons: true, disabled: false },
     argTypes: {
         value: { control: 'inline-radio', options: OPTIONS.map((option) => option.value) },
+        label: { control: 'text' },
         'aria-describedby': { control: false },
+        'aria-invalid': { control: false },
         onChange: { control: false },
     },
     // Room for the list to open under the field
@@ -35,7 +39,7 @@ const Story: Meta<SelectStoryProps> = {
 
 // The choice is kept in the args, so the control follows what is clicked
 export const Select = (args: SelectStoryProps) => {
-    const { icons, ...props } = args;
+    const { label, icons, ...props } = args;
     const [, updateArgs] = useArgs();
     const options = OPTIONS.map((option) => ({
         value: option.value,
@@ -43,7 +47,18 @@ export const Select = (args: SelectStoryProps) => {
         icon: icons && 'icon' in option ? <Icon name={option.icon} /> : undefined,
     }));
 
-    return <SelectComponent {...props} options={options} onChange={(value) => updateArgs({ value })} />;
+    return (
+        <Field label={label}>
+            {(control) => (
+                <SelectComponent
+                    {...props}
+                    {...control}
+                    options={options}
+                    onChange={(value) => updateArgs({ value })}
+                />
+            )}
+        </Field>
+    );
 };
 
 export default Story;

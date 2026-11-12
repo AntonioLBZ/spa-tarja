@@ -2869,7 +2869,7 @@ describe('searching, filtering and grouping the list', () => {
                     .getAllByRole('radio')
                     .map((one) => one.getAttribute('value'))
             ).toEqual(['day', 'week', 'month', 'category', 'any', 'direct', 'credit', 'voucher', 'plan']);
-            expect(within(panel).getByRole('combobox', { name: f.category }).textContent).toBe(f.allCategories);
+            expect(chosenOption(f.category)).toBe(f.allCategories);
             expect((within(panel).getByLabelText(f.from) as HTMLInputElement).value).toBe('2026-10-01');
             expect((within(panel).getByLabelText(f.to) as HTMLInputElement).value).toBe('');
             expect(within(panel).getByRole('group', { name: f.paidWith })).toBeDefined();

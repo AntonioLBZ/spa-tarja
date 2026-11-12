@@ -84,7 +84,6 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     {(control) => (
                         <CategorySelect
                             {...control}
-                            label={t('category')}
                             options={[{ id: '', label: t('allCategories') }, ...options]}
                             value={filters.categoryId}
                             onChange={(categoryId) => onFiltersChange({ categoryId })}
@@ -112,7 +111,6 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     {(control) => (
                         <Select
                             {...control}
-                            label={t('sharedWith')}
                             options={[
                                 { value: '', label: t('shared.anyone') },
                                 { value: JUST_ME, label: t('shared.me') },

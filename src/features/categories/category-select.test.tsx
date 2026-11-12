@@ -1,5 +1,7 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
+import { chosenOption, pickOption } from '@/lib/test/select';
 
 import { CategorySelect, type CategorySelectOption } from './category-select';
 
@@ -13,14 +15,7 @@ function renderSelect(props: Partial<Parameters<typeof CategorySelect>[0]> = {})
     return render(
         <>
             <label htmlFor="category">Category</label>
-            <CategorySelect
-                id="category"
-                label="Category"
-                options={OPTIONS}
-                value="food"
-                onChange={() => {}}
-                {...props}
-            />
+            <CategorySelect id="category" options={OPTIONS} value="food" onChange={() => {}} {...props} />
         </>
     );
 }
@@ -31,18 +26,18 @@ describe('CategorySelect', () => {
     it('shows the badge and the name of the chosen category', () => {
         renderSelect();
 
-        expect(field().textContent).toBe('Food');
-        expect(field().querySelector('.category-badge--vermillion [data-icon]')?.getAttribute('data-icon')).toBe(
-            'restaurant'
-        );
+        expect(chosenOption('Category')).toBe('Food');
+        expect(
+            field()
+                .parentElement?.querySelector('.select__icon .category-badge--vermillion [data-icon]')
+                ?.getAttribute('data-icon')
+        ).toBe('restaurant');
     });
 
     it('lists every category with its badge, and the ones with no style with the place of one', () => {
         renderSelect({ value: '' });
 
-        fireEvent.click(field());
-
-        const rows = within(screen.getByRole('listbox', { name: 'Category' })).getAllByRole('option');
+        const rows = within(field()).getAllByRole('option');
         expect(rows.map((row) => row.textContent)).toEqual(['All categories', 'Food', 'Gym']);
         expect(rows.map((row) => row.querySelector('[data-icon]')?.getAttribute('data-icon'))).toEqual([
             undefined,
@@ -56,8 +51,7 @@ describe('CategorySelect', () => {
         const onChange = vi.fn();
         renderSelect({ onChange });
 
-        fireEvent.click(field());
-        fireEvent.click(screen.getByRole('option', { name: 'Gym' }));
+        pickOption('Category', 'Gym');
 
         expect(onChange).toHaveBeenCalledExactlyOnceWith('gym');
     });
