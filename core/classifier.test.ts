@@ -24,6 +24,49 @@ describe('suggestCategory', () => {
         expect(suggestCategory('cine')).toBe('leisure');
     });
 
+    it('recognizes personal spending in both languages', () => {
+        expect(suggestCategory('Peluquería')).toBe('personal');
+        expect(suggestCategory('haircut')).toBe('personal');
+        expect(suggestCategory('ropa nueva')).toBe('personal');
+        expect(suggestCategory('new shoes')).toBe('personal');
+        expect(suggestCategory('curso de inglés')).toBe('personal');
+        expect(suggestCategory('cosmetics')).toBe('personal');
+    });
+
+    it('recognizes treats, trips included, in both languages', () => {
+        expect(suggestCategory('Netflix')).toBe('treats');
+        expect(suggestCategory('suscripción')).toBe('treats');
+        expect(suggestCategory('videojuego')).toBe('treats');
+        expect(suggestCategory('auriculares')).toBe('treats');
+        expect(suggestCategory('Viaje a Lisboa')).toBe('treats');
+        expect(suggestCategory('hotel in Rome')).toBe('treats');
+        expect(suggestCategory('Vuelo Madrid-Londres')).toBe('treats');
+        expect(suggestCategory('Airbnb')).toBe('treats');
+    });
+
+    it('recognizes gifts in both languages', () => {
+        expect(suggestCategory('Regalo de cumpleaños')).toBe('gifts');
+        expect(suggestCategory('birthday present')).toBe('gifts');
+        expect(suggestCategory('regalos de Navidad')).toBe('gifts');
+        expect(suggestCategory('gift for mum')).toBe('gifts');
+        expect(suggestCategory('flores')).toBe('gifts');
+        expect(suggestCategory('wedding gift')).toBe('gifts');
+        expect(suggestCategory('tarjeta regalo')).toBe('gifts');
+    });
+
+    it('keeps a flight ticket on treats, a plain ticket on leisure and a train ticket on transport', () => {
+        expect(suggestCategory('billete de avión')).toBe('treats');
+        expect(suggestCategory('flight ticket')).toBe('treats');
+        expect(suggestCategory('ticket')).toBe('leisure');
+        expect(suggestCategory('billete de tren')).toBe('transport');
+    });
+
+    it('lets what is eaten or done at a party stay with food and leisure', () => {
+        expect(suggestCategory('cena de cumpleaños')).toBe('food');
+        expect(suggestCategory('fiesta de cumpleaños')).toBe('leisure');
+        expect(suggestCategory('taxi al aeropuerto')).toBe('transport');
+    });
+
     it('ignores case and accents', () => {
         expect(suggestCategory('CAFETERÍA')).toBe('food');
         expect(suggestCategory('Óptica')).toBe('health');
@@ -49,7 +92,7 @@ describe('suggestCategory', () => {
     });
 
     it('ignores punctuation around words', () => {
-        expect(suggestCategory('Netflix, (mensual)')).toBe('leisure');
+        expect(suggestCategory('Netflix, (mensual)')).toBe('treats');
     });
 });
 

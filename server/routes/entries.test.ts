@@ -446,6 +446,19 @@ describe('PUT /api/groups/:groupId/entries/:id', () => {
         expect(await seqsOf(group.id)).toEqual([]);
     });
 
+    it.each(['personal', 'treats', 'gifts'])('takes the default category %s', async (categoryId) => {
+        const { group, bruno: brunoId } = await tripWithBruno();
+
+        const response = await putEntry(
+            ana,
+            group.id,
+            crypto.randomUUID(),
+            dinner(group.me, { [brunoId]: 3000 }, { categoryId })
+        );
+
+        expect(await entryOf(response)).toMatchObject({ categoryId });
+    });
+
     it('answers unknown-category before currency-mismatch', async () => {
         const { group, bruno: brunoId } = await tripWithBruno();
         const body = dinner(group.me, { [brunoId]: 3000 }, { categoryId: 'trips', currency: 'USD' });

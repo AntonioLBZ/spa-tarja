@@ -100,6 +100,12 @@ describe('PUT /api/budgets/:month', () => {
         expect(await list()).toEqual([row('2026-10', 'food', 50_000)]);
     });
 
+    it.each(['personal', 'treats', 'gifts'])('takes a limit for the default category %s', async (scope) => {
+        await put('2026-10', limits([scope, 20_000]));
+
+        expect(await list()).toEqual([row('2026-10', scope, 20_000)]);
+    });
+
     it('leaves the scopes it was not given as they were', async () => {
         await put('2026-10', limits(['food', 30_000], ['total', 90_000]));
         await put('2026-10', limits(['food', 40_000]));

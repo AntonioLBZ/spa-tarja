@@ -193,6 +193,21 @@ describe('expense form', () => {
         expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
     });
 
+    it.each([
+        ['Hotel en Lisboa', 'treats'],
+        ['Peluquería', 'personal'],
+        ['Regalo de cumpleaños', 'gifts'],
+    ] as const)('suggests %s as %s', async (text, categoryId) => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await openAddSheet();
+
+        fireEvent.change(field(en.expenses.form.text), { target: { value: text } });
+
+        expect(chosenOption(en.expenses.form.category)).toBe(en.categories[categoryId]);
+        expect(screen.getByText(en.expenses.form.suggested)).toBeDefined();
+    });
+
     it('stops suggesting once the user picks a category', async () => {
         stubApi(createFakeApi().handler);
         renderApp();

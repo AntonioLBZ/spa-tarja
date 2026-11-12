@@ -93,22 +93,44 @@ describe('default category styles', () => {
         }
     });
 
-    it('tell the default categories apart by color and by icon', () => {
+    it('tell the default categories apart by icon, which is what the name always comes with', () => {
         const styles = Object.values(DEFAULT_CATEGORY_STYLES);
 
-        expect(new Set(styles.map((style) => style.color)).size).toBe(styles.length);
         expect(new Set(styles.map((style) => style.icon)).size).toBe(styles.length);
+    });
+
+    it('share a color only between a category and the one closest to it, never more than two to a color', () => {
+        const uses = new Map<string, string[]>();
+        for (const [id, style] of Object.entries(DEFAULT_CATEGORY_STYLES)) {
+            uses.set(style.color, [...(uses.get(style.color) ?? []), id]);
+        }
+
+        expect(Math.max(...[...uses.values()].map((ids) => ids.length))).toBe(2);
+        expect([...uses.values()].filter((ids) => ids.length > 1)).toEqual([
+            ['leisure', 'treats'],
+            ['housing', 'gifts'],
+            ['health', 'personal'],
+        ]);
+    });
+
+    it('leave gray to Other alone', () => {
+        const gray = Object.entries(DEFAULT_CATEGORY_STYLES).filter(([, style]) => style.color === 'gray');
+
+        expect(gray.map(([id]) => id)).toEqual(['other']);
     });
 
     it('give each default category its fixed color and icon', () => {
         expect(DEFAULT_CATEGORY_STYLES).toEqual({
             food: { color: 'vermillion', icon: 'restaurant' },
             groceries: { color: 'green', icon: 'shopping_cart' },
-            leisure: { color: 'purple', icon: 'sports_esports' },
+            leisure: { color: 'purple', icon: 'theater_comedy' },
             bills: { color: 'blue', icon: 'receipt_long' },
             housing: { color: 'orange', icon: 'home' },
             transport: { color: 'sky', icon: 'directions_bus' },
             health: { color: 'yellow', icon: 'medical_services' },
+            personal: { color: 'yellow', icon: 'checkroom' },
+            treats: { color: 'purple', icon: 'sports_esports' },
+            gifts: { color: 'orange', icon: 'redeem' },
             other: { color: 'gray', icon: 'more_horiz' },
         });
     });

@@ -106,6 +106,10 @@ describe('listing', () => {
             };
         };
         expect(look(en.categories.food)).toEqual({ icon: 'restaurant', color: 'vermillion' });
+        expect(look(en.categories.leisure)).toEqual({ icon: 'theater_comedy', color: 'purple' });
+        expect(look(en.categories.personal)).toEqual({ icon: 'checkroom', color: 'yellow' });
+        expect(look(en.categories.treats)).toEqual({ icon: 'sports_esports', color: 'purple' });
+        expect(look(en.categories.gifts)).toEqual({ icon: 'redeem', color: 'orange' });
         expect(look(en.categories.other)).toEqual({ icon: 'more_horiz', color: 'gray' });
         expect(look('Gym')).toEqual({ icon: 'fitness_center', color: 'blue' });
         expect(look('Pets')).toEqual({ icon: 'category', color: 'gray' });

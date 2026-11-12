@@ -118,6 +118,9 @@
         "housing": "Housing",
         "transport": "Transport",
         "health": "Health",
+        "personal": "Personal",
+        "treats": "Treats",
+        "gifts": "Gifts",
         "other": "Other"
     },
     "sync": {

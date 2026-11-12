@@ -118,6 +118,9 @@
         "housing": "Vivienda",
         "transport": "Transporte",
         "health": "Salud",
+        "personal": "Personal",
+        "treats": "Caprichos",
+        "gifts": "Regalos",
         "other": "Otros"
     },
     "sync": {

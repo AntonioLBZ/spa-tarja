@@ -321,6 +321,13 @@ describe('PUT /api/expenses/:id', () => {
         expect(response.status).toBe(400);
     });
 
+    it.each(['personal', 'treats', 'gifts'])('accepts the default category %s', async (categoryId) => {
+        const response = await put(crypto.randomUUID(), payload({ categoryId }));
+
+        expect(response.status).toBe(200);
+        expect(((await response.json()) as Payload).categoryId).toBe(categoryId);
+    });
+
     it('accepts a UUID as the category even when no such category exists', async () => {
         const categoryId = crypto.randomUUID();
 
