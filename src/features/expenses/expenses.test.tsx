@@ -15,7 +15,7 @@ import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
 import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
-import { addMonths } from '@core/date';
+import { addDays, addMonths } from '@core/date';
 import { expenseInputSchema, type Expense, type Payment } from '@core/expense';
 
 const TODAY = '2026-10-25';
@@ -72,7 +72,8 @@ function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
 }
 
 function rowToggle(name: string) {
-    return screen.getByText(name).closest('button')!;
+    const toggles = screen.getAllByText(name).map((text) => text.closest('.disclosure__toggle'));
+    return toggles.find((toggle): toggle is HTMLButtonElement => toggle instanceof HTMLButtonElement)!;
 }
 
 function deleteButton(name: string) {
@@ -1489,7 +1490,7 @@ describe('undoing a delete', () => {
     it('names an expense with no text by its category', async () => {
         stubApi(createFakeApi({ expenses: [expense({ text: '' })] }).handler);
         renderApp();
-        await screen.findByText(en.categories.food);
+        await screen.findAllByText(en.categories.food);
 
         deleteExpense(en.categories.food);
 
@@ -2757,7 +2758,11 @@ describe('searching, filtering and grouping the list', () => {
         return new Intl.DateTimeFormat('en', options).format(new Date(`${isoDay}T12:00:00`));
     }
 
-    const longDay = (isoDay: string) => format({ weekday: 'long', day: 'numeric', month: 'long' }, isoDay);
+    const longDay = (isoDay: string) => {
+        if (isoDay === TODAY) return 'Today';
+        if (isoDay === addDays(TODAY, -1)) return 'Yesterday';
+        return format({ weekday: 'long', day: 'numeric', month: 'long' }, isoDay);
+    };
 
     function sofa(amountCents = 500) {
         const plan = crypto.randomUUID();

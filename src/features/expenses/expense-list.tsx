@@ -12,7 +12,8 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/group-failure';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useLocale } from '@/lib/i18n';
-import { fromDateString } from '@core/date';
+import { DURATION, EASE, MOTION_QUERY, canAnimate, gsap, useGSAP } from '@/lib/motion/gsap';
+import { fromDateString, toDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { isSharedRow } from '@core/shared-expense';
@@ -58,6 +59,34 @@ const ExpenseList = () => {
     // The toggle of each row by the id of its expense, and the title, where the focus goes back after an edit
     const toggles = useRef(new Map<string, HTMLElement>());
     const title = useRef<HTMLHeadingElement>(null);
+    const root = useRef<HTMLElement>(null);
+    const loaded = hasData || isError || isWaitingForNetwork;
+
+    // The sheets of the days come out as if printed: each is uncovered from the top down, one after the other, once, when
+    // the list first has something to show
+    useGSAP(
+        () => {
+            const sheets = root.current?.querySelectorAll('.sheet');
+            if (!sheets?.length || !canAnimate()) return;
+            const mm = gsap.matchMedia();
+            mm.add(MOTION_QUERY, () => {
+                gsap.fromTo(
+                    sheets,
+                    { clipPath: 'inset(0% 0% 100% 0%)' },
+                    {
+                        clipPath: 'inset(0% 0% 0% 0%)',
+                        duration: DURATION.slow * 1.8,
+                        ease: EASE.standard,
+                        stagger: 0.14,
+                        delay: 0.2,
+                        clearProps: 'clipPath',
+                    }
+                );
+            });
+            return () => mm.revert();
+        },
+        { scope: root, dependencies: [loaded] }
+    );
     useEffect(() => {
         if (refocus === null) return;
         (toggles.current.get(refocus) ?? title.current)?.focus();
@@ -157,6 +186,17 @@ const ExpenseList = () => {
         };
     }, [locale, list.spansYears]);
 
+    // Today and yesterday by their word, any other day by its date
+    const relative = useMemo(() => new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }), [locale]);
+    const dayWord = (key: string) => {
+        const days = Math.round(
+            (fromDateString(key).getTime() - fromDateString(toDateString(new Date())).getTime()) / 86_400_000
+        );
+        if (days !== 0 && days !== -1) return null;
+        const word = relative.format(days, 'day');
+        return word.charAt(0).toLocaleUpperCase(locale) + word.slice(1);
+    };
+
     const labelOfGroup = (group: ListGroup) => {
         if (grouping === 'category') {
             return (
@@ -167,11 +207,13 @@ const ExpenseList = () => {
             );
         }
         const day = fromDateString(group.key);
-        return grouping === 'week' ? t('weekOf', { date: formats.week.format(day) }) : formats[grouping].format(day);
+        if (grouping === 'week') return t('weekOf', { date: formats.week.format(day) });
+        const word = grouping === 'day' ? dayWord(group.key) : null;
+        return word ?? formats[grouping].format(day);
     };
 
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
-    if (!hasData && !isError && !isWaitingForNetwork) return null;
+    if (!loaded) return null;
 
     const labelClsx = clsx({
         'expense-list__label--category': grouping === 'category',
@@ -179,8 +221,8 @@ const ExpenseList = () => {
     });
 
     return (
-        <section className="expense-list">
-            <h2 className="expense-list__title" ref={title} tabIndex={-1}>
+        <section ref={root} className="expense-list">
+            <h2 className="expense-list__title visually-hidden" ref={title} tabIndex={-1}>
                 {t('title')}
             </h2>
 
@@ -210,7 +252,13 @@ const ExpenseList = () => {
             )}
 
             {groups.map((group) => (
-                <Sheet key={group.key} label={labelOfGroup(group)} level="h3" labelClassName={labelClsx}>
+                <Sheet
+                    key={group.key}
+                    id={grouping === 'day' ? `day-${group.key}` : undefined}
+                    label={labelOfGroup(group)}
+                    level="h3"
+                    labelClassName={labelClsx}
+                >
                     <CardList flush>
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];

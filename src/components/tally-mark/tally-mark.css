@@ -1,0 +1,11 @@
+.tally-mark {
+    block-size: 3rem;
+    color: var(--color-content-primary);
+    fill: currentcolor;
+    inline-size: auto;
+}
+
+/* Percentages of an SVG shape are of the shape itself, which is what the drawing of each stroke needs */
+.tally-mark * {
+    transform-box: fill-box;
+}

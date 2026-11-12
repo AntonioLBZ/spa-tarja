@@ -3,6 +3,7 @@ import { useEffect, useId, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { HeroStat } from '@/components/hero-stat/hero-stat';
 import { Notice } from '@/components/notice/notice';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
@@ -126,10 +127,23 @@ const GroupTotals = (props: GroupTotalsProps) => {
     if (owed === 0 && owe === 0) return <Notice role="status">{t('balance.allSettled')}</Notice>;
 
     return (
-        <div className="groups__totals">
-            {owed > 0 && <Notice role="status">{t('balance.owed', { amount: amount(owed) })}</Notice>}
-            {owe > 0 && <Notice role="status">{t('balance.owe', { amount: amount(owe) })}</Notice>}
-        </div>
+        <HeroStat
+            size="title"
+            text={
+                <>
+                    {owed > 0 && (
+                        <span className="groups__total" role="status">
+                            {t('balance.owed', { amount: amount(owed) })}
+                        </span>
+                    )}
+                    {owe > 0 && (
+                        <span className="groups__total" role="status">
+                            {t('balance.owe', { amount: amount(owe) })}
+                        </span>
+                    )}
+                </>
+            }
+        />
     );
 };
 

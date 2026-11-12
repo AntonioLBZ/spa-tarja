@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Card, CardList } from '@/components/card/card';
+import { HeroStat } from '@/components/hero-stat/hero-stat';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
@@ -35,6 +36,8 @@ const Summary = () => {
     const set = income.data?.find((item) => item.month === month);
     const summary = summarizeMonth(month, expenses, set?.amountCents ?? null);
     const money = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
+    // What is left of the income if one is set, and what was spent when there is none to take it from
+    const heroCents = summary.leftCents ?? summary.spentCents;
     const leftClsx = clsx('summary__value', {
         'summary__value--negative': summary.leftCents !== null && summary.leftCents < 0,
     });
@@ -48,6 +51,16 @@ const Summary = () => {
                 labels={{ previous: tMonthSwitch('previous'), next: tMonthSwitch('next') }}
                 onPrevious={() => setMonth(shiftMonth(month, -1))}
                 onNext={() => setMonth(shiftMonth(month, 1))}
+            />
+
+            <HeroStat
+                label={t(summary.leftCents === null ? 'heroSpent' : 'heroLeft')}
+                amount={{ value: heroCents, format: money }}
+                sub={
+                    summary.leftCents === null
+                        ? t('leftHint')
+                        : t('ofIncome', { income: money(summary.incomeCents ?? 0) })
+                }
             />
 
             <CardList as="dl">
@@ -78,7 +91,6 @@ const Summary = () => {
                     </Card>
                 )}
             </CardList>
-            {summary.leftCents === null && <p className="summary__hint">{t('leftHint')}</p>}
 
             {income.isError && income.data === undefined && (
                 <p className="summary__hint" role="alert">

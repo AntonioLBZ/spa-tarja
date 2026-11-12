@@ -7,3 +7,13 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
+
+/* The label stays for assistive technology; a placeholder says it on screen */
+.field--bare > label {
+    block-size: 1px;
+    clip-path: inset(50%);
+    inline-size: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+}

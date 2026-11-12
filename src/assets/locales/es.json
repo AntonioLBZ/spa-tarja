@@ -7,6 +7,15 @@
             "pending": "Comprobando…",
             "ok": "API y base de datos operativas",
             "error": "Sin conexión con la API"
+        },
+        "hero": {
+            "label": "Gastado en {month}",
+            "ofLimit": "de tu límite de {limit} · quedan {left}",
+            "overLimit": "{over} por encima de tu límite de {limit}",
+            "ofIncome": "Quedan {left} de {income}",
+            "overIncome": "{over} más de lo que ingresaste",
+            "setIncome": "Indica tus ingresos para ver lo que queda",
+            "day": "{day}: {amount}"
         }
     },
     "pwa": {
@@ -49,7 +58,8 @@
             "personalInvalid": "Introduce un importe, o déjalo vacío si fue todo tuyo.",
             "personalOver": "Tu parte no puede ser mayor que el importe.",
             "partInvalid": "Cada pago necesita un importe mayor que cero.",
-            "saveFailed": "No se pudo guardar el gasto en este dispositivo. Inténtalo de nuevo."
+            "saveFailed": "No se pudo guardar el gasto en este dispositivo. Inténtalo de nuevo.",
+            "more": "Más opciones"
         },
         "payment": {
             "direct": "Ahora",
@@ -81,7 +91,9 @@
                 "me": "Solo yo"
             },
             "showing": "Mostrando {shown} de {total}",
-            "clear": "Limpiar"
+            "clear": "Limpiar",
+            "all": "Todo",
+            "chips": "Categorías"
         },
         "list": {
             "title": "Gastos",
@@ -679,7 +691,10 @@
             "removeFailed": "No se pudieron quitar los ingresos. Inténtalo de nuevo."
         },
         "budgetsLink": "Ver presupuestos",
-        "chartsLink": "Ver gráficos"
+        "chartsLink": "Ver gráficos",
+        "heroLeft": "Queda por gastar",
+        "heroSpent": "Gastado hasta ahora",
+        "ofIncome": "de {income} de ingresos"
     },
     "budgets": {
         "title": "Presupuestos",

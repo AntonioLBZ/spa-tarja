@@ -27,8 +27,13 @@
     --font-size-l: 1.2rem;
     --font-size-xl: 1.44rem;
 
-    /* The logo is sized apart from the text scale */
+    /* The figures that answer a screen (the month's spending) and the logo are sized apart from the text scale */
+    --font-size-hero: clamp(2.75rem, 13vw, 4.25rem);
     --font-size-logo: 3rem;
+
+    /* The notch: the thick ink edge on the left and at the bottom of a box. A hero has the stronger one */
+    --notch: var(--size-1);
+    --notch-strong: 0.5rem;
 
     /* The dots that join a name to an amount, one monospace character each; the box that holds them cuts them */
     --leader-dots: '··································································································································';
@@ -40,6 +45,21 @@
     --ease-standard: cubic-bezier(0.2, 0, 0, 1);
     --ease-enter: cubic-bezier(0, 0, 0, 1);
     --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+    --ease-spring: linear(
+        0,
+        0.009,
+        0.035 2.1%,
+        0.141 4.4%,
+        0.723 12.9%,
+        0.938 16.7%,
+        1.017 19.2%,
+        1.077 22.6%,
+        1.082 25.6%,
+        1.055 29.3%,
+        1.013 36.6%,
+        0.998 44.6%,
+        1
+    );
 
     /* The focus ring: how thick it is, how far it stands from the box and, where a parent clips it, how far inside the
        box it is drawn: past the 4 px edge of the notch and the ring's own width */

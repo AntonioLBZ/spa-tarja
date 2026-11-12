@@ -1,6 +1,7 @@
 import clsx from 'clsx';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useGlide } from '@/lib/motion/use-glide';
 
 import './choice-group.css';
 
@@ -22,19 +23,25 @@ interface ChoiceGroupProps<Value extends string> {
     onChange: (value: Value) => void;
 }
 
-// A radio group drawn as a row of boxes; the checked one is filled
+// A radio group drawn as one joined box; the checked option is filled, and the fill is a single block that glides from
+// the option that was checked to the one that is
 const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const { legend, name, options, value, swatch, onChange } = props;
     const groupClsx = clsx('choice-group', { 'choice-group--swatch': swatch });
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
+    const track = useRef<HTMLDivElement>(null);
+    const thumb = useRef<HTMLSpanElement>(null);
     // In characters, since the font is monospace: a column has to hold the widest word whole
     const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
     const optionsStyle = swatch ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
 
+    useGlide({ track, mark: thumb, selector: '.choice-group__input:checked + .choice-group__text', follows: value });
+
     return (
         <fieldset className={groupClsx}>
             <legend className="choice-group__legend">{legend}</legend>
-            <div className="choice-group__options" style={optionsStyle}>
+            <div ref={track} className="choice-group__options" style={optionsStyle}>
+                <span ref={thumb} aria-hidden="true" className="choice-group__thumb" />
                 {options.map((option) => (
                     <label
                         key={option.value}

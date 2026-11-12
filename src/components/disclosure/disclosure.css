@@ -32,18 +32,26 @@
     transform: rotate(180deg);
 }
 
-/* Under the row, outside its L, and in with a fade and a short shift like a new expense */
+/* Under the row, outside its L, and in by unfolding: its height grows from nothing to what it holds while it fades in and
+   shifts a little. Where a browser can't animate `auto`, only the fade and the shift play. */
 .disclosure__panel {
     display: grid;
     gap: var(--size-4);
+    interpolate-size: allow-keywords;
+    overflow: clip;
+    overflow-clip-margin: var(--size-2);
     padding-block: var(--size-2);
     padding-inline-start: var(--size-3);
     transition:
+        block-size var(--duration-slow) var(--ease-enter),
         opacity var(--duration-base) var(--ease-enter),
-        transform var(--duration-base) var(--ease-enter);
+        padding-block var(--duration-slow) var(--ease-enter),
+        transform var(--duration-slow) var(--ease-enter);
 
     @starting-style {
+        block-size: 0;
         opacity: 0;
+        padding-block: 0;
         transform: translateY(calc(-1 * var(--size-2)));
     }
 }
@@ -51,11 +59,15 @@
 /* `display` above would otherwise win over the `hidden` attribute. A panel kept in the page leaves the way it came in,
    and only then drops out of the layout */
 .disclosure__panel[hidden] {
+    block-size: 0;
     display: none;
     opacity: 0;
+    padding-block: 0;
     transform: translateY(calc(-1 * var(--size-2)));
     transition:
+        block-size var(--duration-base) var(--ease-exit),
         display var(--duration-base) allow-discrete,
         opacity var(--duration-base) var(--ease-exit),
+        padding-block var(--duration-base) var(--ease-exit),
         transform var(--duration-base) var(--ease-exit);
 }

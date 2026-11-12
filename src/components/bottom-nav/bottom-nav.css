@@ -38,12 +38,24 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    position: relative;
+}
+
+/* The bar that glides: drawn once the script has placed it, and then the links draw none of their own */
+.bottom-nav__bar {
+    background: var(--color-border);
+    block-size: var(--notch);
+    inset: 0 auto auto 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
 }
 
 .bottom-nav__link {
     align-items: center;
     block-size: var(--bottom-nav-height);
-    border-top: var(--size-1) solid transparent;
+    border-top: var(--notch) solid transparent;
     color: inherit;
     display: flex;
     flex-direction: column;
@@ -85,6 +97,7 @@
     display: flex;
     inline-size: var(--size-8);
     justify-content: center;
+    transition: transform var(--duration-slow) var(--ease-spring);
 }
 
 .bottom-nav__square path {
@@ -93,9 +106,31 @@
     stroke-width: 70px;
 }
 
-/* No fill and no accent: the mark is an ink bar on the top edge */
+/* No fill and no accent: the mark is an ink bar on the top edge. Without the script it is drawn by the link itself */
 .bottom-nav__link--current {
     border-top-color: var(--color-border);
+    font-weight: 700;
+}
+
+.bottom-nav__list[data-glide] .bottom-nav__link--current {
+    border-top-color: transparent;
+}
+
+/* The "+" is pressed in and its cross turns a quarter, which the box of the column does not follow */
+.bottom-nav__button:active {
+    transform: none;
+}
+
+.bottom-nav__button:active .bottom-nav__square {
+    transform: scale(0.9);
+}
+
+.bottom-nav__square .icon {
+    transition: transform var(--duration-slow) var(--ease-spring);
+}
+
+.bottom-nav__button:active .icon {
+    transform: rotate(90deg);
 }
 
 .bottom-nav__word {

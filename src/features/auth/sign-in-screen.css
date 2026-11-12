@@ -10,6 +10,11 @@
         max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
 }
 
+/* The tally under the logo is as wide as it is tall, and stays at the left of the column */
+.sign-in .tally-mark {
+    justify-self: start;
+}
+
 .sign-in__title {
     font-size: var(--font-size-xl);
     margin: 0;

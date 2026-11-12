@@ -20,7 +20,7 @@
     margin: 0;
 }
 
-.groups__totals {
-    display: grid;
-    gap: var(--size-2);
+/* What is owed and what is owed back are the answer of the screen: one sentence each, at the size of a title */
+.groups__total {
+    display: block;
 }

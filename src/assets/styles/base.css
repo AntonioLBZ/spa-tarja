@@ -4,6 +4,16 @@
     box-sizing: border-box;
 }
 
+html {
+    scrollbar-gutter: stable; /* A scrollbar that comes in with a long screen doesn't push the page sideways */
+}
+
+/* The selection is ink on paper, like everything else */
+::selection {
+    background: var(--color-content-primary);
+    color: var(--color-bg-primary);
+}
+
 /* Inheriting the 16px body size keeps iOS from zooming in on focus. No rounded corners: the browser's own are reset */
 button,
 input,
@@ -19,7 +29,7 @@ select {
     background: var(--color-bg-secondary);
     border-color: var(--color-border);
     border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    border-width: 0 0 var(--notch) var(--notch);
     color: var(--color-content-primary);
     min-height: var(--size-touch);
     padding: 0 var(--size-3);
@@ -37,7 +47,7 @@ select {
     background: transparent;
     border-color: var(--color-border);
     border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    border-width: 0 0 var(--notch) var(--notch);
     color: var(--color-content-primary);
     cursor: pointer;
     min-height: var(--size-touch);
@@ -48,7 +58,20 @@ select {
     transition:
         background-color var(--duration-base) var(--ease-standard),
         border-color var(--duration-base) var(--ease-standard),
-        color var(--duration-base) var(--ease-standard);
+        color var(--duration-base) var(--ease-standard),
+        transform var(--duration-slow) var(--ease-spring);
+}
+
+/* A box that is pressed moves toward the corner its notch is in, as if it sank into its own edge, and springs back */
+:where(button, .button):active:not(:disabled) {
+    transform: translate(calc(-0.5 * var(--notch)), calc(0.5 * var(--notch)));
+    transition-duration: var(--duration-fast);
+}
+
+@media (hover: hover) {
+    :where(button, .button):hover:not(:disabled, .button--primary, .button--pressed, .button--ghost) {
+        background: var(--color-bg-secondary);
+    }
 }
 
 button:disabled {

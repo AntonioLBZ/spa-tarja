@@ -57,7 +57,7 @@
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
-    z-index: 1;
+    z-index: 3;
 
     @starting-style {
         opacity: 0;

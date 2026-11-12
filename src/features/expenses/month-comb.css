@@ -1,0 +1,77 @@
+/* A finger moving sideways reads the days off it, and the page still scrolls up and down */
+.month-comb {
+    cursor: crosshair;
+    margin-block-start: var(--size-6);
+    touch-action: pan-y;
+    user-select: none;
+}
+
+.month-comb__ticks {
+    align-items: flex-end;
+    block-size: 4.5rem;
+    display: flex;
+    gap: 0.1875rem;
+    justify-content: space-between;
+}
+
+/* A tally mark: a straight bar of ink, as tall as what was spent that day */
+.month-comb__tick {
+    background: var(--color-content-primary);
+    block-size: calc(0.25rem + var(--rise) * 4.25rem);
+    flex: 0 1 0.625rem;
+    min-inline-size: 0.1875rem;
+    position: relative;
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        transform var(--duration-slow) var(--ease-spring);
+}
+
+/* A new week starts after a longer gap, so the month reads as weeks */
+.month-comb__tick--week {
+    margin-inline-start: 0.375rem;
+}
+
+/* A day with nothing spent is only the stub of a mark */
+.month-comb__tick--empty {
+    background: var(--color-content-secondary);
+    block-size: 0.25rem;
+}
+
+/* The days to come are not made yet: the faintest stub */
+.month-comb__tick--future {
+    background: var(--color-border-subtle);
+    block-size: 0.25rem;
+}
+
+/* Today wears a flag, so it is found among the marks without a color */
+.month-comb__tick--today::before {
+    background: var(--color-bg-accent);
+    block-size: 0.375rem;
+    content: '';
+    inline-size: 100%;
+    inset-block-start: -0.625rem;
+    position: absolute;
+}
+
+/* The day under the finger stands up out of the comb, and is underlined by the flag */
+.month-comb__tick[data-active] {
+    transform: scaleY(1.18);
+    transform-origin: 50% 100%;
+}
+
+.month-comb__tick[data-active]::before {
+    background: var(--color-bg-accent);
+    block-size: 0.375rem;
+    content: '';
+    inline-size: 100%;
+    inset-block-start: -0.625rem;
+    position: absolute;
+}
+
+.month-comb__axis {
+    color: var(--color-content-secondary);
+    display: flex;
+    font-size: var(--font-size-s);
+    justify-content: space-between;
+    margin-block-start: var(--size-2);
+}

@@ -11,3 +11,5 @@ The shapes in `icon-paths.ts` come from Material Symbols (Sharp style, weight 40
 `chevron_right`, the end of a row that leads to another screen, and `check`, the mark of a `Checkbox`, are icons of the interface too: the `d` of `sharp/chevron_right.svg` and `sharp/check.svg` of the same package version.
 
 `chevron_left`, the mark of the link back in the header of a phone, is an icon of the interface too: the `d` of `sharp/chevron_left.svg` of the same package version.
+
+`search`, the magnifier of the search field, and `tune`, the mark of the Filters button, are icons of the interface too: the `d` of `sharp/search.svg` and `sharp/tune.svg` of the same package version.

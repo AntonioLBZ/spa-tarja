@@ -4,28 +4,30 @@ import { useTranslations } from 'use-intl';
 
 import { Notice } from '@/components/notice/notice';
 import { ExpenseList } from '@/features/expenses/expense-list';
+import { MonthHero } from '@/features/expenses/month-hero';
 import { SyncStatus } from '@/features/expenses/sync-status';
 import { EntryRefusals } from '@/features/groups/entry-refusals';
 import { healthQuery } from '@/lib/api';
 
 import './index.css';
 
-const TONES = { pending: 'quiet', ok: 'info', error: 'danger' } as const;
-
 const Home = () => {
     const t = useTranslations('home');
     const health = useQuery(healthQuery());
-    const state = health.isPending ? 'pending' : health.data?.ok ? 'ok' : 'error';
+    const down = !health.isPending && !health.data?.ok;
 
     return (
         <section className="home">
             <h1 className="visually-hidden">Tarja</h1>
+            <MonthHero />
             <SyncStatus />
             <EntryRefusals />
             <ExpenseList />
-            <Notice tone={TONES[state]} role="status">
-                {t(`health.${state}`)}
-            </Notice>
+            {down && (
+                <Notice tone="danger" role="status">
+                    {t('health.error')}
+                </Notice>
+            )}
         </section>
     );
 };

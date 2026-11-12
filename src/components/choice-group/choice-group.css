@@ -20,6 +20,17 @@
     display: flex;
     flex-wrap: wrap;
     overflow: clip;
+    position: relative;
+}
+
+/* Drawn by the script, which sets where it is; until then, and without it, the checked option is filled itself */
+.choice-group__thumb {
+    background: var(--color-bg-accent);
+    inset: 0 auto auto 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
 }
 
 /* As many to a row as hold the widest word with their edge and room, and every row fills the line */
@@ -38,7 +49,7 @@
 
 .choice-group__text {
     align-items: center;
-    border-block-end: var(--size-1) solid var(--color-border);
+    border-block-end: var(--notch) solid var(--color-border);
     border-inline-start: var(--size-px) solid var(--color-border-subtle);
     cursor: pointer;
     display: flex;
@@ -76,4 +87,9 @@
 /* What is inside a checked cell, an icon in a color of its own, takes the text color on the accent */
 .choice-group--swatch .choice-group__input:checked + .choice-group__text * {
     color: inherit;
+}
+
+/* The thumb is the fill, and glides under the words */
+.choice-group__options[data-glide] .choice-group__input:checked + .choice-group__text {
+    background: transparent;
 }

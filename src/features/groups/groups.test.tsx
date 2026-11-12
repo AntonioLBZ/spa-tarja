@@ -88,10 +88,10 @@ describe('the totals', () => {
         );
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(2800) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(2800) }), { selector: '.groups__total' })
         ).toBeDefined();
         expect(
-            screen.getByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.notice' })
+            screen.getByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.groups__total' })
         ).toBeDefined();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
         expect(
@@ -128,7 +128,7 @@ describe('the totals', () => {
             ])
         );
         expect(
-            screen.queryByText(t('groups.balance.owed', { amount: euros(900) }), { selector: '.notice' })
+            screen.queryByText(t('groups.balance.owed', { amount: euros(900) }), { selector: '.groups__total' })
         ).toBeNull();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
         expect((await screen.findByText(text.totalsWait)).getAttribute('role')).toBe('status');
@@ -146,7 +146,7 @@ describe('the totals', () => {
         open([lisbon], [owedToMe(lisbon, 500)]);
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(500) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(500) }), { selector: '.groups__total' })
         ).toBeDefined();
         expect(screen.queryByText(t('groups.balance.owe', { amount: euros(0) }))).toBeNull();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
@@ -248,7 +248,7 @@ describe('the lists', () => {
         const porto = sampleGroup({ name: 'Porto' });
         const friend = sampleGroup({ kind: 'direct', name: null });
         open([lisbon, porto, friend], [owedByMe(lisbon, 1250), owedToMe(friend, 800)]);
-        await screen.findByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.notice' });
+        await screen.findByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.groups__total' });
 
         expect(rows(text.lists.groups)).toEqual([
             `Lisbon${t('groups.balance.owe', { amount: euros(1250) })}`,
@@ -352,7 +352,7 @@ describe('the lists', () => {
         renderApp({ path: '/groups', storage });
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(700) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(700) }), { selector: '.groups__total' })
         ).toBeDefined();
         expect(rows(text.lists.groups)).toEqual([`Lisbon${t('groups.balance.owed', { amount: euros(700) })}`]);
     });

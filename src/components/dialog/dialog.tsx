@@ -3,8 +3,37 @@ import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from '
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
+import { DURATION, EASE, MOTION_QUERY, canAnimate, gsap } from '@/lib/motion/gsap';
 
 import './dialog.css';
+
+// A sheet unfolds out of what opened it: a rectangle that grows from the box of that control until it holds the whole
+// sheet, and what is inside it follows in a short stagger
+const unfold = (dialog: HTMLDialogElement, from: DOMRect) => {
+    const box = dialog.getBoundingClientRect();
+    const inset = (rect: DOMRect) => {
+        const top = Math.max(0, rect.top - box.top);
+        const right = Math.max(0, box.right - rect.right);
+        const bottom = Math.max(0, box.bottom - rect.bottom);
+        const left = Math.max(0, rect.left - box.left);
+        return `inset(${top}px ${right}px ${bottom}px ${left}px)`;
+    };
+
+    gsap.fromTo(
+        dialog,
+        { clipPath: inset(from) },
+        { clipPath: 'inset(0px 0px 0px 0px)', duration: DURATION.slow * 1.4, ease: EASE.enter, clearProps: 'clipPath' }
+    );
+    gsap.from(dialog.querySelectorAll('.dialog__head, .dialog__body > *, .dialog__actions'), {
+        y: 16,
+        opacity: 0,
+        duration: DURATION.slow,
+        ease: EASE.enter,
+        stagger: 0.04,
+        delay: 0.08,
+        clearProps: 'transform,opacity',
+    });
+};
 
 interface DialogProps {
     open: boolean;
@@ -53,10 +82,17 @@ const Dialog = (props: DialogProps) => {
         const dialog = ref.current;
         if (!dialog) return;
         if (open && !dialog.open) {
+            const trigger = variant === 'sheet' ? document.activeElement : null;
+            const from =
+                trigger instanceof HTMLElement && trigger !== document.body ? trigger.getBoundingClientRect() : null;
+            const animate = from !== null && canAnimate() && window.matchMedia(MOTION_QUERY).matches;
+            if (animate) dialog.dataset.unfold = '';
+            else delete dialog.dataset.unfold;
             dialog.showModal();
             focusStart(dialog);
+            if (animate) unfold(dialog, from);
         } else if (!open && dialog.open) dialog.close();
-    }, [open]);
+    }, [open, variant]);
 
     return (
         <dialog

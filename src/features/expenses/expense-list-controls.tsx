@@ -1,14 +1,16 @@
 import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
+import { ScrollStrip } from '@/components/scroll-strip/scroll-strip';
 import { Select } from '@/components/select/select';
+import { CategoryBadge } from '@/features/categories/category-badge';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { groupsFirst, useGroupOptions } from '@/features/groups/use-group-options';
@@ -48,6 +50,8 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const listed = useMemo(() => groupsFirst(groups.filter((group) => group.showInExpenses)), [groups]);
     const groupOptions = useGroupOptions(listed);
     const search = useRef<HTMLInputElement>(null);
+    const [open, setOpen] = useState(false);
+    const panelId = useId();
 
     // The button goes with the filters, so the focus goes to the field
     const clear = () => {
@@ -57,73 +61,115 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
 
     const statusClsx = clsx('expense-list-controls__status', { 'expense-list-controls__status--idle': !filtering });
 
+    const filtersClsx = clsx('expense-list-controls__toggle', { 'expense-list-controls__toggle--on': filterCount > 0 });
+
     return (
         <div className="expense-list-controls">
-            <Field label={t('search')}>
-                {(control) => (
-                    <input
-                        {...control}
-                        ref={search}
-                        className="expense-list-controls__search"
-                        type="search"
-                        value={filters.query}
-                        onChange={(event) => onFiltersChange({ query: event.target.value })}
-                    />
-                )}
-            </Field>
+            <div className="expense-list-controls__bar">
+                <Field label={t('search')} className="field--bare expense-list-controls__field">
+                    {(control) => (
+                        <span className="expense-list-controls__wrap">
+                            <Icon name="search" />
+                            <input
+                                {...control}
+                                ref={search}
+                                className="expense-list-controls__search"
+                                placeholder={t('search')}
+                                type="search"
+                                value={filters.query}
+                                onChange={(event) => onFiltersChange({ query: event.target.value })}
+                            />
+                        </span>
+                    )}
+                </Field>
+                <Button
+                    className={filtersClsx}
+                    aria-controls={open ? panelId : undefined}
+                    aria-expanded={open}
+                    onClick={() => setOpen(!open)}
+                >
+                    <Icon name="tune" />
+                    {t('toggle', { count: filterCount })}
+                </Button>
+            </div>
 
-            <Disclosure summary={t('toggle', { count: filterCount })} chevron>
-                <ChoiceGroup
-                    legend={t('groupBy')}
-                    name="list-grouping"
-                    options={LIST_GROUPINGS.map((value) => ({ value, label: t(`group.${value}`) }))}
-                    value={grouping}
-                    onChange={onGroupingChange}
-                />
-                <Field label={t('category')}>
-                    {(control) => (
-                        <CategorySelect
-                            {...control}
-                            label={t('category')}
-                            options={[{ id: '', label: t('allCategories') }, ...options]}
-                            value={filters.categoryId}
-                            onChange={(categoryId) => onFiltersChange({ categoryId })}
-                        />
-                    )}
-                </Field>
-                <DateRangeFields
-                    allowEmpty
-                    from={filters.from}
-                    to={filters.to}
-                    labels={{ from: t('from'), to: t('to') }}
-                    onChange={(edge, day) => onFiltersChange({ [edge]: day })}
-                />
-                <ChoiceGroup
-                    legend={t('paidWith')}
-                    name="list-paid-with"
-                    options={PAID_WITH.map((value) => ({
-                        value,
-                        label: value === 'any' || value === 'plan' ? t(`paid.${value}`) : tPayment(value),
-                    }))}
-                    value={filters.paidWith}
-                    onChange={(paidWith) => onFiltersChange({ paidWith })}
-                />
-                <Field label={t('sharedWith')}>
-                    {(control) => (
-                        <Select
-                            {...control}
-                            label={t('sharedWith')}
-                            options={[
-                                { value: '', label: t('shared.anyone') },
-                                { value: JUST_ME, label: t('shared.me') },
-                                ...groupOptions,
-                            ]}
-                            value={filters.sharedWith}
-                            onChange={(sharedWith) => onFiltersChange({ sharedWith })}
-                        />
-                    )}
-                </Field>
-            </Disclosure>
+            <ScrollStrip bleed role="group" aria-label={t('chips')}>
+                <Button
+                    className="chip"
+                    pressed={filters.categoryId === ''}
+                    onClick={() => onFiltersChange({ categoryId: '' })}
+                >
+                    {t('all')}
+                </Button>
+                {options.map((option) => (
+                    <Button
+                        key={option.id}
+                        className="chip"
+                        pressed={filters.categoryId === option.id}
+                        onClick={() =>
+                            onFiltersChange({ categoryId: filters.categoryId === option.id ? '' : option.id })
+                        }
+                    >
+                        <CategoryBadge style={option.style} />
+                        {option.label}
+                    </Button>
+                ))}
+            </ScrollStrip>
+
+            {open && (
+                <div className="expense-list-controls__panel" id={panelId}>
+                    <ChoiceGroup
+                        legend={t('groupBy')}
+                        name="list-grouping"
+                        options={LIST_GROUPINGS.map((value) => ({ value, label: t(`group.${value}`) }))}
+                        value={grouping}
+                        onChange={onGroupingChange}
+                    />
+                    <Field label={t('category')}>
+                        {(control) => (
+                            <CategorySelect
+                                {...control}
+                                label={t('category')}
+                                options={[{ id: '', label: t('allCategories') }, ...options]}
+                                value={filters.categoryId}
+                                onChange={(categoryId) => onFiltersChange({ categoryId })}
+                            />
+                        )}
+                    </Field>
+                    <DateRangeFields
+                        allowEmpty
+                        from={filters.from}
+                        to={filters.to}
+                        labels={{ from: t('from'), to: t('to') }}
+                        onChange={(edge, day) => onFiltersChange({ [edge]: day })}
+                    />
+                    <ChoiceGroup
+                        legend={t('paidWith')}
+                        name="list-paid-with"
+                        options={PAID_WITH.map((value) => ({
+                            value,
+                            label: value === 'any' || value === 'plan' ? t(`paid.${value}`) : tPayment(value),
+                        }))}
+                        value={filters.paidWith}
+                        onChange={(paidWith) => onFiltersChange({ paidWith })}
+                    />
+                    <Field label={t('sharedWith')}>
+                        {(control) => (
+                            <Select
+                                {...control}
+                                label={t('sharedWith')}
+                                options={[
+                                    { value: '', label: t('shared.anyone') },
+                                    { value: JUST_ME, label: t('shared.me') },
+                                    ...groupOptions,
+                                ]}
+                                value={filters.sharedWith}
+                                onChange={(sharedWith) => onFiltersChange({ sharedWith })}
+                            />
+                        )}
+                    </Field>
+                </div>
+            )}
 
             <div className={statusClsx}>
                 <div role="status">

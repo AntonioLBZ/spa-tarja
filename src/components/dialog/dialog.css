@@ -4,7 +4,7 @@
     background: var(--color-bg-secondary);
     border-color: var(--color-border);
     border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    border-width: 0 0 var(--notch) var(--notch);
     color: var(--color-content-primary);
     inline-size: calc(100% - var(--size-8));
     margin: auto;
@@ -121,6 +121,14 @@
     }
 }
 
+/* The script draws the entrance itself, unfolding the sheet from what opened it: it only has to be there */
+.dialog--sheet[open][data-unfold] {
+    @starting-style {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 /* A phone would scroll the page behind a modal, which the browser only makes inert */
 :root:has(dialog[open]) {
     overflow: hidden;
@@ -129,7 +137,7 @@
 /* From 40 rem a sheet is the dialog above */
 @media (width >= 40rem) {
     .dialog--sheet {
-        border-width: 0 0 var(--size-1) var(--size-1);
+        border-width: 0 0 var(--notch) var(--notch);
         inline-size: calc(100% - var(--size-8));
         margin: auto;
         max-block-size: calc(100dvh - var(--size-8));
@@ -142,6 +150,13 @@
         @starting-style {
             opacity: 0;
             transform: translateY(var(--size-2));
+        }
+    }
+
+    .dialog--sheet[open][data-unfold] {
+        @starting-style {
+            opacity: 1;
+            transform: none;
         }
     }
 

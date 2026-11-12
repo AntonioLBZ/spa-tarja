@@ -1,0 +1,43 @@
+/* What a screen answers, on the surface tone, in the strongest notch of the app: it is the one box that is bigger than
+   what it holds, like the stub of a tally stick */
+.hero-stat {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--notch-strong) var(--notch-strong);
+    display: grid;
+    gap: var(--size-2);
+    min-inline-size: 0;
+    padding: var(--size-4) var(--size-4) var(--size-4) var(--size-3);
+}
+
+/* The label is the one thing in capitals over a figure, as on the sheets of a receipt */
+.hero-stat__label {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    letter-spacing: 0.1em;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+/* Tight, like a figure struck on a receipt; the digits are already tabular, so it doesn't jitter while it counts */
+.hero-stat__amount {
+    font-size: var(--font-size-hero);
+    font-weight: 700;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* A sentence at the size of a title, for an answer that isn't a number */
+.hero-stat__amount--title {
+    font-size: var(--font-size-xl);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+}
+
+.hero-stat__sub {
+    margin: 0;
+    overflow-wrap: anywhere;
+}

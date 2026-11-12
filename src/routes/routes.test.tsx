@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -16,14 +16,17 @@ afterEach(() => {
 });
 
 describe('home', () => {
-    it('shows the API as operational when the health check passes', async () => {
-        stubApi((url) =>
+    it('says nothing about the API while the health check passes', async () => {
+        const fetchMock = stubApi((url) =>
             url.pathname === '/api/health' ? Response.json({ ok: true }) : new Response(null, { status: 404 })
         );
 
         renderApp();
 
-        expect(await screen.findByText(en.home.health.ok)).toBeDefined();
+        await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.anything(), expect.anything()));
+        await screen.findByRole('navigation');
+        expect(screen.queryByText(en.home.health.error)).toBeNull();
+        expect(screen.queryByText(en.home.health.ok)).toBeNull();
     });
 
     it('shows the API as unreachable when the health check fails', async () => {

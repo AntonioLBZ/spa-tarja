@@ -1,7 +1,9 @@
 import { Link, type LinkProps } from '@tanstack/react-router';
 import clsx from 'clsx';
+import { useRef } from 'react';
 
 import { Icon } from '@/components/icon/icon';
+import { useGlide } from '@/lib/motion/use-glide';
 
 import type { IconName } from '@/components/icon/icon-paths';
 import type { MouseEvent } from 'react';
@@ -34,10 +36,15 @@ interface BottomNavProps {
     action?: BottomNavAction;
 }
 
-// The tab bar of a phone: an icon over its word for each destination, the current one marked, and in the middle the
-// action, whose icon sits in an accent square
+// The tab bar of a phone: an icon over its word for each destination, a bar of ink along the top edge of the current one
+// that glides to the next, and in the middle the action, whose icon sits in an accent square
 const BottomNav = (props: BottomNavProps) => {
     const { label, items, action } = props;
+    const list = useRef<HTMLUListElement>(null);
+    const bar = useRef<HTMLLIElement>(null);
+    const currentLabel = items.find((item) => item.current)?.label;
+
+    useGlide({ track: list, mark: bar, selector: '[aria-current="page"]', follows: currentLabel, axis: 'x' });
 
     const links = items.map((item) => {
         const linkClsx = clsx('bottom-nav__link', { 'bottom-nav__link--current': item.current });
@@ -81,7 +88,10 @@ const BottomNav = (props: BottomNavProps) => {
 
     return (
         <nav aria-label={label} className="bottom-nav">
-            <ul className="bottom-nav__list">{links}</ul>
+            <ul ref={list} className="bottom-nav__list">
+                <li ref={bar} aria-hidden="true" className="bottom-nav__bar" />
+                {links}
+            </ul>
         </nav>
     );
 };

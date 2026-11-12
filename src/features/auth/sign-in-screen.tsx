@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Brand } from '@/components/brand/brand';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
+import { TallyMark } from '@/components/tally-mark/tally-mark';
 import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
+import { DURATION, EASE, MOTION_QUERY, canAnimate, gsap, useGSAP } from '@/lib/motion/gsap';
 import { isPrerelease } from '@/lib/prerelease';
 
 import { PrivacyNotice } from './privacy-notice';
@@ -29,6 +31,29 @@ const SignInScreen = (props: SignInScreenProps) => {
     const t = useTranslations('auth');
     const { signIn } = useAuth();
     const [phase, setPhase] = useState<Phase>(() => (cameBackFailed() ? 'failed' : 'idle'));
+    const root = useRef<HTMLElement>(null);
+
+    // What is under the logo rises in one line after the other
+    useGSAP(
+        () => {
+            const lines = root.current?.querySelectorAll('.sign-in > :not(.brand, .tally-mark)');
+            if (!lines?.length || !canAnimate()) return;
+            const mm = gsap.matchMedia();
+            mm.add(MOTION_QUERY, () => {
+                gsap.from(lines, {
+                    y: 18,
+                    opacity: 0,
+                    duration: DURATION.slow * 1.6,
+                    ease: EASE.enter,
+                    stagger: 0.08,
+                    delay: 0.25,
+                    clearProps: 'transform,opacity',
+                });
+            });
+            return () => mm.revert();
+        },
+        { scope: root }
+    );
 
     // Coming back to the page from Google with the back button restores it as it was left
     useEffect(() => {
@@ -49,8 +74,9 @@ const SignInScreen = (props: SignInScreenProps) => {
     };
 
     return (
-        <main className="sign-in">
+        <main ref={root} className="sign-in">
             <Brand size="hero" prerelease={isPrerelease()} />
+            <TallyMark />
             <h1 className="sign-in__title">{t('title')}</h1>
             <p className="sign-in__description">{t('description')}</p>
             {deleted?.cleared === true && <Notice role="alert">{t('deleted')}</Notice>}

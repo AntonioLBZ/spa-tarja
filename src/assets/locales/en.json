@@ -7,6 +7,15 @@
             "pending": "Checking…",
             "ok": "API and database are up",
             "error": "Can't reach the API"
+        },
+        "hero": {
+            "label": "Spent in {month}",
+            "ofLimit": "of your {limit} limit · {left} left",
+            "overLimit": "{over} over your {limit} limit",
+            "ofIncome": "{left} left of {income}",
+            "overIncome": "{over} more than you earned",
+            "setIncome": "Set your income to see what's left",
+            "day": "{day}: {amount}"
         }
     },
     "pwa": {
@@ -49,7 +58,8 @@
             "personalInvalid": "Enter an amount, or leave it empty if it was all yours.",
             "personalOver": "Your part can't be more than the amount.",
             "partInvalid": "Each payment needs an amount above zero.",
-            "saveFailed": "Couldn't save the expense on this device. Try again."
+            "saveFailed": "Couldn't save the expense on this device. Try again.",
+            "more": "More options"
         },
         "payment": {
             "direct": "Now",
@@ -81,7 +91,9 @@
                 "me": "Just me"
             },
             "showing": "Showing {shown} of {total}",
-            "clear": "Clear"
+            "clear": "Clear",
+            "all": "All",
+            "chips": "Categories"
         },
         "list": {
             "title": "Expenses",
@@ -679,7 +691,10 @@
             "removeFailed": "Couldn't remove the income. Try again."
         },
         "budgetsLink": "See budgets",
-        "chartsLink": "See charts"
+        "chartsLink": "See charts",
+        "heroLeft": "Left to spend",
+        "heroSpent": "Spent so far",
+        "ofIncome": "of {income} income"
     },
     "budgets": {
         "title": "Budgets",

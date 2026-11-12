@@ -3,9 +3,35 @@
     gap: var(--size-4);
 }
 
+/* The search takes the room, the filters button the width of its words */
+.expense-list-controls__bar {
+    align-items: start;
+    display: flex;
+    gap: var(--size-3);
+}
+
+.expense-list-controls__field {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.expense-list-controls__wrap {
+    align-items: center;
+    display: flex;
+    position: relative;
+}
+
+.expense-list-controls__wrap > .icon {
+    color: var(--color-content-secondary);
+    inset-inline-start: var(--size-3);
+    pointer-events: none;
+    position: absolute;
+}
+
 /* Safari draws a search field with rounded corners of its own unless it is told not to */
 .expense-list-controls__search {
     appearance: none;
+    padding-inline: calc(var(--size-3) + 1.5rem + var(--size-2)) var(--size-2);
 }
 
 /* Chrome and Safari draw a blue × of their own. This one is the `close` icon, in the text color, with a touch target */
@@ -20,6 +46,49 @@
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath d='m249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z'/%3E%3C/svg%3E")
         center / contain no-repeat content-box;
     padding: calc((var(--size-touch) - var(--size-6)) / 2);
+}
+
+.expense-list-controls__toggle {
+    align-items: center;
+    display: inline-flex;
+    flex: none;
+    gap: var(--size-2);
+    padding-inline: var(--size-3) var(--size-4);
+}
+
+/* In use, it is filled, so a narrowed list is never mistaken for the whole */
+.expense-list-controls__toggle--on,
+.expense-list-controls__toggle[aria-expanded='true'] {
+    background: var(--color-bg-secondary);
+}
+
+/* Categories as chips: one tap narrows the list. Each is a box with its notch, like the tally marks of the hero, and the
+   pressed one is filled. They sit on a row that scrolls sideways and says so */
+.chip {
+    align-items: center;
+    display: inline-flex;
+    flex: none;
+    gap: var(--size-2);
+    padding-inline: var(--size-3);
+    white-space: nowrap;
+}
+
+.chip .icon {
+    block-size: 1.25rem;
+    inline-size: 1.25rem;
+}
+
+/* On the fill of a pressed chip the icon keeps its own color only on a light tint: show it in the text color instead */
+.chip[aria-pressed='true'] .category-badge {
+    color: inherit;
+}
+
+/* A box on paper with a hairline, so the fields in it, which are on the surface tone, show against it */
+.expense-list-controls__panel {
+    border: var(--size-px) solid var(--color-border-subtle);
+    display: grid;
+    gap: var(--size-4);
+    padding: var(--size-4);
 }
 
 .expense-list-controls__status {
