@@ -239,6 +239,7 @@ describe('the groups in the JSON file', () => {
             closed: null,
             archived: false,
             showInExpenses: true,
+            pinned: false,
             me: ana.id,
             members: group.members,
         });

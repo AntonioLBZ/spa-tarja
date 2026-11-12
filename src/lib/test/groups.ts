@@ -36,6 +36,7 @@ const sampleGroup = (overrides: Partial<SharedGroup> = {}): SharedGroup => {
         archived: false,
         me: ana.id,
         showInExpenses: true,
+        pinnedAt: null,
         members: [ana, person('Bea')],
         ...overrides,
     };

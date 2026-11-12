@@ -25,7 +25,7 @@ import {
     readGroup,
     readSharedGroup,
 } from '@server/db/groups';
-import { handOver, saveMySwitches } from '@server/db/members';
+import { handOver, pinMember, saveMySwitches } from '@server/db/members';
 import { readProfile } from '@server/db/profile';
 
 import type { AppEnv } from '@server/env';
@@ -128,6 +128,9 @@ const groupsRoutes = new Hono<AppEnv>()
         if (!state) return c.json(NOT_FOUND, 404);
 
         if (input.archived && !closedFor(state)) return c.json({ error: 'not-closed' }, 409);
+        if (input.pinned && closedFor(state)) return c.json(CLOSED, 409);
+        const pins = input.pinned && state.me.pinnedAt === null;
+        if (pins && !(await pinMember(db, userId, state.me.id))) return c.json({ error: 'too-many-pinned' }, 409);
         await saveMySwitches(db, state.me.id, input);
         return c.json(await readSharedGroup(db, userId, groupId), 200);
     });

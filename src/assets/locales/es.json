@@ -100,7 +100,8 @@
             "weekOf": "Semana del {date}",
             "noMatch": "Ningún gasto coincide",
             "showMore": "Mostrar más",
-            "total": "Total"
+            "total": "Total",
+            "tabs": "Gastos y grupos fijados"
         }
     },
     "categories": {
@@ -482,7 +483,8 @@
             "deletedFriend": "Ya no está entre tus amigos",
             "left": "Saliste",
             "shown": "En tus gastos",
-            "hidden": "Fuera de tus gastos"
+            "hidden": "Fuera de tus gastos",
+            "pin": "Fijar {name} en Gastos"
         },
         "new": {
             "title": "Nuevo grupo",
@@ -526,7 +528,8 @@
             "tooManyMembers": "Este grupo tiene {max} personas, el máximo.",
             "tooManyMembersEver": "Este grupo ha tenido {max} personas, contando a las que se fueron, el máximo. Crea un grupo nuevo.",
             "tooManyInvitations": "Tienes {max} enlaces de invitación abiertos, el máximo. Retira alguno primero.",
-            "failed": "No se pudo guardar el cambio. Inténtalo de nuevo."
+            "failed": "No se pudo guardar el cambio. Inténtalo de nuevo.",
+            "tooManyPinned": "Tienes {max} grupos fijados en Gastos, el máximo posible. Desfija uno primero."
         },
         "edit": {
             "link": "Editar grupo",
@@ -539,7 +542,10 @@
             "name": "Nombre",
             "simplify": "Simplificar deudas",
             "simplifyHint": "Muestra el menor número de pagos que salda el grupo. No cambia ningún gasto.",
-            "save": "Guardar"
+            "save": "Guardar",
+            "pin": "Fijar en Gastos",
+            "pinHint": "Aparece como pestaña en la pantalla Gastos.",
+            "pinFull": "Puedes fijar {max} grupos en Gastos. Desfija uno para fijar otro."
         },
         "people": {
             "title": "Personas",

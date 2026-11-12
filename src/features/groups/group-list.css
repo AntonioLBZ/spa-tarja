@@ -29,11 +29,36 @@
     overflow-wrap: anywhere;
 }
 
-/* A card whose whole box is the link, so the padding is the link's */
+/* A card whose whole box is the link: the link stretches over it, and the pin sits above it, before the chevron */
 .group-card {
-    padding: 0;
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    position: relative;
 }
 
 .group-row--card {
-    padding: var(--size-2) var(--size-3);
+    flex: 1;
+    min-width: 0;
+}
+
+.group-row--card::after {
+    content: '';
+    inset: 0;
+    position: absolute;
+}
+
+/* The ring goes around the card the link covers, not around its text */
+.group-row--card:focus-visible {
+    outline: none;
+}
+
+.group-card:has(.group-row--card:focus-visible) {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.group-card__pin {
+    margin-block: calc(-1 * var(--size-2));
+    position: relative;
 }

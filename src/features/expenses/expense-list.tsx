@@ -31,7 +31,13 @@ import type { SharedEntry } from '@core/shared-entry';
 
 import './expense-list.css';
 
-const ExpenseList = () => {
+interface ExpenseListProps {
+    // Read only by assistive technology, when the tabs of the pinned groups say it (ADR-0018)
+    titleHidden?: boolean;
+}
+
+const ExpenseList = (props: ExpenseListProps) => {
+    const { titleHidden } = props;
     const t = useTranslations('expenses.list');
     const tLedger = useTranslations('groups.ledger');
     const { locale } = useLocale();
@@ -173,6 +179,7 @@ const ExpenseList = () => {
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
     if (!hasData && !isError && !isWaitingForNetwork) return null;
 
+    const titleClsx = clsx('expense-list__title', { 'visually-hidden': titleHidden });
     const labelClsx = clsx({
         'expense-list__label--category': grouping === 'category',
         'expense-list__label--date': grouping !== 'category',
@@ -180,7 +187,7 @@ const ExpenseList = () => {
 
     return (
         <section className="expense-list">
-            <h2 className="expense-list__title" ref={title} tabIndex={-1}>
+            <h2 className={titleClsx} ref={title} tabIndex={-1}>
                 {t('title')}
             </h2>
 
@@ -260,4 +267,4 @@ const ExpenseList = () => {
     );
 };
 
-export { ExpenseList };
+export { ExpenseList, type ExpenseListProps };

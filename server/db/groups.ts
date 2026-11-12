@@ -25,6 +25,7 @@ interface MemberRow {
     archived_at: number | null;
     merged_into: string | null;
     show_in_expenses: number;
+    pinned_at: number | null;
 }
 
 interface StoredGroup {
@@ -46,6 +47,7 @@ interface StoredMember extends GroupMember {
     leftSeq: number | null;
     archivedAt: number | null;
     showInExpenses: boolean;
+    pinnedAt: number | null;
 }
 
 // A group as one of its members finds it: its members in the group's order, and the caller's own
@@ -59,7 +61,7 @@ const GROUP_COLUMNS = 'id, kind, name, currency, simplify_debts, deleted_at';
 
 const MEMBERS_WITH_NICKNAMES = `
     SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.created_at, m.claimed_at, m.left_at, m.left_seq,
-        m.archived_at, m.merged_into, m.show_in_expenses
+        m.archived_at, m.merged_into, m.show_in_expenses, m.pinned_at
     FROM shared_members m LEFT JOIN profile ON profile.user_id = m.user_id`;
 
 // Every group the user has a member in, closed ones too
@@ -97,6 +99,7 @@ const toMember = (row: MemberRow): StoredMember => {
         leftSeq: row.left_seq,
         archivedAt: row.archived_at,
         showInExpenses: row.show_in_expenses === 1,
+        pinnedAt: row.pinned_at,
     };
 };
 
@@ -171,6 +174,7 @@ const toSharedGroup = (state: GroupState): SharedGroup => {
         archived: me.archivedAt !== null,
         me: me.id,
         showInExpenses: me.showInExpenses,
+        pinnedAt: closedFor(state) === null ? me.pinnedAt : null,
         members: visibleMembers(state),
     };
 };
