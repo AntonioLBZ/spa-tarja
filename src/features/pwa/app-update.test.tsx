@@ -1,24 +1,25 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { ToastProvider } from '@/components/toast/toast';
 import { LocaleProvider } from '@/lib/i18n';
 
 import { AppUpdate } from './app-update';
+import { appUpdate } from './app-update-state';
 
-const registration = vi.hoisted(() => ({
-    needRefresh: false,
-    setNeedRefresh: vi.fn(),
-    updateServiceWorker: vi.fn(),
+import type { RegisterSWOptions } from 'virtual:pwa-register';
+
+const worker = vi.hoisted(() => ({
+    options: undefined as RegisterSWOptions | undefined,
+    update: vi.fn(async () => undefined),
 }));
 
-vi.mock('virtual:pwa-register/react', () => ({
-    useRegisterSW: () => ({
-        needRefresh: [registration.needRefresh, registration.setNeedRefresh],
-        offlineReady: [false, vi.fn()],
-        updateServiceWorker: registration.updateServiceWorker,
-    }),
+vi.mock('virtual:pwa-register', () => ({
+    registerSW: (options: RegisterSWOptions) => {
+        worker.options = options;
+        return worker.update;
+    },
 }));
 
 function Update() {
@@ -31,51 +32,50 @@ function Update() {
     );
 }
 
-function renderUpdate() {
-    return render(<Update />);
+function newVersionWaits() {
+    act(() => worker.options?.onNeedRefresh?.());
 }
 
+beforeAll(() => {
+    appUpdate.start();
+});
+
 afterEach(() => {
-    registration.needRefresh = false;
+    act(() => appUpdate.postpone());
     vi.clearAllMocks();
 });
 
 describe('AppUpdate', () => {
     it('shows nothing while no new version is waiting', () => {
-        renderUpdate();
+        render(<Update />);
 
         expect(screen.queryByText(en.pwa.update.message)).toBeNull();
     });
 
     it('pins the offer once a new version is waiting and applies it on request', () => {
-        registration.needRefresh = true;
-        renderUpdate();
+        render(<Update />);
+        newVersionWaits();
 
         expect(screen.getByRole('status').textContent).toContain(en.pwa.update.message);
         fireEvent.click(screen.getByRole('button', { name: en.pwa.update.apply }));
 
-        expect(registration.updateServiceWorker).toHaveBeenCalledWith(true);
+        expect(worker.update).toHaveBeenCalledWith(true);
+    });
+
+    it('shows the offer found before it was mounted, as when the version waits before the sign-in', () => {
+        newVersionWaits();
+        render(<Update />);
+
+        expect(screen.getByRole('status').textContent).toContain(en.pwa.update.message);
     });
 
     it('hides the offer when the user postpones it', () => {
-        registration.needRefresh = true;
-        renderUpdate();
+        render(<Update />);
+        newVersionWaits();
 
         fireEvent.click(screen.getByRole('button', { name: en.pwa.update.dismiss }));
 
-        expect(registration.setNeedRefresh).toHaveBeenCalledWith(false);
-        expect(registration.updateServiceWorker).not.toHaveBeenCalled();
-        expect(screen.queryByText(en.pwa.update.message)).toBeNull();
-    });
-
-    it('takes the offer away when no new version is waiting any more', () => {
-        registration.needRefresh = true;
-        const { rerender } = renderUpdate();
-        expect(screen.getByText(en.pwa.update.message)).toBeDefined();
-
-        registration.needRefresh = false;
-        rerender(<Update />);
-
+        expect(worker.update).not.toHaveBeenCalled();
         expect(screen.queryByText(en.pwa.update.message)).toBeNull();
     });
 });

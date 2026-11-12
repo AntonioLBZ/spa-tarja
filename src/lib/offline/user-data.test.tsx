@@ -382,3 +382,65 @@ describe('a session that ends', () => {
         expect(readSharedWith(TEST_USER.id)).toBe('a-group');
     });
 });
+
+describe('opening the app', () => {
+    function holdAnswers(api: ReturnType<typeof createFakeApi>) {
+        const asked: string[] = [];
+        const held: Array<() => void> = [];
+        stubApi((url, init) => {
+            asked.push(`${init?.method ?? 'GET'} ${url.pathname}`);
+            return new Promise((resolve) => held.push(() => resolve(api.handler(url, init))));
+        });
+        return { asked, release: () => held.splice(0).forEach((answer) => answer()) };
+    }
+
+    async function leaveStaleCopy(storage: ReturnType<typeof createMemoryStorage>) {
+        const group = sampleGroup();
+        await leaveGroupsCopy(storage, [group], []);
+        vi.setSystemTime(new Date(2026, 9, 25, 12, 5));
+        return group;
+    }
+
+    it('asks for the expenses, the groups and the entries of each group it holds at once, none waiting for another', async () => {
+        const storage = createMemoryStorage();
+        const group = await leaveStaleCopy(storage);
+        const { asked, release } = holdAnswers(createFakeApi({ groups: [group] }));
+
+        renderApp({ storage });
+
+        await waitFor(() =>
+            expect(asked).toEqual(
+                expect.arrayContaining(['GET /api/expenses', 'GET /api/groups', `GET /api/groups/${group.id}/entries`])
+            )
+        );
+        release();
+    });
+
+    it('sends what waits in each outbox before it asks for what changed there', async () => {
+        const storage = createMemoryStorage();
+        const group = await leaveStaleCopy(storage);
+        const entry = sampleEntry(group);
+        await leaveUnsent(storage, TEST_USER);
+        await createUserStorage(storage, TEST_USER.id).storage.set('tarja:group-outbox', [entry]);
+        const { asked, release } = holdAnswers(createFakeApi({ groups: [group] }));
+
+        renderApp({ storage });
+
+        await waitFor(() =>
+            expect(asked).toEqual(
+                expect.arrayContaining([
+                    `PUT /api/expenses/${unsent.id}`,
+                    `PUT /api/groups/${group.id}/entries/${entry.id}`,
+                    'GET /api/groups',
+                ])
+            )
+        );
+        expect(asked).not.toContain('GET /api/expenses');
+        expect(asked).not.toContain(`GET /api/groups/${group.id}/entries`);
+        release();
+        await waitFor(() =>
+            expect(asked).toEqual(expect.arrayContaining(['GET /api/expenses', `GET /api/groups/${group.id}/entries`]))
+        );
+        release();
+    });
+});
