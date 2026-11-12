@@ -6,6 +6,7 @@ import en from '@/assets/locales/en.json';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { stubPageScroll } from '@/lib/test/scroll';
 import { openAddSheet } from '@/lib/test/sheet';
 import { stubViewport } from '@/lib/test/viewport';
 
@@ -324,6 +325,60 @@ describe('bottom navigation', () => {
 
         expect(screen.getAllByRole('navigation')).toHaveLength(1);
         expect(document.querySelector('.bottom-nav')).not.toBeNull();
+    });
+});
+
+describe('the header while the page scrolls', () => {
+    async function open(wide: boolean) {
+        stubViewport(wide);
+        const page = stubPageScroll(3000);
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByRole('navigation');
+        const header = screen.getByRole('banner');
+        const scroll = (top: number) => act(() => page.scrollTo(top));
+        return { header, scroll };
+    }
+
+    it.each([
+        ['a wide screen', true],
+        ['a phone', false],
+    ])('slides out on a scroll down and back on a scroll up on %s', async (_, wide) => {
+        const { header, scroll } = await open(wide);
+        expect(header.classList.contains('root__header--hidden')).toBe(false);
+
+        scroll(400);
+        expect(header.classList.contains('root__header--hidden')).toBe(true);
+
+        scroll(380);
+        expect(header.classList.contains('root__header--hidden')).toBe(false);
+    });
+
+    it.each([
+        ['a wide screen', true],
+        ['a phone', false],
+    ])('keeps its links in the page and in the tab order while it is out on %s', async (_, wide) => {
+        const { header, scroll } = await open(wide);
+
+        scroll(400);
+
+        expect(header.classList.contains('root__header--hidden')).toBe(true);
+        expect(header.hasAttribute('hidden')).toBe(false);
+        expect(header.hasAttribute('inert')).toBe(false);
+        expect(header.closest('[aria-hidden], [inert], [hidden]')).toBeNull();
+        const logo = within(header).getByRole('link', { name: 'Tarja' });
+        logo.focus();
+        expect(document.activeElement).toBe(logo);
+    });
+
+    it('comes back when the page is at the top again', async () => {
+        const { header, scroll } = await open(false);
+        scroll(400);
+        expect(header.classList.contains('root__header--hidden')).toBe(true);
+
+        scroll(0);
+
+        expect(header.classList.contains('root__header--hidden')).toBe(false);
     });
 });
 

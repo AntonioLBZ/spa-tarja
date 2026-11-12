@@ -1,16 +1,43 @@
 .root {
-    display: grid;
-    grid-template-rows: auto 1fr;
+    display: flex;
+    flex-direction: column;
     min-height: 100dvh;
 }
 
+/* The top safe area is part of the header. A phone that draws the page under its status bar would show it there while
+   the header is out, so this strip of the header's color stays; it has no height where there is no inset. */
+.root::before {
+    background: var(--color-bg-secondary);
+    block-size: env(safe-area-inset-top);
+    content: '';
+    inset: 0 0 auto;
+    position: fixed;
+    z-index: 1;
+}
+
+/* Sticky, so it stays over the content, and out of sight after a scroll down (see useHideOnScroll). It slides by
+   `transform` only and keeps its place in the page, so the keyboard still reaches it. */
 .root__header {
     background: var(--color-bg-secondary);
     border-bottom: var(--size-px) solid var(--color-border);
-    min-height: calc(var(--size-touch) + env(safe-area-inset-top));
+    inset-block-start: 0;
+    min-height: calc(var(--header-height) + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) max(var(--size-4), env(safe-area-inset-right)) 0
         max(var(--size-4), env(safe-area-inset-left));
+    position: sticky;
+    transition: transform var(--duration-base) var(--ease-standard);
     view-transition-name: header;
+    z-index: 1;
+}
+
+.root__header--hidden {
+    transform: translateY(-100%);
+}
+
+/* A control that took the focus from the keyboard shows the header and keeps it shown, so the ring is never off
+   screen. A click doesn't: the mouse had the header in sight already. */
+.root__header--hidden:has(:focus-visible) {
+    transform: none;
 }
 
 /* Expenses, the logo and the other screens, from 40 rem up. The side columns grow alike while there is room, which
@@ -83,6 +110,7 @@
 }
 
 .root__main {
+    flex: 1;
     margin-inline: auto;
     max-width: 40rem;
     padding: var(--size-6) max(var(--size-4), env(safe-area-inset-right))
