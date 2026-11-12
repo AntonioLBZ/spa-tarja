@@ -2,13 +2,6 @@
     "metadata": {
         "description": "Log your everyday expenses: food, groceries, leisure, bills and rent."
     },
-    "home": {
-        "health": {
-            "pending": "Checking…",
-            "ok": "API and database are up",
-            "error": "Can't reach the API"
-        }
-    },
     "pwa": {
         "update": {
             "message": "A new version is ready",
@@ -282,6 +275,16 @@
                 "offline": "Deleting your account needs a connection.",
                 "failed": "Couldn't delete your account. Check your connection and try again.",
                 "wrongEmail": "That email doesn't match your account. Sign in again and try once more."
+            }
+        },
+        "about": {
+            "title": "About",
+            "version": "Version",
+            "status": {
+                "label": "Status",
+                "pending": "Checking…",
+                "ok": "Operational",
+                "error": "Can't reach the server"
             }
         }
     },

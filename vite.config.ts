@@ -1,3 +1,7 @@
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
@@ -7,6 +11,22 @@ import { VitePWA } from 'vite-plugin-pwa';
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
 const appName = prerelease ? 'Tarja Pre' : 'Tarja';
 const iconFolder = prerelease ? 'prerelease/' : '';
+
+const { version } = JSON.parse(readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8')) as {
+    version: string;
+};
+
+// The prerelease names the commit it was built from, since every push is a new build of the same version. Production
+// leaves it out, so a push that changes no code builds the same files and asks nobody to update.
+const commit = () => {
+    if (!prerelease) return '';
+    try {
+        const sha = process.env.GITHUB_SHA ?? execSync('git rev-parse HEAD', { encoding: 'utf8', stdio: 'pipe' });
+        return sha.trim().slice(0, 7);
+    } catch {
+        return '';
+    }
+};
 
 // The prerelease build points the icons and the title of the page at its own
 const prereleasePage = (): Plugin => {
@@ -74,5 +94,9 @@ export default defineConfig({
         }),
     ],
     resolve: { tsconfigPaths: true },
-    define: { 'import.meta.env.VITE_PRERELEASE': JSON.stringify(String(prerelease)) },
+    define: {
+        'import.meta.env.VITE_PRERELEASE': JSON.stringify(String(prerelease)),
+        'import.meta.env.VITE_APP_VERSION': JSON.stringify(version),
+        'import.meta.env.VITE_APP_COMMIT': JSON.stringify(commit()),
+    },
 });

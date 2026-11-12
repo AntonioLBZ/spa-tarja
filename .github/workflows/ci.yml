@@ -49,3 +49,21 @@ jobs:
               env:
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+    tag:
+        needs: release
+        if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v7
+            - env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  version="v$(node -p "require('./package.json').version")"
+                  if gh release view "$version" > /dev/null 2>&1; then
+                      echo "$version is already released"
+                  else
+                      gh release create "$version" --target "$GITHUB_SHA" --title "$version" --generate-notes
+                  fi

@@ -2,13 +2,6 @@
     "metadata": {
         "description": "Apunta tus gastos del día a día: comida, supermercado, ocio, facturas y alquiler."
     },
-    "home": {
-        "health": {
-            "pending": "Comprobando…",
-            "ok": "API y base de datos operativas",
-            "error": "Sin conexión con la API"
-        }
-    },
     "pwa": {
         "update": {
             "message": "Hay una versión nueva",
@@ -282,6 +275,16 @@
                 "offline": "Para eliminar tu cuenta hace falta conexión.",
                 "failed": "No se pudo eliminar tu cuenta. Revisa tu conexión e inténtalo de nuevo.",
                 "wrongEmail": "Ese correo no coincide con tu cuenta. Vuelve a iniciar sesión e inténtalo de nuevo."
+            }
+        },
+        "about": {
+            "title": "Acerca de",
+            "version": "Versión",
+            "status": {
+                "label": "Estado",
+                "pending": "Comprobando…",
+                "ok": "Operativo",
+                "error": "Sin conexión con el servidor"
             }
         }
     },
