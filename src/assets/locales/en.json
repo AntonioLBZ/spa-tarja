@@ -126,6 +126,9 @@
         "rejected": "{count, plural, one {# expense couldn't be saved and was discarded.} other {# expenses couldn't be saved and were discarded.}}",
         "dismiss": "Dismiss"
     },
+    "toast": {
+        "dismiss": "Dismiss"
+    },
     "nav": {
         "add": "Add expense",
         "addWord": "Add",

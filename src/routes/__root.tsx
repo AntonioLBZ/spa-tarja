@@ -36,12 +36,13 @@ const useSection = () => {
 };
 
 const RootLayout = () => {
+    const t = useTranslations('toast');
     const wide = useWide();
     const rootClsx = clsx('root', { 'root--tabs': !wide });
 
     return (
         <ExpenseSheetProvider>
-            <ToastProvider>
+            <ToastProvider dismissLabel={t('dismiss')}>
                 <div className={rootClsx}>
                     {wide ? <RootHeader /> : <RootPhoneHeader />}
                     <main className="root__main">

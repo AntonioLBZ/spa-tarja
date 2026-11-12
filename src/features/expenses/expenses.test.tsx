@@ -1514,6 +1514,18 @@ describe('undoing a delete', () => {
         expect(api.writes[1]).toMatchObject({ id: lunch.id, text: 'Lunch', deletedAt: null, updatedAt: NOW + 1 });
     });
 
+    it('can be dismissed without undoing, which leaves the expense deleted', async () => {
+        stubApi(createFakeApi({ expenses: [expense({ text: 'Lunch' })] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        deleteExpense('Lunch');
+
+        fireEvent.click(screen.getByRole('button', { name: en.toast.dismiss }));
+
+        expect(screen.queryByText(deletedMessage('Lunch'))).toBeNull();
+        await waitFor(() => expect(screen.queryByText('Lunch')).toBeNull());
+    });
+
     it('goes away once it is used', async () => {
         stubApi(createFakeApi({ expenses: [expense({ text: 'Lunch' })] }).handler);
         renderApp();

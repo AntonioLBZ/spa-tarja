@@ -67,7 +67,7 @@ export const ExpenseList = () => {
     return (
         <AppData api={{ categories: [...CUSTOM_CATEGORIES], expenses: EXPENSES }}>
             {() => (
-                <ToastProvider>
+                <ToastProvider dismissLabel="Dismiss">
                     <ExpenseSheetProvider>
                         <div style={{ margin: '0 auto', maxWidth: '40rem', padding: 'var(--size-4)' }}>
                             <ExpenseListComponent />

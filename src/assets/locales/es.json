@@ -126,6 +126,9 @@
         "rejected": "{count, plural, one {No se pudo guardar # gasto y se descartó.} other {No se pudieron guardar # gastos y se descartaron.}}",
         "dismiss": "Cerrar"
     },
+    "toast": {
+        "dismiss": "Cerrar"
+    },
     "nav": {
         "add": "Añadir gasto",
         "addWord": "Añadir",

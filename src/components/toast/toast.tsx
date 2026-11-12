@@ -15,6 +15,7 @@ import {
 } from 'react';
 
 import { Button } from '@/components/button/button';
+import { Icon } from '@/components/icon/icon';
 import { readDuration } from '@/lib/motion';
 
 import './toast.css';
@@ -59,10 +60,13 @@ interface ShownToast {
 interface ToastBoxProps {
     toast: ShownToast;
     pinned?: boolean;
+    dismissLabel: string;
     onDismiss: () => void;
 }
 
 interface ToastProviderProps {
+    // Names the button that clears a toast away; a pinned toast has none
+    dismissLabel: string;
     children: ReactNode;
 }
 
@@ -83,9 +87,10 @@ const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer)
 };
 
 // A toast that goes away by itself keeps its count of the time left: hovering it or keeping the focus inside holds the
-// count. A pinned one has no count.
+// count, and it ends with a button that clears it away. A pinned one has no count and no such button: its answers close
+// it.
 const ToastBox = (props: ToastBoxProps) => {
-    const { toast, pinned, onDismiss } = props;
+    const { toast, pinned, dismissLabel, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
     const [focused, setFocused] = useState(false);
     const remaining = useRef(SHOW_FOR_MS);
@@ -117,7 +122,7 @@ const ToastBox = (props: ToastBoxProps) => {
             onMouseLeave={() => setHovered(false)}
         >
             <p className="toast__message">{toast.message}</p>
-            {toast.actions.length > 0 && (
+            {(toast.actions.length > 0 || !pinned) && (
                 <div className="toast__actions">
                     {toast.actions.map((action) => (
                         <Button
@@ -132,6 +137,18 @@ const ToastBox = (props: ToastBoxProps) => {
                             {action.label}
                         </Button>
                     ))}
+                    {!pinned && (
+                        <Button
+                            ghost
+                            glyph
+                            className="toast__dismiss"
+                            disabled={toast.leaving}
+                            aria-label={dismissLabel}
+                            onClick={onDismiss}
+                        >
+                            <Icon name="close" />
+                        </Button>
+                    )}
                 </div>
             )}
         </div>
@@ -141,7 +158,7 @@ const ToastBox = (props: ToastBoxProps) => {
 // One toast of each kind at a time, above the routes so it survives a change of screen. Its `role="status"` region is
 // always in the page, after everything else, so a message that comes in is announced and the toast is the last tab stop.
 const ToastProvider = (props: ToastProviderProps) => {
-    const { children } = props;
+    const { dismissLabel, children } = props;
     const [toast, setToast] = useState<ShownToast | null>(null);
     const [pinned, setPinned] = useState<ShownToast | null>(null);
     const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -199,8 +216,10 @@ const ToastProvider = (props: ToastProviderProps) => {
         <ToastContext value={api}>
             {children}
             <div className="toast-region" role="status">
-                {pinned && <ToastBox key={pinned.id} pinned toast={pinned} onDismiss={unpin} />}
-                {toast && <ToastBox key={toast.id} toast={toast} onDismiss={dismiss} />}
+                {pinned && (
+                    <ToastBox key={pinned.id} pinned dismissLabel={dismissLabel} toast={pinned} onDismiss={unpin} />
+                )}
+                {toast && <ToastBox key={toast.id} dismissLabel={dismissLabel} toast={toast} onDismiss={dismiss} />}
             </div>
         </ToastContext>
     );
