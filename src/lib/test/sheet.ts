@@ -3,7 +3,7 @@ import { expect } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 
-// The "+" is in the bar or floating, never inside a screen
+// The "+" is in the bar or in the header, never inside a screen
 const isPlus = (button: HTMLElement) => button.closest('main') === null;
 
 // Presses the "+" and gives the sheet of the add form that opens

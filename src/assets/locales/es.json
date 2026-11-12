@@ -127,7 +127,8 @@
         "dismiss": "Cerrar"
     },
     "nav": {
-        "add": "Añadir un gasto",
+        "add": "Añadir gasto",
+        "addWord": "Añadir",
         "back": "Volver a {place}",
         "expenses": "Gastos",
         "group": "Grupo",

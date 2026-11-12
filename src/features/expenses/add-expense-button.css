@@ -1,9 +1,4 @@
-/* Fixed at the lower-right corner of the content column, which is 40 rem wide and centered, above the safe area */
+/* The size of the words of the header it stands beside */
 .add-expense-button {
-    align-items: center;
-    display: inline-flex;
-    inset-block-end: max(var(--size-4), env(safe-area-inset-bottom));
-    inset-inline-end: max(var(--size-4), calc(50% - 20rem + var(--size-4)));
-    justify-content: center;
-    position: fixed;
+    font-size: var(--font-size-s);
 }

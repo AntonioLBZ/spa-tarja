@@ -12,11 +12,6 @@
     position: fixed;
 }
 
-/* Above the floating "+" of a wide screen */
-:root:has(.add-expense-button) .toast-region {
-    bottom: calc(var(--size-touch) + var(--size-4) + max(var(--size-4), env(safe-area-inset-bottom)));
-}
-
 /* Above the tab bar of a phone, not over it */
 :root:has(.bottom-nav) .toast-region {
     bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));

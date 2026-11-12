@@ -127,7 +127,8 @@
         "dismiss": "Dismiss"
     },
     "nav": {
-        "add": "Add an expense",
+        "add": "Add expense",
+        "addWord": "Add",
         "back": "Back to {place}",
         "expenses": "Expenses",
         "group": "Group",

@@ -59,15 +59,34 @@ describe('header', () => {
         expect(link('Tarja').getAttribute('href')).toBe('/');
     });
 
-    it('reaches the "+" of a wide screen right after the header, before the screen it adds to', async () => {
+    it('holds the "Add expense" action in the header, between Expenses and the logo, ahead of the screen', async () => {
         await home();
 
-        const plus = screen.getAllByRole('button', { name: en.nav.add }).find((button) => !button.closest('main'))!;
-
         const header = screen.getByRole('banner');
-        const main = screen.getByRole('main');
-        expect(header.compareDocumentPosition(plus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        expect(plus.compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const action = within(header).getByRole('button', { name: en.nav.add });
+
+        expect(action.textContent).toBe(en.nav.add);
+        const stops = within(header)
+            .getAllByRole('link')
+            .map((item) => item.textContent);
+        expect(stops.slice(0, 2)).toEqual([en.nav.expenses, 'Tarja']);
+        expect(link(en.nav.expenses).compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(action.compareDocumentPosition(link('Tarja')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(
+            action.compareDocumentPosition(screen.getByRole('main')) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
+    });
+
+    it('opens the sheet of a new expense from the header action and changes no route', async () => {
+        await home('/summary');
+
+        fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: en.nav.add }));
+
+        expect(await screen.findByRole('dialog', { name: en.expenses.form.title })).toBeDefined();
+        expect(link(en.nav.summary).getAttribute('aria-current')).toBe('page');
+        expect(
+            within(screen.getByRole('banner')).getByRole('button', { name: en.nav.add }).hasAttribute('aria-current')
+        ).toBe(false);
     });
 
     it('leaves what was typed in the form alone through Expenses and the logo', async () => {

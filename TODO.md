@@ -28,14 +28,6 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - **Stories of the groups.** None yet for Settle up, the Leave and Delete panels, the steps of a person, `InvitationLink` or `InviteFriend`; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
-## 18. The look of the "+" (branch `add-expense-sheet`, decided with the owner on 2026-11-10)
-
-The notched "+" of the phone bar looked bad: a dark block wider than its column (about 60 px in a 48 px one), the glyph off-center because of the notch. The owner picked variant **G** in the throwaway Storybook trial (`design-system/stories/trials/`, untracked: delete it once this is done):
-
-- **Phone bar:** five equal columns; the middle one is a small flat accent square (about 2 rem, no notch, the thick "+" centered) over the word "Add", the same icon-over-word pattern as the tabs. No raised block, no L. Update `DESIGN.md` (the `BottomNav` action and the notch rule: this square is the one box with no notch) and `docs/specs/bottom-navigation.md` first.
-- **Wide screens:** no floating button; the header holds a text action ("Add expense", a button in the header row, `nav.add` copy) that opens the sheet. Update `DESIGN.md` §5, `docs/specs/header.md`, `docs/specs/expenses.md` and ADR-0016's mention of the floating button (a refining note or a new ADR, never an edit of an accepted one).
-- **Bug to fix first or by this change:** on a wide screen the "+" is not clickable on the prerelease. Probable cause: commit `23eed25` moved `AddExpenseButton` before `<main>` for the tab order, so `main` paints over the fixed button and takes its clicks. Moot once the button moves into the header, but keep a test that the header action opens the sheet and is the first stop after the logo.
-
 ## 19. Selects whose menu does not fit
 
 Review `Select` when its list of options does not fit in the space below it (a short phone, the keyboard open, the bottom of a sheet): where it opens, whether it flips upward or scrolls inside, and that the active option stays in view. Part of the phone checklist of the sheets (the list at the bottom of the bottom sheet), not yet looked at on a real device.

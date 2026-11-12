@@ -91,7 +91,7 @@ describe('BottomNav', () => {
     });
 
     describe('with an action', () => {
-        const ADD: BottomNavAction = { label: 'Add', icon: 'add', onPress: vi.fn() };
+        const ADD: BottomNavAction = { label: 'Add expense', word: 'Add', icon: 'add', onPress: vi.fn() };
 
         it('draws the action in the middle, between the second and the third item', async () => {
             const nav = await renderNav(ITEMS, '/', ADD);
@@ -99,24 +99,33 @@ describe('BottomNav', () => {
             const names = within(nav)
                 .getAllByRole('listitem')
                 .map((item) => item.querySelector('a')?.textContent ?? item.querySelector('button')!.ariaLabel);
-            expect(names).toEqual(['Expenses', 'Groups', 'Add', 'Summary', 'Settings']);
+            expect(names).toEqual(['Expenses', 'Groups', 'Add expense', 'Summary', 'Settings']);
         });
 
         it('makes the action a button, not a link, with no mark of a current page', async () => {
             const nav = await renderNav(ITEMS, '/', ADD);
 
-            const button = within(nav).getByRole('button', { name: 'Add' });
+            const button = within(nav).getByRole('button', { name: 'Add expense' });
             expect(button.hasAttribute('aria-current')).toBe(false);
             expect(button.getAttribute('aria-haspopup')).toBe('dialog');
             expect(button.querySelector('svg')!.getAttribute('data-icon')).toBe('add');
             expect(within(nav).getAllByRole('link')).toHaveLength(4);
         });
 
+        it('draws the action like the links, an icon over its word', async () => {
+            const nav = await renderNav(ITEMS, '/', ADD);
+
+            const button = within(nav).getByRole('button', { name: ADD.label });
+            expect(button.textContent).toBe(ADD.word);
+            expect(button.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true');
+            expect(button.querySelector('.bottom-nav__word')!.textContent).toBe(ADD.word);
+        });
+
         it('calls onPress when the action is pressed', async () => {
             const onPress = vi.fn();
             const nav = await renderNav(ITEMS, '/', { ...ADD, onPress });
 
-            fireEvent.click(within(nav).getByRole('button', { name: 'Add' }));
+            fireEvent.click(within(nav).getByRole('button', { name: 'Add expense' }));
 
             expect(onPress).toHaveBeenCalledTimes(1);
         });

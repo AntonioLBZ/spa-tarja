@@ -44,7 +44,6 @@ const RootLayout = () => {
             <ToastProvider>
                 <div className={rootClsx}>
                     {wide ? <RootHeader /> : <RootPhoneHeader />}
-                    {wide && <AddExpenseButton />}
                     <main className="root__main">
                         <Outlet />
                     </main>
@@ -116,7 +115,8 @@ const RootPhoneHeader = () => {
     );
 };
 
-// Expenses on the left, the logo in the middle, the other screens on the right. Both Expenses and the logo lead home.
+// Expenses and the action that adds on the left, the logo in the middle, the other screens on the right. Both Expenses
+// and the logo lead home.
 const RootHeader = () => {
     const t = useTranslations('nav');
     const section = useSection();
@@ -133,10 +133,13 @@ const RootHeader = () => {
     return (
         <header className="root__header">
             <nav aria-label={t('label')} className="root__nav">
-                <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
-                    {t('expenses')}
-                    {underline('/')}
-                </Link>
+                <div className="root__start">
+                    <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
+                        {t('expenses')}
+                        {underline('/')}
+                    </Link>
+                    <AddExpenseButton />
+                </div>
                 <RootBrand />
                 <div className="root__group">
                     <Link className="root__link" to="/groups" aria-current={current('/groups')}>
@@ -183,7 +186,13 @@ const RootTabs = () => {
         };
     });
 
-    return <BottomNav label={t('label')} items={items} action={{ label: t('add'), icon: 'add', onPress: openAdd }} />;
+    return (
+        <BottomNav
+            label={t('label')}
+            items={items}
+            action={{ label: t('add'), word: t('addWord'), icon: 'add', onPress: openAdd }}
+        />
+    );
 };
 
 export const Route = createRootRoute({ component: RootLayout });

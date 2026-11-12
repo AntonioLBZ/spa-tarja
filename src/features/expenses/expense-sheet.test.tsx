@@ -214,15 +214,27 @@ describe('the way to the sheet', () => {
         expect(screen.queryByRole('dialog')).toBeNull();
     });
 
-    it('is a floating button on a wide screen, outside any navigation', async () => {
+    it('is the text action of the header on a wide screen, and the only "+"', async () => {
         stubViewport(true);
         stubApi(createFakeApi().handler);
         renderApp();
 
         const button = await screen.findByRole('button', { name: en.nav.add });
 
-        expect(button.closest('nav')).toBeNull();
+        expect(button.closest('header')).not.toBeNull();
+        expect(button.textContent).toBe(en.nav.add);
         expect(screen.getAllByRole('button', { name: en.nav.add })).toHaveLength(1);
+        expect(document.querySelector('.bottom-nav')).toBeNull();
+    });
+
+    it('opens the add form from the header action of a wide screen', async () => {
+        stubViewport(true);
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        const dialog = await openAddSheet();
+
+        expect(amountIn(dialog)).toBeDefined();
     });
 
     it('is the middle item of the bar on a phone', async () => {
@@ -234,7 +246,8 @@ describe('the way to the sheet', () => {
         const items = within(nav).getAllByRole('listitem');
 
         expect(items).toHaveLength(5);
-        expect(within(items[2]!).getByRole('button', { name: en.nav.add })).toBeDefined();
+        const button = within(items[2]!).getByRole('button', { name: en.nav.add });
+        expect(button.textContent).toBe(en.nav.addWord);
         expect(screen.getAllByRole('button', { name: en.nav.add })).toHaveLength(1);
     });
 

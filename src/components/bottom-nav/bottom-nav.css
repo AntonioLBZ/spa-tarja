@@ -40,17 +40,6 @@
     padding: 0;
 }
 
-/* The four links share what is left of the 3rem column of the action in the middle */
-.bottom-nav__list--action {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) 3rem repeat(2, minmax(0, 1fr));
-}
-
-.bottom-nav__action {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-}
-
 .bottom-nav__link {
     align-items: center;
     block-size: var(--bottom-nav-height);
@@ -64,8 +53,44 @@
     text-decoration: none;
 }
 
+/* The action is a column like the links, so all of it is the button */
+.bottom-nav__button {
+    align-items: center;
+    block-size: var(--bottom-nav-height);
+    border-width: 0;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    gap: var(--size-1);
+    inline-size: 100%;
+    justify-content: center;
+    padding: 0;
+    text-align: center;
+}
+
+.bottom-nav__button:focus-visible,
 .bottom-nav__link:focus-visible {
     outline-offset: var(--focus-inset);
+}
+
+/* Flat: no notch, since it stands inside the edge of the bar. The thicker plus keeps its center, which a notch would
+   move. */
+.bottom-nav__square {
+    align-items: center;
+    background: var(--color-bg-accent);
+    block-size: var(--size-8);
+    color: var(--color-content-on-accent);
+    display: flex;
+    inline-size: var(--size-8);
+    justify-content: center;
+}
+
+.bottom-nav__square path {
+    stroke: currentcolor;
+    stroke-linejoin: miter;
+    stroke-width: 70px;
 }
 
 /* No fill and no accent: the mark is an ink bar on the top edge */
