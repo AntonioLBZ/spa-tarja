@@ -84,6 +84,7 @@
         border-color: var(--color-border);
         border-style: solid;
         border-width: 0 0 var(--size-1) var(--size-1);
+        box-shadow: var(--shadow-popup);
         color: var(--color-content-primary);
         max-block-size: max(min(24rem, 50dvh), calc(2 * var(--size-touch)));
         padding: 0;
@@ -98,7 +99,6 @@
 
     .select__option {
         align-items: center;
-        border-left: var(--size-1) solid transparent;
         cursor: pointer;
         display: flex;
         gap: var(--size-2);
@@ -110,18 +110,17 @@
         display: none;
     }
 
-    .select__option:hover,
-    .select__option:focus {
-        background: var(--color-bg-secondary);
+    .select__option:checked {
+        font-weight: 700;
     }
 
-    /* The ring of the row the arrow keys are on: inside it and past the thick edge of the chosen one */
     .select__option:focus-visible {
         outline: var(--focus-width) solid var(--color-border-focus);
         outline-offset: var(--focus-inset);
     }
 
-    .select__option:checked {
-        border-left-color: var(--color-border);
+    .select__option:not(:checked):hover,
+    .select__option:not(:checked):focus {
+        background: var(--color-bg-secondary);
     }
 }

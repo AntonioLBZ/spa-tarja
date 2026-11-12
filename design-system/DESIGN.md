@@ -15,25 +15,26 @@ Source of truth for the visual and interaction rules of the design system. `src/
 
 ### Flat colors
 
-Solid colors only: no gradients, no shadows, no blur. Separation comes from borders and from the two surface tones, not from elevation.
+Solid colors only: no gradients, no blur. Separation comes from borders and from the two surface tones, not from elevation. The one exception is the soft shadow (`--shadow-popup`) around a list that opens over the page, such as the options of a `Select`: it tells the list from what lies under it. Nothing else casts a shadow.
 
 ### Palette
 
 The base is white (light theme) or black (dark theme), with text in the opposite one. The dark theme is true black. Everything else is a neutral gray, one accent (picked from a fixed list), one danger color and the category palette.
 
-| Token                       | Light     | Dark      | Use                                                                               |
-| --------------------------- | --------- | --------- | --------------------------------------------------------------------------------- |
-| `--color-bg-primary`        | `#fff`    | `#000`    | Page background, and the text of a toast                                          |
-| `--color-bg-secondary`      | `#f4f4f4` | `#141414` | Header and raised surfaces. The browser toolbar matches it                        |
-| `--color-content-primary`   | `#000`    | `#fff`    | Text and icons                                                                    |
-| `--color-content-secondary` | `#595959` | `#a3a3a3` | Secondary text                                                                    |
-| `--color-border`            | `#000`    | `#fff`    | Structural borders (ink), and the fill of a toast                                 |
-| `--color-border-subtle`     | `#d4d4d4` | `#2e2e2e` | Hairline dividers                                                                 |
-| `--color-accent`            | `#404040` | `#d4d4d4` | The interface hue: links, selection, primary action (gray by default, see Accent) |
-| `--color-bg-accent`         | accent    | accent    | Fill behind a primary action                                                      |
-| `--color-content-on-accent` | `#fff`    | `#000`    | Text on that fill                                                                 |
-| `--color-border-focus`      | accent    | accent    | Focus ring                                                                        |
-| `--color-danger`            | `#c81e1e` | `#f87171` | Errors and destructive actions only                                               |
+| Token                       | Light       | Dark        | Use                                                                               |
+| --------------------------- | ----------- | ----------- | --------------------------------------------------------------------------------- |
+| `--color-bg-primary`        | `#fff`      | `#000`      | Page background, and the text of a toast                                          |
+| `--color-bg-secondary`      | `#f4f4f4`   | `#141414`   | Header and raised surfaces. The browser toolbar matches it                        |
+| `--color-content-primary`   | `#000`      | `#fff`      | Text and icons                                                                    |
+| `--color-content-secondary` | `#595959`   | `#a3a3a3`   | Secondary text                                                                    |
+| `--color-border`            | `#000`      | `#fff`      | Structural borders (ink), and the fill of a toast                                 |
+| `--color-border-subtle`     | `#d4d4d4`   | `#2e2e2e`   | Hairline dividers                                                                 |
+| `--color-accent`            | `#404040`   | `#d4d4d4`   | The interface hue: links, selection, primary action (gray by default, see Accent) |
+| `--color-bg-accent`         | accent      | accent      | Fill behind a primary action                                                      |
+| `--color-content-on-accent` | `#fff`      | `#000`      | Text on that fill                                                                 |
+| `--color-border-focus`      | accent      | accent      | Focus ring                                                                        |
+| `--color-danger`            | `#c81e1e`   | `#f87171`   | Errors and destructive actions only                                               |
+| `--color-shadow`            | `#0000002e` | `#ffffff24` | The soft shadow around a list that opens over the page (`--shadow-popup`)         |
 
 Rules:
 
@@ -103,7 +104,7 @@ Three settings: light (the default), dark and system, which follows the OS.
 ## 3. Shape
 
 - **No rounded corners.** Never use `border-radius`; there are no radius tokens. This includes buttons, inputs, avatars and focus outlines.
-- **Borders carry the structure** where other designs use shadows. `--color-border` (ink) for structure, `--color-border-subtle` for dividers. Dividers are 1 px (`--size-px`); the notch and emphasis use `--size-1`.
+- **Borders carry the structure**; the only shadow is the soft one around a list that opens over the page. `--color-border` (ink) for structure, `--color-border-subtle` for dividers. Dividers are 1 px (`--size-px`); the notch and emphasis use `--size-1`.
 - **Form controls** share one look, set on the elements in `base.css`: the notch (below) on a `--color-bg-secondary` field, no radius, at least `--size-touch` tall. A button has the notch too; the primary action fills with the accent (`--color-bg-accent`) and a destructive one takes `--color-danger` for its text.
 - **The notch.** The tally-stick cut: every box (form control, button, card, the rows of a list) has a thick ink border (`--size-1`) on the left and at the bottom, and none on top or on the right. The exceptions are the ghost button and the expenses of a day, which sit on paper (below), and the square of the "+" in the phone bar, which stands inside the edge of the bar. Without an outline, a box that takes input sits on `--color-bg-secondary` so it still reads as a field. The focus ring is the exception: a full accent outline around the box. Messages (status, notices, errors) keep a thick left border only, in ink, or in `--color-danger` for errors; a quiet notice uses the hairline. The `Toast` is the exception: it is filled with ink. Both edges are `--size-1` (4 px), checked on screen on the form, the lists and the choice groups. A primary button keeps the ink notch on its accent fill, which is what marks it (§2, Palette).
 - **Room around the notch.** A box that holds a label has `--size-4` before the text and `--size-12` after it, so its bottom edge runs on past the text like the tail of an L; buttons share it. The options of a `ChoiceGroup` and a `block` button are the exception: their width comes from the row, so they keep `--size-4` before the text and only `--size-2` after it. Boxes in a row are `--size-4` apart, wrapped or not, so each notch stands on its own (the options of a `ChoiceGroup` are the exception: they are one joined box); rows stacked in a list are `--size-2` apart. A link that does what a button does takes the class `.button` and looks like one. A box that holds only a glyph (the arrows of the month) keeps its padding even. The swatches of the color and icon pickers are cells of a `ChoiceGroup`, so they are joined and fill their row.
@@ -166,7 +167,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 
 - A `Select` is a native `<select>`, so the keyboard, the screen readers and the phones handle it as they handle any select: arrow keys, letters to jump to a name, Escape to close, and the list of the system where the browser keeps its own. Every field that picks one option from a list (the category in the expense form and in the filters of the charts and of the list, the payment, the installments, the groups and the people) is one.
 - **The field** is the same in every browser: the notch on `--color-bg-secondary`, the chevron at the end (it turns over while the list is open, where the browser says so), and, when the options have icons, the icon of the chosen option before its name. That icon is drawn over the field, not by the select, so it shows also where the list can't draw one.
-- **The list where the browser lets a select be styled** (`appearance: base-select`): a box with the notch on `--color-bg-primary`, as wide as the field, with a row per option at least `--size-touch` tall, each with its icon and its name, and it scrolls past half the screen (`dvh`). The browser places it under the field, or above when there is more room there, and over every box that clips, like the sheet of a form. It comes in with a fade over `--duration-base`. The row under the pointer or with the focus is on `--color-bg-secondary`, the chosen one carries the thick left edge of the notch instead of a check mark, and the row the keys are on has the focus ring as well, inside the row and clear of that edge (see Focus ring).
+- **The list where the browser lets a select be styled** (`appearance: base-select`): a box with the notch on `--color-bg-primary`, as wide as the field, with a row per option at least `--size-touch` tall, each with its icon and its name, and it scrolls past half the screen (`dvh`). The browser places it under the field, or above when there is more room there, and over every box that clips, like the sheet of a form. It has a soft shadow (`--shadow-popup`) all round, so it stands out from the page, and it comes in with a fade over `--duration-base`. The row under the pointer or with the focus is on `--color-bg-secondary`, the chosen one is in bold, with no check mark and no change of background, and the row the keys are on has the focus ring as well (see Focus ring).
 - **Elsewhere** the list is the system's own and shows the names alone. That is the price of a native select, taken on purpose: it behaves as the person expects on their phone, and it needs no code to place the list, follow the keys or close it.
 - The color of an icon alone says nothing, so the name is always there. A row without an icon (the "All categories" of the charts and of the list) keeps the place of one, so the names line up.
 - Only one option is picked at a time: no `multiple` select. A desktop browser draws one as a box of rows picked with Control or Command, which nobody guesses, and no screen needs one today; a filter that takes several would be a set of `Checkbox`es.
