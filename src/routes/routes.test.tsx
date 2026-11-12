@@ -6,6 +6,7 @@ import en from '@/assets/locales/en.json';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
+import { openAddSheet } from '@/lib/test/sheet';
 import { stubViewport } from '@/lib/test/viewport';
 
 const t = createTranslator({ locale: 'en', messages: en });
@@ -39,14 +40,6 @@ describe('header', () => {
         return screen.getByRole('link', { name });
     }
 
-    function formToggle() {
-        return screen.getByRole('button', { name: en.expenses.form.title });
-    }
-
-    function formOpen() {
-        return formToggle().getAttribute('aria-expanded') === 'true';
-    }
-
     async function home(path = '/') {
         stubApi(createFakeApi().handler);
         renderApp({ path });
@@ -66,58 +59,61 @@ describe('header', () => {
         expect(link('Tarja').getAttribute('href')).toBe('/');
     });
 
-    it('opens the add form to start with', async () => {
+    it('holds the "Add expense" action in the header, between Expenses and the logo, ahead of the screen', async () => {
         await home();
 
-        expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
-        expect(formOpen()).toBe(true);
+        const header = screen.getByRole('banner');
+        const action = within(header).getByRole('button', { name: en.nav.add });
+
+        expect(action.textContent).toBe(en.nav.add);
+        const stops = within(header)
+            .getAllByRole('link')
+            .map((item) => item.textContent);
+        expect(stops.slice(0, 2)).toEqual([en.nav.expenses, 'Tarja']);
+        expect(link(en.nav.expenses).compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(action.compareDocumentPosition(link('Tarja')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(
+            action.compareDocumentPosition(screen.getByRole('main')) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
     });
 
-    it('collapses the add form from Expenses and opens it from the logo', async () => {
+    it('opens the sheet of a new expense from the header action and changes no route', async () => {
+        await home('/summary');
+
+        fireEvent.click(within(screen.getByRole('banner')).getByRole('button', { name: en.nav.add }));
+
+        expect(await screen.findByRole('dialog', { name: en.expenses.form.title })).toBeDefined();
+        expect(link(en.nav.summary).getAttribute('aria-current')).toBe('page');
+        expect(
+            within(screen.getByRole('banner')).getByRole('button', { name: en.nav.add }).hasAttribute('aria-current')
+        ).toBe(false);
+    });
+
+    it('leaves what was typed in the form alone through Expenses and the logo', async () => {
         await home();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
+        const dialog = await openAddSheet();
+        fireEvent.change(within(dialog).getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
+        act(() => (dialog as HTMLDialogElement).close());
 
         fireEvent.click(link(en.nav.expenses));
-        expect(formOpen()).toBe(false);
-
         fireEvent.click(link('Tarja'));
-        expect(formOpen()).toBe(true);
+        const again = await openAddSheet();
+
+        expect((within(again).getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
     });
 
-    it('collapses the form from Expenses again after it was opened by hand', async () => {
-        await home();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        fireEvent.click(link(en.nav.expenses));
-        fireEvent.click(formToggle());
-
-        fireEvent.click(link(en.nav.expenses));
-
-        expect(formOpen()).toBe(false);
-    });
-
-    it('keeps what was typed in the form through Expenses and the logo', async () => {
-        await home();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        fireEvent.change(screen.getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
-
-        fireEvent.click(link(en.nav.expenses));
-        fireEvent.click(link('Tarja'));
-
-        expect((screen.getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
-    });
-
-    it('brings Expenses from another screen to a collapsed form, and the logo to an open one', async () => {
+    it('leads home from another screen with no form open, from Expenses and from the logo', async () => {
         await home('/summary');
 
         fireEvent.click(link(en.nav.expenses));
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        expect(formOpen()).toBe(false);
+        await screen.findByText(en.expenses.list.empty);
+        expect(screen.queryByRole('dialog')).toBeNull();
 
         fireEvent.click(link(en.nav.settings));
         await screen.findByRole('heading', { name: en.settings.title });
         fireEvent.click(link('Tarja'));
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        expect(formOpen()).toBe(true);
+        await screen.findByText(en.expenses.list.empty);
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     function underlined() {
@@ -183,34 +179,11 @@ describe('header', () => {
 
             fireEvent.click(link('Tarja'));
 
-            await screen.findByRole('heading', { name: en.expenses.form.title });
+            await screen.findByText(en.expenses.list.empty);
             expect(underlined()).toEqual([en.nav.expenses]);
             expect(link('Tarja').querySelector('.root__underline')).toBeNull();
         }
     );
-
-    it('leaves the form as it is on a click that opens the link elsewhere', async () => {
-        await home();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        const keepOnPage = (event: MouseEvent) => event.preventDefault();
-        window.addEventListener('click', keepOnPage);
-
-        try {
-            fireEvent.click(link(en.nav.expenses), { ctrlKey: true });
-            fireEvent.click(link(en.nav.expenses), { metaKey: true });
-            fireEvent.click(link(en.nav.expenses), { shiftKey: true });
-            fireEvent.click(link(en.nav.expenses), { altKey: true });
-            fireEvent.click(link(en.nav.expenses), { button: 1 });
-            expect(formOpen()).toBe(true);
-
-            fireEvent.click(link(en.nav.expenses));
-            fireEvent.click(link('Tarja'), { ctrlKey: true });
-            fireEvent.click(link('Tarja'), { button: 1 });
-            expect(formOpen()).toBe(false);
-        } finally {
-            window.removeEventListener('click', keepOnPage);
-        }
-    });
 });
 
 describe('prerelease logo', () => {
@@ -249,14 +222,6 @@ describe('bottom navigation', () => {
         return within(screen.getByRole('navigation', { name: en.nav.label })).getByRole('link', { name });
     }
 
-    function formToggle() {
-        return screen.getByRole('button', { name: en.expenses.form.title });
-    }
-
-    function formOpen() {
-        return formToggle().getAttribute('aria-expanded') === 'true';
-    }
-
     async function phone(path = '/') {
         const viewport = stubViewport(false);
         stubApi(createFakeApi().handler);
@@ -275,20 +240,6 @@ describe('bottom navigation', () => {
         const header = within(screen.getByRole('banner'));
         expect(header.getAllByRole('link').map((item) => item.textContent)).toEqual(['Tarja']);
         expect(document.querySelectorAll('.root__underline')).toHaveLength(0);
-    });
-
-    it('collapses the add form from Expenses and opens it from the logo, keeping what was typed', async () => {
-        await phone();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        fireEvent.change(screen.getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
-        expect(formOpen()).toBe(true);
-
-        fireEvent.click(tab(en.nav.expenses));
-        expect(formOpen()).toBe(false);
-
-        fireEvent.click(within(screen.getByRole('banner')).getByRole('link', { name: 'Tarja' }));
-        expect(formOpen()).toBe(true);
-        expect((screen.getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
     });
 
     it.each([
@@ -318,7 +269,7 @@ describe('bottom navigation', () => {
         expect(tab(en.nav.groups).getAttribute('aria-current')).toBe('page');
 
         fireEvent.click(tab(en.nav.expenses));
-        expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+        expect(await screen.findByText(en.expenses.list.empty)).toBeDefined();
         expect(tab(en.nav.expenses).getAttribute('aria-current')).toBe('page');
     });
 
@@ -359,8 +310,8 @@ describe('bottom navigation', () => {
 
     it('swaps the bar for the header words when the screen widens, keeping what was typed', async () => {
         const viewport = await phone();
-        await screen.findByRole('heading', { name: en.expenses.form.title });
-        fireEvent.change(screen.getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
+        const dialog = await openAddSheet();
+        fireEvent.change(within(dialog).getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
 
         act(() => viewport.setWide(true));
 

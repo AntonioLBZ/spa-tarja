@@ -191,12 +191,17 @@ const useSharedTail = (
     fixed: SharedGroup | undefined,
     totalCents: number | null,
     payment: PaymentState,
-    source: EntrySource | null = null
+    source: EntrySource | null = null,
+    startGroupId?: string
 ) => {
     const { groups } = useGroups();
     const { locale } = useLocale();
     const [draft, setDraft] = useState<SharedDraft>(() =>
-        fixed && source ? draftOfEntry(fixed, source.entry, source.copy, locale) : START
+        fixed && source
+            ? draftOfEntry(fixed, source.entry, source.copy, locale)
+            : startGroupId
+              ? { ...START, groupId: startGroupId }
+              : START
     );
     // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
     const [seed, setSeed] = useState(randomSeed);

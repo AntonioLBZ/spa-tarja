@@ -24,7 +24,7 @@ vi.mock('virtual:pwa-register/react', () => ({
 function Update() {
     return (
         <LocaleProvider>
-            <ToastProvider>
+            <ToastProvider dismissLabel="Dismiss">
                 <AppUpdate />
             </ToastProvider>
         </LocaleProvider>

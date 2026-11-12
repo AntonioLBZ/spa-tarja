@@ -29,7 +29,7 @@ describe('sign-in gate', () => {
 
             renderApp();
 
-            expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(await screen.findByRole('button', { name: en.nav.add })).toBeDefined();
             expect(screen.queryByRole('button', { name: en.auth.google })).toBeNull();
         });
 
@@ -40,7 +40,7 @@ describe('sign-in gate', () => {
 
             renderApp({ fakeAuth });
 
-            expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(await screen.findByRole('button', { name: en.nav.add })).toBeDefined();
             await waitFor(() => expect(fakeAuth.calls.getSession).toBe(1));
             expect(screen.queryByRole('button', { name: en.auth.google })).toBeNull();
         });
@@ -54,7 +54,7 @@ describe('sign-in gate', () => {
 
             expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
             expect(googleButton()).toBeDefined();
-            expect(screen.queryByRole('heading', { name: en.expenses.form.title })).toBeNull();
+            expect(screen.queryByRole('button', { name: en.nav.add })).toBeNull();
             expect(screen.queryByRole('link', { name: en.nav.settings })).toBeNull();
         });
 
@@ -98,7 +98,7 @@ describe('sign-in gate', () => {
 
             expect(screen.queryByRole('button', { name: en.auth.google })).toBeNull();
             expect(screen.getByRole('status').textContent).toBe(en.auth.loading);
-            expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(await screen.findByRole('button', { name: en.nav.add })).toBeDefined();
         });
 
         it('sends the person to the page Google lives at', async () => {
@@ -216,12 +216,12 @@ describe('sign-in gate', () => {
             renderApp({ fakeAuth });
 
             expect((await screen.findByRole('alert')).textContent).toBe(en.auth.unreachable);
-            expect(screen.queryByRole('heading', { name: en.expenses.form.title })).toBeNull();
+            expect(screen.queryByRole('button', { name: en.nav.add })).toBeNull();
 
             fakeAuth.state.offline = false;
             onlineManager.setOnline(true);
 
-            expect(await screen.findByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(await screen.findByRole('button', { name: en.nav.add })).toBeDefined();
             expect(screen.queryByRole('alert')).toBeNull();
         });
 
@@ -251,7 +251,7 @@ describe('sign-in gate', () => {
             await queryClient.invalidateQueries();
 
             expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
-            expect(screen.queryByRole('heading', { name: en.expenses.form.title })).toBeNull();
+            expect(screen.queryByRole('button', { name: en.nav.add })).toBeNull();
             expect(readCachedUser()).toBeNull();
         });
 
@@ -267,7 +267,7 @@ describe('sign-in gate', () => {
             await queryClient.invalidateQueries();
 
             await waitFor(() => expect(fakeAuth.calls.getSession).toBeGreaterThan(checks));
-            expect(screen.getByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(screen.getByRole('button', { name: en.nav.add })).toBeDefined();
             expect(screen.queryByRole('heading', { name: en.auth.title })).toBeNull();
         });
 
@@ -284,7 +284,7 @@ describe('sign-in gate', () => {
             await queryClient.invalidateQueries();
 
             await waitFor(() => expect(fakeAuth.calls.getSession).toBeGreaterThan(checks));
-            expect(screen.getByRole('heading', { name: en.expenses.form.title })).toBeDefined();
+            expect(screen.getByRole('button', { name: en.nav.add })).toBeDefined();
         });
     });
 
@@ -377,7 +377,7 @@ describe('sign-in gate', () => {
         it('says so on the sign-in screen', async () => {
             stubApi(createFakeApi().handler);
             const { fakeAuth } = renderApp();
-            await screen.findByRole('heading', { name: en.expenses.form.title });
+            await screen.findByRole('button', { name: en.nav.add });
 
             act(() => fakeAuth.auth.forget({ cleared: true }));
 
@@ -390,7 +390,7 @@ describe('sign-in gate', () => {
         it('says so, and that the device still holds its copy, when it could not delete it', async () => {
             stubApi(createFakeApi().handler);
             const { fakeAuth } = renderApp();
-            await screen.findByRole('heading', { name: en.expenses.form.title });
+            await screen.findByRole('button', { name: en.nav.add });
 
             act(() => fakeAuth.auth.forget({ cleared: false }));
 

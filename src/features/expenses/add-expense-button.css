@@ -1,0 +1,4 @@
+/* The size of the words of the header it stands beside */
+.add-expense-button {
+    font-size: var(--font-size-s);
+}

@@ -84,7 +84,7 @@ export const ExpenseForm = (args: ExpenseFormStoryProps) => {
     const { mode, inGroup, ...props } = args;
 
     return (
-        <ToastProvider>
+        <ToastProvider dismissLabel="Dismiss">
             <AppData
                 key={`${mode}-${inGroup}`}
                 api={{ categories: [...CUSTOM_CATEGORIES], expenses: [SAVED], groups: GROUPS }}

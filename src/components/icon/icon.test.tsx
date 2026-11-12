@@ -38,6 +38,13 @@ describe('Icon', () => {
         expect(draw('expand_more').getAttribute('data-icon')).toBe('expand_more');
     });
 
+    it('draws the plus that adds an expense and the cross that closes a sheet', () => {
+        for (const name of ['add', 'close'] as const) {
+            expect(draw(name).getAttribute('data-icon')).toBe(name);
+            expect(draw(name).querySelector('path')!.getAttribute('d')).toMatch(/^[Mm]/);
+        }
+    });
+
     it('is decoration: the name always comes with it', () => {
         const svg = draw('restaurant');
 

@@ -259,7 +259,7 @@ describe('changing a shared row from the list', () => {
         });
         expect(rowOf('Dinner').textContent).toContain(euros(2500));
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('does not offer Edit for an entry that names somebody who left, and still offers Duplicate', async () => {
@@ -315,17 +315,6 @@ describe('changing a shared row from the list', () => {
 
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
         expect(app.groupOutbox.getState().pending).toMatchObject([{ text: 'Dinner', deletedAt: null }]);
-    });
-
-    it('ends an edit of the entry it deletes', async () => {
-        await openTrip();
-        onlineManager.setOnline(false);
-        press('editItem', 'Dinner');
-        expect(screen.getByRole('form', { name: en.expenses.form.editTitle })).toBeDefined();
-
-        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.deleteItem', { name: 'Dinner' }) }));
-
-        await waitFor(() => expect(screen.getByRole('form', { name: en.expenses.form.title })).toBeDefined());
     });
 
     it('says under the title why a delete the device refuses did nothing, and keeps the row as it was', async () => {

@@ -1,11 +1,8 @@
-import { useEffect, useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
-import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
-import { ExpenseForm } from '@/features/expenses/expense-form';
-import { readDuration } from '@/lib/motion';
+import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
 
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
@@ -15,7 +12,6 @@ import { myBalance } from './my-balance';
 import { SettleUp, useSettleUp } from './settle-up';
 import { useGroupDebts } from './use-group-debts';
 import { useGroupWords } from './use-group-words';
-import { useLedgerForm } from './use-ledger-form';
 
 import type { Ledger } from './use-ledgers';
 
@@ -29,8 +25,8 @@ interface GroupViewProps {
     ledger: Ledger;
 }
 
-// A group or a friend: what the person is owed or owes, who owes whom and settling up, adding an expense, its entries,
-// and the way to its settings
+// A group or a friend: what the person is owed or owes, who owes whom and settling up, its entries, and the way to its
+// settings. Adding an expense is the "+", and Edit and Duplicate of an entry open the same sheet.
 const GroupScreen = (props: GroupScreenProps) => {
     const { groupId } = props;
 
@@ -41,24 +37,11 @@ const GroupView = (props: GroupViewProps) => {
     const { ledger } = props;
     const { group, entries, hasData, isError, isWaitingForNetwork } = ledger;
     const t = useTranslations('groups');
-    const tForm = useTranslations('expenses.form');
     const words = useGroupWords(group);
     const settle = useSettleUp();
-    const form = useLedgerForm();
+    const sheet = useExpenseSheet();
     const { debts, formEntries, formDebts } = useGroupDebts(group, entries, settle.editing?.id ?? null);
-    const { editing, copying } = form;
-    const heading = useRef<HTMLButtonElement>(null);
     const open = group.closed === null;
-    const formTitle = editing ? tForm('editTitle') : copying ? tForm('copyTitle') : tForm('title');
-
-    // Edit and Duplicate bring the form into view and put the focus on its heading, never on a field: a phone would
-    // open its keyboard
-    useEffect(() => {
-        if (!editing && !copying) return;
-        const behavior = readDuration('--duration-base') === 0 ? 'instant' : 'smooth';
-        heading.current?.scrollIntoView({ behavior, block: 'start' });
-        heading.current?.focus({ preventScroll: true });
-    }, [editing, copying]);
 
     return (
         <section className="group-screen">
@@ -79,32 +62,10 @@ const GroupView = (props: GroupViewProps) => {
                             entries={formEntries}
                             debts={formDebts}
                             form={settle}
-                            onEditDone={form.setRefocus}
+                            onEditDone={sheet.requestRefocus}
                         />
                     )}
                 </>
-            )}
-            {/* Writing an expense needs no ledger on the device: it goes through the outbox */}
-            {open && (
-                <Disclosure
-                    as="section"
-                    heading="h2"
-                    summary={formTitle}
-                    chevron
-                    keepMounted
-                    open={form.open}
-                    onOpenChange={form.setOpen}
-                    toggleRef={heading}
-                >
-                    <ExpenseForm
-                        key={form.key}
-                        title={formTitle}
-                        group={group}
-                        editingEntry={editing}
-                        copyingEntry={copying}
-                        onDone={form.end}
-                    />
-                </Disclosure>
             )}
             {!hasData && (isError || isWaitingForNetwork) && (
                 <Notice role="status" tone="danger">
@@ -115,15 +76,15 @@ const GroupView = (props: GroupViewProps) => {
             {hasData && (
                 <GroupLedger
                     ledger={ledger}
-                    onEdit={form.startEdit}
+                    onEdit={(entry) => sheet.startEditEntry({ group, entry })}
                     onEditSettlement={(entry) => settle.edit(entry, group.members)}
-                    onDuplicate={form.startCopy}
+                    onDuplicate={(entry) => sheet.startCopyEntry({ group, entry })}
                     onDeleted={(entryId) => {
-                        form.forget(entryId);
+                        sheet.forget(entryId);
                         settle.forget(entryId);
                     }}
-                    refocus={form.refocus}
-                    onRefocused={() => form.setRefocus(null)}
+                    refocus={sheet.refocus}
+                    onRefocused={sheet.clearRefocus}
                 />
             )}
             <ButtonLink ghost className="group-screen__edit" to="/groups/$groupId/edit" params={{ groupId: group.id }}>

@@ -1,6 +1,6 @@
 import { ToastProvider } from '@/components/toast/toast';
-import { AddFormProvider } from '@/features/expenses/add-form-state';
 import { ExpenseList as ExpenseListComponent } from '@/features/expenses/expense-list';
+import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
@@ -67,12 +67,12 @@ export const ExpenseList = () => {
     return (
         <AppData api={{ categories: [...CUSTOM_CATEGORIES], expenses: EXPENSES }}>
             {() => (
-                <ToastProvider>
-                    <AddFormProvider>
+                <ToastProvider dismissLabel="Dismiss">
+                    <ExpenseSheetProvider>
                         <div style={{ margin: '0 auto', maxWidth: '40rem', padding: 'var(--size-4)' }}>
                             <ExpenseListComponent />
                         </div>
-                    </AddFormProvider>
+                    </ExpenseSheetProvider>
                 </ToastProvider>
             )}
         </AppData>

@@ -2,12 +2,11 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
-import { Disclosure } from '@/components/disclosure/disclosure';
+import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useLocale } from '@/lib/i18n';
-import { readDuration } from '@/lib/motion';
 import { isCalendarDate, toDateString } from '@core/date';
 import { groupDebts } from '@core/group-debts';
 import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
@@ -88,8 +87,6 @@ const useSettleUp = () => {
     const { locale } = useLocale();
     const [open, setOpen] = useState(false);
     const [draft, setDraft] = useState<SettleDraft | null>(null);
-    // How many debts were taken from a line: each one puts the focus on the amount
-    const [taken, setTaken] = useState(0);
     // The settlement the form changes; null while it records a new one
     const [editing, setEditing] = useState<SettlementEntry | null>(null);
 
@@ -102,7 +99,6 @@ const useSettleUp = () => {
                 date: toDateString(new Date()),
             });
             setOpen(true);
-            setTaken((count) => count + 1);
         },
         [locale]
     );
@@ -120,7 +116,6 @@ const useSettleUp = () => {
         draft,
         setDraft,
         take,
-        taken,
         editing,
         // Fills the form with a settlement of the ledger, who paid and who was paid read as the members they are now
         edit: (entry: SettlementEntry, members: SharedGroup['members']) => {
@@ -153,20 +148,15 @@ const SettleUp = (props: SettleUpProps) => {
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
     const toggle = useRef<HTMLButtonElement>(null);
+    // The sheet is closing and the button that opened it takes the focus, once the page is not inert any more
+    const returnFocus = useRef(false);
+    useEffect(() => {
+        if (form.open || !returnFocus.current) return;
+        returnFocus.current = false;
+        toggle.current?.focus();
+    }, [form.open]);
     const amountInput = useRef<HTMLInputElement>(null);
     const { editing } = form;
-
-    useEffect(() => {
-        if (form.taken > 0) amountInput.current?.focus();
-    }, [form.taken]);
-
-    // Editing a settlement brings the form into view and puts the focus on its title, never on a field
-    useEffect(() => {
-        if (!editing) return;
-        const behavior = readDuration('--duration-base') === 0 ? 'instant' : 'smooth';
-        toggle.current?.scrollIntoView({ behavior, block: 'start' });
-        toggle.current?.focus({ preventScroll: true });
-    }, [editing]);
 
     const people = group.members.filter((member) => member.leftAt === null);
     if (people.length < 2) return null;
@@ -248,7 +238,7 @@ const SettleUp = (props: SettleUpProps) => {
             }
             form.setDraft(null);
             form.setOpen(false);
-            toggle.current?.focus();
+            returnFocus.current = true;
         } catch (error) {
             setFailure(failureOf(error));
         } finally {
@@ -256,85 +246,103 @@ const SettleUp = (props: SettleUpProps) => {
         }
     };
 
+    // Closing the sheet keeps what was typed for a new settlement, and ends the edit of one, as Cancel does
+    const handleClose = () => {
+        if (!form.open) return;
+        if (editing) {
+            form.stopEditing();
+            onEditDone(editing.id);
+            return;
+        }
+        form.setOpen(false);
+        returnFocus.current = true;
+    };
+
     return (
-        <Disclosure
-            summary={editing ? t('editTitle') : t('title')}
-            chevron
-            open={form.open}
-            toggleRef={toggle}
-            onOpenChange={form.setOpen}
-        >
-            <form className="settle-up" onSubmit={(event) => void handleSubmit(event)}>
-                <Field label={t('from')}>
-                    {(control) => (
-                        <Select
-                            {...control}
-                            label={t('from')}
-                            options={options}
-                            value={from}
-                            onChange={(next) => change({ from: next })}
-                        />
-                    )}
-                </Field>
-                <Field label={t('to')} error={same ? t('same') : null}>
-                    {(control) => (
-                        <Select
-                            {...control}
-                            label={t('to')}
-                            options={options}
-                            value={to}
-                            onChange={(next) => change({ to: next })}
-                        />
-                    )}
-                </Field>
-                <Field label={t('amount')} hint={hint || undefined}>
-                    {(control) => (
-                        <input
-                            {...control}
-                            ref={amountInput}
-                            autoComplete="off"
-                            inputMode="decimal"
-                            required
-                            type="text"
-                            value={draft.amount}
-                            onChange={(event) => change({ amount: event.target.value })}
-                        />
-                    )}
-                </Field>
-                <Field label={t('date')}>
-                    {(control) => (
-                        <input
-                            {...control}
-                            required
-                            type="date"
-                            value={draft.date}
-                            onChange={(event) => change({ date: event.target.value })}
-                        />
-                    )}
-                </Field>
-                <div className="settle-up__actions">
-                    <Button block variant="primary" disabled={!valid || busy} type="submit">
-                        {t('save')}
-                    </Button>
-                    {editing && (
-                        <Button
-                            block
-                            onClick={() => {
-                                form.stopEditing();
-                                onEditDone(editing.id);
-                            }}
-                        >
-                            {t('cancel')}
+        <>
+            <Button block ref={toggle} aria-haspopup="dialog" onClick={() => form.setOpen(true)}>
+                {t('title')}
+            </Button>
+            <Dialog
+                open={form.open}
+                variant="sheet"
+                title={editing ? t('editTitle') : t('title')}
+                closeLabel={t('close')}
+                initialFocus={() => (editing ? null : amountInput.current)}
+                onClose={handleClose}
+            >
+                <form className="settle-up" onSubmit={(event) => void handleSubmit(event)}>
+                    <Field label={t('from')}>
+                        {(control) => (
+                            <Select
+                                {...control}
+                                label={t('from')}
+                                options={options}
+                                value={from}
+                                onChange={(next) => change({ from: next })}
+                            />
+                        )}
+                    </Field>
+                    <Field label={t('to')} error={same ? t('same') : null}>
+                        {(control) => (
+                            <Select
+                                {...control}
+                                label={t('to')}
+                                options={options}
+                                value={to}
+                                onChange={(next) => change({ to: next })}
+                            />
+                        )}
+                    </Field>
+                    <Field label={t('amount')} hint={hint || undefined}>
+                        {(control) => (
+                            <input
+                                {...control}
+                                ref={amountInput}
+                                autoComplete="off"
+                                inputMode="decimal"
+                                required
+                                type="text"
+                                value={draft.amount}
+                                onChange={(event) => change({ amount: event.target.value })}
+                            />
+                        )}
+                    </Field>
+                    <Field label={t('date')}>
+                        {(control) => (
+                            <input
+                                {...control}
+                                required
+                                type="date"
+                                value={draft.date}
+                                onChange={(event) => change({ date: event.target.value })}
+                            />
+                        )}
+                    </Field>
+                    <div className="settle-up__actions">
+                        <Button block variant="primary" disabled={!valid || busy} type="submit">
+                            {t('save')}
                         </Button>
+                        {editing && (
+                            <Button
+                                block
+                                onClick={() => {
+                                    form.stopEditing();
+                                    onEditDone(editing.id);
+                                }}
+                            >
+                                {t('cancel')}
+                            </Button>
+                        )}
+                    </div>
+                    {failure && (
+                        <Notice tone="danger" role="alert">
+                            {failureWords(failure)}
+                        </Notice>
                     )}
-                </div>
-                {failure && (
-                    <Notice tone="danger" role="alert">
-                        {failureWords(failure)}
-                    </Notice>
-                )}
-            </form>
-        </Disclosure>
+                </form>
+            </Dialog>
+        </>
     );
 };
 

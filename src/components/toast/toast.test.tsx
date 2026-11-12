@@ -35,7 +35,7 @@ function Harness(props: { onAction?: () => void }) {
 
 function setup(onAction?: () => void) {
     render(
-        <ToastProvider>
+        <ToastProvider dismissLabel="Clear">
             <Harness onAction={onAction} />
         </ToastProvider>
     );
@@ -145,7 +145,11 @@ describe('Toast', () => {
 
         const region = screen.getByRole('status');
         expect(region.textContent).toBe('Close to the limit');
-        expect(within(region).queryByRole('button')).toBeNull();
+        expect(
+            within(region)
+                .getAllByRole('button')
+                .map((button) => button.getAttribute('aria-label'))
+        ).toEqual(['Clear']);
         elapse(7_999);
         expect(screen.queryByText('Close to the limit')).not.toBeNull();
         elapse(1);
@@ -297,7 +301,7 @@ describe('Toast', () => {
             );
         }
         render(
-            <ToastProvider>
+            <ToastProvider dismissLabel="Dismiss">
                 <Two />
             </ToastProvider>
         );
@@ -357,6 +361,68 @@ describe('Toast', () => {
         expect(screen.getByText('Deleted Coffee')).toBeDefined();
     });
 
+    describe('its dismiss button', () => {
+        it('ends a toast that goes away by itself, after its action, named by the label it was given', () => {
+            setup();
+
+            show();
+
+            const region = screen.getByRole('status');
+            const buttons = within(region).getAllByRole('button');
+            expect(buttons.map((button) => button.getAttribute('aria-label') ?? button.textContent)).toEqual([
+                'Undo',
+                'Clear',
+            ]);
+            const dismiss = buttons[1]!;
+            expect(dismiss.classList.contains('button--ghost')).toBe(true);
+            expect(dismiss.classList.contains('button--glyph')).toBe(true);
+            expect(dismiss.querySelector('svg')!.getAttribute('data-icon')).toBe('close');
+            expect(dismiss.textContent).toBe('');
+        });
+
+        it('is on a toast with no action too, as the only button', () => {
+            setup();
+
+            show('Show plain');
+
+            expect(within(screen.getByRole('status')).getAllByRole('button')).toHaveLength(1);
+            expect(screen.getByRole('button', { name: 'Clear' })).toBeDefined();
+        });
+
+        it('clears the toast away without running its action', () => {
+            const onAction = vi.fn();
+            setup(onAction);
+            show();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+
+            expect(toast()).toBeNull();
+            expect(onAction).not.toHaveBeenCalled();
+        });
+
+        it('lets the next toast come with its own button after the first was cleared', () => {
+            setup();
+            show();
+            fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+
+            show('Show another');
+
+            expect(screen.getByText('Deleted Coffee')).toBeDefined();
+            expect(screen.getAllByRole('button', { name: 'Clear' })).toHaveLength(1);
+        });
+
+        it('is turned off while the toast fades, as the action is', () => {
+            root.style.setProperty('--duration-base', '200ms');
+            setup();
+            show();
+            act(() => screen.getByRole('button', { name: 'Clear' }).click());
+
+            expect((screen.getByRole('button', { name: 'Clear' }) as HTMLButtonElement).disabled).toBe(true);
+            elapse(200);
+            expect(toast()).toBeNull();
+        });
+    });
+
     it('needs its provider', () => {
         const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
@@ -405,7 +471,7 @@ function PinHarness(props: { onUpdate?: () => void; onLater?: () => void }) {
 
 function setupPin(props: { onUpdate?: () => void; onLater?: () => void } = {}) {
     render(
-        <ToastProvider>
+        <ToastProvider dismissLabel="Clear">
             <PinHarness {...props} />
         </ToastProvider>
     );
@@ -416,6 +482,15 @@ function pinned() {
 }
 
 describe('a pinned Toast', () => {
+    it('has no dismiss button: its answers close it', () => {
+        setupPin();
+
+        show('Pin');
+
+        expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
+        expect(within(screen.getByRole('status')).getAllByRole('button')).toHaveLength(2);
+    });
+
     it('holds its message and one ghost action for each of its answers', () => {
         setupPin();
 

@@ -3,7 +3,6 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { Notice } from '@/components/notice/notice';
-import { AddExpense } from '@/features/expenses/add-expense';
 import { ExpenseList } from '@/features/expenses/expense-list';
 import { SyncStatus } from '@/features/expenses/sync-status';
 import { EntryRefusals } from '@/features/groups/entry-refusals';
@@ -21,7 +20,6 @@ const Home = () => {
     return (
         <section className="home">
             <h1 className="visually-hidden">Tarja</h1>
-            <AddExpense />
             <SyncStatus />
             <EntryRefusals />
             <ExpenseList />

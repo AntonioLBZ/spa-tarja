@@ -18,13 +18,15 @@
     padding-bottom: var(--size-4);
 }
 
-/* A thick left edge, and a bar for the bottom one; in with a fade and a short shift, and out the same way */
+/* Filled with ink, the one message that is, so it stands apart from the bar and the sheets and is noticed: its text is the
+   color of the page, and so is its focus ring, which the accent would not show on. In with a fade and a short shift,
+   and out the same way. */
 .toast {
+    --color-border-focus: var(--color-bg-primary);
+
     align-items: center;
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 0 var(--size-1);
+    background: var(--color-border);
+    color: var(--color-bg-primary);
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
@@ -44,20 +46,20 @@
     }
 }
 
-/* The bottom edge is the time left: from the corner of the L it shrinks back toward it over the time the toast stays,
-   and holds with the count */
+/* A rule inside the bottom edge is the time left: it shrinks back toward the left over the time the toast stays, and
+   holds with the count. It stays off the edge, where the color of the page would be lost against the page. */
 .toast::after {
     animation: toast-countdown var(--toast-duration) linear forwards;
-    background: var(--color-border);
+    background: var(--color-bg-primary);
     block-size: var(--size-1);
     content: '';
-    inset-block-end: 0;
-    inset-inline: calc(-1 * var(--size-1)) 0;
+    inset-block-end: var(--size-1);
+    inset-inline: var(--size-3);
     position: absolute;
     transform-origin: left;
 }
 
-/* A pinned toast has no time to count: only the thick left edge */
+/* A pinned toast has no time to count */
 .toast--pinned::after {
     display: none;
 }
@@ -86,9 +88,22 @@
     transition-timing-function: var(--ease-exit);
 }
 
+/* Its buttons are in its text color, not the ink of a button on the page */
+.toast .button {
+    color: inherit;
+}
+
 .toast__actions {
+    align-items: center;
     display: flex;
     gap: var(--size-4);
+}
+
+/* The icon in the middle of a box as tall as a touch target */
+.toast__dismiss {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
 }
 
 .toast__message {

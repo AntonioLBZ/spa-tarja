@@ -590,7 +590,7 @@ describe('getting to the summary', () => {
         expect(screen.getByRole('link', { name: en.nav.summary }).getAttribute('aria-current')).toBe('page');
 
         fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
-        expect(await screen.findByRole('button', { name: en.expenses.form.submit })).toBeDefined();
+        expect(await screen.findByText(en.expenses.list.empty)).toBeDefined();
     });
 });
 

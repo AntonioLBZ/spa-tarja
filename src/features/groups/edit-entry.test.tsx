@@ -11,6 +11,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { closeSheet, openAddSheet } from '@/lib/test/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -71,7 +72,8 @@ function actionOf(name: string, action: 'editItem' | 'duplicateItem' | 'deleteIt
 }
 
 function field(label: string) {
-    return screen.getByLabelText(label) as HTMLInputElement;
+    const dialog = screen.queryByRole('dialog');
+    return (dialog ? within(dialog) : screen).getByLabelText(label) as HTMLInputElement;
 }
 
 function people() {
@@ -82,10 +84,6 @@ function shareValues() {
     return within(people())
         .queryAllByRole('textbox')
         .map((input) => (input as HTMLInputElement).value);
-}
-
-function heading(name: string) {
-    return screen.getByRole('button', { name });
 }
 
 beforeEach(() => {
@@ -109,8 +107,8 @@ describe('editing a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
 
-        expect(document.activeElement).toBe(heading(form.editTitle));
-        expect(heading(form.editTitle).getAttribute('aria-expanded')).toBe('true');
+        const dialog = screen.getByRole('dialog', { name: form.editTitle });
+        expect(document.activeElement).toBe(dialog);
         expect(field(form.amount).value).toBe('10.00');
         expect(field(form.text).value).toBe('Dinner');
         expect(field(form.date).value).toBe('2026-10-20');
@@ -193,27 +191,28 @@ describe('editing a shared expense', () => {
         fireEvent.click(screen.getByRole('button', { name: form.cancel }));
 
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
+        expect(screen.queryByRole('dialog')).toBeNull();
         expect(api.entryAttempts).toEqual([]);
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
         fireEvent.click(screen.getByRole('button', { name: form.save }));
         await waitFor(() => expect(document.activeElement).toBe(toggle('Dinner')));
-        expect(heading(form.title)).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('replaces a half typed expense, which is not kept once it is over', async () => {
         const group = trip();
         await open(group, [dinner(group)]);
-        fireEvent.click(heading(form.title));
-        fireEvent.change(field(form.amount), { target: { value: '99' } });
+        const typing = await openAddSheet();
+        fireEvent.change(within(typing).getByLabelText(form.amount), { target: { value: '99' } });
+        await closeSheet();
 
         fireEvent.click(actionOf('Dinner', 'editItem'));
         expect(field(form.amount).value).toBe('10.00');
         fireEvent.click(screen.getByRole('button', { name: form.cancel }));
 
-        expect(field(form.amount).value).toBe('');
+        const again = await openAddSheet();
+        expect((within(again).getByLabelText(form.amount) as HTMLInputElement).value).toBe('');
     });
 
     it('keeps the card of the payer when somebody else edits it', async () => {
@@ -328,17 +327,6 @@ describe('editing a shared expense', () => {
         expect(api.entriesOf(group.id)).toMatchObject([{ id: saved.id, text: 'Supper' }]);
         expect(api.entryWrites).toHaveLength(1);
     });
-
-    it('is over when the entry is deleted', async () => {
-        const group = trip();
-        await open(group, [dinner(group)]);
-        fireEvent.click(actionOf('Dinner', 'editItem'));
-
-        fireEvent.click(actionOf('Dinner', 'deleteItem'));
-
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
-    });
 });
 
 describe('duplicating a shared expense', () => {
@@ -357,7 +345,7 @@ describe('duplicating a shared expense', () => {
 
         fireEvent.click(actionOf('Dinner', 'duplicateItem'));
 
-        expect(document.activeElement).toBe(heading(form.copyTitle));
+        expect(document.activeElement).toBe(screen.getByRole('dialog', { name: form.copyTitle }));
         expect(field(form.amount).value).toBe('10.00');
         expect(field(form.date).value).toBe('2026-10-27');
         expect(chosenOption(share.paidBy)).toBe('Bea');
@@ -379,7 +367,7 @@ describe('duplicating a shared expense', () => {
         await waitFor(() => expect(within(theLedger()).getAllByText('Dinner')).toHaveLength(2));
         const original = within(theLedger()).getAllByText('Dinner')[1];
         await waitFor(() => expect(document.activeElement).toBe(original!.closest('button')));
-        expect(heading(form.title)).toBeDefined();
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('draws the cents left again, as for a new expense, instead of keeping those of the original', async () => {
@@ -467,18 +455,6 @@ describe('duplicating a shared expense', () => {
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
     });
-
-    it('is over when the entry being copied is deleted', async () => {
-        const group = trip();
-        await open(group, [dinner(group)]);
-        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
-        expect(heading(form.copyTitle)).toBeDefined();
-
-        fireEvent.click(actionOf('Dinner', 'deleteItem'));
-
-        expect(heading(form.title)).toBeDefined();
-        expect(field(form.amount).value).toBe('');
-    });
 });
 
 describe('editing a settlement', () => {
@@ -498,9 +474,8 @@ describe('editing a settlement', () => {
 
         fireEvent.click(actionOf(paidYou(), 'editItem'));
 
-        const title = screen.getByRole('button', { name: settle.editTitle });
-        expect(title.getAttribute('aria-expanded')).toBe('true');
-        expect(document.activeElement).toBe(title);
+        const dialog = screen.getByRole('dialog', { name: settle.editTitle });
+        expect(document.activeElement).toBe(dialog);
         expect(chosenOption(settle.from)).toBe('Bea');
         expect(chosenOption(settle.to)).toBe(you);
         expect(settleField(settle.amount).value).toBe('5.00');
@@ -528,7 +503,7 @@ describe('editing a settlement', () => {
             updatedAt: NOW,
         });
         await waitFor(() => expect(document.activeElement).toBe(toggle(paidYou())));
-        expect(screen.getByRole('button', { name: settle.title }).getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByRole('dialog')).toBeNull();
     });
 
     it('writes nothing on Cancel, and Settle up starts over', async () => {
@@ -602,5 +577,58 @@ describe('editing a settlement', () => {
             actionOf(t('groups.ledger.paidYou', { name: t('groups.names.left', { name: 'Dani' }) }), 'editItem')
                 .disabled
         ).toBe(true);
+    });
+});
+
+describe('the group screen without a form of its own', () => {
+    it('has no add form: adding is the plus', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        expect(within(screen.getByRole('main')).queryByRole('button', { name: form.title })).toBeNull();
+        expect(screen.queryByRole('form')).toBeNull();
+    });
+
+    it('opens the sheet to edit an entry, fixed to its group', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        fireEvent.click(actionOf('Dinner', 'editItem'));
+
+        const dialog = await screen.findByRole('dialog', { name: form.editTitle });
+        expect((within(dialog).getByLabelText(form.amount) as HTMLInputElement).value).toBe('10.00');
+        expect(within(dialog).queryByRole('radio', { name: form.forShared })).toBeNull();
+        expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
+        expect(within(dialog).getByRole('group', { name: share.people })).toBeDefined();
+    });
+
+    it('opens the sheet to duplicate an entry as a new one of the same group', async () => {
+        const group = trip();
+        await open(group, [dinner(group)]);
+
+        fireEvent.click(actionOf('Dinner', 'duplicateItem'));
+
+        const dialog = await screen.findByRole('dialog', { name: form.copyTitle });
+        expect((within(dialog).getByLabelText(form.text) as HTMLInputElement).value).toBe('Dinner');
+        expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
+    });
+});
+
+describe('closing the sheet of a settlement being edited', () => {
+    it('ends the edit, with the focus on the row, and Settle up starts over', async () => {
+        const group = trip();
+        const { api } = await open(group, [sampleSettlement(group, bea.id, ana.id, 500)]);
+        fireEvent.click(actionOf(t('groups.ledger.paidYou', { name: 'Bea' }), 'editItem'));
+        const dialog = screen.getByRole('dialog', { name: en.groups.settle.editTitle });
+
+        fireEvent.click(within(dialog).getByRole('button', { name: en.groups.settle.close }));
+
+        await waitFor(() => expect(document.activeElement).toBe(toggle(t('groups.ledger.paidYou', { name: 'Bea' }))));
+        expect(screen.queryByRole('dialog')).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: en.groups.settle.title }));
+        expect(
+            (within(screen.getByRole('dialog')).getByLabelText(en.groups.settle.amount) as HTMLInputElement).value
+        ).toBe('');
+        expect(api.entryAttempts).toEqual([]);
     });
 });

@@ -53,7 +53,7 @@ const Story: Meta<ToastStoryProps> = {
 
 export const Toast = (args: ToastStoryProps) => {
     return (
-        <ToastProvider>
+        <ToastProvider dismissLabel="Dismiss">
             <div style={{ padding: 'var(--size-4)' }}>
                 <ToastButtons {...args} />
             </div>

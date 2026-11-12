@@ -23,9 +23,14 @@
 }
 
 /* Far enough apart not to read as one phrase */
+.root__start,
 .root__group {
+    align-items: center;
     display: flex;
     gap: var(--size-4);
+}
+
+.root__group {
     justify-self: end;
 }
 
@@ -81,12 +86,12 @@
     margin-inline: auto;
     max-width: 40rem;
     padding: var(--size-6) max(var(--size-4), env(safe-area-inset-right))
-        max(var(--size-6), env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
+        calc(var(--size-6) + env(safe-area-inset-bottom)) max(var(--size-4), env(safe-area-inset-left));
     view-transition-name: page;
     width: 100%;
 }
 
-/* The bar has the bottom of the page: room for it, and for the safe area it pads itself with */
+/* On a phone the bar has the bottom of the page: room for it, and for the safe area it pads itself with */
 .root--tabs .root__main {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-6));
 }

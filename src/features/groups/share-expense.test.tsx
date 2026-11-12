@@ -14,6 +14,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { openAddSheet } from '@/lib/test/sheet';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -47,9 +48,10 @@ async function openHome(groups: SharedGroup[], options: Parameters<typeof create
     const api = createFakeApi({ groups, ...options });
     stubApi(api.handler);
     const app = renderApp();
-    await screen.findByRole('radio', { name: form.forShared });
+    await screen.findByRole('button', { name: en.nav.add });
     await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
     await waitFor(() => expect(app.queryClient.getQueryState(CATEGORIES_KEY)?.status).toBe('success'));
+    await openAddSheet();
     return { api, app };
 }
 
@@ -71,7 +73,8 @@ function forChoice(name: string) {
 }
 
 function field(label: string) {
-    return screen.getByLabelText(label) as HTMLInputElement;
+    const dialog = screen.queryByRole('dialog');
+    return (dialog ? within(dialog) : screen).getByLabelText(label) as HTMLInputElement;
 }
 
 function fill({ amount, text = '' }: { amount: string; text?: string }) {
@@ -172,8 +175,9 @@ describe('the choice For', () => {
         stubApi(createFakeApi({ groups: [trip(), dani] }).handler);
         const other = { id: 'user-bea', name: 'Bea', email: 'bea@example.com' };
         const app = renderApp({ fakeAuth: createFakeAuth({ session: other }) });
-        await screen.findByRole('radio', { name: form.forShared });
+        await screen.findByRole('button', { name: en.nav.add });
         await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        await openAddSheet();
 
         fireEvent.click(forChoice(form.forShared));
 
@@ -276,6 +280,7 @@ describe('splitting equally', () => {
             },
         ]);
         expect(app.outbox.getState().pending).toEqual([]);
+        await openAddSheet();
         expect(field(form.amount).value).toBe('');
         expect(field(form.text).value).toBe('');
         expect(forChoice(form.forMe).checked).toBe(true);
@@ -404,7 +409,10 @@ describe('the cents left of an equal split', () => {
     });
 
     it('are saved on the person the form showed, and a new form draws its own seed', async () => {
-        vi.mocked(randomSeed).mockReturnValueOnce(seedFavouring(2)).mockReturnValueOnce(seedFavouring(1));
+        vi.mocked(randomSeed)
+            .mockReturnValueOnce(seedFavouring(2))
+            .mockReturnValueOnce(seedFavouring(0))
+            .mockReturnValueOnce(seedFavouring(1));
         const { app } = await openHome([trip()]);
         onlineManager.setOnline(false);
         fireEvent.click(forChoice(form.forShared));
@@ -420,6 +428,7 @@ describe('the cents left of an equal split', () => {
             { memberId: cris.id, cents: 334 },
         ]);
         await waitFor(() => expect(field(form.amount).value).toBe(''));
+        await openAddSheet();
         fireEvent.click(forChoice(form.forShared));
         fill({ amount: '10' });
         expect(amountsShown()).toEqual([333, 334, 333]);
@@ -471,8 +480,10 @@ describe("naming the person in Paid by and Who's in", () => {
         const api = createFakeApi({ groups: [trip()] });
         stubApi(api.handler);
         const spanish = renderApp();
-        await screen.findByRole('radio', { name: es.expenses.form.forShared });
+        await screen.findByRole('button', { name: es.nav.add });
         await waitFor(() => expect(spanish.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        fireEvent.click(screen.getByRole('button', { name: es.nav.add }));
+        await screen.findByRole('radio', { name: es.expenses.form.forShared });
         fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
 
         expect(chosenOption(es.groups.share.paidBy)).toBe('Ana (Tú)');
@@ -593,8 +604,10 @@ describe('splitting by percent', () => {
         const api = createFakeApi({ groups: [trip()] });
         stubApi(api.handler);
         const spanish = renderApp();
-        await screen.findByRole('radio', { name: es.expenses.form.forShared });
+        await screen.findByRole('button', { name: es.nav.add });
         await waitFor(() => expect(spanish.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        fireEvent.click(screen.getByRole('button', { name: es.nav.add }));
+        await screen.findByRole('radio', { name: es.expenses.form.forShared });
         fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
         fireEvent.change(screen.getByLabelText(es.expenses.form.amount), { target: { value: '10' } });
         fireEvent.click(screen.getByRole('radio', { name: es.groups.share.modes.percent }));
@@ -815,15 +828,13 @@ describe('the category of a shared expense', () => {
 });
 
 describe('on the screen of a group', () => {
-    it('has the form collapsed under its heading, shared in the group with nothing to choose', async () => {
+    it('starts the expense from the plus shared in the group, paid by you with everybody in', async () => {
         await openGroup(trip());
-        const toggle = screen.getByRole('button', { name: form.title });
-        expect(toggle.getAttribute('aria-expanded')).toBe('false');
 
-        fireEvent.click(toggle);
+        await openAddSheet();
 
-        expect(screen.queryByRole('radio', { name: form.forShared })).toBeNull();
-        expect(screen.queryByRole('combobox', { name: share.with })).toBeNull();
+        expect(forChoice(form.forShared).checked).toBe(true);
+        expect(chosenOption(share.with)).toBe('Trip');
         expect(chosenOption(share.paidBy)).toBe(you);
         expect(rows()).toEqual([you, 'Bea', 'Cris']);
     });
@@ -833,13 +844,14 @@ describe('on the screen of a group', () => {
         const { app } = await openGroup(group);
         expect(balance()).toBe(en.groups.balance.allSettled);
         onlineManager.setOnline(false);
-        fireEvent.click(screen.getByRole('button', { name: form.title }));
+        await openAddSheet();
 
         fill({ amount: '30', text: 'Dinner' });
         fireEvent.click(addButton());
 
         await waitFor(() => expect(balance()).toBe(t('groups.balance.owed', { amount: euros(2000) })));
         expect(app.groupOutbox.getState().pending).toMatchObject([{ groupId: group.id, amountCents: 3000 }]);
+        await openAddSheet();
         expect(field(form.amount).value).toBe('');
         expect(chosenOption(share.paidBy)).toBe(you);
     });
@@ -850,7 +862,7 @@ describe('on the screen of a group', () => {
     ] as const)('offers no form in a group that is closed because it was %s', async (_, closed) => {
         await openGroup(trip({ closed }));
 
-        expect(screen.queryByRole('button', { name: form.title })).toBeNull();
+        expect(within(screen.getByRole('main')).queryByRole('button', { name: form.title })).toBeNull();
         expect(screen.queryByRole('form', { name: form.title })).toBeNull();
     });
 
@@ -858,7 +870,7 @@ describe('on the screen of a group', () => {
         const group = trip();
         const { api, app } = await openGroup(group);
         api.state.loseEntryAnswers = true;
-        fireEvent.click(screen.getByRole('button', { name: form.title }));
+        await openAddSheet();
 
         fill({ amount: '30', text: 'Dinner' });
         fireEvent.click(addButton());

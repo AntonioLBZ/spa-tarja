@@ -21,6 +21,8 @@
             "title": "Add an expense",
             "editTitle": "Edit the expense",
             "copyTitle": "Duplicate the expense",
+            "added": "Expense added",
+            "close": "Close",
             "amount": "Amount",
             "text": "Description",
             "category": "Category",
@@ -124,7 +126,12 @@
         "rejected": "{count, plural, one {# expense couldn't be saved and was discarded.} other {# expenses couldn't be saved and were discarded.}}",
         "dismiss": "Dismiss"
     },
+    "toast": {
+        "dismiss": "Dismiss"
+    },
     "nav": {
+        "add": "Add expense",
+        "addWord": "Add",
         "back": "Back to {place}",
         "expenses": "Expenses",
         "group": "Group",
@@ -413,6 +420,7 @@
                 "settled": "After this, {from} and {to} are settled"
             },
             "editTitle": "Edit the settlement",
+            "close": "Close",
             "cancel": "Cancel"
         },
         "share": {

@@ -21,6 +21,8 @@
             "title": "Añadir un gasto",
             "editTitle": "Editar el gasto",
             "copyTitle": "Duplicar el gasto",
+            "added": "Gasto añadido",
+            "close": "Cerrar",
             "amount": "Importe",
             "text": "Descripción",
             "category": "Categoría",
@@ -124,7 +126,12 @@
         "rejected": "{count, plural, one {No se pudo guardar # gasto y se descartó.} other {No se pudieron guardar # gastos y se descartaron.}}",
         "dismiss": "Cerrar"
     },
+    "toast": {
+        "dismiss": "Cerrar"
+    },
     "nav": {
+        "add": "Añadir gasto",
+        "addWord": "Añadir",
         "back": "Volver a {place}",
         "expenses": "Gastos",
         "group": "Grupo",
@@ -413,6 +420,7 @@
                 "settled": "Con esto, {from} y {to} quedan en paz"
             },
             "editTitle": "Editar el pago",
+            "close": "Cerrar",
             "cancel": "Cancelar"
         },
         "share": {

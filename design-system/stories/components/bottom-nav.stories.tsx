@@ -51,9 +51,11 @@ const Story: Meta<BottomNavProps> = {
             { to: '/summary', label: 'Summary', icon: 'bar_chart', current: false },
             { to: '/settings', label: 'Settings', icon: 'settings', current: false },
         ],
+        action: { label: 'Add expense', word: 'Add', icon: 'add', onPress: () => undefined },
     },
     argTypes: {
         label: { control: 'text' },
+        action: { control: 'object' },
     },
 };
 
