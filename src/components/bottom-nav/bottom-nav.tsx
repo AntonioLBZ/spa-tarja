@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { useRef } from 'react';
 
 import { Icon } from '@/components/icon/icon';
-import { DURATION, EASE, MOTION_QUERY, canAnimate, gsap, useGSAP } from '@/lib/motion/gsap';
+import { useGlide } from '@/lib/motion/use-glide';
 
 import type { IconName } from '@/components/icon/icon-paths';
 import type { MouseEvent } from 'react';
@@ -44,52 +44,12 @@ const BottomNav = (props: BottomNavProps) => {
     const pill = useRef<HTMLLIElement>(null);
     const currentLabel = items.find((item) => item.current)?.label;
 
-    useGSAP(
-        () => {
-            const track = list.current;
-            const mark = pill.current;
-            if (!track || !mark || !canAnimate()) return;
-            const icon = track.querySelector<HTMLElement>('[aria-current="page"] .bottom-nav__icon');
-            if (!icon) {
-                gsap.set(mark, { autoAlpha: 0 });
-                return;
-            }
-
-            const place = () => {
-                const box = track.getBoundingClientRect();
-                const at = icon.getBoundingClientRect();
-                return { x: at.left - box.left, y: at.top - box.top, width: at.width, height: at.height };
-            };
-            track.dataset.glide = '';
-
-            const mm = gsap.matchMedia();
-            mm.add(MOTION_QUERY, () => {
-                const to = place();
-                // Not drawn yet, or put back by a revert: it appears in place, with no trip from where it was
-                if (Number(gsap.getProperty(mark, 'opacity')) === 0) {
-                    gsap.set(mark, { ...to, autoAlpha: 1 });
-                    return;
-                }
-                const from = { x: Number(gsap.getProperty(mark, 'x')), width: Number(gsap.getProperty(mark, 'width')) };
-                const reach = Math.min(from.x, to.x);
-                const span = Math.abs(to.x - from.x) + to.width;
-                gsap.timeline()
-                    .to(mark, { x: reach, width: span, duration: DURATION.fast, ease: EASE.standard })
-                    .to(mark, { x: to.x, width: to.width, duration: DURATION.slow, ease: EASE.enter });
-            });
-            mm.add(`not all and ${MOTION_QUERY}`, () => {
-                gsap.set(mark, { ...place(), autoAlpha: 1 });
-            });
-
-            const onResize = () => gsap.set(mark, place());
-            window.addEventListener('resize', onResize);
-            return () => {
-                window.removeEventListener('resize', onResize);
-                mm.revert();
-            };
-        },
-        { dependencies: [currentLabel] }
-    );
+    useGlide({
+        track: list,
+        mark: pill,
+        selector: '[aria-current="page"] .bottom-nav__icon',
+        follows: currentLabel,
+    });
 
     const links = items.map((item) => {
         const linkClsx = clsx('bottom-nav__link', { 'bottom-nav__link--current': item.current });

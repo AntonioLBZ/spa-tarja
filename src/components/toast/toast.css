@@ -20,19 +20,28 @@
 
 /* Filled with ink, the one message that is, so it stands apart from the bar and the sheets and is noticed: its text is the
    color of the page, and so is its focus ring, which the accent would not show on. It springs in from below and leaves
-   the same way. */
+   the same way. The time left is the fill itself: the ink is repainted, from the right, in a lighter tone near it with a
+   touch of the app color, over the time the toast stays. Every app color, in both themes, keeps the text at 7:1 or
+   more on it and the two tones a step apart. */
 .toast {
     --color-focus: var(--color-sheet);
+    --toast-spent: color-mix(
+        in oklab,
+        color-mix(in oklab, var(--color-ink) 75%, var(--color-sheet)) 88%,
+        var(--color-field)
+    );
 
     align-items: center;
-    background: var(--color-ink);
+    background: var(--toast-spent);
     border-radius: var(--radius-m);
     color: var(--color-sheet);
     display: flex;
     flex-wrap: wrap;
     gap: var(--size-2) var(--size-4);
+    isolation: isolate;
     justify-content: space-between;
     max-width: 40rem;
+    overflow: clip;
     padding: var(--size-2) var(--size-4);
     pointer-events: auto;
     position: relative;
@@ -47,27 +56,27 @@
     }
 }
 
-/* A rule inside the bottom edge is the time left: it shrinks back toward the left over the time the toast stays, and
-   holds with the count. It stays off the edge, where the color of the page would be lost against the page. */
-.toast::after {
+/* What is left: the ink, shrinking back toward the left, and holding with the count */
+.toast::before {
     animation: toast-countdown var(--toast-duration) linear forwards;
-    background: var(--color-sheet);
-    block-size: var(--size-1);
-    border-radius: var(--radius-pill);
+    background: var(--color-ink);
     content: '';
-    inset-block-end: var(--size-1);
-    inset-inline: var(--size-4);
-    opacity: 0.5;
+    inset: 0;
     position: absolute;
     transform-origin: left;
+    z-index: -1;
 }
 
-/* A pinned toast has no time to count */
-.toast--pinned::after {
+/* A pinned toast has no time to count: it is all ink */
+.toast--pinned {
+    background: var(--color-ink);
+}
+
+.toast--pinned::before {
     display: none;
 }
 
-.toast--held::after {
+.toast--held::before {
     animation-play-state: paused;
 }
 
@@ -77,9 +86,9 @@
     }
 }
 
-/* The one animation that reduced motion turns off instead of zeroing: the bar stays full */
+/* The one animation that reduced motion turns off instead of zeroing: the fill stays all ink */
 @media (prefers-reduced-motion: reduce) {
-    .toast::after {
+    .toast::before {
         animation: none;
     }
 }

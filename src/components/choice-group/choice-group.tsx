@@ -1,6 +1,7 @@
 import clsx from 'clsx';
+import { useRef, type CSSProperties, type ReactNode } from 'react';
 
-import type { CSSProperties, ReactNode } from 'react';
+import { useGlide } from '@/lib/motion/use-glide';
 
 import './choice-group.css';
 
@@ -22,19 +23,25 @@ interface ChoiceGroupProps<Value extends string> {
     onChange: (value: Value) => void;
 }
 
-// A radio group drawn as a row of boxes; the checked one is filled
+// A radio group drawn as one segmented control: a single track holds the options, and a single mark, which glides to the
+// one that is checked, fills it. Swatches are cells of their own and keep a ring instead.
 const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const { legend, name, options, value, swatch, onChange } = props;
     const groupClsx = clsx('choice-group', { 'choice-group--swatch': swatch });
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
-    // In characters, since the font is monospace: a column has to hold the widest word whole
+    const track = useRef<HTMLDivElement>(null);
+    const thumb = useRef<HTMLSpanElement>(null);
+    // In characters (the width of a zero), near enough: a column has to hold the widest word whole
     const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
     const optionsStyle = swatch ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
+
+    useGlide({ track, mark: thumb, selector: '.choice-group__input:checked + .choice-group__text', follows: value });
 
     return (
         <fieldset className={groupClsx}>
             <legend className="choice-group__legend">{legend}</legend>
-            <div className="choice-group__options" style={optionsStyle}>
+            <div ref={track} className="choice-group__options" style={optionsStyle}>
+                {!swatch && <span ref={thumb} aria-hidden="true" className="choice-group__thumb" />}
                 {options.map((option) => (
                     <label
                         key={option.value}

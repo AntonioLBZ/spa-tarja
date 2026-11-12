@@ -51,7 +51,8 @@
     inline-size: 1.5rem;
 }
 
-/* A floating sheet of options: flat, with a line around it, since a shadow would be the only one in the app */
+/* A floating sheet of options: flat, with a line around it, since a shadow would be the only one in the app. Above the
+   headings that stick to the top of a sheet. */
 .select__list {
     background: var(--color-sheet);
     border: var(--size-px) solid var(--color-line);
@@ -67,7 +68,7 @@
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
-    z-index: 1;
+    z-index: 3;
 
     @starting-style {
         opacity: 0;

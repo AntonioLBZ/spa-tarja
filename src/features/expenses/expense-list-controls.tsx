@@ -8,6 +8,7 @@ import { DateRangeFields } from '@/components/date-range-fields/date-range-field
 import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
+import { ScrollStrip } from '@/components/scroll-strip/scroll-strip';
 import { Select } from '@/components/select/select';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { CategorySelect } from '@/features/categories/category-select';
@@ -92,7 +93,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 </Button>
             </div>
 
-            <div className="expense-list-controls__chips" role="group" aria-label={t('chips')}>
+            <ScrollStrip bleed role="group" aria-label={t('chips')}>
                 <Button
                     className="chip"
                     pressed={filters.categoryId === ''}
@@ -113,7 +114,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         {option.label}
                     </Button>
                 ))}
-            </div>
+            </ScrollStrip>
 
             {open && (
                 <div className="expense-list-controls__panel" id={panelId}>

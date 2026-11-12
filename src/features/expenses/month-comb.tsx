@@ -48,10 +48,21 @@ const MonthComb = (props: MonthCombProps) => {
         { scope: root, dependencies: [days.length] }
     );
 
+    // The tick whose middle is nearest the pointer: the ticks have a width of their own and gaps between weeks, so the
+    // position along the box is not the day
     const dayAt = (event: PointerEvent<HTMLDivElement>) => {
-        const box = event.currentTarget.getBoundingClientRect();
-        const ratio = (event.clientX - box.left) / box.width;
-        return Math.min(days.length, Math.max(1, Math.floor(ratio * days.length) + 1));
+        const ticks = root.current?.querySelectorAll<HTMLElement>('.month-comb__tick') ?? [];
+        let nearest = 0;
+        let reach = Infinity;
+        ticks.forEach((tick, index) => {
+            const box = tick.getBoundingClientRect();
+            const gap = Math.abs(event.clientX - (box.left + box.width / 2));
+            if (gap < reach) {
+                reach = gap;
+                nearest = index;
+            }
+        });
+        return nearest + 1;
     };
 
     const lift = (day: number | null) => {

@@ -11,34 +11,45 @@
     padding: 0;
 }
 
-/* A track of pills; the checked one is filled with the field's color */
+/* One segmented control: the options share a track, and the checked one is marked by a single thumb that moves over it.
+   The track is a tone darker than a field, so it reads as a box of its own on paper and inside a tinted panel. */
 .choice-group__options {
-    background: var(--color-surface);
-    border-radius: var(--radius-pill);
-    display: flex;
-    flex-wrap: wrap;
+    background: var(--color-surface-strong);
+    border-radius: var(--radius-m);
+    display: grid;
     gap: var(--size-1);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--choice-word) + var(--size-8))), 1fr));
     padding: var(--size-1);
+    position: relative;
 }
 
-/* As many to a row as hold the widest word, and every row fills the line */
+/* Drawn by the script, which sets where it is; until then, and without it, the checked option is filled itself */
+.choice-group__thumb {
+    background: var(--color-bg-accent);
+    border-radius: var(--radius-s);
+    inset: 0 auto auto 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    visibility: hidden;
+}
+
 .choice-group__option {
     display: grid;
-    flex: 1 1 min(100%, calc(var(--choice-word) + var(--size-8)));
     min-width: 0;
     position: relative;
 }
 
 .choice-group__text {
     align-items: center;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-s);
     cursor: pointer;
     display: flex;
     font-weight: var(--font-weight-strong);
     justify-content: center;
     min-height: var(--size-touch);
     overflow-wrap: anywhere;
-    padding: var(--size-1) var(--size-4);
+    padding: var(--size-1) var(--size-2);
     text-align: center;
     transition:
         background-color var(--duration-base) var(--ease-standard),
@@ -58,10 +69,6 @@
     gap: var(--size-2);
     grid-template-columns: repeat(auto-fill, minmax(var(--size-touch), 1fr));
     padding: 0;
-}
-
-.choice-group--swatch .choice-group__option {
-    flex: none;
 }
 
 .choice-group--swatch .choice-group__text {
@@ -91,4 +98,9 @@
 .choice-group--swatch .choice-group__input:focus-visible + .choice-group__text {
     outline-color: var(--color-focus);
     outline-offset: var(--focus-offset);
+}
+
+/* The thumb is the fill, and glides under the words */
+.choice-group__options[data-glide] .choice-group__input:checked + .choice-group__text {
+    background: transparent;
 }

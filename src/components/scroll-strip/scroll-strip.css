@@ -1,0 +1,107 @@
+/* The distance an edge fades over, set when there is more of the row past it */
+@property --strip-fade-start {
+    inherits: false;
+    initial-value: 0;
+    syntax: '<length>';
+}
+
+@property --strip-fade-end {
+    inherits: false;
+    initial-value: 0;
+    syntax: '<length>';
+}
+
+/* It may be narrower than its row, which is what makes it scroll: a grid or a flex parent would size it to the row */
+.scroll-strip {
+    min-inline-size: 0;
+    position: relative;
+}
+
+/* The fade is a mask, not a color: the things on the row show through less, whatever is behind them */
+.scroll-strip__track {
+    display: flex;
+    gap: var(--size-2);
+    mask-image: linear-gradient(
+        to right,
+        transparent,
+        var(--color-ink) var(--strip-fade-start),
+        var(--color-ink) calc(100% - var(--strip-fade-end)),
+        transparent
+    );
+    overflow-x: auto;
+    scrollbar-width: none;
+    transition:
+        --strip-fade-start var(--duration-base) var(--ease-standard),
+        --strip-fade-end var(--duration-base) var(--ease-standard);
+}
+
+.scroll-strip__track::-webkit-scrollbar {
+    display: none;
+}
+
+/* Where the page keeps its gutter, the row reaches past it to the edge of the screen and pads itself with it */
+.scroll-strip--bleed {
+    margin-inline: calc(-1 * max(var(--size-5), env(safe-area-inset-left)));
+}
+
+.scroll-strip--bleed .scroll-strip__track {
+    padding-inline: max(var(--size-5), env(safe-area-inset-left));
+}
+
+.scroll-strip[data-before] .scroll-strip__track {
+    --strip-fade-start: 3rem;
+}
+
+.scroll-strip[data-after] .scroll-strip__track {
+    --strip-fade-end: 3rem;
+}
+
+/* For a mouse only: on a touch screen the row is dragged, and the fade says there is more */
+.scroll-strip__arrow {
+    align-items: center;
+    background: var(--color-sheet);
+    block-size: var(--size-touch);
+    border: var(--size-px) solid var(--color-line);
+    border-radius: var(--radius-pill);
+    display: none;
+    inline-size: var(--size-touch);
+    inset-block: 0;
+    justify-content: center;
+    margin-block: auto;
+    opacity: 0;
+    padding: 0;
+    position: absolute;
+    transition:
+        background-color var(--duration-fast) var(--ease-standard),
+        opacity var(--duration-base) var(--ease-standard),
+        transform var(--duration-base) var(--ease-spring);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .scroll-strip__arrow {
+        display: flex;
+        pointer-events: none;
+        transform: scale(0.8);
+        visibility: hidden;
+    }
+
+    .scroll-strip[data-before] .scroll-strip__arrow--before,
+    .scroll-strip[data-after] .scroll-strip__arrow--after {
+        opacity: 1;
+        pointer-events: auto;
+        transform: none;
+        visibility: visible;
+    }
+
+    .scroll-strip__arrow:hover {
+        background: var(--color-surface-strong);
+    }
+}
+
+.scroll-strip__arrow--before {
+    inset-inline-start: var(--size-2);
+}
+
+.scroll-strip__arrow--after {
+    inset-inline-end: var(--size-2);
+}

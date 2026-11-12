@@ -59,20 +59,7 @@
     background: var(--color-surface-strong);
 }
 
-/* Categories as chips: one tap narrows the list. They scroll sideways and bleed to the edges of the screen */
-.expense-list-controls__chips {
-    display: flex;
-    gap: var(--size-2);
-    margin-inline: calc(-1 * max(var(--size-5), env(safe-area-inset-left)));
-    overflow-x: auto;
-    padding-inline: max(var(--size-5), env(safe-area-inset-left));
-    scrollbar-width: none;
-}
-
-.expense-list-controls__chips::-webkit-scrollbar {
-    display: none;
-}
-
+/* Categories as chips: one tap narrows the list. They sit on a row that scrolls sideways and says so */
 .chip {
     flex: none;
     padding-inline: var(--size-4);
@@ -90,7 +77,8 @@
 }
 
 .expense-list-controls__panel {
-    background: var(--color-surface);
+    background: var(--color-sheet);
+    border: var(--size-px) solid var(--color-line);
     border-radius: var(--radius-m);
     display: grid;
     gap: var(--size-4);
