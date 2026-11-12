@@ -3,6 +3,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { appUpdate } from './features/pwa/app-update-state';
 import { applyAccent, readStoredAccent } from './lib/accent';
 import { createAuth, createAuthService } from './lib/auth';
 import { idbStorage } from './lib/offline';
@@ -18,6 +19,9 @@ applyAccent(readStoredAccent());
 
 // Query assumes it is online until an event says otherwise, which never comes when the app opens offline
 onlineManager.setOnline(navigator.onLine);
+
+// Before the session and the data, so a new version is offered as soon as it is found
+appUpdate.start();
 
 const auth = createAuth(createAuthService());
 const router = createAppRouter();
