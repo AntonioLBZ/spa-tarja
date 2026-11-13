@@ -133,6 +133,7 @@ describe('PUT /api/groups/:id, a new group', () => {
             archived: false,
             me: body.me.id,
             showInExpenses: true,
+            pinnedAt: null,
             members: [
                 { id: body.me.id, name: 'Ana', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
                 ...body.others.map((other) => ({
@@ -631,6 +632,46 @@ describe('PUT /api/groups/:id/me', () => {
 
         expect(after).toMatchObject({ closed: 'left', archived: true, showInExpenses: false });
         expect((await listGroups(ana))[0]).toMatchObject({ archived: false, showInExpenses: true });
+    });
+
+    it('pins a group for the caller alone, keeps the moment it was first pinned, and unpins it', async () => {
+        const group = await sharedWithBruno();
+        expect(group.pinnedAt).toBeNull();
+
+        const pinned = await groupOf(await switches(ana, group.id, { pinned: true }));
+        const again = await groupOf(await switches(ana, group.id, { pinned: true }));
+        const unpinned = await groupOf(await switches(ana, group.id, { pinned: false }));
+
+        expect(pinned.pinnedAt).toEqual(expect.any(Number));
+        expect(again.pinnedAt).toBe(pinned.pinnedAt);
+        expect((await listGroups(bruno))[0]?.pinnedAt).toBeNull();
+        expect(unpinned.pinnedAt).toBeNull();
+    });
+
+    it('refuses a third pin and writes none of the switches sent with it', async () => {
+        const [first, second, third] = [await makeGroup(ana), await makeGroup(ana), await makeGroup(ana)];
+        await groupOf(await switches(ana, first.id, { pinned: true }));
+        await groupOf(await switches(ana, second.id, { pinned: true }));
+
+        const refused = await switches(ana, third.id, { pinned: true, showInExpenses: false });
+
+        expect([refused.status, await refused.json()]).toEqual([409, { error: 'too-many-pinned' }]);
+        const listed = (await listGroups(ana)).find((candidate) => candidate.id === third.id);
+        expect(listed).toMatchObject({ pinnedAt: null, showInExpenses: true });
+    });
+
+    it('pins only an open group, and a pinned group that closes is unpinned and frees its place', async () => {
+        const [first, second, third] = [await makeGroup(ana), await makeGroup(ana), await makeGroup(ana)];
+        await groupOf(await switches(ana, first.id, { pinned: true }));
+        await groupOf(await switches(ana, second.id, { pinned: true }));
+
+        const closed = await groupOf(await remove(ana, first.id));
+        const refused = await switches(ana, first.id, { pinned: true });
+        const pinnedThird = await groupOf(await switches(ana, third.id, { pinned: true }));
+
+        expect(closed.pinnedAt).toBeNull();
+        expect([refused.status, await refused.json()]).toEqual([409, { error: 'closed' }]);
+        expect(pinnedThird.pinnedAt).toEqual(expect.any(Number));
     });
 });
 

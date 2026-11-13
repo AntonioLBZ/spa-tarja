@@ -1,4 +1,10 @@
-import { MAX_GROUP_MEMBER_ROWS, MAX_GROUP_MEMBERS, type MemberRole, type MySwitches } from '@core/shared-group';
+import {
+    MAX_GROUP_MEMBER_ROWS,
+    MAX_GROUP_MEMBERS,
+    MAX_PINNED_GROUPS,
+    type MemberRole,
+    type MySwitches,
+} from '@core/shared-group';
 
 // Whether the group has room for one more, counted in the same statement that adds them so that adds at the same
 // moment can't pass the limits: the members who haven't left, but for the dummy the new one replaces, and every row
@@ -25,9 +31,9 @@ const canReturn = (member: string) => `
         AND live.id IS NOT ?1) < ${MAX_GROUP_MEMBERS}`;
 
 // The row they left comes back as it was, keeping its name, role, switch and place; only what leaving and archiving
-// set is cleared
+// set is cleared, and the pin of a group that closed, so it comes back unpinned
 const REOPEN = `
-    UPDATE shared_members AS m SET left_at = NULL, left_seq = NULL, archived_at = NULL WHERE ${canReturn('m')}`;
+    UPDATE shared_members AS m SET left_at = NULL, left_seq = NULL, archived_at = NULL, pinned_at = NULL WHERE ${canReturn('m')}`;
 
 // Where the group's cursor stands, which is how far a member who leaves now reads afterwards
 const CURSOR = '(SELECT COALESCE(MAX(seq), 0) FROM shared_entries WHERE group_id = shared_members.group_id)';
@@ -151,18 +157,35 @@ const handOver = async (db: D1Database, groupId: string, to: string): Promise<bo
     return (promoted?.meta.changes ?? 0) > 0;
 };
 
-// A switch that isn't sent stays as it is; archiving again keeps the day it was archived
+// A switch that isn't sent stays as it is; archiving again keeps the day it was archived. Pinning is `pinMember`.
 const saveMySwitches = async (db: D1Database, memberId: string, switches: MySwitches): Promise<void> => {
     const flag = (value: boolean | undefined) => (value === undefined ? null : Number(value));
     await db
         .prepare(
             `UPDATE shared_members SET
                 show_in_expenses = COALESCE(?2, show_in_expenses),
-                archived_at = CASE ?3 WHEN 1 THEN COALESCE(archived_at, ?4) WHEN 0 THEN NULL ELSE archived_at END
+                archived_at = CASE ?3 WHEN 1 THEN COALESCE(archived_at, ?4) WHEN 0 THEN NULL ELSE archived_at END,
+                pinned_at = CASE ?5 WHEN 0 THEN NULL ELSE pinned_at END
              WHERE id = ?1`
         )
-        .bind(memberId, flag(switches.showInExpenses), flag(switches.archived), Date.now())
+        .bind(memberId, flag(switches.showInExpenses), flag(switches.archived), Date.now(), flag(switches.pinned))
         .run();
+};
+
+// Pins a member that isn't pinned while its user has fewer pinned groups that are open for them than the limit,
+// counted in the statement that pins it so that pins at the same moment can't pass it; false when it didn't
+const pinMember = async (db: D1Database, userId: string, memberId: string): Promise<boolean> => {
+    const result = await db
+        .prepare(
+            `UPDATE shared_members SET pinned_at = ?3
+             WHERE id = ?1 AND pinned_at IS NULL
+                AND (SELECT COUNT(*) FROM shared_members m JOIN shared_groups g ON g.id = m.group_id
+                     WHERE m.user_id = ?2 AND m.pinned_at IS NOT NULL AND m.left_at IS NULL AND g.deleted_at IS NULL)
+                    < ${MAX_PINNED_GROUPS}`
+        )
+        .bind(memberId, userId, Date.now())
+        .run();
+    return result.meta.changes > 0;
 };
 
 // Nothing when the group isn't an open friend of the user's
@@ -213,6 +236,7 @@ export {
     isUniqueViolation,
     leaveGroup,
     mergeMember,
+    pinMember,
     renameMember,
     reopenMember,
     saveMySwitches,

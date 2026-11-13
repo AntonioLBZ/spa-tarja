@@ -9,6 +9,7 @@ import {
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
     MAX_OPEN_INVITATIONS,
+    MAX_PINNED_GROUPS,
 } from '@core/shared-group';
 
 import { LocalRefusal } from './local-refusal';
@@ -34,6 +35,7 @@ type GroupFailure =
     | 'tooManyMembers'
     | 'tooManyMembersEver'
     | 'tooManyInvitations'
+    | 'tooManyPinned'
     | 'failed';
 
 const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
@@ -53,6 +55,7 @@ const SERVER_FAILURES: Partial<Record<string, GroupFailure>> = {
     'too-many-members': 'tooManyMembers',
     'too-many-members-ever': 'tooManyMembersEver',
     'too-many-invitations': 'tooManyInvitations',
+    'too-many-pinned': 'tooManyPinned',
 };
 
 // A refusal of the device or of the server; anything else, a dropped connection included, is a plain failure
@@ -84,6 +87,7 @@ const useFailureWords = () => {
             if (failure === 'tooManyMembers') return t(failure, { max: MAX_GROUP_MEMBERS });
             if (failure === 'tooManyMembersEver') return t(failure, { max: MAX_GROUP_MEMBER_ROWS });
             if (failure === 'tooManyInvitations') return t(failure, { max: MAX_OPEN_INVITATIONS });
+            if (failure === 'tooManyPinned') return t(failure, { max: MAX_PINNED_GROUPS });
             return t(failure);
         },
         [t]

@@ -1,0 +1,43 @@
+/* One line: Expenses keeps its width, the groups share what is left and cut their names. No notch and no rule: the
+   current word carries the ink bar of the header. */
+.pinned-tabs {
+    align-items: stretch;
+    display: flex;
+    gap: var(--size-4);
+    min-inline-size: 0;
+}
+
+.pinned-tabs__tab {
+    align-items: center;
+    color: var(--color-content-secondary);
+    display: flex;
+    flex: 0 1 auto;
+    font-size: var(--font-size-m);
+    font-weight: 700;
+    min-block-size: var(--size-touch);
+    min-inline-size: var(--size-touch);
+    position: relative;
+    text-decoration: none;
+}
+
+.pinned-tabs__tab--home {
+    flex-shrink: 0;
+}
+
+.pinned-tabs__tab[aria-current='page'] {
+    color: var(--color-content-primary);
+}
+
+.pinned-tabs__tab[aria-current='page']::after {
+    border-bottom: var(--size-1) solid var(--color-border);
+    content: '';
+    inset-block-end: 0;
+    inset-inline: 0;
+    position: absolute;
+}
+
+.pinned-tabs__word {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

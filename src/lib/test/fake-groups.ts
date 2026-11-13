@@ -3,6 +3,7 @@ import * as v from 'valibot';
 import { INVITATION_DAYS, type PendingInvitation } from '@core/invitation';
 import { sharedEntryInputSchema, type LedgerEntry, type SharedEntry } from '@core/shared-entry';
 import {
+    MAX_PINNED_GROUPS,
     groupWriteSchema,
     memberWriteSchema,
     mergeSchema,
@@ -112,6 +113,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         if (member.id !== group.me) return;
         group.closed = null;
         group.archived = false;
+        group.pinnedAt = null;
         leftSeq.delete(group.id);
     };
 
@@ -129,6 +131,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             archived: false,
             me: input.me.id,
             showInExpenses: true,
+            pinnedAt: null,
             members: [
                 newMember(input.me.id, personName(profile), true, 'owner'),
                 ...input.others.map((other) => newMember(other.id, other.name, false)),
@@ -144,13 +147,20 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
 
         if (path === '' && method === 'DELETE') {
             group.closed ??= 'deleted';
+            group.pinnedAt = null;
             return null;
         }
         if (path === '/me' && method === 'PUT') {
             const input = v.parse(mySwitchesSchema, json(init));
             if (input.archived && group.closed === null) return { status: 409, error: 'not-closed' };
+            if (input.pinned && group.closed !== null) return { status: 409, error: 'closed' };
+            const pinned = groups.filter((other) => other.pinnedAt !== null && other.closed === null).length;
+            if (input.pinned && group.pinnedAt === null && pinned >= MAX_PINNED_GROUPS) {
+                return { status: 409, error: 'too-many-pinned' };
+            }
             group.showInExpenses = input.showInExpenses ?? group.showInExpenses;
             group.archived = input.archived ?? group.archived;
+            if (input.pinned !== undefined) group.pinnedAt = input.pinned ? (group.pinnedAt ?? Date.now()) : null;
             return null;
         }
         if (group.closed !== null) return { status: 409, error: 'closed' };
@@ -183,6 +193,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             leaving.leftAt ??= Date.now();
             if (memberId === group.me) {
                 group.closed = 'left';
+                group.pinnedAt = null;
                 leftSeq.set(group.id, cursorOf(group.id));
             }
             return null;

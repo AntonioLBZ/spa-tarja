@@ -24,6 +24,9 @@ const MAX_GROUP_MEMBER_ROWS = 50;
 // Per user, the invitations that are still open: a link holds no place for anybody, so a person keeps only a few
 const MAX_OPEN_INVITATIONS = 5;
 
+// Per user, the open groups and friends pinned to the Expenses screen (ADR-0021)
+const MAX_PINNED_GROUPS = 2;
+
 const SHARED_NAME_MAX_LENGTH = 40;
 
 // What a group calls a person whose account has no name it can show
@@ -114,6 +117,7 @@ const ownerSchema = v.object({ memberId: memberIdSchema });
 const mySwitchesSchema = v.object({
     showInExpenses: v.optional(v.boolean()),
     archived: v.optional(v.boolean()),
+    pinned: v.optional(v.boolean()),
 });
 
 // A `group` has a name and any number of members; a `direct` one is a friend, two members and no name
@@ -153,6 +157,8 @@ interface SharedGroup {
     // The caller's member
     me: string;
     showInExpenses: boolean;
+    // When the caller pinned it to the Expenses screen; null when they didn't or it is closed for them
+    pinnedAt: number | null;
     // In the group's order, those who left included
     members: GroupMember[];
 }
@@ -164,6 +170,7 @@ export {
     MAX_GROUP_MEMBER_ROWS,
     MAX_OPEN_GROUPS,
     MAX_OPEN_INVITATIONS,
+    MAX_PINNED_GROUPS,
     SHARED_NAME_MAX_LENGTH,
     UNNAMED_PERSON,
     groupChangeSchema,

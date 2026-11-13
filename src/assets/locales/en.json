@@ -100,7 +100,8 @@
             "weekOf": "Week of {date}",
             "noMatch": "No expenses match",
             "showMore": "Show more",
-            "total": "Total"
+            "total": "Total",
+            "tabs": "Expenses and pinned groups"
         }
     },
     "categories": {
@@ -482,7 +483,8 @@
             "deletedFriend": "No longer a friend",
             "left": "You left",
             "shown": "In your expenses",
-            "hidden": "Not in your expenses"
+            "hidden": "Not in your expenses",
+            "pin": "Pin {name} to Expenses"
         },
         "new": {
             "title": "New group",
@@ -526,7 +528,8 @@
             "tooManyMembers": "This group has {max} people, the most it can have.",
             "tooManyMembersEver": "This group has had {max} people, counting those who left, the most it can have. Make a new group instead.",
             "tooManyInvitations": "You have {max} open invitation links, the most there can be. Revoke one first.",
-            "failed": "Couldn't save the change. Try again."
+            "failed": "Couldn't save the change. Try again.",
+            "tooManyPinned": "You have {max} groups pinned to Expenses, the most there can be. Unpin one first."
         },
         "edit": {
             "link": "Edit group",
@@ -539,7 +542,10 @@
             "name": "Name",
             "simplify": "Simplify debts",
             "simplifyHint": "Shows the fewest payments that settle the group. It doesn't change any expense.",
-            "save": "Save"
+            "save": "Save",
+            "pin": "Pin to Expenses",
+            "pinHint": "It shows as a tab on the Expenses screen.",
+            "pinFull": "You can pin {max} groups to Expenses. Unpin one to pin another."
         },
         "people": {
             "title": "People",

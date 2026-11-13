@@ -7,13 +7,14 @@ import { Checkbox } from '@/components/checkbox/checkbox';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { useOnline } from '@/lib/offline';
-import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
+import { MAX_PINNED_GROUPS, SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
 import { CloseGroup } from './close-group';
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { GroupGate } from './group-gate';
 import { GroupPeople } from './group-people';
 import { isOwner } from './is-owner';
+import { usePinnedGroups } from './pinned-groups';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 
@@ -69,7 +70,8 @@ const SettingsView = (props: SettingsViewProps) => {
     );
 };
 
-// Show in my expenses, and Archive for a closed group: they belong to the person, so a closed group takes them too
+// Pin to Expenses for an open group, Show in my expenses, and Archive for a closed group: they belong to the person, so
+// a closed group takes the last two too
 const PersonalSwitches = (props: SectionProps) => {
     const { group, disabled } = props;
     const t = useTranslations('groups.edit');
@@ -80,6 +82,9 @@ const PersonalSwitches = (props: SectionProps) => {
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const shown = asked?.showInExpenses ?? group.showInExpenses;
     const archived = asked?.archived ?? group.archived;
+    const pinned = asked?.pinned ?? group.pinnedAt !== null;
+    const othersPinned = usePinnedGroups().filter((other) => other.id !== group.id).length;
+    const full = !pinned && othersPinned >= MAX_PINNED_GROUPS;
 
     const send = async (switches: MySwitches) => {
         if (asked) return;
@@ -96,6 +101,15 @@ const PersonalSwitches = (props: SectionProps) => {
 
     return (
         <div className="group-settings__section">
+            {group.closed === null && (
+                <Checkbox
+                    label={t('pin')}
+                    hint={full ? t('pinFull', { max: MAX_PINNED_GROUPS }) : t('pinHint')}
+                    checked={pinned}
+                    disabled={disabled || full}
+                    onChange={(checked) => void send({ pinned: checked })}
+                />
+            )}
             <Checkbox
                 label={t('show')}
                 hint={t('showHint')}

@@ -65,6 +65,8 @@ interface BackupGroup {
     closed: GroupClosed | null;
     archived: boolean;
     showInExpenses: boolean;
+    // Whether the person pinned it to the Expenses screen
+    pinned: boolean;
     // The member of the person
     me: string;
     members: GroupMember[];
@@ -122,6 +124,7 @@ const backupGroup = ({ group, entries }: BackupLedger): BackupGroup => {
         closed: group.closed,
         archived: group.archived,
         showInExpenses: group.showInExpenses,
+        pinned: group.pinnedAt !== null,
         me: group.me,
         members: group.members.map(({ id, name, role, claimed, leftAt, mergedInto }) => {
             return { id, name, role, claimed, leftAt, mergedInto };

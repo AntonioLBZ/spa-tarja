@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
@@ -19,22 +20,25 @@ import './group-screen.css';
 
 interface GroupScreenProps {
     groupId: string;
+    // Shown under its tab on the Expenses screen, which says its name (ADR-0021)
+    inTab?: boolean;
 }
 
 interface GroupViewProps {
     ledger: Ledger;
+    inTab?: boolean;
 }
 
 // A group or a friend: what the person is owed or owes, who owes whom and settling up, its entries, and the way to its
 // settings. Adding an expense is the "+", and Edit and Duplicate of an entry open the same sheet.
 const GroupScreen = (props: GroupScreenProps) => {
-    const { groupId } = props;
+    const { groupId, inTab } = props;
 
-    return <GroupGate groupId={groupId}>{(ledger) => <GroupView ledger={ledger} />}</GroupGate>;
+    return <GroupGate groupId={groupId}>{(ledger) => <GroupView ledger={ledger} inTab={inTab} />}</GroupGate>;
 };
 
 const GroupView = (props: GroupViewProps) => {
-    const { ledger } = props;
+    const { ledger, inTab } = props;
     const { group, entries, hasData, isError, isWaitingForNetwork } = ledger;
     const t = useTranslations('groups');
     const words = useGroupWords(group);
@@ -42,10 +46,11 @@ const GroupView = (props: GroupViewProps) => {
     const sheet = useExpenseSheet();
     const { debts, formEntries, formDebts } = useGroupDebts(group, entries, settle.editing?.id ?? null);
     const open = group.closed === null;
+    const titleClsx = clsx('group-screen__title', { 'visually-hidden': inTab });
 
     return (
         <section className="group-screen">
-            <h1 className="group-screen__title">{words.title}</h1>
+            {inTab ? <h2 className={titleClsx}>{words.title}</h2> : <h1 className={titleClsx}>{words.title}</h1>}
             <EntryRefusals groupId={group.id} />
             {hasData && (
                 <>

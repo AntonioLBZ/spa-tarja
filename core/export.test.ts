@@ -54,6 +54,7 @@ function group(overrides: Partial<SharedGroup> = {}): SharedGroup {
         archived: false,
         me: 'ana',
         showInExpenses: true,
+        pinnedAt: null,
         members: [member('ana', 'Ana', { role: 'owner' }), member('bea', 'Bea')],
         ...overrides,
     };
@@ -296,6 +297,7 @@ describe('the groups of the backup', () => {
                 closed: null,
                 archived: false,
                 showInExpenses: true,
+                pinned: false,
                 me: 'ana',
                 members: [
                     { id: 'ana', name: 'Ana', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
@@ -335,6 +337,7 @@ describe('the groups of the backup', () => {
                 closed: null,
                 archived: false,
                 showInExpenses: true,
+                pinned: false,
                 me: 'ana',
                 members: [
                     { id: 'ana', name: 'Ana', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
@@ -345,17 +348,19 @@ describe('the groups of the backup', () => {
         ]);
     });
 
-    it('keeps a group whose switch is off, a closed one and an archived one, with the flags as they are', () => {
+    it('keeps a group whose switch is off, a closed one and an archived one, with the flags and the pin as they are', () => {
         const backup = backupOf(
-            ledger(group({ id: 'g1', showInExpenses: false }), dinner()),
+            ledger(group({ id: 'g1', showInExpenses: false, pinnedAt: 1_000 }), dinner()),
             ledger(group({ id: 'g2', closed: 'left', archived: true }), dinner()),
             ledger(group({ id: 'g3', closed: 'deleted' }), dinner())
         );
 
-        expect(backup.groups.map((item) => [item.id, item.showInExpenses, item.closed, item.archived])).toEqual([
-            ['g1', false, null, false],
-            ['g2', true, 'left', true],
-            ['g3', true, 'deleted', false],
+        expect(
+            backup.groups.map((item) => [item.id, item.showInExpenses, item.closed, item.archived, item.pinned])
+        ).toEqual([
+            ['g1', false, null, false, true],
+            ['g2', true, 'left', true, false],
+            ['g3', true, 'deleted', false, false],
         ]);
         expect(backup.groups.map((item) => item.entries.length)).toEqual([1, 1, 1]);
     });

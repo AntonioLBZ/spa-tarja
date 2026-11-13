@@ -561,7 +561,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend who left', () => 
         const friend = await befriend(ana, bruno);
         const { id } = await addFriend(ana, group.id, friend.id);
         await groupOf(await putMember(bruno, group.id, id, { name: 'Bru' }));
-        await groupOf(await send(bruno, 'PUT', `/groups/${group.id}/me`, { showInExpenses: false }));
+        await groupOf(await send(bruno, 'PUT', `/groups/${group.id}/me`, { showInExpenses: false, pinned: true }));
         await groupOf(await removeMember(bruno, group.id, id));
         await groupOf(await send(bruno, 'PUT', `/groups/${group.id}/me`, { archived: true }));
         const left = await rowOf(id);
@@ -569,7 +569,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend who left', () => 
         await groupOf(await comeBack(ana, group.id, friend.id));
 
         const theirs = (await listGroups(bruno)).find((candidate) => candidate.id === group.id);
-        expect(theirs).toMatchObject({ closed: null, archived: false, showInExpenses: false, me: id });
+        expect(theirs).toMatchObject({ closed: null, archived: false, showInExpenses: false, pinnedAt: null, me: id });
         expect(member(theirs!, id)).toMatchObject({ name: 'Bru', role: 'member' });
         expect(await rowOf(id)).toEqual({ ...left, left_at: null, left_seq: null, archived_at: null });
     });

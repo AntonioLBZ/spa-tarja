@@ -8,13 +8,16 @@ import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
+import { MAX_PINNED_GROUPS } from '@core/shared-group';
 
 import { EntryRefusals } from './entry-refusals';
+import { useFailureWords } from './group-failure';
 import { GroupList, GroupSheet } from './group-list';
 import { InviteFriend } from './invite-friend';
 import { myBalance } from './my-balance';
 import { NewGroup } from './new-group';
 import { useGroups, useLedgers, type Ledger } from './use-ledgers';
+import { usePins } from './use-pins';
 
 import './groups.css';
 
@@ -35,6 +38,8 @@ const Groups = () => {
     const client = useQueryClient();
     const { hasData, isError, isWaitingForNetwork } = useGroups();
     const { ledgers } = useLedgers();
+    const pins = usePins();
+    const failureWords = useFailureWords();
 
     // Opening the tab reads the groups and the links again, so a link accepted meanwhile is a friend and not a link
     useEffect(() => {
@@ -60,13 +65,19 @@ const Groups = () => {
                 </Notice>
             )}
             {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
+            {pins.full && <p className="groups__pin-full">{t('edit.pinFull', { max: MAX_PINNED_GROUPS })}</p>}
+            {pins.failure && (
+                <Notice tone="danger" role="alert">
+                    {failureWords(pins.failure)}
+                </Notice>
+            )}
             <ListSection title={t('lists.groups')}>
                 <NewGroup disabled={!online} />
-                {groups.length > 0 && <GroupList ledgers={groups} />}
+                {groups.length > 0 && <GroupList ledgers={groups} pins={pins} />}
             </ListSection>
             <ListSection title={t('lists.friends')}>
                 <InviteFriend disabled={!online} />
-                {friends.length > 0 && <GroupList ledgers={friends} />}
+                {friends.length > 0 && <GroupList ledgers={friends} pins={pins} />}
                 {hasData && open.length > 0 && friends.length === 0 && (
                     <Notice tone="quiet">{t('lists.friendsNone')}</Notice>
                 )}
