@@ -78,6 +78,57 @@ button:disabled {
         color var(--duration-slow) var(--ease-standard);
 }
 
+/* The theme change: the new page is shown through blobs of ink that grow from where the person pressed (see revealTheme). Everything
+   with a transition name of its own joins the page for the length of it. */
+@property --theme-progress {
+    inherits: true;
+    initial-value: 0;
+    syntax: '<number>';
+}
+
+:root[data-theme-reveal] * {
+    view-transition-name: none;
+}
+
+:root[data-theme-reveal]::view-transition-old(root),
+:root[data-theme-reveal]::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+:root[data-theme-reveal]::view-transition-new(root) {
+    /* The size of the ink, and how far the lumps of its edge stand from the press: nothing at the start and at the end */
+    --ink: calc(var(--theme-progress) * var(--theme-reach) * 1.5);
+    --lump: calc(sin(var(--theme-progress) * 0.5turn) * var(--theme-progress) * var(--theme-reach) * 0.5);
+
+    mask-image:
+        radial-gradient(
+            circle at var(--theme-x) var(--theme-y),
+            #000 calc(var(--ink) * 0.72),
+            transparent calc(var(--ink) * 0.72 + 4vmax)
+        ),
+        radial-gradient(
+            circle at calc(var(--theme-x) + var(--lump) * 0.22) calc(var(--theme-y) + var(--lump) * 0.13),
+            #000 calc(var(--ink) * 0.7),
+            transparent calc(var(--ink) * 0.7 + 6vmax)
+        ),
+        radial-gradient(
+            circle at calc(var(--theme-x) + var(--lump) * -0.2) calc(var(--theme-y) + var(--lump) * 0.17),
+            #000 calc(var(--ink) * 0.66),
+            transparent calc(var(--ink) * 0.66 + 5vmax)
+        ),
+        radial-gradient(
+            circle at calc(var(--theme-x) + var(--lump) * -0.1) calc(var(--theme-y) + var(--lump) * -0.22),
+            #000 calc(var(--ink) * 0.64),
+            transparent calc(var(--ink) * 0.64 + 6vmax)
+        ),
+        radial-gradient(
+            circle at calc(var(--theme-x) + var(--lump) * 0.18) calc(var(--theme-y) + var(--lump) * -0.16),
+            #000 calc(var(--ink) * 0.62),
+            transparent calc(var(--ink) * 0.62 + 5vmax)
+        );
+}
+
 /* What is brought into view (Tab, scrollIntoView, a fragment) stops under the sticky header, not behind it */
 :root {
     scroll-padding-top: calc(var(--header-height) + env(safe-area-inset-top));

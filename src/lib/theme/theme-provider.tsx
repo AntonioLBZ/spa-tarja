@@ -1,7 +1,7 @@
 import { createContext, use, useCallback, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 
-import { applyTheme, readStoredTheme, storeTheme, syncThemeColor, withColorTransition, type Theme } from './theme';
+import { applyTheme, readStoredTheme, storeTheme, revealTheme, syncThemeColor, type Theme } from './theme';
 
 interface ThemeContextValue {
     theme: Theme;
@@ -25,7 +25,7 @@ const ThemeProvider = (props: ThemeProviderProps) => {
 
     const setTheme = useCallback((next: Theme) => {
         storeTheme(next);
-        withColorTransition(() => flushSync(() => setThemeState(next)));
+        revealTheme(() => flushSync(() => setThemeState(next)));
     }, []);
 
     const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);

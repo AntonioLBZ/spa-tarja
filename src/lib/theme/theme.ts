@@ -50,6 +50,103 @@ const withColorTransition = (update: () => void): void => {
     colorTransitionTimer = setTimeout(() => root.removeAttribute('data-color-transition'), duration);
 };
 
+let revealing: ViewTransition | undefined;
+
+// Where the last press landed: the ink starts there when the change comes from a tap or a click
+let lastPress: { x: number; y: number; at: number } | undefined;
+
+if (typeof document !== 'undefined') {
+    document.addEventListener(
+        'pointerdown',
+        (event) => {
+            lastPress = { x: event.clientX, y: event.clientY, at: Date.now() };
+        },
+        { capture: true, passive: true }
+    );
+}
+
+const PRESS_MEMORY_MS = 1500;
+
+// A change from the keyboard has no press to start at, so the ink comes from the top right corner
+const revealOrigin = (): { x: number; y: number } => {
+    if (lastPress && Date.now() - lastPress.at < PRESS_MEMORY_MS) {
+        return { x: lastPress.x, y: lastPress.y };
+    }
+    return { x: window.innerWidth, y: 0 };
+};
+
+// When the last reveal started, in ms: each one takes two pictures of the whole screen, so they are never started
+// back to back
+let lastRevealAt = Number.NEGATIVE_INFINITY;
+
+// While a view transition runs the browser gives the live page no pointer events. A tap ends the reveal at once and
+// is then repeated on what is under it, so nothing waits for the ink.
+const endRevealOnTap = (transition: ViewTransition): void => {
+    const onPointerUp = (event: PointerEvent) => {
+        if (!event.isPrimary || event.button !== 0) {
+            return;
+        }
+        cleanup();
+        transition.skipTransition();
+        const { clientX, clientY } = event;
+        const repeat = () => {
+            document.elementFromPoint(clientX, clientY)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        };
+        transition.finished.then(repeat, repeat);
+    };
+    const cleanup = () => document.removeEventListener('pointerup', onPointerUp, true);
+    document.addEventListener('pointerup', onPointerUp, true);
+    transition.finished.then(cleanup, cleanup);
+};
+
+// The new theme drifts in like ink from where the person pressed (ADR-0022). Where the browser can't, or with reduced
+// motion, the colors fade instead, and so they do when a change comes before the last ink has had its time: it ends
+// the running one at once.
+const revealTheme = (update: () => void): void => {
+    const duration = readDuration('--duration-reveal');
+    const tooSoon = Date.now() - lastRevealAt < duration;
+    if (duration === 0 || tooSoon || typeof document.startViewTransition !== 'function') {
+        revealing?.skipTransition();
+        withColorTransition(update);
+        return;
+    }
+    lastRevealAt = Date.now();
+    const root = document.documentElement;
+    const easing = getComputedStyle(root).getPropertyValue('--ease-standard').trim();
+    revealing?.skipTransition();
+    const origin = revealOrigin();
+    const reach = Math.hypot(
+        Math.max(origin.x, window.innerWidth - origin.x),
+        Math.max(origin.y, window.innerHeight - origin.y)
+    );
+    root.style.setProperty('--theme-x', `${origin.x}px`);
+    root.style.setProperty('--theme-y', `${origin.y}px`);
+    root.style.setProperty('--theme-reach', `${reach}px`);
+    root.dataset.themeReveal = '';
+    const transition = document.startViewTransition(update);
+    revealing = transition;
+    endRevealOnTap(transition);
+    transition.ready
+        .then(() => {
+            root.animate(
+                { '--theme-progress': [0, 1] },
+                { duration, easing, fill: 'forwards', pseudoElement: '::view-transition-new(root)' }
+            );
+        })
+        .catch(() => undefined);
+    const clear = () => {
+        if (revealing !== transition) {
+            return;
+        }
+        revealing = undefined;
+        root.removeAttribute('data-theme-reveal');
+        for (const name of ['--theme-x', '--theme-y', '--theme-reach']) {
+            root.style.removeProperty(name);
+        }
+    };
+    transition.finished.then(clear, clear);
+};
+
 // The header surface, resolved for the current color scheme
 const readSurfaceColor = (): string => {
     const probe = document.createElement('div');
@@ -76,6 +173,7 @@ export {
     applyTheme,
     isTheme,
     readStoredTheme,
+    revealTheme,
     storeTheme,
     syncThemeColor,
     withColorTransition,
