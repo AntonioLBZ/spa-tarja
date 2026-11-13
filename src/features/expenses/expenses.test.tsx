@@ -3828,22 +3828,23 @@ describe('searching, filtering and grouping the list', () => {
     });
 
     describe('the focus', () => {
-        it('goes to the search field when Clear is pressed, since the button is gone', async () => {
+        it('goes to the filters button when Clear is pressed, never to the search field', async () => {
             await open(list);
             search('shop');
 
             clear();
 
-            expect(document.activeElement).toBe(searchBox());
+            expect(document.activeElement).toBe(filtersToggle());
+            expect(document.activeElement).not.toBe(searchBox());
         });
 
-        it('goes to the search field when Clear is pressed in the empty result too', async () => {
+        it('goes to the filters button when Clear is pressed in the empty result too', async () => {
             await open(list);
             search('nothing like this');
 
             clear();
 
-            expect(document.activeElement).toBe(searchBox());
+            expect(document.activeElement).toBe(filtersToggle());
             expect(rowNames()).toHaveLength(4);
         });
 

@@ -48,14 +48,13 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     // The groups and friends whose expenses can be in the list, closed ones too
     const listed = useMemo(() => groupsFirst(groups.filter((group) => group.showInExpenses)), [groups]);
     const groupOptions = useGroupOptions(listed);
-    const search = useRef<HTMLInputElement>(null);
     const toggle = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
 
-    // The button goes with the filters, so the focus goes to the field
+    // The button goes with the filters: the focus goes to the filters button, never to the field, whose keyboard would open
     const clear = () => {
         onClear();
-        search.current?.focus();
+        toggle.current?.focus();
     };
 
     // The filters of the sheet, the dates too; the search and the grouping stay
@@ -76,7 +75,6 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     {(control) => (
                         <input
                             {...control}
-                            ref={search}
                             className="expense-list-controls__search"
                             type="search"
                             value={filters.query}
