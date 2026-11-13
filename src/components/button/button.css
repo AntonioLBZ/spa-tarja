@@ -4,6 +4,36 @@ a.button {
     text-decoration: none;
 }
 
+/* At rest a box is its bottom edge. The left edge is drawn by ::before and grows with what the person does: half the
+   height on hover, the whole height while pressed, which is the L of ADR-0023. A toggle that is on keeps it whole. */
+.button:not(.button--ghost) {
+    border-inline-start-width: 0;
+    position: relative;
+}
+
+.button:not(.button--ghost)::before {
+    background: var(--color-border);
+    block-size: 100%;
+    content: '';
+    inline-size: var(--size-1);
+    inset: auto auto 0 0;
+    position: absolute;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+@media (hover: hover) {
+    .button:not(:disabled, .button--ghost):hover::before {
+        transform: scaleY(0.5);
+    }
+}
+
+.button:not(:disabled, .button--ghost):active::before,
+.button--pressed:not(:disabled)::before {
+    transform: scaleY(1);
+}
+
 .button--primary,
 .button--pressed {
     background: var(--color-bg-accent);
@@ -17,9 +47,25 @@ a.button {
     background: transparent;
 }
 
+@media (hover: hover) {
+    .button--primary:not(:disabled):hover {
+        background: color-mix(in oklab, var(--color-bg-accent) 80%, var(--color-content-primary));
+    }
+}
+
+/* The whole L in the danger color, so it is not weaker than a plain button */
 .button--danger {
-    border-color: var(--color-border-subtle);
+    border-color: var(--color-danger);
     color: var(--color-danger);
+}
+
+.button--danger::before {
+    background: var(--color-danger);
+}
+
+.button--danger:disabled {
+    border-color: var(--color-border-subtle);
+    color: var(--color-content-secondary);
 }
 
 .button--glyph {
