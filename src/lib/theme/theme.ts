@@ -29,6 +29,16 @@ const storeTheme = (theme: Theme): void => {
     }
 };
 
+// The look a theme gives: "system" is whichever the device prefers
+const resolveTheme = (theme: Theme): 'light' | 'dark' => {
+    if (theme !== 'system') {
+        return theme;
+    }
+    const prefersDark =
+        typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+};
+
 // Light and dark force the color scheme; "system" leaves it to the OS. The tokens read it from the root.
 const applyTheme = (theme: Theme): void => {
     document.documentElement.dataset.theme = theme;
@@ -173,6 +183,7 @@ export {
     applyTheme,
     isTheme,
     readStoredTheme,
+    resolveTheme,
     revealTheme,
     storeTheme,
     syncThemeColor,

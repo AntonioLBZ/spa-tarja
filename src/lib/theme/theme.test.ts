@@ -7,6 +7,7 @@ import {
     readStoredTheme,
     storeTheme,
     syncThemeColor,
+    resolveTheme,
     revealTheme,
     withColorTransition,
 } from './theme';
@@ -119,6 +120,31 @@ describe('withColorTransition', () => {
         expect(root.hasAttribute('data-color-transition')).toBe(true);
         vi.advanceTimersByTime(60);
         expect(root.hasAttribute('data-color-transition')).toBe(false);
+    });
+});
+
+describe('resolveTheme', () => {
+    const prefer = (dark: boolean) => {
+        vi.stubGlobal('matchMedia', (media: string) => ({ matches: dark && media.includes('dark') }));
+    };
+
+    it('is the theme itself for light and dark', () => {
+        prefer(true);
+
+        expect(resolveTheme('light')).toBe('light');
+        expect(resolveTheme('dark')).toBe('dark');
+    });
+
+    it('follows the device for system', () => {
+        prefer(true);
+        expect(resolveTheme('system')).toBe('dark');
+
+        prefer(false);
+        expect(resolveTheme('system')).toBe('light');
+    });
+
+    it('is light for system where there is no way to ask', () => {
+        expect(resolveTheme('system')).toBe('light');
     });
 });
 

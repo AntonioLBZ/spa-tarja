@@ -121,6 +121,22 @@ describe('settings', () => {
             expect(meta.content).toBe('#f4f4f4');
         });
 
+        it('changes at once between System and the theme the device already has', async () => {
+            vi.stubGlobal('matchMedia', (media: string) => ({
+                matches: media.includes('dark'),
+                addEventListener: () => undefined,
+                removeEventListener: () => undefined,
+            }));
+            localStorage.setItem('tarja:theme', 'system');
+            root.style.setProperty('--duration-slow', '50ms');
+            renderApp({ path: '/settings' });
+
+            fireEvent.click(await radio(en.settings.theme.dark));
+
+            await waitFor(() => expect(root.dataset.theme).toBe('dark'));
+            expect(root.hasAttribute('data-color-transition')).toBe(false);
+        });
+
         it('fades the colors while it changes', async () => {
             root.style.setProperty('--duration-slow', '50ms');
             renderApp({ path: '/settings' });

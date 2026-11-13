@@ -1,7 +1,15 @@
-import { createContext, use, useCallback, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, use, useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 
-import { applyTheme, readStoredTheme, storeTheme, revealTheme, syncThemeColor, type Theme } from './theme';
+import {
+    applyTheme,
+    readStoredTheme,
+    resolveTheme,
+    revealTheme,
+    storeTheme,
+    syncThemeColor,
+    type Theme,
+} from './theme';
 
 interface ThemeContextValue {
     theme: Theme;
@@ -18,14 +26,23 @@ const ThemeProvider = (props: ThemeProviderProps) => {
     const { children } = props;
     const [theme, setThemeState] = useState(readStoredTheme);
 
+    const current = useRef(theme);
+
     useLayoutEffect(() => {
+        current.current = theme;
         applyTheme(theme);
         syncThemeColor(theme);
     }, [theme]);
 
     const setTheme = useCallback((next: Theme) => {
         storeTheme(next);
-        revealTheme(() => flushSync(() => setThemeState(next)));
+        const update = () => flushSync(() => setThemeState(next));
+        // Between two themes that look the same, as System on a dark device and Dark, there is nothing to reveal
+        if (resolveTheme(current.current) === resolveTheme(next)) {
+            update();
+            return;
+        }
+        revealTheme(update);
     }, []);
 
     const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);

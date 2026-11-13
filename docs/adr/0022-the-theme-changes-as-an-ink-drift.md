@@ -19,6 +19,7 @@ DESIGN.md said to never use a View Transition for the theme, because the page go
 
 ## Consequences
 
+- A change between two themes that look the same, such as System on a dark device and Dark, shows no ink and no fade: there is nothing to reveal.
 - The browser gives the live page no pointer events while a view transition runs, whatever `pointer-events` says. So a tap during the ink ends it at once and is repeated on what is under it, and a theme chosen before the last ink has had its `--duration-reveal` ends that one and changes with the plain fade of the colors. Each ink takes two pictures of the whole screen, so they are never started back to back.
 - Frames cost a repaint of a mask over two full-screen pictures: cheap on a recent phone, to be checked on a low-end one.
 - There is one more motion token, outside the 120, 200 and 360 ms scale.
