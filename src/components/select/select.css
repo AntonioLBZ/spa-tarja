@@ -11,7 +11,7 @@
     border-right: var(--size-px) solid currentcolor;
     content: '';
     inline-size: 0.5rem;
-    inset-block: 0 var(--size-1);
+    inset-block: var(--field-pad-top, 0) var(--field-pad-bottom, 0);
     inset-inline-end: var(--size-3);
     margin-block: auto;
     pointer-events: none;
@@ -24,7 +24,8 @@
     transform: rotate(225deg);
 }
 
-/* The look of the other fields, with room for the chevron and, if the options have them, the icon */
+/* The look of the other fields, given by the box of its Field, with room for the chevron and, if the options have them,
+   the icon */
 .select__field {
     appearance: none;
     cursor: pointer;
@@ -32,11 +33,10 @@
 }
 
 .select--icons .select__field {
-    padding-inline-start: calc(var(--size-3) + var(--select-icon-room));
+    padding-inline-start: calc(var(--field-start, var(--size-3)) + var(--select-icon-room));
 }
 
 .select__field:disabled {
-    border-color: var(--color-border-subtle);
     color: var(--color-content-secondary);
     cursor: default;
 }
@@ -46,8 +46,8 @@
     align-items: center;
     display: flex;
     inline-size: 1.5rem;
-    inset-block: 0 var(--size-1);
-    inset-inline-start: calc(var(--size-1) + var(--size-3));
+    inset-block: var(--field-pad-top, 0) var(--field-pad-bottom, 0);
+    inset-inline-start: var(--field-start, var(--size-3));
     pointer-events: none;
     position: absolute;
 }

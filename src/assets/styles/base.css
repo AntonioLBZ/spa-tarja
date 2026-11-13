@@ -13,13 +13,11 @@ textarea {
     font: inherit;
 }
 
-/* The notch: a thick edge on the left and at the bottom of every box, none on top or on the right */
+/* A field draws no box of its own: the box of its Field does, with the notch drawn as it is used (ADR-0023) */
 input,
 select {
-    background: var(--color-bg-secondary);
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
+    background: transparent;
+    border-width: 0;
     color: var(--color-content-primary);
     min-height: var(--size-touch);
     padding: 0 var(--size-3);

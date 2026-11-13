@@ -3,9 +3,9 @@
     gap: var(--size-4);
 }
 
-/* The field takes the row but the button, which sits level with the control, not with its label */
+/* The field takes the row but the button, which sits in the middle of its box: the label is inside it (ADR-0023) */
 .expense-list-controls__row {
-    align-items: end;
+    align-items: center;
     display: grid;
     gap: var(--size-2);
     grid-template-columns: minmax(0, 1fr) auto;

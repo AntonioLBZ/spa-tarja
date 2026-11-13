@@ -79,22 +79,11 @@ const IncomeForm = (props: IncomeFormProps) => {
 
     return (
         <form className="income-form" onSubmit={(event) => void handleSubmit(event)}>
-            <Field label={t('label', { month: monthName })} error={invalid ? t('invalid') : null}>
-                {(control) => (
-                    <div className="income-form__row">
-                        <input
-                            {...control}
-                            className="income-form__input"
-                            autoComplete="off"
-                            disabled={!online}
-                            inputMode="decimal"
-                            type="text"
-                            value={value}
-                            onChange={(event) => {
-                                setValue(event.target.value);
-                                setInvalid(false);
-                            }}
-                        />
+            <Field
+                label={t('label', { month: monthName })}
+                error={invalid ? t('invalid') : null}
+                actions={
+                    <>
                         <Button disabled={!online || busy} type="submit">
                             {t('save')}
                         </Button>
@@ -103,7 +92,22 @@ const IncomeForm = (props: IncomeFormProps) => {
                                 {t('remove')}
                             </Button>
                         )}
-                    </div>
+                    </>
+                }
+            >
+                {(control) => (
+                    <input
+                        {...control}
+                        autoComplete="off"
+                        disabled={!online}
+                        inputMode="decimal"
+                        type="text"
+                        value={value}
+                        onChange={(event) => {
+                            setValue(event.target.value);
+                            setInvalid(false);
+                        }}
+                    />
                 )}
             </Field>
             {failure && (

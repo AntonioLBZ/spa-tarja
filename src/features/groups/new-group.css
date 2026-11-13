@@ -3,18 +3,6 @@
     gap: var(--size-4);
 }
 
-.new-group__row {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.new-group__input {
-    flex: 1 1 8rem;
-    min-width: 0;
-}
-
 /* A person to add, with the ghost that takes them away again */
 .new-group__person {
     align-items: center;

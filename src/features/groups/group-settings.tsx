@@ -173,26 +173,30 @@ const GroupName = (props: SectionProps) => {
 
     return (
         <form className="group-settings__section" onSubmit={(event) => void handleSubmit(event)}>
-            <Field label={t('edit.name')} error={invalid ? t('nameInvalid') : null}>
-                {(control) => (
-                    <div className="group-settings__row">
-                        <input
-                            {...control}
-                            className="group-settings__input"
-                            autoComplete="off"
-                            disabled={disabled}
-                            maxLength={SHARED_NAME_MAX_LENGTH}
-                            type="text"
-                            value={value}
-                            onChange={(event) => {
-                                setDraft(event.target.value);
-                                setInvalid(false);
-                            }}
-                        />
+            <Field
+                label={t('edit.name')}
+                error={invalid ? t('nameInvalid') : null}
+                actions={
+                    <>
                         <Button disabled={disabled || busy} type="submit">
                             {t('edit.save')}
                         </Button>
-                    </div>
+                    </>
+                }
+            >
+                {(control) => (
+                    <input
+                        {...control}
+                        autoComplete="off"
+                        disabled={disabled}
+                        maxLength={SHARED_NAME_MAX_LENGTH}
+                        type="text"
+                        value={value}
+                        onChange={(event) => {
+                            setDraft(event.target.value);
+                            setInvalid(false);
+                        }}
+                    />
                 )}
             </Field>
             {failure && (

@@ -68,7 +68,11 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     return (
         <div className="expense-list-controls">
             <div className="expense-list-controls__row">
-                <Field className="expense-list-controls__search-field" label={t('search')}>
+                <Field
+                    className="expense-list-controls__search-field"
+                    label={t('search')}
+                    icon={<Icon name="search" />}
+                >
                     {(control) => (
                         <input
                             {...control}

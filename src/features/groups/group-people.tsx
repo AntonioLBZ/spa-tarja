@@ -104,26 +104,31 @@ const AddPerson = (props: AddPersonProps) => {
 
     return (
         <form className="group-people__add" onSubmit={(event) => void handleSubmit(event)}>
-            <Field label={t('people.add')} hint={t('people.addHint')} error={invalid ? t('nameInvalid') : null}>
-                {(control) => (
-                    <div className="group-people__row">
-                        <input
-                            {...control}
-                            className="group-people__input"
-                            autoComplete="off"
-                            disabled={disabled}
-                            maxLength={SHARED_NAME_MAX_LENGTH}
-                            type="text"
-                            value={name}
-                            onChange={(event) => {
-                                setName(event.target.value);
-                                setInvalid(false);
-                            }}
-                        />
+            <Field
+                label={t('people.add')}
+                hint={t('people.addHint')}
+                error={invalid ? t('nameInvalid') : null}
+                actions={
+                    <>
                         <Button disabled={disabled || busy} type="submit">
                             {t('people.addSubmit')}
                         </Button>
-                    </div>
+                    </>
+                }
+            >
+                {(control) => (
+                    <input
+                        {...control}
+                        autoComplete="off"
+                        disabled={disabled}
+                        maxLength={SHARED_NAME_MAX_LENGTH}
+                        type="text"
+                        value={name}
+                        onChange={(event) => {
+                            setName(event.target.value);
+                            setInvalid(false);
+                        }}
+                    />
                 )}
             </Field>
             {failure && (

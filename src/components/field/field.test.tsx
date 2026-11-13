@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Field, type FieldControl } from './field';
+import { Field, FieldBox, type FieldControl } from './field';
 
 function input(control: FieldControl) {
     return <input {...control} type="text" />;
@@ -16,7 +16,7 @@ describe('Field', () => {
         expect(screen.getByText('Amount').tagName).toBe('LABEL');
     });
 
-    it('lays out the label, the control, the hint and the error in that order', () => {
+    it('puts the label and the control in a box, and the hint and the error under it', () => {
         const { container } = render(
             <Field label="Amount" hint="Digits only" error="Not a number">
                 {input}
@@ -25,9 +25,46 @@ describe('Field', () => {
 
         const field = container.firstElementChild!;
         expect(field.classList.contains('field')).toBe(true);
-        expect([...field.children].map((child) => child.tagName)).toEqual(['LABEL', 'INPUT', 'P', 'P']);
-        expect(field.children[2]!.classList.contains('field__hint')).toBe(true);
-        expect(field.children[3]!.classList.contains('notice--danger')).toBe(true);
+        expect([...field.children].map((child) => child.tagName)).toEqual(['DIV', 'P', 'P']);
+        const box = field.children[0]!;
+        expect(box.classList.contains('field__box')).toBe(true);
+        expect([...box.children].map((child) => child.tagName)).toEqual(['LABEL', 'INPUT']);
+        expect(field.children[1]!.classList.contains('field__hint')).toBe(true);
+        expect(field.children[2]!.classList.contains('notice--danger')).toBe(true);
+    });
+
+    it('gives the control a blank placeholder, so the label can tell an empty field from a filled one', () => {
+        render(<Field label="Amount">{input}</Field>);
+
+        expect(screen.getByLabelText('Amount').getAttribute('placeholder')).toBe(' ');
+    });
+
+    it('draws an icon inside the box, before the control, hidden from assistive technology', () => {
+        const { container } = render(
+            <Field label="Search" icon={<svg data-testid="glass" />}>
+                {input}
+            </Field>
+        );
+
+        const box = container.querySelector('.field__box')!;
+        const icon = box.querySelector('.field__icon')!;
+        expect(icon.getAttribute('aria-hidden')).toBe('true');
+        expect(icon.querySelector('[data-testid="glass"]')).not.toBeNull();
+        expect(box.classList.contains('field__box--icon')).toBe(true);
+        expect(screen.getByLabelText('Search').tagName).toBe('INPUT');
+    });
+
+    it('puts its actions beside the box, outside it', () => {
+        const { container } = render(
+            <Field label="Income" actions={<button type="submit">Save</button>}>
+                {input}
+            </Field>
+        );
+
+        const row = container.querySelector('.field__row')!;
+        expect([...row.children].map((child) => child.tagName)).toEqual(['DIV', 'BUTTON']);
+        expect(row.querySelector('.field__box button')).toBeNull();
+        expect(screen.getByLabelText('Income').closest('.field__box')).not.toBeNull();
     });
 
     it('gives every field an id of its own', () => {
@@ -39,22 +76,6 @@ describe('Field', () => {
         );
 
         expect(screen.getByLabelText('First').id).not.toBe(screen.getByLabelText('Second').id);
-    });
-
-    it('wraps a whole row of controls and ties the label to the one that takes the id', () => {
-        render(
-            <Field label="Income">
-                {(control) => (
-                    <div>
-                        <input {...control} type="text" />
-                        <button type="submit">Save</button>
-                    </div>
-                )}
-            </Field>
-        );
-
-        expect(screen.getByLabelText('Income').tagName).toBe('INPUT');
-        expect(screen.getByRole('button', { name: 'Save' })).toBeTruthy();
     });
 
     it('works with a select', () => {
@@ -176,5 +197,20 @@ describe('Field', () => {
         const field = container.firstElementChild!;
         expect(field.classList.contains('field')).toBe(true);
         expect(field.classList.contains('grow')).toBe(true);
+    });
+});
+
+describe('FieldBox', () => {
+    it('draws the box of a field around a control that is named elsewhere', () => {
+        const { container } = render(
+            <FieldBox>
+                <input aria-label="Part of Ana" type="text" />
+            </FieldBox>
+        );
+
+        const box = container.firstElementChild!;
+        expect(box.classList.contains('field__box')).toBe(true);
+        expect(box.querySelector('label')).toBeNull();
+        expect(screen.getByLabelText('Part of Ana').parentElement).toBe(box);
     });
 });

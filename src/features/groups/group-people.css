@@ -13,15 +13,3 @@
     display: grid;
     gap: var(--size-4);
 }
-
-.group-people__row {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.group-people__input {
-    flex: 1 1 8rem;
-    min-width: 0;
-}

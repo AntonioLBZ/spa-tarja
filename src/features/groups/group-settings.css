@@ -20,15 +20,3 @@
 .group-settings__archive {
     justify-self: start;
 }
-
-.group-settings__row {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.group-settings__input {
-    flex: 1 1 8rem;
-    min-width: 0;
-}

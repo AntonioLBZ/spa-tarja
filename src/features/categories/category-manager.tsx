@@ -118,31 +118,33 @@ const CategoryManager = () => {
             {!online && <Notice role="status">{t('offline')}</Notice>}
 
             <form className="category-manager__form" ref={form} onSubmit={(event) => void handleSubmit(event)}>
-                <Field label={editing ? t('editLabel') : t('add.label')} error={failure && t(failure)}>
+                <Field
+                    label={editing ? t('editLabel') : t('add.label')}
+                    error={failure && t(failure)}
+                    icon={<CategoryBadge style={style} />}
+                    actions={
+                        <Button disabled={!online || saving} type="submit">
+                            {editing ? t('save') : t('add.submit')}
+                        </Button>
+                    }
+                >
                     {(control) => (
-                        <div className="category-manager__add-row">
-                            <CategoryBadge style={style} />
-                            <input
-                                {...control}
-                                ref={nameInput}
-                                className="category-manager__input"
-                                // A save that went wrong is not the fault of the name
-                                aria-invalid={failure === 'nameTaken'}
-                                autoComplete="off"
-                                disabled={!online}
-                                maxLength={CATEGORY_NAME_MAX_LENGTH}
-                                required
-                                type="text"
-                                value={name}
-                                onChange={(event) => {
-                                    setName(event.target.value);
-                                    setFailure(null);
-                                }}
-                            />
-                            <Button disabled={!online || saving} type="submit">
-                                {editing ? t('save') : t('add.submit')}
-                            </Button>
-                        </div>
+                        <input
+                            {...control}
+                            ref={nameInput}
+                            // A save that went wrong is not the fault of the name
+                            aria-invalid={failure === 'nameTaken'}
+                            autoComplete="off"
+                            disabled={!online}
+                            maxLength={CATEGORY_NAME_MAX_LENGTH}
+                            required
+                            type="text"
+                            value={name}
+                            onChange={(event) => {
+                                setName(event.target.value);
+                                setFailure(null);
+                            }}
+                        />
                     )}
                 </Field>
                 <Disclosure key={editing?.id ?? 'new'} summary={t('look.summary')} chevron>

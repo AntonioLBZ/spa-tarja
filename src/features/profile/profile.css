@@ -13,15 +13,3 @@
     display: grid;
     gap: var(--size-1);
 }
-
-.profile__row {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.profile__input {
-    flex: 1 1 8rem;
-    min-width: 0;
-}

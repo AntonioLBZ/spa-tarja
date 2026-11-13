@@ -3,7 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
-import { Field } from '@/components/field/field';
+import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
@@ -418,19 +418,21 @@ const SharedPeople = (props: SharedPeopleProps) => {
                             />
                             {row.cents !== null && <span>{money(row.cents)}</span>}
                             {row.text !== null && (
-                                <input
-                                    className="shared-people__input"
-                                    aria-describedby={row.invalid ? `${id}-invalid` : undefined}
-                                    aria-invalid={row.invalid}
-                                    aria-label={t(byPercent ? 'percentOf' : 'amountOf', {
-                                        name: words.nameInList(row.id),
-                                    })}
-                                    autoComplete="off"
-                                    inputMode="decimal"
-                                    type="text"
-                                    value={row.text}
-                                    onChange={(event) => tail.type(row.id, event.target.value)}
-                                />
+                                <FieldBox>
+                                    <input
+                                        className="shared-people__input"
+                                        aria-describedby={row.invalid ? `${id}-invalid` : undefined}
+                                        aria-invalid={row.invalid}
+                                        aria-label={t(byPercent ? 'percentOf' : 'amountOf', {
+                                            name: words.nameInList(row.id),
+                                        })}
+                                        autoComplete="off"
+                                        inputMode="decimal"
+                                        type="text"
+                                        value={row.text}
+                                        onChange={(event) => tail.type(row.id, event.target.value)}
+                                    />
+                                </FieldBox>
                             )}
                         </li>
                     ))}

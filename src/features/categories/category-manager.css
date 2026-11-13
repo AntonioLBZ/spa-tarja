@@ -14,17 +14,6 @@
     gap: var(--size-1);
 }
 
-.category-manager__add-row {
-    align-items: center;
-    display: flex;
-    gap: var(--size-4);
-}
-
-.category-manager__input {
-    flex: 1;
-    min-width: 0;
-}
-
 .category-manager__cancel {
     justify-self: start;
 }

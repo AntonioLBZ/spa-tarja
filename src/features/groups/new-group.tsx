@@ -167,55 +167,56 @@ const NewGroup = (props: NewGroupProps) => {
                             ? t('nameInvalid')
                             : personError === 'full' && t('new.full', { max: MAX_GROUP_MEMBERS })
                     }
-                >
-                    {(control) => (
-                        <div className="new-group__row">
-                            <input
-                                {...control}
-                                className="new-group__input"
-                                autoComplete="off"
-                                disabled={disabled}
-                                maxLength={SHARED_NAME_MAX_LENGTH}
-                                type="text"
-                                value={person}
-                                onChange={(event) => {
-                                    setPerson(event.target.value);
-                                    setPersonError(null);
-                                }}
-                                onKeyDown={handlePersonKey}
-                            />
+                    actions={
+                        <>
                             <Button disabled={disabled} onClick={() => withTyped()}>
                                 {t('new.add')}
                             </Button>
-                        </div>
+                        </>
+                    }
+                >
+                    {(control) => (
+                        <input
+                            {...control}
+                            autoComplete="off"
+                            disabled={disabled}
+                            maxLength={SHARED_NAME_MAX_LENGTH}
+                            type="text"
+                            value={person}
+                            onChange={(event) => {
+                                setPerson(event.target.value);
+                                setPersonError(null);
+                            }}
+                            onKeyDown={handlePersonKey}
+                        />
                     )}
                 </Field>
                 {friends.length > 0 && (
                     <Field
                         label={t('new.friend')}
                         error={friendFull ? t('new.full', { max: MAX_GROUP_MEMBERS }) : null}
-                    >
-                        {(control) => (
-                            <div className="new-group__row">
-                                <div className="new-group__input">
-                                    <Select
-                                        {...control}
-                                        disabled={disabled}
-                                        options={[
-                                            { value: '', label: t('new.friendNone') },
-                                            ...choices.map((item) => ({ value: item.id, label: item.name })),
-                                        ]}
-                                        value={chosen}
-                                        onChange={(next) => {
-                                            setFriend(next);
-                                            setFriendFull(false);
-                                        }}
-                                    />
-                                </div>
+                        actions={
+                            <>
                                 <Button disabled={disabled || chosen === ''} onClick={addChosen}>
                                     {t('new.addFriend')}
                                 </Button>
-                            </div>
+                            </>
+                        }
+                    >
+                        {(control) => (
+                            <Select
+                                {...control}
+                                disabled={disabled}
+                                options={[
+                                    { value: '', label: t('new.friendNone') },
+                                    ...choices.map((item) => ({ value: item.id, label: item.name })),
+                                ]}
+                                value={chosen}
+                                onChange={(next) => {
+                                    setFriend(next);
+                                    setFriendFull(false);
+                                }}
+                            />
                         )}
                     </Field>
                 )}

@@ -4,8 +4,10 @@ import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18
 import { storeLocale } from '@/lib/i18n/locale';
 import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
 import { storeTheme } from '@/lib/theme/theme';
+import { useFocusSource } from '@/lib/use-focus-source';
 
 import type { Preview } from '@storybook/react-vite';
+import type { ReactNode } from 'react';
 
 import '@/assets/styles/main.css';
 
@@ -16,6 +18,18 @@ const VIEWPORTS = {
     tablet: { name: '640 px (40rem)', styles: { width: '640px', height: '900px' }, type: 'tablet' },
     desktop: { name: '1024 px (64rem)', styles: { width: '1024px', height: '768px' }, type: 'desktop' },
 } as const;
+
+interface FocusSourceProps {
+    children: ReactNode;
+}
+
+// Tells the fields how the focus last moved, as the app does around its pages
+const FocusSource = (props: FocusSourceProps) => {
+    const { children } = props;
+    useFocusSource();
+
+    return children;
+};
 
 const preview: Preview = {
     decorators: [
@@ -32,7 +46,9 @@ const preview: Preview = {
                 <LocaleProvider key={`${theme}-${accent}-${locale}`}>
                     <ThemeProvider>
                         <AccentProvider>
-                            <Story />
+                            <FocusSource>
+                                <Story />
+                            </FocusSource>
                         </AccentProvider>
                     </ThemeProvider>
                 </LocaleProvider>

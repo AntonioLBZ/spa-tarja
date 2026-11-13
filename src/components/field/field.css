@@ -1,9 +1,158 @@
 .field {
     display: grid;
     gap: var(--size-1);
+    min-width: 0;
+}
+
+/* At rest the box is its bottom edge. The left edge is drawn by ::before and grows with what the person does: half the
+   height on hover, the whole height with the focus or while a select is open, the L of ADR-0023 */
+.field__box {
+    /* Where the text starts: past the room of the left edge, and of the icon when there is one */
+    --field-start: calc(var(--size-1) + var(--size-3));
+    --field-height: var(--size-touch);
+    --field-pad-top: 0rem;
+    --field-pad-bottom: 0rem;
+
+    background: var(--color-bg-secondary);
+    border-block-end: var(--size-1) solid var(--color-border);
+    min-width: 0;
+    position: relative;
+    transition: border-color var(--duration-base) var(--ease-standard);
+}
+
+/* Room at the top of the box for the label once it is up */
+.field__box--labelled {
+    --field-height: 3.5rem;
+    --field-pad-top: 1.625rem;
+    --field-pad-bottom: 0.125rem;
+}
+
+.field__box--icon {
+    --field-start: calc(var(--size-1) + var(--size-3) + 1.5rem + var(--size-2));
+}
+
+.field__box::before {
+    background: var(--color-border);
+    content: '';
+    inline-size: var(--size-1);
+    inset-block: 0 calc(-1 * var(--size-1));
+    inset-inline-start: 0;
+    pointer-events: none;
+    position: absolute;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition:
+        transform var(--duration-base) var(--ease-standard),
+        background-color var(--duration-base) var(--ease-standard);
+    z-index: 1;
+}
+
+@media (hover: hover) {
+    .field__box:hover::before {
+        transform: scaleY(0.5);
+    }
+}
+
+.field__box:focus-within::before {
+    transform: scaleY(1);
+}
+
+/* On its own: a browser that doesn't know :open would drop every selector of a list it is in */
+.field__box:has(:open)::before {
+    transform: scaleY(1);
+}
+
+.field__box:has([aria-invalid='true']) {
+    border-block-end-color: var(--color-danger);
+}
+
+.field__box:has([aria-invalid='true'])::before {
+    background: var(--color-danger);
+}
+
+.field__box:has(:disabled) {
+    border-block-end-color: var(--color-border-subtle);
+}
+
+.field__box:has(:disabled)::before {
+    display: none;
+}
+
+/* The ring goes round the box, and only when the focus came from the keyboard: a tap shows the L alone */
+:root[data-focus-source='keyboard'] .field__box:focus-within {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+/* The control fills the box, under the label */
+.field__box :is(input, select) {
+    min-height: var(--field-height);
+    padding-block: var(--field-pad-top) var(--field-pad-bottom);
+    padding-inline-start: var(--field-start);
+}
+
+.field__box :is(input, select):focus-visible {
+    outline: none;
+}
+
+.field__box :is(input, select):disabled {
+    color: var(--color-content-secondary);
+}
+
+.field__icon {
+    align-items: center;
+    color: var(--color-content-secondary);
+    display: flex;
+    inset-block: var(--field-pad-top) var(--field-pad-bottom);
+    inset-inline-start: calc(var(--size-1) + var(--size-3));
+    pointer-events: none;
+    position: absolute;
+    transition: transform var(--duration-base) var(--ease-standard);
+    z-index: 1;
+}
+
+/* Up: small, at the top of the box, with the text under it */
+.field__label {
+    color: var(--color-content-secondary);
+    inset-block-start: 0;
+    inset-inline-start: var(--field-start);
+    line-height: 1.5;
+    max-inline-size: calc((100% - var(--field-start) - var(--size-3)) / 0.833);
+    overflow: hidden;
+    pointer-events: none;
+    position: absolute;
+    text-overflow: ellipsis;
+    transform: translateY(0.375rem) scale(0.833);
+    transform-origin: left top;
+    transition: transform var(--duration-base) var(--ease-standard);
+    white-space: nowrap;
+    z-index: 1;
+}
+
+/* Down: in the middle of the box, where the text goes, while the field is empty and idle. A select and a date always
+   hold a value, so their label never comes down */
+.field__box:not(:focus-within, :has(:autofill)):has(input:placeholder-shown) .field__label {
+    max-inline-size: calc(100% - var(--field-start) - var(--size-3));
+    transform: translateY(calc((var(--field-height) - 1.5rem) / 2));
+}
+
+.field__box:not(:focus-within, :has(:autofill)):has(input:placeholder-shown) .field__icon {
+    transform: translateY(calc((var(--field-pad-bottom) - var(--field-pad-top)) / 2));
 }
 
 .field__hint {
     color: var(--color-content-secondary);
     margin: 0;
+}
+
+/* The box and its actions, their bottom edges in line; the actions go under it when they don't fit */
+.field__row {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+.field__row > :first-child {
+    flex: 1 1 8rem;
 }

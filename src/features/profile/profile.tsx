@@ -70,22 +70,8 @@ const Profile = () => {
                     label={t('label')}
                     hint={t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
                     error={invalid ? t('invalid') : null}
-                >
-                    {(control) => (
-                        <div className="profile__row">
-                            <input
-                                {...control}
-                                className="profile__input"
-                                autoComplete="nickname"
-                                disabled={!online}
-                                maxLength={NICKNAME_MAX_LENGTH}
-                                type="text"
-                                value={value}
-                                onChange={(event) => {
-                                    setDraft(event.target.value);
-                                    setInvalid(false);
-                                }}
-                            />
+                    actions={
+                        <>
                             <Button disabled={!online || busy} type="submit">
                                 {t('save')}
                             </Button>
@@ -94,7 +80,22 @@ const Profile = () => {
                                     {t('remove')}
                                 </Button>
                             )}
-                        </div>
+                        </>
+                    }
+                >
+                    {(control) => (
+                        <input
+                            {...control}
+                            autoComplete="nickname"
+                            disabled={!online}
+                            maxLength={NICKNAME_MAX_LENGTH}
+                            type="text"
+                            value={value}
+                            onChange={(event) => {
+                                setDraft(event.target.value);
+                                setInvalid(false);
+                            }}
+                        />
                     )}
                 </Field>
                 {failure && (

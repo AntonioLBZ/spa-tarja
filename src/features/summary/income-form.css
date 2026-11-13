@@ -2,15 +2,3 @@
     display: grid;
     gap: var(--size-1);
 }
-
-.income-form__row {
-    align-items: center;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.income-form__input {
-    flex: 1 1 8rem;
-    min-width: 0;
-}
