@@ -58,7 +58,11 @@
     outline-offset: var(--focus-offset);
 }
 
+/* The icon in the middle of a box as wide and tall as a touch target */
 .group-card__pin {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
     margin-block: calc(-1 * var(--size-2));
     position: relative;
 }

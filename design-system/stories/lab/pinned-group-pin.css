@@ -72,5 +72,8 @@
 }
 
 .pin-lab__pin {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
     margin-block: calc(-1 * var(--size-2));
 }
