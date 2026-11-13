@@ -149,8 +149,8 @@
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-6));
 }
 
-/* Screens slide. The header holds still under its own name while the page moves, and where the browser has
-   no view transitions the screens simply change. */
+/* Screens change under a still header and bottom bar, each under its own name; where the browser has no view
+   transitions the screens simply change. */
 ::view-transition-group(*) {
     animation-duration: var(--duration-base);
 }
@@ -158,6 +158,21 @@
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation: none;
+}
+
+/* The page never morphs from the old box to the new one: the old screen may have been scrolled, and the move would
+   sweep it across the screen. The old picture goes at once, so the two never show through each other, and the new one
+   enters alone. */
+::view-transition-group(page) {
+    animation: none;
+}
+
+::view-transition-old(page) {
+    display: none;
+}
+
+::view-transition-new(page) {
+    animation: page-fade-in var(--duration-base) var(--ease-enter) both;
 }
 
 /* The underline moves as one piece: its group slides and stretches from the old word to the new one, showing the new
@@ -175,37 +190,17 @@
     block-size: 100%;
 }
 
-@keyframes page-leave-left {
-    to {
-        opacity: 0;
-        transform: translateX(-2rem);
-    }
-}
-
-@keyframes page-leave-right {
-    to {
-        opacity: 0;
-        transform: translateX(2rem);
-    }
-}
-
 @keyframes page-enter-from-right {
     from {
         opacity: 0;
-        transform: translateX(2rem);
+        transform: translateX(var(--size-6));
     }
 }
 
 @keyframes page-enter-from-left {
     from {
         opacity: 0;
-        transform: translateX(-2rem);
-    }
-}
-
-@keyframes page-fade-out {
-    to {
-        opacity: 0;
+        transform: translateX(calc(-1 * var(--size-6)));
     }
 }
 
@@ -215,33 +210,10 @@
     }
 }
 
-:root:active-view-transition-type(forward) {
-    &::view-transition-old(page) {
-        animation: page-leave-left var(--duration-base) var(--ease-exit) both;
-    }
-
-    &::view-transition-new(page) {
-        animation: page-enter-from-right var(--duration-base) var(--ease-enter) both;
-    }
+:root:active-view-transition-type(forward)::view-transition-new(page) {
+    animation: page-enter-from-right var(--duration-slow) var(--ease-enter) both;
 }
 
-:root:active-view-transition-type(back) {
-    &::view-transition-old(page) {
-        animation: page-leave-right var(--duration-base) var(--ease-exit) both;
-    }
-
-    &::view-transition-new(page) {
-        animation: page-enter-from-left var(--duration-base) var(--ease-enter) both;
-    }
-}
-
-/* Between two screens at the same depth the page only fades, while the underline slides */
-:root:active-view-transition-type(level) {
-    &::view-transition-old(page) {
-        animation: page-fade-out var(--duration-base) var(--ease-exit) both;
-    }
-
-    &::view-transition-new(page) {
-        animation: page-fade-in var(--duration-base) var(--ease-enter) both;
-    }
+:root:active-view-transition-type(back)::view-transition-new(page) {
+    animation: page-enter-from-left var(--duration-slow) var(--ease-enter) both;
 }
