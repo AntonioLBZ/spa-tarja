@@ -59,11 +59,18 @@ interface LocationChange {
     pathChanged: boolean;
 }
 
-// The view transition types of a navigation, which the styles turn into a slide, or a fade between two screens at the
-// same depth; false for no transition
+// The sections in the order of the bar, which a change of section slides along
+const SECTION_ORDER: readonly NavSection[] = ['/', '/groups', '/summary', '/settings'];
+
+// The view transition types of a navigation, which the styles turn into a slide: `next` and `previous` between two
+// sections, in the order of the bar; `forward` and `back` to a deeper or shallower screen of the same section; `level`,
+// a fade, between two screens of one section at the same depth. False for no transition.
 const slideTypes = (change: LocationChange): string[] | false => {
     const { fromLocation, toLocation, pathChanged } = change;
     if (!fromLocation || !pathChanged) return false;
+    const fromSection = SECTION_ORDER.indexOf(navSection(fromLocation.pathname));
+    const toSection = SECTION_ORDER.indexOf(navSection(toLocation.pathname));
+    if (fromSection !== toSection) return [toSection > fromSection ? 'next' : 'previous'];
     const from = routeDepth(fromLocation.pathname);
     const to = routeDepth(toLocation.pathname);
     if (from === to) return ['level'];

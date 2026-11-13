@@ -104,37 +104,41 @@ describe('backTarget', () => {
 });
 
 describe('slideTypes', () => {
-    it('goes forward when the new screen is deeper', () => {
-        expect(between('/', '/settings')).toEqual(['forward']);
+    it('slides along the bar between two sections', () => {
+        expect(between('/', '/groups')).toEqual(['next']);
+        expect(between('/', '/settings')).toEqual(['next']);
+        expect(between('/groups', '/summary')).toEqual(['next']);
+        expect(between('/summary', '/settings')).toEqual(['next']);
+        expect(between('/', '/categories')).toEqual(['next']);
+        expect(between('/groups/0b6f3c1e', '/charts')).toEqual(['next']);
+        expect(between('/settings', '/summary')).toEqual(['previous']);
+        expect(between('/settings', '/groups')).toEqual(['previous']);
+        expect(between('/summary', '/')).toEqual(['previous']);
+        expect(between('/categories', '/')).toEqual(['previous']);
+        expect(between('/charts', '/categories')).toEqual(['next']);
+        expect(between('/categories', '/charts')).toEqual(['previous']);
+    });
+
+    it('goes forward when the new screen is deeper in the same section', () => {
         expect(between('/settings', '/categories')).toEqual(['forward']);
-        expect(between('/', '/categories')).toEqual(['forward']);
-        expect(between('/', '/summary')).toEqual(['forward']);
-        expect(between('/', '/groups')).toEqual(['forward']);
         expect(between('/summary', '/charts')).toEqual(['forward']);
         expect(between('/summary', '/budgets')).toEqual(['forward']);
         expect(between('/groups', '/groups/0b6f3c1e')).toEqual(['forward']);
         expect(between('/groups/0b6f3c1e', '/groups/0b6f3c1e/edit')).toEqual(['forward']);
     });
 
-    it('goes back when the new screen is shallower', () => {
-        expect(between('/settings', '/')).toEqual(['back']);
+    it('goes back when the new screen is shallower in the same section', () => {
         expect(between('/categories', '/settings')).toEqual(['back']);
-        expect(between('/categories', '/')).toEqual(['back']);
-        expect(between('/summary', '/')).toEqual(['back']);
         expect(between('/charts', '/summary')).toEqual(['back']);
         expect(between('/budgets', '/summary')).toEqual(['back']);
         expect(between('/groups/0b6f3c1e', '/groups')).toEqual(['back']);
         expect(between('/groups/0b6f3c1e/edit', '/groups/0b6f3c1e')).toEqual(['back']);
     });
 
-    it('stays level between two screens at the same depth', () => {
-        expect(between('/summary', '/settings')).toEqual(['level']);
-        expect(between('/settings', '/summary')).toEqual(['level']);
-        expect(between('/groups', '/summary')).toEqual(['level']);
-        expect(between('/settings', '/groups')).toEqual(['level']);
-        expect(between('/charts', '/categories')).toEqual(['level']);
-        expect(between('/categories', '/charts')).toEqual(['level']);
+    it('stays level between two screens of one section at the same depth', () => {
         expect(between('/charts', '/budgets')).toEqual(['level']);
+        expect(between('/budgets', '/charts')).toEqual(['level']);
+        expect(between('/groups/0b6f3c1e', '/groups/7d2a9e40')).toEqual(['level']);
     });
 
     it('does not slide for the first screen, nor for a change inside the same screen', () => {
