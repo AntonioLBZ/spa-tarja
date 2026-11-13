@@ -41,15 +41,9 @@
     }
 }
 
-/* Out of the way while a field has the focus, so the keyboard doesn't leave it floating. Hidden for good once it is
-   out, so Tab can't land on it. A field in a dialog doesn't count: the dialog covers the bar, and closing it must be
-   able to give the focus back to the "+". */
-:root:has(
-        input:not([type='checkbox'], [type='radio'], dialog *):focus,
-        textarea:not(dialog *):focus,
-        select:not(dialog *):focus-within
-    )
-    .bottom-nav {
+/* Out of the way while the on-screen keyboard is up (`data-keyboard` on the root), so it doesn't float over it. Hidden
+   for good once it is out, so Tab can't land on it. */
+:root[data-keyboard='open'] .bottom-nav {
     opacity: 0;
     pointer-events: none;
     transform: translateY(100%);
