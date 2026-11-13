@@ -1,6 +1,6 @@
 # ADR-0022: The theme changes as an ink drift
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-12
 
 ## Context

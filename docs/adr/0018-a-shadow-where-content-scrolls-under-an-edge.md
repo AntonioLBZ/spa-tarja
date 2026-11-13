@@ -1,6 +1,6 @@
 # ADR-0018: A shadow where content scrolls under an edge
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-12
 
 ## Context

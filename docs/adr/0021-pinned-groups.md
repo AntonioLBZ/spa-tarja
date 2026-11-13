@@ -1,6 +1,6 @@
 # ADR-0021: Pinned groups
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-12
 
 ## Context

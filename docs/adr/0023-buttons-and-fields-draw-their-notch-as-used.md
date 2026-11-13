@@ -1,6 +1,6 @@
 # ADR-0023: Buttons and fields draw their notch as they are used
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-13
 
 ## Context

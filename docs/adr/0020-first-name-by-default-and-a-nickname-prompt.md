@@ -1,6 +1,6 @@
 # ADR-0020: The first name by default, and a prompt for the nickname
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-12
 
 ## Context
