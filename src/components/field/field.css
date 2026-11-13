@@ -99,15 +99,15 @@
     color: var(--color-content-secondary);
 }
 
+/* In the middle of the box, and still: the label and the text move around it */
 .field__icon {
     align-items: center;
     color: var(--color-content-secondary);
     display: flex;
-    inset-block: var(--field-pad-top) var(--field-pad-bottom);
+    inset-block: 0;
     inset-inline-start: calc(var(--size-1) + var(--size-3));
     pointer-events: none;
     position: absolute;
-    transition: transform var(--duration-base) var(--ease-standard);
     z-index: 1;
 }
 
@@ -134,10 +134,6 @@
 .field__box:not(:focus-within, :has(:autofill)):has(input:placeholder-shown) .field__label {
     max-inline-size: calc(100% - var(--field-start) - var(--size-3));
     transform: translateY(calc((var(--field-height) - 1.5rem) / 2));
-}
-
-.field__box:not(:focus-within, :has(:autofill)):has(input:placeholder-shown) .field__icon {
-    transform: translateY(calc((var(--field-pad-bottom) - var(--field-pad-top)) / 2));
 }
 
 .field__hint {
