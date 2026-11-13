@@ -1,12 +1,13 @@
 import clsx from 'clsx';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { Disclosure } from '@/components/disclosure/disclosure';
+import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { CategorySelect } from '@/features/categories/category-select';
@@ -34,8 +35,8 @@ interface ExpenseListControlsProps {
     onClear: () => void;
 }
 
-// The search field and, under a toggle, the grouping and the filters of the expense list; while anything narrows the
-// list, a line that says how much of it is left
+// The search field and, at its right, a button that opens the grouping and the filters of the expense list in a sheet;
+// while anything narrows the list, a line that says how much of it is left
 const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const { filters, grouping, shown, total, filtering, filterCount, onFiltersChange, onGroupingChange, onClear } =
         props;
@@ -48,6 +49,8 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const listed = useMemo(() => groupsFirst(groups.filter((group) => group.showInExpenses)), [groups]);
     const groupOptions = useGroupOptions(listed);
     const search = useRef<HTMLInputElement>(null);
+    const toggle = useRef<HTMLButtonElement>(null);
+    const [open, setOpen] = useState(false);
 
     // The button goes with the filters, so the focus goes to the field
     const clear = () => {
@@ -55,24 +58,65 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
         search.current?.focus();
     };
 
+    // The filters of the sheet, the dates too; the search and the grouping stay
+    const clearFilters = () => onFiltersChange({ categoryId: '', from: '', to: '', paidWith: 'any', sharedWith: '' });
+
+    const status = shown === 0 ? tList('noMatch') : t('showing', { shown, total });
     const statusClsx = clsx('expense-list-controls__status', { 'expense-list-controls__status--idle': !filtering });
+    const sheetStatusClsx = clsx({ 'expense-list-controls__status--idle': !filtering });
 
     return (
         <div className="expense-list-controls">
-            <Field label={t('search')}>
-                {(control) => (
-                    <input
-                        {...control}
-                        ref={search}
-                        className="expense-list-controls__search"
-                        type="search"
-                        value={filters.query}
-                        onChange={(event) => onFiltersChange({ query: event.target.value })}
-                    />
-                )}
-            </Field>
+            <div className="expense-list-controls__row">
+                <Field className="expense-list-controls__search-field" label={t('search')}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            ref={search}
+                            className="expense-list-controls__search"
+                            type="search"
+                            value={filters.query}
+                            onChange={(event) => onFiltersChange({ query: event.target.value })}
+                        />
+                    )}
+                </Field>
+                <Button
+                    ref={toggle}
+                    ghost
+                    glyph
+                    aria-haspopup="dialog"
+                    aria-label={t('toggle', { count: filterCount })}
+                    className="expense-list-controls__toggle"
+                    onClick={() => setOpen(true)}
+                >
+                    <Icon name="filter_list" />
+                    {filterCount > 0 && (
+                        <span aria-hidden="true" className="expense-list-controls__count">
+                            {filterCount}
+                        </span>
+                    )}
+                </Button>
+            </div>
 
-            <Disclosure summary={t('toggle', { count: filterCount })} chevron>
+            <Dialog
+                open={open}
+                variant="sheet"
+                title={t('title')}
+                actions={
+                    <>
+                        <Button ghost disabled={filterCount === 0} onClick={clearFilters}>
+                            {t('clearFilters')}
+                        </Button>
+                        <Button ghost className="expense-list-controls__close" onClick={() => setOpen(false)}>
+                            {t('close')}
+                        </Button>
+                    </>
+                }
+                onClose={() => {
+                    setOpen(false);
+                    toggle.current?.focus();
+                }}
+            >
                 <ChoiceGroup
                     legend={t('groupBy')}
                     name="list-grouping"
@@ -121,16 +165,15 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         />
                     )}
                 </Field>
-            </Disclosure>
+                <div className={sheetStatusClsx} role="status">
+                    {filtering && <Notice tone="quiet">{status}</Notice>}
+                </div>
+            </Dialog>
 
             <div className={statusClsx}>
-                <div role="status">
-                    {filtering && (
-                        <Notice tone="quiet">{shown === 0 ? tList('noMatch') : t('showing', { shown, total })}</Notice>
-                    )}
-                </div>
+                <div role="status">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
                 {filtering && (
-                    <Button block onClick={clear}>
+                    <Button ghost onClick={clear}>
                         {t('clear')}
                     </Button>
                 )}

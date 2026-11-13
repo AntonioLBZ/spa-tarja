@@ -13,3 +13,5 @@ The shapes in `icon-paths.ts` come from Material Symbols (Sharp style, weight 40
 `chevron_left`, the mark of the link back in the header of a phone, is an icon of the interface too: the `d` of `sharp/chevron_left.svg` of the same package version.
 
 `keep` and `keep_filled`, the pin of a group in the list of groups, are icons of the interface too: the `d` of `sharp/keep.svg` and `sharp/keep-fill.svg` of the same package version.
+
+`filter_list`, the Filters button of the expense list, is an icon of the interface too: the `d` of `sharp/filter_list.svg` of the same package version.

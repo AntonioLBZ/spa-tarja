@@ -3,6 +3,43 @@
     gap: var(--size-4);
 }
 
+/* The field takes the row but the button, which sits level with the control, not with its label */
+.expense-list-controls__row {
+    align-items: end;
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.expense-list-controls__search-field {
+    min-inline-size: 0;
+}
+
+/* A square of a touch with the icon in its middle; the number of filters on sits in its corner, out of the flow, so the
+   icon never moves */
+.expense-list-controls__toggle {
+    align-items: center;
+    block-size: var(--size-touch);
+    display: inline-flex;
+    inline-size: var(--size-touch);
+    justify-content: center;
+    position: relative;
+}
+
+.expense-list-controls__count {
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    line-height: 1;
+    position: absolute;
+}
+
+/* At the right end of the actions of the sheet */
+.expense-list-controls__close {
+    margin-inline-start: auto;
+}
+
 /* Safari draws a search field with rounded corners of its own unless it is told not to */
 .expense-list-controls__search {
     appearance: none;
@@ -22,10 +59,12 @@
     padding: calc((var(--size-touch) - var(--size-6)) / 2);
 }
 
+/* The line takes the row and Clear ends it, as a ghost on paper */
 .expense-list-controls__status {
+    align-items: center;
     display: grid;
-    gap: var(--size-2);
-    grid-template-columns: minmax(0, 1fr);
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr) auto;
 }
 
 /* Its live region is always in the page, so the first count is announced, and out of the layout while it is empty */

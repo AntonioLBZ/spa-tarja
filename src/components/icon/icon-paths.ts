@@ -14,6 +14,7 @@ const UI_ICONS = [
     'close',
     'keep',
     'keep_filled',
+    'filter_list',
 ] as const;
 
 type UiIcon = (typeof UI_ICONS)[number];
@@ -110,6 +111,7 @@ const ICON_PATHS: Record<IconName, string> = {
     close: 'm249-207-42-42 231-231-231-231 42-42 231 231 231-231 42 42-231 231 231 231-42 42-231-231-231 231Z',
     keep: 'm634-448 86 77v60H510v241l-30 30-30-30v-241H240v-60l80-77v-332h-50v-60h414v60h-50v332Zm-313 77h312l-59-55v-354H380v354l-59 55Zm156 0Z',
     keep_filled: 'm634-448 86 77v60H510v241l-30 30-30-30v-241H240v-60l80-77v-333h-50v-60h414v60h-50v333Z',
+    filter_list: 'M400-240v-60h160v60H400ZM240-450v-60h480v60H240ZM120-660v-60h720v60H120Z',
 };
 
 export { ICON_PATHS, UI_ICONS };

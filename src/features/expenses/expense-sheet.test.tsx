@@ -43,6 +43,11 @@ const closeSheet = (dialog: HTMLElement) => {
     act(() => (dialog as HTMLDialogElement).close());
 };
 
+const tapOutside = (dialog: HTMLElement) => {
+    fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+    fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+};
+
 const openRow = (name: string) => {
     fireEvent.click(screen.getByText(name).closest('button')!);
 };
@@ -87,6 +92,19 @@ describe('the sheet of the add form', () => {
         fireEvent.change(amountIn(dialog), { target: { value: '12' } });
 
         closeSheet(dialog);
+        expect(screen.queryByRole('dialog')).toBeNull();
+        const again = await openAddSheet();
+
+        expect(amountIn(again).value).toBe('12');
+    });
+
+    it('closes on a tap outside, keeping what was typed', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        const dialog = await openAddSheet();
+        fireEvent.change(amountIn(dialog), { target: { value: '12' } });
+
+        tapOutside(dialog);
         expect(screen.queryByRole('dialog')).toBeNull();
         const again = await openAddSheet();
 
@@ -184,6 +202,19 @@ describe('Edit and Duplicate', () => {
         const dialog = await openAddSheet();
 
         expect(amountIn(dialog).value).toBe('');
+    });
+
+    it('stay open on a tap outside, so a stray tap loses no edit', async () => {
+        stubApi(createFakeApi({ expenses: [lunch] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        openRow('Lunch');
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Lunch' }) }));
+        const dialog = await screen.findByRole('dialog', { name: en.expenses.form.editTitle });
+
+        tapOutside(dialog);
+
+        expect(screen.getByRole('dialog', { name: en.expenses.form.editTitle })).toBe(dialog);
     });
 
     it('open a copy of the expense as a new one', async () => {

@@ -17,6 +17,8 @@ interface DialogProps {
     initialFocus?: () => HTMLElement | null;
     // False while Escape must not close it, as when something is being sent from inside it
     dismissible?: boolean;
+    // False for a form that closing would end, so a stray tap on the veil loses nothing
+    closeOnOutside?: boolean;
     // The browser closed it, as Escape does
     onClose: () => void;
     // Ghost buttons or links, apart under what it holds
@@ -34,12 +36,15 @@ const Dialog = (props: DialogProps) => {
         closeLabel,
         initialFocus,
         dismissible = true,
+        closeOnOutside = true,
         onClose,
         actions,
         children,
     } = props;
     const ref = useRef<HTMLDialogElement>(null);
     const titleId = useId();
+    // Where the press started: one that starts in the box and ends on the veil, as a text selection does, is no tap outside
+    const pressedOutside = useRef(false);
     const dialogClsx = clsx('dialog', { 'dialog--sheet': variant === 'sheet' });
 
     // Not its first action unless the page says so: nobody chose it, and the ring on it would say so
@@ -58,6 +63,19 @@ const Dialog = (props: DialogProps) => {
         } else if (!open && dialog.open) dialog.close();
     }, [open]);
 
+    // The veil is the dialog itself as an event target, so a press on it lands outside the box
+    const isOutside = (event: { target: EventTarget; clientX: number; clientY: number }) => {
+        const dialog = ref.current;
+        if (!dialog || event.target !== dialog) return false;
+        const box = dialog.getBoundingClientRect();
+        return (
+            event.clientX < box.left ||
+            event.clientX > box.right ||
+            event.clientY < box.top ||
+            event.clientY > box.bottom
+        );
+    };
+
     return (
         <dialog
             ref={ref}
@@ -67,7 +85,15 @@ const Dialog = (props: DialogProps) => {
             onCancel={(event) => {
                 if (!dismissible) event.preventDefault();
             }}
+            onClick={(event) => {
+                const outside = pressedOutside.current && isOutside(event);
+                pressedOutside.current = false;
+                if (outside && dismissible && closeOnOutside) ref.current?.close();
+            }}
             onClose={onClose}
+            onPointerDown={(event) => {
+                pressedOutside.current = isOutside(event);
+            }}
         >
             <div className="dialog__head">
                 <h2 className="dialog__title" id={titleId}>

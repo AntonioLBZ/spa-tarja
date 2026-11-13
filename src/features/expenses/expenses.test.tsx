@@ -72,7 +72,7 @@ function fillAndSubmit({ amount, text }: { amount: string; text: string }) {
 }
 
 function rowToggle(name: string) {
-    return screen.getByText(name).closest('button')!;
+    return screen.getByText(name, { selector: '.expense-item__text' }).closest('button')!;
 }
 
 function deleteButton(name: string) {
@@ -1504,7 +1504,7 @@ describe('undoing a delete', () => {
     it('names an expense with no text by its category', async () => {
         stubApi(createFakeApi({ expenses: [expense({ text: '' })] }).handler);
         renderApp();
-        await screen.findByText(en.categories.food);
+        await screen.findByText(en.categories.food, { selector: '.expense-item__text' });
 
         deleteExpense(en.categories.food);
 
@@ -2810,19 +2810,27 @@ describe('searching, filtering and grouping the list', () => {
         return { api, app };
     }
 
-    const searchBox = () => screen.getByRole('searchbox', { name: f.search }) as HTMLInputElement;
-    const search = (value: string) => fireEvent.change(searchBox(), { target: { value } });
     const filtersToggle = (count?: number) =>
         screen.getByRole('button', {
             name: count === undefined ? /^Filters/ : t('expenses.filters.toggle', { count }),
         });
+    const filtersSheet = () => screen.getByText(f.title, { selector: 'h2' }).closest('dialog')!;
     const openFilters = () => {
-        if (filtersToggle().getAttribute('aria-expanded') !== 'true') fireEvent.click(filtersToggle());
+        if (!filtersSheet().open) fireEvent.click(filtersToggle());
+    };
+    const closeFilters = () => {
+        if (filtersSheet().open) fireEvent.click(within(filtersSheet()).getByRole('button', { name: f.close }));
+    };
+    const searchBox = () => screen.getByRole('searchbox', { name: f.search }) as HTMLInputElement;
+    const search = (value: string) => {
+        closeFilters();
+        fireEvent.change(searchBox(), { target: { value } });
     };
     const radio = (name: string) => screen.getByRole('radio', { name }) as HTMLInputElement;
     const pickGrouping = (name: string) => {
         openFilters();
         fireEvent.click(radio(name));
+        closeFilters();
     };
     const rowNames = () =>
         screen
@@ -2835,10 +2843,14 @@ describe('searching, filtering and grouping the list', () => {
             .getByRole('heading', { level: 3, name: label })
             .closest('section')
             ?.querySelector('.expense-list__subtotal')?.textContent;
-    const statusRegion = () => document.querySelector('.expense-list-controls [role="status"]');
-    const clear = () => fireEvent.click(screen.getByRole('button', { name: f.clear }));
+    const statusRegion = () => document.querySelector<HTMLElement>('.expense-list-controls__status [role="status"]')!;
+    const clear = () => {
+        closeFilters();
+        fireEvent.click(screen.getByRole('button', { name: f.clear }));
+    };
     const showing = (shownCount: number, total: number) =>
-        screen.queryByText(t('expenses.filters.showing', { shown: shownCount, total }));
+        within(statusRegion()).queryByText(t('expenses.filters.showing', { shown: shownCount, total }));
+    const noMatch = () => within(statusRegion()).queryByText(en.expenses.list.noMatch);
 
     beforeEach(() => localStorage.clear());
 
@@ -2859,37 +2871,76 @@ describe('searching, filtering and grouping the list', () => {
             expect(screen.queryByRole('button', { name: /^Filters/ })).toBeNull();
         });
 
-        it('start with the search and a closed Filters toggle, and nothing else', async () => {
+        it('start with the search and the Filters button beside it, the sheet closed', async () => {
             await open(list);
 
             expect(searchBox().type).toBe('search');
-            expect(filtersToggle(0).getAttribute('aria-expanded')).toBe('false');
+            expect(filtersToggle(0).getAttribute('aria-haspopup')).toBe('dialog');
+            expect(filtersToggle(0).querySelector('.expense-list-controls__count')).toBeNull();
+            expect(filtersSheet().open).toBe(false);
             expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
-            expect(screen.queryByLabelText(f.from)).toBeNull();
             expect(showing(3, 4)).toBeNull();
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
         });
 
-        it('open a panel with the grouping, the category, the dates and how it was paid', async () => {
+        it('open a sheet with the grouping, the category, the dates and how it was paid', async () => {
             await open(list);
 
             fireEvent.click(filtersToggle());
 
-            const toggle = filtersToggle();
-            expect(toggle.getAttribute('aria-expanded')).toBe('true');
-            const panel = document.getElementById(toggle.getAttribute('aria-controls')!)!;
-            expect(within(panel).getByRole('group', { name: f.groupBy })).toBeDefined();
-            expect(
-                within(panel)
-                    .getAllByRole('radio')
-                    .map((one) => one.getAttribute('value'))
-            ).toEqual(['day', 'week', 'month', 'category', 'any', 'direct', 'credit', 'voucher', 'plan']);
+            const sheet = within(filtersSheet());
+            expect(filtersSheet().open).toBe(true);
+            expect(sheet.getByRole('group', { name: f.groupBy })).toBeDefined();
+            expect(sheet.getAllByRole('radio').map((one) => one.getAttribute('value'))).toEqual([
+                'day',
+                'week',
+                'month',
+                'category',
+                'any',
+                'direct',
+                'credit',
+                'voucher',
+                'plan',
+            ]);
             expect(chosenOption(f.category)).toBe(f.allCategories);
-            expect((within(panel).getByLabelText(f.from) as HTMLInputElement).value).toBe('2026-10-01');
-            expect((within(panel).getByLabelText(f.to) as HTMLInputElement).value).toBe('');
-            expect(within(panel).getByRole('group', { name: f.paidWith })).toBeDefined();
+            expect((sheet.getByLabelText(f.from) as HTMLInputElement).value).toBe('2026-10-01');
+            expect((sheet.getByLabelText(f.to) as HTMLInputElement).value).toBe('');
+            expect(sheet.getByRole('group', { name: f.paidWith })).toBeDefined();
             expect(radio(f.group.day).checked).toBe(true);
             expect(radio(f.paid.any).checked).toBe(true);
+            expect((sheet.getByRole('button', { name: f.clearFilters }) as HTMLButtonElement).disabled).toBe(true);
+            expect(sheet.getAllByRole('button').map((button) => button.textContent)).toEqual([f.clearFilters, f.close]);
+        });
+
+        it('show the number of filters on in the corner of the button, and say in the sheet how many rows are left', async () => {
+            await open(list);
+            openFilters();
+
+            pickOption(f.category, en.categories.groceries);
+
+            expect(filtersToggle(1).querySelector('.expense-list-controls__count')!.textContent).toBe('1');
+            expect(
+                within(filtersSheet()).getByText(t('expenses.filters.showing', { shown: 1, total: 4 }))
+            ).toBeDefined();
+        });
+
+        it('drop the filters of the sheet with Clear filters, keeping the search and the grouping', async () => {
+            await open(list);
+            pickGrouping(f.group.week);
+            search('shop');
+            openFilters();
+            pickOption(f.category, en.categories.groceries);
+            fireEvent.click(radio(en.expenses.payment.direct));
+
+            fireEvent.click(within(filtersSheet()).getByRole('button', { name: f.clearFilters }));
+
+            expect(filtersToggle(0)).toBeDefined();
+            expect(chosenOption(f.category)).toBe(f.allCategories);
+            expect(radio(f.paid.any).checked).toBe(true);
+            expect((screen.getByLabelText(f.from) as HTMLInputElement).value).toBe('');
+            expect(radio(f.group.week).checked).toBe(true);
+            expect(searchBox().value).toBe('shop');
+            expect(filtersSheet().open).toBe(true);
         });
 
         it('name how it was paid like the form does', async () => {
@@ -2945,32 +2996,45 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toEqual(['Weekly shop', 'Café con leche', 'Cinema']);
 
             pickOption(f.sharedWith, 'Trip');
-            expect(await screen.findByText(en.expenses.list.noMatch)).toBeDefined();
+            await waitFor(() => expect(noMatch()).not.toBeNull());
 
             clear();
             expect(filtersToggle(0)).toBeDefined();
+            openFilters();
             expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
         });
 
-        it('close again from the toggle', async () => {
+        it('close with Close and give the focus back to the button', async () => {
+            await open(list);
+            filtersToggle().focus();
+            fireEvent.click(filtersToggle());
+
+            fireEvent.click(within(filtersSheet()).getByRole('button', { name: f.close }));
+
+            expect(filtersSheet().open).toBe(false);
+            expect(document.activeElement).toBe(filtersToggle());
+        });
+
+        it('close with a tap outside the sheet', async () => {
             await open(list);
             fireEvent.click(filtersToggle());
 
-            fireEvent.click(filtersToggle());
+            fireEvent.pointerDown(filtersSheet(), { clientX: -10, clientY: -10 });
+            fireEvent.click(filtersSheet(), { clientX: -10, clientY: -10 });
 
-            expect(filtersToggle().getAttribute('aria-expanded')).toBe('false');
-            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
+            expect(filtersSheet().open).toBe(false);
         });
 
         it('do not clash with the add form, which keeps its own category field and date', async () => {
             await open(list);
-            fireEvent.click(filtersToggle());
             ensureAddSheet();
+            const addCategory = screen.getByRole('combobox', { name: en.expenses.form.category });
+            const addDate = field(en.expenses.form.date);
+            await closeSheet();
+            openFilters();
 
-            expect(screen.getByRole('combobox', { name: en.expenses.form.category })).not.toBe(
-                screen.getByRole('combobox', { name: f.category })
-            );
-            expect(field(en.expenses.form.date)).not.toBe(screen.getByLabelText(f.from));
+            expect(screen.getByRole('combobox', { name: f.category })).not.toBe(addCategory);
+            expect(screen.getByLabelText(f.from)).not.toBe(addDate);
         });
     });
 
@@ -3029,14 +3093,14 @@ describe('searching, filtering and grouping the list', () => {
             search('nothing like this');
 
             expect(rowNames()).toEqual([]);
-            expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined();
+            expect(noMatch()).not.toBeNull();
             expect(screen.queryByText(en.expenses.list.empty)).toBeNull();
             expect(groupHeadings()).toEqual([]);
 
             clear();
 
             expect(rowNames()).toHaveLength(4);
-            expect(screen.queryByText(en.expenses.list.noMatch)).toBeNull();
+            expect(noMatch()).toBeNull();
         });
 
         it('does not narrow the list for a blank search', async () => {
@@ -3169,13 +3233,14 @@ describe('searching, filtering and grouping the list', () => {
 
             search('cafe');
             expect(rowNames()).toEqual([]);
-            expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined();
+            expect(noMatch()).not.toBeNull();
         });
 
         it('are all dropped by Clear, which leaves the grouping alone', async () => {
             await open(list);
             pickGrouping(f.group.week);
             search('shop');
+            openFilters();
             pickOption(f.category, en.categories.groceries);
             fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
             fireEvent.click(radio(en.expenses.payment.direct));
@@ -3185,6 +3250,7 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toHaveLength(4);
             expect(searchBox().value).toBe('');
             expect(filtersToggle(0)).toBeDefined();
+            openFilters();
             expect(chosenOption(f.category)).toBe(f.allCategories);
             expect((screen.getByLabelText(f.from) as HTMLInputElement).value).toBe('');
             expect(radio(f.paid.any).checked).toBe(true);
@@ -3207,17 +3273,15 @@ describe('searching, filtering and grouping the list', () => {
     });
 
     describe('the dates', () => {
-        const dates = () => {
-            openFilters();
-            return [
-                (screen.getByLabelText(f.from) as HTMLInputElement).value,
-                (screen.getByLabelText(f.to) as HTMLInputElement).value,
-            ];
-        };
+        const dates = () => [
+            (screen.getByLabelText(f.from) as HTMLInputElement).value,
+            (screen.getByLabelText(f.to) as HTMLInputElement).value,
+        ];
 
         const changeDate = (label: string, value: string) => {
             openFilters();
             fireEvent.change(screen.getByLabelText(label), { target: { value } });
+            closeFilters();
         };
 
         const addOn = async (text: string, day?: string) => {
@@ -3467,10 +3531,10 @@ describe('searching, filtering and grouping the list', () => {
             pickGrouping(f.group.week);
             expect(row().textContent).toContain(shown('2026-10-24'));
 
-            fireEvent.click(radio(f.group.category));
+            pickGrouping(f.group.category);
             expect(row().textContent).toContain(shown('2026-10-24'));
 
-            fireEvent.click(radio(f.group.day));
+            pickGrouping(f.group.day);
             expect(row().textContent).not.toContain(shown('2026-10-24'));
         });
 
@@ -3607,7 +3671,7 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(screen.getByText('Weekly shop').closest('li')!.className).toContain('expense-item--leaving');
             await waitFor(() => expect(screen.queryByText('Weekly shop')).toBeNull());
-            expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined();
+            expect(noMatch()).not.toBeNull();
         });
 
         it('counts the row that fades with the others the filter keeps', async () => {
@@ -3664,6 +3728,7 @@ describe('searching, filtering and grouping the list', () => {
         it('is dropped by adding an expense, so the new row shows, and the grouping stays', async () => {
             const { api } = await open([cafe, shop]);
             pickGrouping(f.group.week);
+            openFilters();
             pickOption(f.category, en.categories.food);
             search('cafe');
             expect(rowNames()).toEqual(['Café con leche']);
@@ -3675,8 +3740,9 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toHaveLength(3);
             expect(searchBox().value).toBe('');
             expect(filtersToggle(0)).toBeDefined();
-            expect(chosenOption(f.category)).toBe(f.allCategories);
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
+            openFilters();
+            expect(chosenOption(f.category)).toBe(f.allCategories);
             expect(radio(f.group.week).checked).toBe(true);
             expect(localStorage.getItem('tarja:list-grouping')).toBe('week');
         });
@@ -3713,6 +3779,7 @@ describe('searching, filtering and grouping the list', () => {
             search('cafe');
             openFilters();
             pickOption(f.category, en.categories.food);
+            closeFilters();
 
             deleteExpense('Café con leche');
             await screen.findByText(en.expenses.list.empty);
@@ -3755,7 +3822,7 @@ describe('searching, filtering and grouping the list', () => {
 
             deleteExpense('Weekly shop');
 
-            await waitFor(() => expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined());
+            await waitFor(() => expect(noMatch()).not.toBeNull());
             expect(searchBox().value).toBe('shop');
         });
     });
@@ -3849,7 +3916,7 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.change(field(en.expenses.form.text), { target: { value: 'Tea' } });
             fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
 
-            await waitFor(() => expect(screen.getByText(en.expenses.list.noMatch)).toBeDefined());
+            await waitFor(() => expect(noMatch()).not.toBeNull());
             expect(rowNames()).toEqual([]);
             expect(document.activeElement).toBe(screen.getByRole('heading', { name: en.expenses.list.title }));
 

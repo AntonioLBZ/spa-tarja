@@ -59,6 +59,7 @@ const ExpenseSheet = () => {
             variant="sheet"
             title={title}
             closeLabel={t('close')}
+            closeOnOutside={!isEdit && !isCopy}
             initialFocus={() => (isEdit || isCopy ? null : (body.current?.querySelector('input') ?? null))}
             onClose={() => {
                 if (open) close();

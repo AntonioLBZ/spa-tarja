@@ -74,7 +74,10 @@
                 "me": "Solo yo"
             },
             "showing": "Mostrando {shown} de {total}",
-            "clear": "Limpiar"
+            "clear": "Limpiar",
+            "title": "Filtros",
+            "clearFilters": "Limpiar filtros",
+            "close": "Cerrar"
         },
         "list": {
             "title": "Gastos",

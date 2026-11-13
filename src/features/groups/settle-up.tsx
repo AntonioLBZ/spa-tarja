@@ -268,6 +268,7 @@ const SettleUp = (props: SettleUpProps) => {
                 variant="sheet"
                 title={editing ? t('editTitle') : t('title')}
                 closeLabel={t('close')}
+                closeOnOutside={false}
                 initialFocus={() => (editing ? null : amountInput.current)}
                 onClose={handleClose}
             >

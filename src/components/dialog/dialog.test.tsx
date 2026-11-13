@@ -118,6 +118,60 @@ describe('Dialog', () => {
         expect(cancel.defaultPrevented).toBe(true);
     });
 
+    it('closes on a tap on the veil outside the box and tells the page', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open title="Moved" onClose={onClose}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect((dialog as HTMLDialogElement).open).toBe(false);
+    });
+
+    it('stays open for a press that starts inside the box and ends on the veil', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        fireEvent.pointerDown(screen.getByText('Body'));
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+    });
+
+    it('stays open on a tap outside when it is told to, or cannot be dismissed', () => {
+        const { rerender } = render(
+            <Dialog open title="Moved" closeOnOutside={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+        const tapOutside = () => {
+            fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+            fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+        };
+
+        tapOutside();
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+
+        rerender(
+            <Dialog open title="Moved" dismissible={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        tapOutside();
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+    });
+
     it('puts its actions apart, after what it holds', () => {
         render(
             <Dialog open title="Moved" onClose={vi.fn()} actions={<button type="button">Go</button>}>
