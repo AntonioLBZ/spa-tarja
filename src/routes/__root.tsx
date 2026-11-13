@@ -12,6 +12,7 @@ import { AddExpenseButton } from '@/features/expenses/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/expense-sheet';
 import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 import { useOpenAdd } from '@/features/expenses/use-open-add';
+import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
 import { isPrerelease } from '@/lib/prerelease';
 import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
@@ -53,6 +54,7 @@ const RootLayout = () => {
                     {!wide && <RootTabs />}
                     <ExpenseSheet />
                     <AppUpdate />
+                    <NicknamePrompt />
                 </div>
             </ToastProvider>
         </ExpenseSheetProvider>

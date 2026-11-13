@@ -249,12 +249,12 @@ describe('personName', () => {
         expect(personName({ nickname: 'Anita', name: 'Ana García' })).toBe('Anita');
     });
 
-    it('is the name of the account otherwise, trimmed', () => {
-        expect(personName({ nickname: null, name: '  Ana García ' })).toBe('Ana García');
+    it('is the first name of the account otherwise', () => {
+        expect(personName({ nickname: null, name: '  Ana García ' })).toBe('Ana');
     });
 
     it('takes the direction controls out of the name of an account, and of a nickname', () => {
-        expect(personName({ nickname: null, name: '\u202Euoy sewo Ana\u2069' })).toBe('uoy sewo Ana');
+        expect(personName({ nickname: null, name: '\u202Euoy sewo Ana\u2069' })).toBe('uoy');
         expect(personName({ nickname: '\u2066Anita\u200F', name: 'Ana' })).toBe('Anita');
         expect(personName({ nickname: null, name: '\u202E\u202C' })).toBe(UNNAMED_PERSON);
     });

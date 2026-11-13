@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
-import { NICKNAME_MAX_LENGTH, profileInputSchema } from './profile';
+import { NICKNAME_MAX_LENGTH, firstName, profileInputSchema } from './profile';
 
 describe('profileInputSchema', () => {
     it('keeps a nickname, trimmed', () => {
@@ -68,5 +68,28 @@ describe('profileInputSchema', () => {
             nickname: '\u{1F469}\u200D\u{1F4BB} Ana',
         });
         expect(v.parse(profileInputSchema, { nickname: 'An\u00ADa' })).toEqual({ nickname: 'An\u00ADa' });
+    });
+});
+
+describe('firstName', () => {
+    it('is the first word of the name of the account', () => {
+        expect(firstName('Ana García López')).toBe('Ana');
+        expect(firstName('  María José  Pérez ')).toBe('María');
+        expect(firstName('Ana')).toBe('Ana');
+    });
+
+    it('splits on any space, a no-break space or a tab included', () => {
+        expect(firstName('Ana\u00A0García')).toBe('Ana');
+        expect(firstName('Ana\tGarcía')).toBe('Ana');
+    });
+
+    it('skips a word with nothing visible and takes the direction controls out', () => {
+        expect(firstName('\u200B Ana García')).toBe('Ana');
+        expect(firstName('\u202EAna\u202C García')).toBe('Ana');
+    });
+
+    it('is empty when the name has nothing visible', () => {
+        expect(firstName('')).toBe('');
+        expect(firstName(' \u200B ')).toBe('');
     });
 });

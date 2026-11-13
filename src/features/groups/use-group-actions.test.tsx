@@ -5,7 +5,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError, GROUPS_KEY, PENDING_INVITATIONS_KEY, pendingInvitationsQuery } from '@/lib/api';
 import { useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
 import { sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
 import { DEFAULT_CURRENCY } from '@core/money';
@@ -69,7 +68,7 @@ describe('making groups', () => {
 
         expect(group).toMatchObject({ id, kind: 'group', name: 'Lisbon', me, currency: DEFAULT_CURRENCY });
         expect(group.members.map((member) => [member.id, member.name, member.role])).toEqual([
-            [me, TEST_USER.name, 'owner'],
+            [me, 'Ana', 'owner'],
             [cris, 'Cris', 'member'],
         ]);
         await waitFor(() => expect(app.groupOf(id)).toEqual(group));

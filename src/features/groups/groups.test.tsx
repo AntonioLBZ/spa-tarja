@@ -6,7 +6,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
@@ -382,7 +381,7 @@ describe('making a group', () => {
         expect(api.groups).toHaveLength(1);
         expect(api.groups[0]).toMatchObject({ kind: 'group', name: 'Lisbon', currency: 'EUR' });
         expect(api.groups[0]!.members.map((member) => [member.name, member.role, member.claimed])).toEqual([
-            [TEST_USER.name, 'owner', true],
+            ['Ana', 'owner', true],
             ['Dani', 'member', false],
             ['Eva', 'member', false],
         ]);
@@ -398,7 +397,7 @@ describe('making a group', () => {
         makeGroup('Lisbon');
 
         await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
-        expect(api.groups[0]!.members.map((member) => member.name)).toEqual([TEST_USER.name, 'Cris', 'Dani']);
+        expect(api.groups[0]!.members.map((member) => member.name)).toEqual(['Ana', 'Cris', 'Dani']);
     });
 
     it('takes no more people than a group holds, and says so', async () => {
@@ -514,7 +513,7 @@ describe('making a group with friends', () => {
         overrides: Parameters<typeof person>[1] = {},
         closed: SharedGroup['closed'] = null
     ) {
-        const me = person(TEST_USER.name, { role: 'owner' });
+        const me = person('Ana', { role: 'owner' });
         return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, overrides)], me: me.id, closed });
     }
 
@@ -583,7 +582,7 @@ describe('making a group with friends', () => {
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
         expect(made(api).members.map((member) => [member.name, member.claimed])).toEqual([
-            [TEST_USER.name, true],
+            ['Ana', true],
             ['Fran', false],
             ['Eva', true],
         ]);
@@ -628,7 +627,7 @@ describe('making a group with friends', () => {
 
             await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
             expect(api.groups.filter((group) => group.kind === 'group')).toHaveLength(1);
-            expect(made(api).members.map((member) => member.name)).toEqual([TEST_USER.name, 'Bea']);
+            expect(made(api).members.map((member) => member.name)).toEqual(['Ana', 'Bea']);
         }
     );
 
@@ -658,7 +657,7 @@ describe('making a group with friends', () => {
             made(api)
                 .members.filter((member) => member.leftAt === null)
                 .map((member) => member.name)
-        ).toEqual([TEST_USER.name, 'Gus', 'Hana', 'Bea']);
+        ).toEqual(['Ana', 'Gus', 'Hana', 'Bea']);
     });
 
     it('leaves the friends out when none of them is open', async () => {

@@ -1,9 +1,9 @@
 import * as v from 'valibot';
 
 import { DEFAULT_CURRENCY } from './money';
+import { firstName, type Profile } from './profile';
 import { hasDirectionControls, isVisibleText, stripDirectionControls } from './text';
 
-import type { Profile } from './profile';
 import type { SharedMember } from './shared-member';
 
 // Per user, counting only the groups that aren't closed for them
@@ -54,10 +54,10 @@ const cutText = (text: string, max: number): string => {
     return cut;
 };
 
-// The name a person starts with in a group they make or join: their nickname, else the name of their account cut to
-// fit, as long as it is a name a group takes
+// The name a person starts with in a group they make or join: their nickname, else their first name cut to fit, as
+// long as it is a name a group takes
 const personName = ({ nickname, name }: Profile): string => {
-    const account = cutText(stripDirectionControls(name).trim(), SHARED_NAME_MAX_LENGTH);
+    const account = cutText(firstName(name), SHARED_NAME_MAX_LENGTH);
     for (const candidate of [nickname === null ? null : stripDirectionControls(nickname), account]) {
         const parsed = v.safeParse(sharedNameSchema, candidate);
         if (parsed.success) return parsed.output;

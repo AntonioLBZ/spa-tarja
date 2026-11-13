@@ -173,7 +173,7 @@
         },
         "sees": {
             "title": "Quién lo ve",
-            "members": "Las personas de un grupo contigo, y tus amigos, ven lo que se comparte en él y el nombre que se usa para ti ahí: tu apodo o, si no tienes, el nombre de tu cuenta de Google. Un amigo puede añadirte a sus grupos sin preguntarte, así que puede que gente que no conoces vea ese nombre y lo que compartas allí. Quien abre un enlace de invitación tuyo ve ese mismo nombre mientras el enlace sigue abierto.",
+            "members": "Las personas de un grupo contigo, y tus amigos, ven lo que se comparte en él y el nombre que se usa para ti ahí: tu apodo o, si no tienes, el nombre de pila de tu cuenta de Google. Un amigo puede añadirte a sus grupos sin preguntarte, así que puede que gente que no conoces vea ese nombre y lo que compartas allí. Quien abre un enlace de invitación tuyo ve ese mismo nombre mientras el enlace sigue abierto.",
             "own": "Las demás personas que usan Tarja nunca ven tu correo, y tus gastos, categorías, ingresos y presupuestos propios no se muestran a nadie.",
             "unregistered": "Cuando añadas a alguien que no usa Tarja, basta con su nombre de pila o un apodo, y mejor no escribir detalles privados de otras personas. Si alguien te ha añadido a un grupo con tu nombre, solo lo ven las personas de ese grupo: escribe al contacto de arriba y se quitará."
         },
@@ -199,7 +199,7 @@
             "write": "Preguntar lo que quieras sobre tus datos, u oponerte a un uso de ellos o pedir que se limite, escribiendo al contacto de arriba. La respuesta llega en un mes como máximo.",
             "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos (aepd.es), o ante la del país de la UE en el que vivas."
         },
-        "updated": "Última actualización: 9 de noviembre de 2026."
+        "updated": "Última actualización: 12 de noviembre de 2026."
     },
     "settings": {
         "title": "Ajustes",
@@ -224,7 +224,7 @@
         "profile": {
             "title": "Perfil",
             "label": "Apodo",
-            "hint": "Tus amigos ven este nombre. No tiene por qué ser único. Mientras no pongas uno, ven el nombre de tu cuenta de Google, {name}.",
+            "hint": "Tus amigos ven este nombre. No tiene por qué ser único. Mientras no pongas uno, ven tu nombre de pila, {name}.",
             "save": "Guardar",
             "remove": "Quitar",
             "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
@@ -746,5 +746,15 @@
         "vsPreviousSoFar": "{change}, {current} frente a {period}",
         "noPrevious": "No hubo gastos en el periodo anterior ({period}) con los que comparar.",
         "noPreviousSoFar": "{current} frente a {period}: sin gastos en los días anteriores."
+    },
+    "nicknamePrompt": {
+        "title": "¿Cómo quieres que te vean tus amigos?",
+        "label": "Apodo",
+        "hint": "Puedes cambiarlo en Ajustes. Mientras tanto, tus amigos verán: {name}.",
+        "save": "Guardar",
+        "later": "Ahora no",
+        "offline": "Estás sin conexión. Conéctate para guardar tu apodo.",
+        "invalid": "Un apodo necesita al menos un carácter visible y ningún control de dirección del texto.",
+        "failed": "No se pudo guardar tu apodo. Inténtalo de nuevo."
     }
 }

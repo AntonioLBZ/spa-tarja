@@ -173,7 +173,7 @@
         },
         "sees": {
             "title": "Who sees it",
-            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the name of your Google account. A friend can add you to their groups without asking, so people you don't know may see that name and what you share there. Whoever opens an invitation link you made sees the same name while the link is open.",
+            "members": "The people in a group with you, and your friends, see what is shared in it and the name used for you there: your nickname or, without one, the first name of your Google account. A friend can add you to their groups without asking, so people you don't know may see that name and what you share there. Whoever opens an invitation link you made sees the same name while the link is open.",
             "own": "Other people who use Tarja never see your email, and your own expenses, categories, income and budgets are not shown to anybody.",
             "unregistered": "When you add somebody who doesn't use Tarja, a first name or a nickname is enough, and private details about other people are best left out of what you write. If somebody added you to a group by name, only the people in that group see it: write to the contact above and it will be taken out."
         },
@@ -199,7 +199,7 @@
             "write": "Ask anything about your data, or object to a use of it or ask to limit it, by writing to the contact above. You'll get an answer within a month.",
             "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos (aepd.es), or to the one of the EU country where you live."
         },
-        "updated": "Last updated: 9 November 2026."
+        "updated": "Last updated: 12 November 2026."
     },
     "settings": {
         "title": "Settings",
@@ -224,7 +224,7 @@
         "profile": {
             "title": "Profile",
             "label": "Nickname",
-            "hint": "Your friends see this name. It doesn't have to be unique. Until you set one, they see the name of your Google account, {name}.",
+            "hint": "Your friends see this name. It doesn't have to be unique. Until you set one, they see your first name, {name}.",
             "save": "Save",
             "remove": "Remove",
             "offline": "You're offline. Connect to change your nickname.",
@@ -746,5 +746,15 @@
         "vsPreviousSoFar": "{change}, {current} vs. {period}",
         "noPrevious": "Nothing spent in the previous period ({period}) to compare with.",
         "noPreviousSoFar": "{current} vs. {period}: nothing spent in the days before."
+    },
+    "nicknamePrompt": {
+        "title": "What should your friends call you?",
+        "label": "Nickname",
+        "hint": "You can change it in Settings. Until then, your friends see: {name}.",
+        "save": "Save",
+        "later": "Not now",
+        "offline": "You're offline. Connect to save your nickname.",
+        "invalid": "A nickname needs at least one visible character and no text-direction controls.",
+        "failed": "Couldn't save your nickname. Try again."
     }
 }

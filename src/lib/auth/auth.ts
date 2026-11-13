@@ -13,7 +13,9 @@ type AuthState =
     // `unreachable`: the server couldn't be asked, which is not the same as nobody being signed in. `deleted`: the
     // account was deleted from here.
     | { status: 'signed-out'; unreachable: boolean; deleted?: DeletedAccount }
-    | { status: 'signed-in'; user: AuthUser };
+    // `fresh`: the server signed this user in while the app was open, as after coming back from Google, rather than the
+    // device remembering them
+    | { status: 'signed-in'; user: AuthUser; fresh: boolean };
 
 interface Auth {
     getState: () => AuthState;
@@ -35,7 +37,7 @@ const goTo = (url: string) => {
 
 const createAuth = (service: AuthService, navigate: (url: string) => void = goTo): Auth => {
     const cached = readCachedUser();
-    let state: AuthState = cached ? { status: 'signed-in', user: cached } : { status: 'loading' };
+    let state: AuthState = cached ? { status: 'signed-in', user: cached, fresh: false } : { status: 'loading' };
     const listeners = new Set<() => void>();
     let checking: Promise<void> | null = null;
 
@@ -57,7 +59,8 @@ const createAuth = (service: AuthService, navigate: (url: string) => void = goTo
                 return;
             }
             writeCachedUser(user);
-            if (state.status !== 'signed-in' || state.user.id !== user.id) commit({ status: 'signed-in', user });
+            if (state.status !== 'signed-in' || state.user.id !== user.id)
+                commit({ status: 'signed-in', user, fresh: true });
         } catch {
             if (state.status === 'loading') commit({ status: 'signed-out', unreachable: true });
         }
