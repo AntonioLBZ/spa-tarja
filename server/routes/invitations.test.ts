@@ -313,14 +313,14 @@ describe('a link to be friends, opened by somebody', () => {
         expect(await response.json()).toEqual({ name: 'Anita' });
     });
 
-    it('or else the name of their account, never their email', async () => {
+    it('or else their first name, never their email', async () => {
         const token = await linkOf();
 
         const response = await readLink(bruno, token);
 
         expect(response.status).toBe(200);
         const text = await response.text();
-        expect(JSON.parse(text)).toEqual({ name: 'Ana García' });
+        expect(JSON.parse(text)).toEqual({ name: 'Ana' });
         expect(text).not.toContain('example.com');
     });
 
@@ -359,13 +359,13 @@ describe('a link to be friends, opened by somebody', () => {
         expect(answers.map((response) => response.headers.get('cache-control'))).toEqual(answers.map(() => 'no-store'));
     });
 
-    it('names each of the two after their nickname, else the name of their account', async () => {
+    it('names each of the two after their nickname, else their first name', async () => {
         await send(bruno, 'PUT', '/profile', { nickname: 'Bru' });
         const token = await linkOf();
 
         const friend = await groupOf(await accept(bruno, token));
 
-        expect(friend.members.map((member) => member.name)).toEqual(['Ana García', 'Bru']);
+        expect(friend.members.map((member) => member.name)).toEqual(['Ana', 'Bru']);
     });
 
     it('makes the two friends once accepted, both people, in a friend of the app currency that who asked owns', async () => {
@@ -375,8 +375,8 @@ describe('a link to be friends, opened by somebody', () => {
 
         expect(friend).toMatchObject({ kind: 'direct', name: null, currency: 'EUR', closed: null, archived: false });
         expect(friend.members).toEqual([
-            expect.objectContaining({ name: 'Ana García', role: 'owner', claimed: true, leftAt: null }),
-            expect.objectContaining({ id: friend.me, name: 'Bruno Díaz', role: 'member', claimed: true }),
+            expect.objectContaining({ name: 'Ana', role: 'owner', claimed: true, leftAt: null }),
+            expect.objectContaining({ id: friend.me, name: 'Bruno', role: 'member', claimed: true }),
         ]);
         const [seen] = await listGroups(ana);
         expect(seen).toEqual({ ...friend, me: friend.members[0]?.id });

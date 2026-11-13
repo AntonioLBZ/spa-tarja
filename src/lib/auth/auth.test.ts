@@ -35,7 +35,7 @@ describe('auth', () => {
 
             const auth = createAuth(service);
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: false });
             expect(service.getSession).not.toHaveBeenCalled();
         });
     });
@@ -46,8 +46,17 @@ describe('auth', () => {
 
             await auth.check();
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: true });
             expect(readCachedUser()).toEqual(ana);
+        });
+
+        it('keeps a remembered user as not fresh when the session is theirs', async () => {
+            writeCachedUser(ana);
+            const auth = createAuth(createService());
+
+            await auth.check();
+
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: false });
         });
 
         it('signs out, and forgets the user, when the server says there is no session', async () => {
@@ -66,7 +75,7 @@ describe('auth', () => {
 
             await auth.check();
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: true });
             expect(readCachedUser()).toEqual(ana);
         });
 
@@ -82,7 +91,7 @@ describe('auth', () => {
 
             await auth.check();
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: false });
             expect(readCachedUser()).toEqual(ana);
         });
 
@@ -98,7 +107,7 @@ describe('auth', () => {
 
             await auth.check();
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: false });
         });
 
         it('asks to sign in, saying the server is out of reach, when there is nobody to show', async () => {
@@ -125,7 +134,7 @@ describe('auth', () => {
 
             await auth.check();
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: true });
         });
 
         it('asks the server once for overlapping checks', async () => {
@@ -224,7 +233,7 @@ describe('auth', () => {
 
             await expect(auth.signOut()).rejects.toThrow('Failed to fetch');
 
-            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana });
+            expect(auth.getState()).toEqual({ status: 'signed-in', user: ana, fresh: false });
             expect(readCachedUser()).toEqual(ana);
         });
     });

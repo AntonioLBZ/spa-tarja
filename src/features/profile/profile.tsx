@@ -10,6 +10,7 @@ import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
 import { useOnline } from '@/lib/offline';
 import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/profile';
+import { personName } from '@core/shared-group';
 
 import { useProfileActions } from './use-profile-actions';
 
@@ -67,7 +68,7 @@ const Profile = () => {
             <form className="profile__form" onSubmit={handleSubmit}>
                 <Field
                     label={t('label')}
-                    hint={t('hint', { name: profile?.name ?? user.name })}
+                    hint={t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
                     error={invalid ? t('invalid') : null}
                 >
                     {(control) => (

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
 import { sampleGroup } from '@/lib/test/groups';
 import { stubApi } from '@/lib/test/render-app';
 
@@ -61,7 +60,7 @@ describe('putGroup', () => {
 
         expect(group).toMatchObject({ id, name: 'Lisbon', me, closed: null });
         expect(group.members.map((member) => [member.id, member.name, member.role])).toEqual([
-            [me, TEST_USER.name, 'owner'],
+            [me, 'Ana', 'owner'],
             [other, 'Bea', 'member'],
         ]);
     });

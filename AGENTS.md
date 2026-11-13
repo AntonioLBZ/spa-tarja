@@ -25,6 +25,7 @@ Installable web app (PWA) to log everyday expenses (food, groceries, leisure, bi
     - `0017-the-look-of-the-plus.md`: the "+" of the phone bar is a flat accent square over the word "Add" in the middle of five equal columns, the one box with no notch; from 40 rem there is no floating button, the header holds a text action "Add expense" next to Expenses; refines ADR-0016.
     - `0018-a-shadow-where-content-scrolls-under-an-edge.md` (Proposed): the second use of the one shadow: a soft shadow cast by the bottom bar of a phone and the sticky header, only while content is scrolled under them, a semantic `--color-shadow`; refines the flat-colors rule of the design document.
     - `0019-the-toast-drains.md`: the time left of a toast is its fill, the ink draining from right to left; as wide as its column; a bare check mark in front when it reports something done; refines the `Toast` of DESIGN.md.
+    - `0020-first-name-by-default-and-a-nickname-prompt.md` (Proposed): without a nickname a person is shown by the first word of the name of their Google account, worked out, never stored; the app asks for the nickname in a sheet, empty and skippable, right after each sign-in while there is none, and stores no skip; refines ADR-0014.
 - **`docs/specs/` says how things behave**, one file per topic. Read the ones you touch:
     - `repository-structure.md`: the layout, the import rules, how a release goes out and the dependency policy (what is held back and why).
     - `data-model.md`: the schema, ids, timestamps, `seq` and indexes.

@@ -7,7 +7,6 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { PROFILE_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { NICKNAME_MAX_LENGTH } from '@core/profile';
 
@@ -57,7 +56,7 @@ describe('the profile section', () => {
     it('says who sees the nickname and names the account that stands in for it', async () => {
         await open();
 
-        const hint = t('settings.profile.hint', { name: TEST_USER.name });
+        const hint = t('settings.profile.hint', { name: 'Ana' });
         expect(screen.getByText(hint)).toBeDefined();
         expect(field().getAttribute('aria-describedby')).toBe(screen.getByText(hint).id);
     });
@@ -255,7 +254,7 @@ describe('without a connection', () => {
         expect(await screen.findByText(text.offline)).toBeDefined();
         expect(field().disabled).toBe(true);
         expect(button(text.save).disabled).toBe(true);
-        expect(screen.getByText(t('settings.profile.hint', { name: TEST_USER.name }))).toBeDefined();
+        expect(screen.getByText(t('settings.profile.hint', { name: 'Ana' }))).toBeDefined();
     });
 
     it('turns them on again once back online', async () => {

@@ -117,7 +117,7 @@ describe('GET /api/groups', () => {
 });
 
 describe('PUT /api/groups/:id, a new group', () => {
-    it('makes the group with the caller as its owner, named after their account, and the others as dummies in the order sent', async () => {
+    it('makes the group with the caller as its owner, named after their first name, and the others as dummies in the order sent', async () => {
         const id = crypto.randomUUID();
         const body = trip();
 
@@ -134,7 +134,7 @@ describe('PUT /api/groups/:id, a new group', () => {
             me: body.me.id,
             showInExpenses: true,
             members: [
-                { id: body.me.id, name: 'Ana García', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
+                { id: body.me.id, name: 'Ana', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
                 ...body.others.map((other) => ({
                     id: other.id,
                     name: other.name,
@@ -755,7 +755,7 @@ describe('the names of people', () => {
 
         const group = await makeGroup(dani);
 
-        expect(group.members[0]?.name).toBe('uoy sewo Dani');
+        expect(group.members[0]?.name).toBe('uoy');
     });
 
     it.each([
@@ -786,9 +786,7 @@ describe('the names of people', () => {
 
         await send(bruno, 'PUT', '/profile', { nickname: null });
 
-        expect((await listGroups(ana)).find((candidate) => candidate.id === friend.id)?.members[1]?.name).toBe(
-            'Bruno Díaz'
-        );
+        expect((await listGroups(ana)).find((candidate) => candidate.id === friend.id)?.members[1]?.name).toBe('Bruno');
     });
 
     it('shows the other side of a friend that closed by the name stored on their member, whatever the nickname becomes', async () => {
@@ -804,7 +802,7 @@ describe('the names of people', () => {
         await send(bruno, 'PUT', '/profile', { nickname: 'Bruno Real' });
         await send(ana, 'PUT', '/profile', { nickname: 'Anita Real' });
 
-        expect(await nameIn(ana, friend.b)).toBe('Bruno Díaz');
-        expect(await nameIn(bruno, friend.a)).toBe('Ana García');
+        expect(await nameIn(ana, friend.b)).toBe('Bruno');
+        expect(await nameIn(bruno, friend.a)).toBe('Ana');
     });
 });

@@ -184,7 +184,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a new name', () => {
         expect(await error(other, 403)).toBe('not-owner');
         expect(await error(owner, 403)).toBe('not-owner');
         const [after] = await listGroups(ana);
-        expect(after?.members.map((candidate) => candidate.name)).toEqual(['Ana García', 'Carla', 'Bru']);
+        expect(after?.members.map((candidate) => candidate.name)).toEqual(['Ana', 'Carla', 'Bru']);
     });
 
     it('lets either side of a friend rename the other', async () => {
@@ -199,7 +199,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a new name', () => {
 });
 
 describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
-    it('adds a real friend at once, named after their account, and the group is theirs to see', async () => {
+    it('adds a real friend at once, named after their first name, and the group is theirs to see', async () => {
         const group = await makeGroup(ana);
         const friend = await befriend(ana, bruno);
 
@@ -207,7 +207,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
 
         expect(member(after, id)).toEqual({
             id,
-            name: 'Bruno Díaz',
+            name: 'Bruno',
             role: 'member',
             claimed: true,
             leftAt: null,
@@ -241,7 +241,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend', () => {
 
         const { id, group: after } = await addFriend(bruno, group.id, friend.id);
 
-        expect(member(after, id)?.name).toBe('Carla Ruiz');
+        expect(member(after, id)?.name).toBe('Carla');
     });
 
     it('is idempotent: repeating it answers the same and adds nobody', async () => {
@@ -354,7 +354,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend in place of a dum
 
         const { id, group: after } = await addFriend(ana, group.id, friend.id, dummy);
 
-        expect(member(after, id)).toMatchObject({ name: 'Bruno Díaz', claimed: true, leftAt: null });
+        expect(member(after, id)).toMatchObject({ name: 'Bruno', claimed: true, leftAt: null });
         expect(member(after, dummy)).toEqual({
             id: dummy,
             name: 'Bruno',
@@ -397,7 +397,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend in place of a dum
 
         expect(await error(replacing, 403)).toBe('not-owner');
         expect(member(added.group, dummy)).toMatchObject({ leftAt: null, mergedInto: null });
-        expect(member(added.group, added.id)?.name).toBe('Carla Ruiz');
+        expect(member(added.group, added.id)?.name).toBe('Carla');
     });
 
     it('refuses to replace a member who is a user', async () => {
@@ -524,7 +524,7 @@ describe('PUT /api/groups/:groupId/members/:memberId, a friend who left', () => 
 
         expect(member(back, trip.bruno)).toEqual({
             id: trip.bruno,
-            name: 'Bruno Díaz',
+            name: 'Bruno',
             role: 'member',
             claimed: true,
             leftAt: null,
