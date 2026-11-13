@@ -137,12 +137,19 @@ button:disabled {
    quiet and has no track. A touch screen draws its own over the content and is left alone. Forced colors take these
    properties back. */
 @media (pointer: fine) {
-    :root {
+    * {
         scrollbar-color: var(--color-content-secondary) transparent;
+        scrollbar-width: thin;
+    }
+
+    :root {
         scrollbar-gutter: stable;
     }
 
-    * {
+    /* The open list of a select, which `*` doesn't reach. A rule of its own: a browser that doesn't know this
+       pseudo-element drops the whole rule */
+    ::picker(select) {
+        scrollbar-color: var(--color-content-secondary) transparent;
         scrollbar-width: thin;
     }
 }

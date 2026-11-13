@@ -85,9 +85,18 @@
         border-style: solid;
         border-width: 0 0 var(--size-1) var(--size-1);
         box-shadow: var(--shadow-popup);
+        box-sizing: content-box;
         color: var(--color-content-primary);
-        max-block-size: max(min(24rem, 50dvh), calc(2 * var(--size-touch)));
-        padding: 0;
+
+        /* Whole rows only, with room above and under them: the list stops on a row, so none is ever cut by its edges */
+        max-block-size: round(
+            down,
+            max(min(24rem, 50dvh), calc(2 * var(--size-touch))) - 2 * var(--size-2) - var(--size-1),
+            var(--size-touch)
+        );
+        padding: var(--size-2) 0;
+        scroll-padding-block: var(--size-2);
+        scroll-snap-type: block mandatory;
         transition: opacity var(--duration-base) var(--ease-enter);
     }
 
@@ -104,6 +113,7 @@
         gap: var(--size-2);
         min-height: var(--size-touch);
         padding-inline: var(--size-3);
+        scroll-snap-align: start;
     }
 
     .select__option::checkmark {
