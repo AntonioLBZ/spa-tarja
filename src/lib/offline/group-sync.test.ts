@@ -407,6 +407,17 @@ describe('telling what a pull brought', () => {
         expect(told).toEqual([[expect.objectContaining({ kind: 'expense', entryId: dinner.id, authorId: bea })]]);
     });
 
+    it('tells the first entry of a group the device held empty', async () => {
+        const { api, client, sync } = setup();
+        const told = listen(client);
+        await sync();
+
+        api.serverWriteEntry(sampleEntry(group), bea);
+        await sync();
+
+        expect(told).toHaveLength(1);
+    });
+
     it('tells nothing on the first pull of a group', async () => {
         const { api, client, sync } = setup();
         const told = listen(client);

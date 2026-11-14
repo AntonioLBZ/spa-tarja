@@ -9,6 +9,8 @@ interface GroupEntriesState {
     cursor: number;
     // The last pull was made once the group was closed for the person, so these are all its entries there will be
     final?: true;
+    // A pull went through, so what comes after it is new to the device, even when the group had no entries yet
+    pulled?: true;
 }
 
 interface EntryChanges {

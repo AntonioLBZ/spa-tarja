@@ -57,8 +57,9 @@ const pullGroup = async (client: QueryClient, groupId: string): Promise<GroupEnt
     const group = client.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === groupId);
     // A closed group no longer changes: a pull that starts once it is known to be closed is the last one it needs
     const closed = Boolean(group?.closed);
-    // A first pull brings the whole history, which is told to nobody (ADR-0025)
-    const held = known.cursor > 0 ? known.entries : undefined;
+    // A first pull brings the whole history, which is told to nobody (ADR-0025). A copy kept from before the mark of a
+    // pull existed counts as pulled once it has a cursor.
+    const held = known.pulled || known.cursor > 0 ? known.entries : undefined;
     const pulled: LedgerEntry[] = [];
 
     for (;;) {
@@ -69,7 +70,7 @@ const pullGroup = async (client: QueryClient, groupId: string): Promise<GroupEnt
         if (!page.hasMore) break;
     }
     if (group) emitNotices(client, noticesFor(group, held, pulled));
-    return { entries: [...byId.values()], cursor, ...(closed ? { final: true as const } : {}) };
+    return { entries: [...byId.values()], cursor, pulled: true, ...(closed ? { final: true as const } : {}) };
 };
 
 // Pushes the group's own pending entries, then pulls what changed after its cursor, after any sync of the group running
