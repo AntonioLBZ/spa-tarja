@@ -2,3 +2,8 @@
 .expense-sheet__submit {
     flex: 1;
 }
+
+/* At the end of the title row, its mark on the edge of the text below, as the way back is at the start */
+.expense-sheet__check {
+    justify-content: flex-end;
+}

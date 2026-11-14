@@ -166,6 +166,9 @@
 /* A page takes the whole screen of a phone and comes up from below. Its title row, with the way back at its start and
    the main action at its end, stays stuck to the top while the form scrolls under it (ADR-0026) */
 .dialog--page {
+    --dialog-start: max(var(--size-4), env(safe-area-inset-left));
+    --dialog-end-inline: max(var(--size-4), env(safe-area-inset-right));
+
     block-size: 100dvh;
     border-width: 0;
     inline-size: 100%;
@@ -174,7 +177,7 @@
     max-inline-size: none;
     overscroll-behavior: contain;
     padding-block: 0 calc(var(--size-4) + env(safe-area-inset-bottom));
-    padding-inline: max(var(--size-4), env(safe-area-inset-left)) max(var(--size-4), env(safe-area-inset-right));
+    padding-inline: var(--dialog-start) var(--dialog-end-inline);
     transform: translateY(100%);
 }
 
@@ -185,10 +188,14 @@
     }
 }
 
+/* Edge to edge over the padding of the page, so nothing scrolls past it at the sides */
 .dialog--page .dialog__head {
     background: var(--color-bg-secondary);
     inset-block-start: 0;
+    margin-inline: calc(-1 * var(--dialog-start)) calc(-1 * var(--dialog-end-inline));
+    min-block-size: calc(var(--size-touch) + 2 * var(--size-2) + env(safe-area-inset-top));
     padding-block: calc(var(--size-2) + env(safe-area-inset-top)) var(--size-2);
+    padding-inline: var(--dialog-start) var(--dialog-end-inline);
     position: sticky;
     z-index: 1;
 }
@@ -258,6 +265,9 @@
     }
 
     .dialog--page {
+        --dialog-start: var(--size-4);
+        --dialog-end-inline: var(--size-4);
+
         block-size: auto;
         border-width: 0 0 var(--size-1) var(--size-1);
         inline-size: calc(100% - var(--size-8));
@@ -276,7 +286,9 @@
     }
 
     .dialog--page .dialog__head {
+        min-block-size: auto;
         padding-block: var(--size-4) var(--size-2);
+        padding-inline: var(--size-4);
     }
 
     :root:has(dialog[open]) {

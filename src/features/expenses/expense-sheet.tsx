@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
+import { Icon } from '@/components/icon/icon';
 import { useToast } from '@/components/toast/toast';
 import { useWide } from '@/lib/use-wide';
 
@@ -58,9 +59,21 @@ const ExpenseSheet = () => {
         endCopy({ refocus: true });
     };
 
-    const submit = (
-        <Button className={wide ? 'expense-sheet__submit' : undefined} variant="primary" form={formId} type="submit">
+    // A box at the foot of the dialog, a check at the end of the title row of a phone
+    const submit = wide ? (
+        <Button className="expense-sheet__submit" variant="primary" form={formId} type="submit">
             {isEdit ? t('save') : t('submit')}
+        </Button>
+    ) : (
+        <Button
+            ghost
+            glyph
+            className="expense-sheet__check"
+            aria-label={isEdit ? t('save') : t('submit')}
+            form={formId}
+            type="submit"
+        >
+            <Icon name="check" />
         </Button>
     );
 

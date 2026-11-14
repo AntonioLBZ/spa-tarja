@@ -457,8 +457,8 @@
             "split": "Split",
             "mode": "How it's split",
             "summary": {
-                "youPaid": "You paid",
-                "paid": "{name} paid",
+                "youPaid": "Paid by you",
+                "paid": "Paid by {name}",
                 "equal": "equally among {count, plural, =0 {nobody} one {# person} other {# people}}",
                 "percent": "by percent among {count, plural, =0 {nobody} one {# person} other {# people}}",
                 "exact": "by amount among {count, plural, =0 {nobody} one {# person} other {# people}}",

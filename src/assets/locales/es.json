@@ -457,8 +457,8 @@
             "split": "Reparto",
             "mode": "Cómo se reparte",
             "summary": {
-                "youPaid": "Pagaste tú",
-                "paid": "Pagó {name}",
+                "youPaid": "Pagado por ti",
+                "paid": "Pagado por {name}",
                 "equal": "a partes iguales entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
                 "percent": "por porcentaje entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
                 "exact": "por importes entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
