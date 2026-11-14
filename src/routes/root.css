@@ -160,6 +160,21 @@
     animation: none;
 }
 
+/* The header and the bottom bar hold still and show only their new picture. Their boxes may differ in size between the
+   two screens, and a group that morphs from one to the other would stretch both pictures and fade them over each
+   other, a ghost of the old text. */
+::view-transition-group(header),
+::view-transition-group(bottom-nav),
+::view-transition-new(header),
+::view-transition-new(bottom-nav) {
+    animation: none;
+}
+
+::view-transition-old(header),
+::view-transition-old(bottom-nav) {
+    display: none;
+}
+
 /* The underline moves as one piece: its group slides and stretches from the old word to the new one, showing the new
    mark only */
 ::view-transition-group(nav-underline) {
