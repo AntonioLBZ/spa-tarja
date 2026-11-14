@@ -1,6 +1,6 @@
 # ADR-0026: The add form keeps its button in sight and folds its options
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-14
 
 ## Context
