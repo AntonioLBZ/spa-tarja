@@ -71,6 +71,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgetWriteStatus: null as number | null,
         // An HTTP status to answer every profile write with, or null to accept them
         profileWriteStatus: null as number | null,
+        // An HTTP status to answer every write of a push subscription with, or null to accept them
+        pushWriteStatus: null as number | null,
         // Answers 401 to everything that needs a session, like the Worker does once it has ended
         unauthorized: false,
         // The user the browser's cookie carries, who a request that names another user is refused for. Null accepts any.
@@ -216,6 +218,9 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
 
         if (url.pathname === '/api/push' && (method === 'PUT' || method === 'DELETE')) {
             pushBodies.push({ method, body: JSON.parse(String(init?.body)) });
+            if (state.pushWriteStatus !== null) {
+                return Response.json({ error: 'invalid' }, { status: state.pushWriteStatus });
+            }
             return new Response(null, { status: 204 });
         }
 

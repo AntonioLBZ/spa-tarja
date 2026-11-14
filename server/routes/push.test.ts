@@ -105,6 +105,9 @@ describe('PUT /api/push', () => {
         'http://fcm.googleapis.com/x',
         'https://push.apple.com.evil.test/x',
         'https://evilpush.apple.com/x',
+        'https://jmt17.google.com.evil.test/x',
+        'https://evil.google.com/x',
+        'https://jmt.google.com/x',
         'not a url',
     ])('refuses an address that is not of a push service: %s', async (endpoint) => {
         expect((await send(ana, 'PUT', '/push', subscription(endpoint))).status).toBe(400);
@@ -113,6 +116,7 @@ describe('PUT /api/push', () => {
 
     it.each([
         'https://fcm.googleapis.com/fcm/send/abc',
+        'https://jmt17.google.com/fcm/send/abc',
         'https://updates.push.services.mozilla.com/wpush/v2/abc',
         'https://web.push.apple.com/abc',
         'https://wns2-db5p.notify.windows.com/w/?token=abc',

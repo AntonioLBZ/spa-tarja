@@ -1,4 +1,4 @@
-import { deletePush, fetchPushKey, putPush } from '@/lib/api';
+import { ApiError, deletePush, fetchPushKey, putPush } from '@/lib/api';
 
 import type { PushLocale, PushSubscriptionInput } from '@core/push';
 
@@ -37,7 +37,13 @@ const turnPushOn = async (locale: PushLocale): Promise<PushPermission> => {
     const manager = await pushManager();
     if (!manager) return 'unsupported';
     const subscription = await manager.subscribe({ userVisibleOnly: true, applicationServerKey: await fetchPushKey() });
-    await putPush(subscriptionInput(subscription, locale));
+    try {
+        await putPush(subscriptionInput(subscription, locale));
+    } catch (error) {
+        // A subscription the server doesn't hold would show as on and never bring anything
+        await subscription.unsubscribe().catch(() => undefined);
+        throw error;
+    }
     return permission;
 };
 
@@ -45,7 +51,10 @@ const turnPushOn = async (locale: PushLocale): Promise<PushPermission> => {
 const turnPushOff = async (): Promise<void> => {
     const subscription = await readPushSubscription();
     if (!subscription) return;
-    await deletePush(subscription.endpoint);
+    await deletePush(subscription.endpoint).catch((error: unknown) => {
+        // The server refused the address for good, so it holds nothing of it: the browser's copy goes all the same
+        if (!(error instanceof ApiError && error.status >= 400 && error.status < 500)) throw error;
+    });
     await subscription.unsubscribe();
 };
 

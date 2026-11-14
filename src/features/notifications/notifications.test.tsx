@@ -80,6 +80,31 @@ describe('the switch of notifications in the settings', () => {
         expect(api.pushBodies).toEqual([]);
     });
 
+    it('takes the subscription away from the browser too when the server refuses it, and stays off', async () => {
+        push = installFakePush();
+        const { api } = await openSettings();
+        api.state.pushWriteStatus = 400;
+
+        fireEvent.click(toggle());
+
+        expect(await screen.findByText(en.settings.notifications.failed)).toBeDefined();
+        expect(toggle().checked).toBe(false);
+        expect(push.state.subscription).toBeNull();
+    });
+
+    it('turns off a subscription the server refuses to know of', async () => {
+        push = installFakePush({ permission: 'granted', subscribed: true });
+        const subscription = push.state.subscription!;
+        const { api } = await openSettings();
+        await waitFor(() => expect(toggle().checked).toBe(true));
+        api.state.pushWriteStatus = 400;
+
+        fireEvent.click(toggle());
+
+        await waitFor(() => expect(toggle().checked).toBe(false));
+        expect(subscription.unsubscribe).toHaveBeenCalled();
+    });
+
     it('takes the subscription away from the server and from the browser', async () => {
         push = installFakePush({ permission: 'granted', subscribed: true });
         const subscription = push.state.subscription!;

@@ -9,6 +9,8 @@ const PUSH_LOCALES = ['en', 'es'] as const;
 // make the server call another host
 const PUSH_HOSTS = ['fcm.googleapis.com', 'updates.push.services.mozilla.com'];
 const PUSH_HOST_SUFFIXES = ['.push.apple.com', '.notify.windows.com'];
+// The numbered hosts of the push service of the browsers built on Chromium
+const NUMBERED_PUSH_HOST = /^jmt\d+\.google\.com$/;
 
 const ENDPOINT_MAX_LENGTH = 1024;
 
@@ -16,7 +18,9 @@ const isPushEndpoint = (value: string): boolean => {
     if (!URL.canParse(value)) return false;
     const url = new URL(value);
     if (url.protocol !== 'https:' || url.username !== '' || url.password !== '' || url.port !== '') return false;
-    return PUSH_HOSTS.includes(url.hostname) || PUSH_HOST_SUFFIXES.some((suffix) => url.hostname.endsWith(suffix));
+    const { hostname } = url;
+    if (PUSH_HOSTS.includes(hostname) || NUMBERED_PUSH_HOST.test(hostname)) return true;
+    return PUSH_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
 };
 
 const endpointSchema = v.pipe(
