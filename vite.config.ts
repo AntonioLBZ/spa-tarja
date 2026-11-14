@@ -5,10 +5,12 @@ import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { build, defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
+
+const PUSH_WORKER = 'push-worker.js';
 const appName = prerelease ? 'Tarja Pre' : 'Tarja';
 const iconFolder = prerelease ? 'prerelease/' : '';
 
@@ -49,12 +51,41 @@ const prereleasePage = (): Plugin => {
     };
 };
 
+// The script the service worker imports for push notifications (ADR-0025), built on its own as a classic script, since
+// a service worker that isn't a module can only import one
+const pushWorker = (): Plugin => {
+    return {
+        name: 'tarja-push-worker',
+        apply: 'build',
+        applyToEnvironment: (environment) => environment.name === 'client',
+        writeBundle: async (options) => {
+            await build({
+                configFile: false,
+                logLevel: 'warn',
+                resolve: { tsconfigPaths: true },
+                build: {
+                    outDir: options.dir,
+                    emptyOutDir: false,
+                    copyPublicDir: false,
+                    lib: {
+                        entry: fileURLToPath(new URL('./src/features/notices/push-worker.ts', import.meta.url)),
+                        formats: ['iife'],
+                        name: 'tarjaPush',
+                        fileName: () => PUSH_WORKER,
+                    },
+                },
+            });
+        },
+    };
+};
+
 export default defineConfig({
     plugins: [
         tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '\\.test\\.tsx?$' }),
         react(),
         cloudflare(),
         prereleasePage(),
+        pushWorker(),
         VitePWA({
             // The new version waits for the user, so an update never reloads the app halfway through an expense
             registerType: 'prompt',
@@ -90,6 +121,7 @@ export default defineConfig({
                 navigateFallback: '/index.html',
                 navigateFallbackDenylist: [/^\/api\//],
                 cleanupOutdatedCaches: true,
+                importScripts: [`/${PUSH_WORKER}`],
             },
         }),
     ],
