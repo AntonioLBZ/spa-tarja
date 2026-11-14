@@ -6,6 +6,7 @@ import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
 import { isPrerelease } from '@/lib/prerelease';
+import { forgetPushInBrowser } from '@/lib/push';
 
 import { PrivacyNotice } from './privacy-notice';
 
@@ -29,6 +30,12 @@ const SignInScreen = (props: SignInScreenProps) => {
     const t = useTranslations('auth');
     const { signIn } = useAuth();
     const [phase, setPhase] = useState<Phase>(() => (cameBackFailed() ? 'failed' : 'idle'));
+
+    // Nobody is signed in on this device, so a subscription the browser still holds (a sign-out that couldn't drop it)
+    // would show the notifications of whoever left it; while the server is out of reach that isn't known yet
+    useEffect(() => {
+        if (!unreachable) void forgetPushInBrowser().catch(() => undefined);
+    }, [unreachable]);
 
     // Coming back to the page from Google with the back button restores it as it was left
     useEffect(() => {

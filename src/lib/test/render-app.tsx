@@ -63,6 +63,7 @@ const renderApp = ({
     );
     return {
         ...rendered,
+        router,
         storage,
         fakeAuth,
         get outbox() {

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
+import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
 import { installFakePush } from '@/lib/test/fake-push';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
@@ -212,6 +212,17 @@ describe('the page and the service worker', () => {
         expect(await screen.findByRole('heading', { name: 'Flat', level: 1 })).toBeDefined();
     });
 
+    it('opens no address of another site that a message names', async () => {
+        push = installFakePush();
+        const { app } = await openSettings();
+
+        act(() => push!.post({ type: 'open', path: '//evil.test/groups' }));
+
+        await act(async () => undefined);
+        expect(app.router.state.location.pathname).toBe('/settings');
+        expect(app.router.state.location.href).not.toContain('evil.test');
+    });
+
     it('sends the subscription again when the app opens, so the server has its address and language', async () => {
         push = installFakePush({ permission: 'granted', subscribed: true });
         const { api } = await openSettings();
@@ -230,6 +241,31 @@ describe('the page and the service worker', () => {
 
         await waitFor(() => expect(subscription.unsubscribe).toHaveBeenCalled());
         expect(api.pushBodies).toContainEqual({ method: 'DELETE', body: { endpoint: subscription.endpoint } });
+    });
+});
+
+describe('a device where nobody is signed in', () => {
+    it('drops a subscription the browser still holds, so it shows nobody else the notifications of who left it', async () => {
+        push = installFakePush({ permission: 'granted', subscribed: true });
+        const subscription = push.state.subscription!;
+
+        renderApp({ fakeAuth: createFakeAuth({ session: null }) });
+
+        expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+        await waitFor(() => expect(subscription.unsubscribe).toHaveBeenCalled());
+    });
+
+    it('keeps it while the server is out of reach, as it does not know yet who is signed in', async () => {
+        push = installFakePush({ permission: 'granted', subscribed: true });
+        const subscription = push.state.subscription!;
+        const fakeAuth = createFakeAuth({ session: null });
+        fakeAuth.state.offline = true;
+
+        renderApp({ fakeAuth });
+
+        expect(await screen.findByRole('heading', { name: en.auth.title })).toBeDefined();
+        await act(async () => undefined);
+        expect(subscription.unsubscribe).not.toHaveBeenCalled();
     });
 });
 
