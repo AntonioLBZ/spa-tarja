@@ -30,6 +30,8 @@ interface BannerOptions {
     message: string;
     // Opens what the banner is about
     onOpen: () => void;
+    // Called once when it goes, however it goes, but not when a new text takes its place
+    onGone?: () => void;
 }
 
 interface BannerApi {
@@ -168,11 +170,14 @@ const BannerProvider = (props: BannerProviderProps) => {
     const [banner, setBanner] = useState<ShownBanner | null>(null);
     const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const lastId = useRef(0);
+    // What to call when the banner showing goes, null once it has been called
+    const onGone = useRef<(() => void) | null>(null);
 
     useEffect(() => () => clearTimeout(leaveTimer.current), []);
 
     const show = useCallback((options: BannerOptions) => {
         clearTimeout(leaveTimer.current);
+        onGone.current = options.onGone ?? (() => undefined);
         setBanner((current) =>
             current && current.leaving === null
                 ? { ...current, ...options, round: current.round + 1 }
@@ -182,6 +187,9 @@ const BannerProvider = (props: BannerProviderProps) => {
 
     const dismiss = useCallback((to?: 'left' | 'right') => {
         clearTimeout(leaveTimer.current);
+        const gone = onGone.current;
+        onGone.current = null;
+        gone?.();
         const duration = readDuration('--duration-base');
         if (duration === 0) {
             setBanner(null);

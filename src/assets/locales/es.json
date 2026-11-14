@@ -768,5 +768,15 @@
         "offline": "Estás sin conexión. Conéctate para guardar tu apodo.",
         "invalid": "Un apodo necesita al menos un carácter visible y ningún control de dirección del texto.",
         "failed": "No se pudo guardar tu apodo. Inténtalo de nuevo."
+    },
+    "notices": {
+        "groupsTitle": "Grupos",
+        "expense": "{actor} añadió {text} · tu parte {part}",
+        "untitled": "un gasto",
+        "paidYou": "{actor} te pagó {amount}",
+        "youPaid": "{actor} anotó que le pagaste {amount}",
+        "expenses": "{count, plural, one {# gasto nuevo} other {# gastos nuevos}}",
+        "entries": "{count, plural, one {# movimiento nuevo} other {# movimientos nuevos}}",
+        "entriesInGroups": "{count} movimientos nuevos en {groups} grupos"
     }
 }

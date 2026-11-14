@@ -3,16 +3,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BannerProvider, useBanner } from './banner';
 
-function Harness(props: { onOpen: () => void }) {
-    const { onOpen } = props;
+function Harness(props: { onOpen: () => void; onGone: () => void }) {
+    const { onOpen, onGone } = props;
     const banner = useBanner();
 
     return (
         <>
-            <button type="button" onClick={() => banner.show({ title: 'Flat', message: 'Ana added Dinner', onOpen })}>
+            <button
+                type="button"
+                onClick={() => banner.show({ title: 'Flat', message: 'Ana added Dinner', onOpen, onGone })}
+            >
                 Show
             </button>
-            <button type="button" onClick={() => banner.show({ title: 'Flat', message: '2 new expenses', onOpen })}>
+            <button
+                type="button"
+                onClick={() => banner.show({ title: 'Flat', message: '2 new expenses', onOpen, onGone })}
+            >
                 Show more
             </button>
         </>
@@ -21,12 +27,13 @@ function Harness(props: { onOpen: () => void }) {
 
 function setup() {
     const onOpen = vi.fn();
+    const onGone = vi.fn();
     render(
         <BannerProvider dismissLabel="Dismiss">
-            <Harness onOpen={onOpen} />
+            <Harness onOpen={onOpen} onGone={onGone} />
         </BannerProvider>
     );
-    return { onOpen };
+    return { onOpen, onGone };
 }
 
 function show(name = 'Show') {
@@ -168,5 +175,18 @@ describe('Banner', () => {
         expect(box()).not.toBeNull();
         expect(box()!.style.getPropertyValue('--banner-shift')).toBe('');
         expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('says once that it is gone, however it goes, and not while a new text replaces the old one', () => {
+        const { onGone } = setup();
+        show();
+        show('Show more');
+        expect(onGone).not.toHaveBeenCalled();
+
+        elapse(8_100);
+        show();
+        swipe(-200);
+
+        expect(onGone).toHaveBeenCalledTimes(2);
     });
 });
