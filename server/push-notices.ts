@@ -2,6 +2,7 @@ import { noticeOf, type Notice } from '@core/notices';
 import { UNNAMED_PERSON } from '@core/shared-group';
 import { canonicalMember } from '@core/shared-member';
 import { deletePushSubscription, listPushSubscriptions } from '@server/db/push';
+import { pushTargets } from '@server/push-targets';
 import { readVapidKey } from '@server/vapid';
 import { sendPush } from '@server/web-push';
 
@@ -24,6 +25,9 @@ interface PushMessage {
 // A push service takes 4 KB; a text is cut well under it
 const TEXT_MAX_LENGTH = 200;
 
+// A Worker on the free plan makes at most 50 calls out per request; the rest is room for the request itself
+const MAX_PUSHES_PER_ENTRY = 40;
+
 const cut = (text: string) => (text.length > TEXT_MAX_LENGTH ? `${text.slice(0, TEXT_MAX_LENGTH - 1)}…` : text);
 
 // The name a member has for a person who sees the group: a friend that is open shows the other side by their nickname
@@ -44,7 +48,7 @@ const messageFor = (state: GroupState, recipient: string, notice: Notice, locale
 };
 
 // Pushes a new entry to every member it concerns who uses the app and hasn't left, but its author, on each of their
-// devices; a subscription its push service says is gone is deleted. Nothing is sent without the key of the server.
+// devices (the newest ones, when they are too many); a subscription its push service says is gone is deleted. Nothing is sent without the key of the server.
 const notifyEntry = async (env: AppEnv['Bindings'], state: GroupState, entry: LedgerEntry): Promise<void> => {
     const key = readVapidKey(env.VAPID_PRIVATE_KEY);
     if (!key) return;
@@ -56,7 +60,7 @@ const notifyEntry = async (env: AppEnv['Bindings'], state: GroupState, entry: Le
     const byUser = new Map(recipients.map((recipient) => [recipient.member.userId ?? '', recipient]));
     const subscriptions = await listPushSubscriptions(env.DB, [...byUser.keys()]);
     await Promise.all(
-        subscriptions.map(async (subscription) => {
+        pushTargets(subscriptions, MAX_PUSHES_PER_ENTRY).map(async (subscription) => {
             const recipient = byUser.get(subscription.userId);
             if (!recipient) return;
             const message = messageFor(state, recipient.member.id, recipient.notice, subscription.locale);
