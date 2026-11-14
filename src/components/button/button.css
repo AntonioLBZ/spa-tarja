@@ -59,7 +59,7 @@ a.button {
     color: var(--color-danger);
 }
 
-.button--danger::before {
+.button--danger:not(.button--ghost)::before {
     background: var(--color-danger);
 }
 
