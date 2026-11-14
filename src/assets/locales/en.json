@@ -455,6 +455,15 @@
             "paidByNone": "Choose who paid",
             "payerLeft": "The person who paid has left the group.",
             "split": "Split",
+            "mode": "How it's split",
+            "summary": {
+                "youPaid": "You paid",
+                "paid": "{name} paid",
+                "equal": "equally among {count, plural, =0 {nobody} one {# person} other {# people}}",
+                "percent": "by percent among {count, plural, =0 {nobody} one {# person} other {# people}}",
+                "exact": "by amount among {count, plural, =0 {nobody} one {# person} other {# people}}",
+                "line": "{payer} · {split}"
+            },
             "modes": {
                 "equal": "Equally",
                 "percent": "Percent",
@@ -463,6 +472,7 @@
             "people": "Who's in",
             "percentOf": "{name}, percent",
             "amountOf": "{name}, amount",
+            "percentUnit": "%",
             "nobody": "Choose at least one person.",
             "unassigned": "{amount} unassigned",
             "over": "{amount} over the total",

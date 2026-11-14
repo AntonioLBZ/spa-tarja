@@ -11,6 +11,8 @@ interface DisclosureProps {
     heading?: 'h2' | 'h3';
     // What the toggle shows
     summary: ReactNode;
+    // What the panel holds, said in the toggle after the summary while it is closed
+    hint?: ReactNode;
     // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
     open?: boolean;
     defaultOpen?: boolean;
@@ -50,6 +52,7 @@ const Disclosure = (props: DisclosureProps) => {
         as: Tag = 'div',
         heading: Heading,
         summary,
+        hint,
         open,
         defaultOpen = false,
         onOpenChange,
@@ -81,7 +84,14 @@ const Disclosure = (props: DisclosureProps) => {
             type="button"
             onClick={handleToggle}
         >
-            {summary}
+            {hint && !isOpen ? (
+                <span className="disclosure__summary">
+                    <span>{summary}</span>
+                    <span className="disclosure__hint">{hint}</span>
+                </span>
+            ) : (
+                summary
+            )}
             {chevron && (
                 <span className="disclosure__chevron">
                     <Icon name="expand_more" />

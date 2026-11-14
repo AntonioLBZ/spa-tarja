@@ -220,6 +220,30 @@ describe('Dialog', () => {
         expect(screen.getByRole('dialog').classList.contains('dialog--sheet')).toBe(true);
     });
 
+    it('is a page with the way back first in its title row and its main action at the end', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog
+                open
+                variant="page"
+                title="Moved"
+                closeLabel="Back"
+                headAction={<button type="button">Save</button>}
+                onClose={onClose}
+            >
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+        const head = dialog.querySelector<HTMLElement>('.dialog__head')!;
+
+        expect(dialog.classList.contains('dialog--page')).toBe(true);
+        expect(head.firstElementChild).toBe(within(dialog).getByRole('button', { name: 'Back' }));
+        expect(head.lastElementChild).toBe(within(dialog).getByRole('button', { name: 'Save' }));
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('has no close button without a label', () => {
         render(
             <Dialog open variant="sheet" title="Moved" onClose={vi.fn()}>

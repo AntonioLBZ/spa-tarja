@@ -321,6 +321,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         if (amountBad || dateBad || tailBad || chargeBad) {
             const optionsBad = dateBad || chargeBad || (isShared ? shared.cardWithoutYou : personal.optionsProblem);
             if (optionsBad) setOptionsOpen(true);
+            if (isShared && shared.splitProblem) shared.setSplitOpen(true);
             setTried(true);
             setFailure(null);
             setFocusAsk((ask) => ask + 1);
@@ -401,18 +402,11 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             {isShared && <SharedTail tail={shared} fixed={group !== undefined} tried={tried} />}
 
             <Disclosure
-                className="expense-form__options"
                 chevron
                 keepMounted
                 open={optionsOpen}
-                summary={
-                    <span className="expense-form__options-summary">
-                        <span>{t('moreOptions')}</span>
-                        {!optionsOpen && optionsSummary && (
-                            <span className="expense-form__options-values">{optionsSummary}</span>
-                        )}
-                    </span>
-                }
+                summary={t('moreOptions')}
+                hint={optionsSummary || undefined}
                 onOpenChange={setOptionsOpen}
             >
                 <Field label={t('date')} error={dateInvalid ? t('dateInvalid') : null}>

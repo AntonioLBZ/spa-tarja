@@ -23,7 +23,7 @@ const Story: Meta<DialogStoryProps> = {
     },
     argTypes: {
         title: { control: 'text' },
-        variant: { control: 'inline-radio', options: ['dialog', 'sheet'] },
+        variant: { control: 'inline-radio', options: ['dialog', 'sheet', 'page'] },
         closeLabel: { control: 'text' },
         message: { control: 'text' },
         action: { control: 'text' },
@@ -50,7 +50,18 @@ export const Dialog = (args: DialogStoryProps) => {
     return (
         <>
             <Button onClick={() => updateArgs({ open: true })}>Open the dialog</Button>
-            <DialogComponent {...rest} actions={actions} onClose={close}>
+            <DialogComponent
+                {...rest}
+                actions={rest.variant === 'page' ? undefined : actions}
+                headAction={
+                    rest.variant === 'page' ? (
+                        <Button variant="primary" onClick={close}>
+                            {action}
+                        </Button>
+                    ) : undefined
+                }
+                onClose={close}
+            >
                 <p>{message}</p>
             </DialogComponent>
         </>

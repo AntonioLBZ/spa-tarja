@@ -9,8 +9,9 @@ import './dialog.css';
 interface DialogProps {
     open: boolean;
     title: string;
-    // A sheet holds the form of a task: anchored to the bottom of a phone, the dialog itself from 40 rem
-    variant?: 'dialog' | 'sheet';
+    // A sheet holds the form of a task: anchored to the bottom of a phone, the dialog itself from 40 rem. A page is a
+    // sheet that takes the whole screen of a phone, with the way back at the start of its title row (ADR-0026)
+    variant?: 'dialog' | 'sheet' | 'page';
     // Names the button that closes it, which ends its title row; without it there is none
     closeLabel?: string;
     // Where the focus goes once it is open; the dialog itself when it returns nothing
@@ -21,8 +22,10 @@ interface DialogProps {
     closeOnOutside?: boolean;
     // The browser closed it, as Escape does
     onClose: () => void;
-    // Ghost buttons or links, apart under what it holds; a sheet that holds a form may add its main button (ADR-0026)
+    // Ghost buttons or links, apart under what it holds
     actions?: ReactNode;
+    // The main action of a page, which ends its title row
+    headAction?: ReactNode;
     children: ReactNode;
 }
 
@@ -39,13 +42,16 @@ const Dialog = (props: DialogProps) => {
         closeOnOutside = true,
         onClose,
         actions,
+        headAction,
         children,
     } = props;
     const ref = useRef<HTMLDialogElement>(null);
     const titleId = useId();
     // Where the press started: one that starts in the box and ends on the veil, as a text selection does, is no tap outside
     const pressedOutside = useRef(false);
-    const dialogClsx = clsx('dialog', { 'dialog--sheet': variant === 'sheet' });
+    const isPage = variant === 'page';
+    const dialogClsx = clsx('dialog', { 'dialog--sheet': variant === 'sheet', 'dialog--page': isPage });
+    const closeClsx = clsx('dialog__close', { 'dialog__close--back': isPage });
 
     // Not its first action unless the page says so: nobody chose it, and the ring on it would say so
     const focusStart = useEffectEvent((dialog: HTMLDialogElement) => {
@@ -76,6 +82,12 @@ const Dialog = (props: DialogProps) => {
         );
     };
 
+    const closeButton = closeLabel && (
+        <Button ghost glyph className={closeClsx} aria-label={closeLabel} onClick={() => ref.current?.close()}>
+            <Icon name={isPage ? 'chevron_left' : 'close'} />
+        </Button>
+    );
+
     return (
         <dialog
             ref={ref}
@@ -96,20 +108,12 @@ const Dialog = (props: DialogProps) => {
             }}
         >
             <div className="dialog__head">
+                {isPage && closeButton}
                 <h2 className="dialog__title" id={titleId}>
                     {title}
                 </h2>
-                {closeLabel && (
-                    <Button
-                        ghost
-                        glyph
-                        className="dialog__close"
-                        aria-label={closeLabel}
-                        onClick={() => ref.current?.close()}
-                    >
-                        <Icon name="close" />
-                    </Button>
-                )}
+                {!isPage && closeButton}
+                {isPage && headAction}
             </div>
             <div className="dialog__body">{children}</div>
             {actions && <div className="dialog__actions">{actions}</div>}

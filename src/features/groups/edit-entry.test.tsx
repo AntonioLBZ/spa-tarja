@@ -11,7 +11,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { closeSheet, openAddSheet } from '@/lib/test/sheet';
+import { closeSheet, openAddSheet, openSplit } from '@/lib/test/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -77,6 +77,7 @@ function field(label: string) {
 }
 
 function people() {
+    openSplit();
     return screen.getByRole('group', { name: share.people });
 }
 
@@ -605,7 +606,7 @@ describe('the group screen without a form of its own', () => {
         expect((within(dialog).getByLabelText(form.amount) as HTMLInputElement).value).toBe('10.00');
         expect(within(dialog).queryByRole('radio', { name: form.forShared })).toBeNull();
         expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
-        expect(within(dialog).getByRole('group', { name: share.people })).toBeDefined();
+        expect(within(dialog).getByRole('button', { name: new RegExp(`^${share.split}`) })).toBeDefined();
     });
 
     it('opens the sheet to duplicate an entry as a new one of the same group', async () => {

@@ -14,7 +14,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { openAddSheet } from '@/lib/test/sheet';
+import { openAddSheet, openSplit } from '@/lib/test/sheet';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -96,6 +96,7 @@ async function addIsRefused() {
 }
 
 function people() {
+    openSplit();
     return screen.getByRole('group', { name: share.people });
 }
 
@@ -120,6 +121,7 @@ function shareValues() {
 }
 
 function pickMode(mode: 'equal' | 'percent' | 'exact') {
+    openSplit();
     fireEvent.click(screen.getByRole('radio', { name: share.modes[mode] }));
 }
 
@@ -621,6 +623,7 @@ describe('splitting by percent', () => {
         await screen.findByRole('radio', { name: es.expenses.form.forShared });
         fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
         fireEvent.change(screen.getByLabelText(es.expenses.form.amount), { target: { value: '10' } });
+        openSplit();
         fireEvent.click(screen.getByRole('radio', { name: es.groups.share.modes.percent }));
 
         const fields = within(screen.getByRole('group', { name: es.groups.share.people })).getAllByRole('textbox');
@@ -992,5 +995,64 @@ describe('the sync of a shared expense added at home', () => {
         await vi.waitFor(() => expect(app.groupOutbox.getState().pending).toEqual([]));
         expect(api.entryWrites).toMatchObject([{ text: 'Dinner' }]);
         vi.useRealTimers();
+    });
+});
+
+describe('the split, folded', () => {
+    const splitToggle = () => screen.getByRole('button', { name: new RegExp(`^${share.split}`) });
+
+    it('says who paid and how it is split while it is closed, and opens to change them', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
+        const line = t('groups.share.summary.line', {
+            payer: share.summary.youPaid,
+            split: t('groups.share.summary.equal', { count: 3 }),
+        });
+        expect(splitToggle().textContent).toBe(`${share.split}${line}`);
+        expect(screen.queryByRole('group', { name: share.people })).toBeNull();
+
+        fireEvent.click(splitToggle());
+
+        expect(screen.getByRole('group', { name: share.people })).toBeDefined();
+        pickOption(share.paidBy, 'Bea');
+        fireEvent.click(checkbox('Cris'));
+        pickMode('percent');
+        fireEvent.click(splitToggle());
+        expect(splitToggle().textContent).toBe(
+            `${share.split}${t('groups.share.summary.line', {
+                payer: t('groups.share.summary.paid', { name: 'Bea' }),
+                split: t('groups.share.summary.percent', { count: 2 }),
+            })}`
+        );
+    });
+
+    it('opens on Add when what is to fix is in it, with the focus on it', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+        pickMode('exact');
+        fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '1' } });
+        fireEvent.click(splitToggle());
+        expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
+
+        await addIsRefused();
+
+        expect(splitToggle().getAttribute('aria-expanded')).toBe('true');
+        expect(document.activeElement).toBe(shareField(you, 'amountOf'));
+    });
+
+    it('ends each percentage with its sign', async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fill({ amount: '10' });
+
+        pickMode('percent');
+
+        const box = shareField('Bea', 'percentOf').closest('.field__box')!;
+        expect(box.querySelector('.field__suffix')?.textContent).toBe(share.percentUnit);
+        pickMode('exact');
+        expect(shareField('Bea', 'amountOf').closest('.field__box')!.querySelector('.field__suffix')).toBeNull();
     });
 });

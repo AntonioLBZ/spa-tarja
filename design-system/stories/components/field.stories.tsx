@@ -14,6 +14,7 @@ const Story: Meta<FieldProps> = {
         label: { control: 'text' },
         hint: { control: 'text' },
         error: { control: 'text' },
+        suffix: { control: 'text' },
     },
 };
 

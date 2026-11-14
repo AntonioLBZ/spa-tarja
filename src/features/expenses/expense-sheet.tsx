@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { useToast } from '@/components/toast/toast';
+import { useWide } from '@/lib/use-wide';
 
 import { ExpenseForm } from './expense-form';
 import { useExpenseSheet } from './expense-sheet-state';
@@ -35,6 +36,7 @@ const ExpenseSheet = () => {
     } = useExpenseSheet();
     const body = useRef<HTMLDivElement>(null);
     const formId = useId();
+    const wide = useWide();
     const [built, setBuilt] = useState(false);
     if (open && !built) setBuilt(true);
     if (!built) return null;
@@ -56,6 +58,12 @@ const ExpenseSheet = () => {
         endCopy({ refocus: true });
     };
 
+    const submit = (
+        <Button className={wide ? 'expense-sheet__submit' : undefined} variant="primary" form={formId} type="submit">
+            {isEdit ? t('save') : t('submit')}
+        </Button>
+    );
+
     const handleAdded = (day: string) => {
         noteAdded(day);
         if (away) toast.show({ icon: 'check', message: t('added') });
@@ -65,7 +73,7 @@ const ExpenseSheet = () => {
     return (
         <Dialog
             open={open}
-            variant="sheet"
+            variant={wide ? 'sheet' : 'page'}
             title={title}
             closeLabel={t('close')}
             closeOnOutside={!isEdit && !isCopy}
@@ -73,18 +81,20 @@ const ExpenseSheet = () => {
             onClose={() => {
                 if (open) close();
             }}
+            // The form's button stays in sight (ADR-0026): in the title row of a phone, which the form takes whole,
+            // and stuck to the foot of the dialog from 40 rem
+            headAction={wide ? undefined : submit}
             actions={
-                <>
-                    {/* The form's button, in the foot of the sheet so it stays in sight (ADR-0026) */}
-                    <Button className="expense-sheet__submit" variant="primary" form={formId} type="submit">
-                        {isEdit ? t('save') : t('submit')}
-                    </Button>
-                    {(isEdit || isCopy) && (
-                        <Button ghost onClick={handleDone}>
-                            {t('cancel')}
-                        </Button>
-                    )}
-                </>
+                wide ? (
+                    <>
+                        {submit}
+                        {(isEdit || isCopy) && (
+                            <Button ghost onClick={handleDone}>
+                                {t('cancel')}
+                            </Button>
+                        )}
+                    </>
+                ) : undefined
             }
         >
             <div ref={body}>

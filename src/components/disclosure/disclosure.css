@@ -22,6 +22,18 @@
     width: 100%;
 }
 
+/* The summary and, while closed, what the panel holds, which goes under it when it doesn't fit */
+.disclosure__summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--size-2);
+    min-inline-size: 0;
+}
+
+.disclosure__hint {
+    color: var(--color-content-secondary);
+}
+
 .disclosure__chevron {
     display: flex;
     margin-inline-start: auto;

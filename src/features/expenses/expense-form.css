@@ -2,14 +2,3 @@
     display: grid;
     gap: var(--size-4);
 }
-
-/* What More options holds, said beside its name while it is closed */
-.expense-form__options-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 var(--size-2);
-}
-
-.expense-form__options-values {
-    color: var(--color-content-secondary);
-}

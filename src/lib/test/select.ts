@@ -1,6 +1,6 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 
-import { ensureAddSheet, openMoreOptions } from './sheet';
+import { ensureAddSheet, openMoreOptions, openSplit } from './sheet';
 
 // Drives a select the way a person does, by the label of its field
 
@@ -11,6 +11,9 @@ const trigger = (label: string): HTMLElement => {
     ensureAddSheet();
     const inForm = screen.queryByRole('combobox', { name: label });
     if (inForm) return inForm;
+    openSplit();
+    const inSplit = screen.queryByRole('combobox', { name: label });
+    if (inSplit) return inSplit;
     openMoreOptions();
     return screen.getByRole('combobox', { name: label });
 };

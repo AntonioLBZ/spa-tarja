@@ -19,13 +19,19 @@ interface FieldBoxProps {
     label?: ReactNode;
     // Drawn at the start of the box, before the label and the text
     icon?: ReactNode;
+    // Short text after what is typed, such as the unit it is in
+    suffix?: ReactNode;
     children: ReactNode;
 }
 
 // The box of a field: at rest its bottom edge alone, the left one growing as it is used (ADR-0023)
 const FieldBox = (props: FieldBoxProps) => {
-    const { label, icon, children } = props;
-    const boxClsx = clsx('field__box', { 'field__box--labelled': label, 'field__box--icon': icon });
+    const { label, icon, suffix, children } = props;
+    const boxClsx = clsx('field__box', {
+        'field__box--labelled': label,
+        'field__box--icon': icon,
+        'field__box--suffix': suffix,
+    });
 
     return (
         <div className={boxClsx}>
@@ -36,6 +42,11 @@ const FieldBox = (props: FieldBoxProps) => {
                 </span>
             )}
             {children}
+            {suffix && (
+                <span className="field__suffix" aria-hidden="true">
+                    {suffix}
+                </span>
+            )}
         </div>
     );
 };
@@ -49,6 +60,7 @@ interface FieldProps {
     // Ids of elements outside the field that also describe the control, such as a message shared by several fields
     describedBy?: string;
     icon?: ReactNode;
+    suffix?: ReactNode;
     // Buttons beside the box, such as the Save of a field that is a form of its own
     actions?: ReactNode;
     className?: string;
@@ -58,7 +70,7 @@ interface FieldProps {
 
 // A box with the label and the control, and under it a hint and an error, tied together for assistive technology
 const Field = (props: FieldProps) => {
-    const { label, hint, error, describedBy, icon, actions, className, children } = props;
+    const { label, hint, error, describedBy, icon, suffix, actions, className, children } = props;
     const id = useId();
     const hintId = `${id}-hint`;
     const errorId = `${id}-error`;
@@ -69,6 +81,7 @@ const Field = (props: FieldProps) => {
     const box = (
         <FieldBox
             icon={icon}
+            suffix={suffix}
             label={
                 <label className="field__label" htmlFor={id}>
                     {label}

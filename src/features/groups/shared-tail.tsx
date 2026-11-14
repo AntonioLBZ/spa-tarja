@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
@@ -202,12 +203,19 @@ const useSharedTail = (
 ) => {
     const { groups } = useGroups();
     const { locale } = useLocale();
-    const [draft, setDraft] = useState<SharedDraft>(() =>
+    const [initial] = useState<SharedDraft>(() =>
         fixed && source
             ? draftOfEntry(fixed, source.entry, source.copy, locale)
             : startGroupId
               ? { ...START, groupId: startGroupId }
               : START
+    );
+    const [draft, setDraft] = useState<SharedDraft>(initial);
+    // Who paid and how it is split fold under a summary; they start open on a payer who is gone, to be chosen
+    const [splitOpen, setSplitOpen] = useState(
+        () =>
+            initial.paidBy !== null &&
+            !(fixed?.members.some((member) => member.id === initial.paidBy && member.leftAt === null) ?? false)
     );
     // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
     const [seed, setSeed] = useState(randomSeed);
@@ -296,6 +304,11 @@ const useSharedTail = (
         mode: draft.mode,
         problem,
         valid,
+        inCount: inIds.length,
+        splitOpen,
+        setSplitOpen,
+        // Something to fix in what folds under the split
+        splitProblem: payer === null || problem !== null || cardWithoutYou,
         // The day the payer's card charges it; only the payer says how they paid
         chargeDate: payerIsMe ? payment.chargeDate : null,
         pickGroup: (groupId: string) => setDraft({ ...START, mode: draft.mode, groupId }),
@@ -342,6 +355,7 @@ const useSharedTail = (
         reset: () => {
             setDraft({ ...START, groupId: group?.id ?? null });
             setSeed(randomSeed());
+            setSplitOpen(false);
         },
     };
 };
@@ -369,8 +383,35 @@ const SharedTail = (props: SharedTailProps) => {
                     )}
                 </Field>
             )}
-            {group && <SharedPeople group={group} tail={tail} tried={tried} />}
+            {group && <SharedSplit group={group} tail={tail} tried={tried} />}
         </>
+    );
+};
+
+// Who paid and how it is split, folded under a line that says both
+const SharedSplit = (props: SharedPeopleProps) => {
+    const { group, tail, tried } = props;
+    const t = useTranslations('groups.share');
+    const words = useGroupWords(group);
+    const payer =
+        tail.payer === null
+            ? t('paidByNone')
+            : tail.payerIsMe
+              ? t('summary.youPaid')
+              : t('summary.paid', { name: words.nameOf(tail.payer) });
+    const split = t(`summary.${tail.mode}`, { count: tail.inCount });
+
+    return (
+        <Disclosure
+            chevron
+            open={tail.splitOpen}
+            summary={t('split')}
+            hint={t('summary.line', { payer, split })}
+            onOpenChange={tail.setSplitOpen}
+            keepMounted
+        >
+            <SharedPeople group={group} tail={tail} tried={tried} />
+        </Disclosure>
     );
 };
 
@@ -415,7 +456,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
             </Field>
 
             <ChoiceGroup
-                legend={t('split')}
+                legend={t('mode')}
                 name={`${id}-split`}
                 options={SPLIT_MODES.map((value) => ({ value, label: t(`modes.${value}`) }))}
                 value={mode}
@@ -434,7 +475,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                             />
                             {row.cents !== null && <span>{money(row.cents)}</span>}
                             {row.text !== null && (
-                                <FieldBox>
+                                <FieldBox suffix={byPercent ? t('percentUnit') : undefined}>
                                     <input
                                         className="shared-people__input"
                                         aria-describedby={

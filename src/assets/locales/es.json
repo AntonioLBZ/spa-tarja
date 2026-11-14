@@ -455,6 +455,15 @@
             "paidByNone": "Elige quién pagó",
             "payerLeft": "Quien pagó ha salido del grupo.",
             "split": "Reparto",
+            "mode": "Cómo se reparte",
+            "summary": {
+                "youPaid": "Pagaste tú",
+                "paid": "Pagó {name}",
+                "equal": "a partes iguales entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
+                "percent": "por porcentaje entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
+                "exact": "por importes entre {count, plural, =0 {nadie} one {# persona} other {# personas}}",
+                "line": "{payer} · {split}"
+            },
             "modes": {
                 "equal": "A partes iguales",
                 "percent": "Por porcentaje",
@@ -463,6 +472,7 @@
             "people": "Quién participa",
             "percentOf": "{name}, porcentaje",
             "amountOf": "{name}, importe",
+            "percentUnit": "%",
             "nobody": "Elige al menos a una persona.",
             "unassigned": "Faltan {amount} por asignar",
             "over": "Sobran {amount} del total",

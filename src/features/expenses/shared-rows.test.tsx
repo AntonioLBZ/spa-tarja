@@ -244,7 +244,7 @@ describe('changing a shared row from the list', () => {
 
         expect(screen.getByRole('form', { name: en.expenses.form.editTitle })).toBeDefined();
         expect(screen.queryByRole('radio', { name: en.expenses.form.forShared })).toBeNull();
-        expect(screen.getByRole('group', { name: en.groups.share.people })).toBeDefined();
+        expect(screen.getByRole('button', { name: new RegExp(`^${en.groups.share.split}`) })).toBeDefined();
         fireEvent.change(amountField(), { target: { value: '50' } });
         fireEvent.click(screen.getByRole('button', { name: en.expenses.form.save }));
 
