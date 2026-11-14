@@ -8,6 +8,7 @@ import { applyAccent, readStoredAccent } from './lib/accent';
 import { createAuth, createAuthService } from './lib/auth';
 import { idbStorage } from './lib/offline';
 import { applyTheme, readStoredTheme } from './lib/theme';
+import { endTransitionsOnTap } from './lib/view-transition-tap';
 import { AppProviders } from './providers';
 import { createAppRouter } from './router';
 
@@ -22,6 +23,9 @@ onlineManager.setOnline(navigator.onLine);
 
 // Before the session and the data, so a new version is offered as soon as it is found
 appUpdate.start();
+
+// A tap never waits for a screen to finish sliding
+endTransitionsOnTap();
 
 const auth = createAuth(createAuthService());
 const router = createAppRouter();

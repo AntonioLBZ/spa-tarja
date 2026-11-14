@@ -246,35 +246,6 @@ describe('revealTheme', () => {
         expect(startViewTransition).toHaveBeenCalledTimes(2);
     });
 
-    it('ends the reveal on a tap and repeats the tap on the page under it', async () => {
-        root.style.setProperty('--duration-reveal', '1080ms');
-        let finish: () => void = () => undefined;
-        const skipTransition = vi.fn(() => finish());
-        Object.assign(document, {
-            startViewTransition: vi.fn((callback: () => void) => {
-                callback();
-                const finished = new Promise<void>((resolve) => {
-                    finish = resolve;
-                });
-                return { ready: Promise.resolve(), finished, skipTransition };
-            }),
-        });
-        Object.assign(root, { animate: vi.fn() });
-        const button = document.createElement('button');
-        const onClick = vi.fn();
-        button.addEventListener('click', onClick);
-        root.appendChild(button);
-        Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: () => button });
-
-        revealTheme(() => undefined);
-        document.dispatchEvent(new PointerEvent('pointerup', { isPrimary: true, button: 0, clientX: 5, clientY: 6 }));
-
-        expect(skipTransition).toHaveBeenCalledOnce();
-        await vi.waitFor(() => expect(onClick).toHaveBeenCalledOnce());
-        button.remove();
-        Reflect.deleteProperty(document, 'elementFromPoint');
-    });
-
     it('fades the colors where the browser has no view transitions', () => {
         root.style.setProperty('--duration-reveal', '1080ms');
         root.style.setProperty('--duration-slow', '360ms');

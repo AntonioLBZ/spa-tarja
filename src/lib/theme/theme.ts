@@ -89,26 +89,6 @@ const revealOrigin = (): { x: number; y: number } => {
 // back to back
 let lastRevealAt = Number.NEGATIVE_INFINITY;
 
-// While a view transition runs the browser gives the live page no pointer events. A tap ends the reveal at once and
-// is then repeated on what is under it, so nothing waits for the ink.
-const endRevealOnTap = (transition: ViewTransition): void => {
-    const onPointerUp = (event: PointerEvent) => {
-        if (!event.isPrimary || event.button !== 0) {
-            return;
-        }
-        cleanup();
-        transition.skipTransition();
-        const { clientX, clientY } = event;
-        const repeat = () => {
-            document.elementFromPoint(clientX, clientY)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-        };
-        transition.finished.then(repeat, repeat);
-    };
-    const cleanup = () => document.removeEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointerup', onPointerUp, true);
-    transition.finished.then(cleanup, cleanup);
-};
-
 // The new theme drifts in like ink from where the person pressed (ADR-0022). Where the browser can't, or with reduced
 // motion, the colors fade instead, and so they do when a change comes before the last ink has had its time: it ends
 // the running one at once.
@@ -135,7 +115,6 @@ const revealTheme = (update: () => void): void => {
     root.dataset.themeReveal = '';
     const transition = document.startViewTransition(update);
     revealing = transition;
-    endRevealOnTap(transition);
     transition.ready
         .then(() => {
             root.animate(
