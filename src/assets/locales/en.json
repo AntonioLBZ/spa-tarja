@@ -173,7 +173,8 @@
             "written": "What you write: expenses, categories, income, budgets, groups, friends, shared expenses, the payments that settle up, and the names you give to the people in your groups.",
             "invitations": "The invitation links you make. Each works once, for 14 days.",
             "sessions": "Each time you sign in, a session: cookies in your browser that keep you signed in and, on the server, the IP address and the browser it was opened from. Signing out deletes the session; one you stop using stays until you delete your account.",
-            "device": "On your device: a copy of your data, so the app works offline, and your language, theme, color and list grouping. The copy is removed when you sign out, or when the app finds out your session has ended, unless something is still waiting to be sent; clearing this site's data in the browser removes it too."
+            "device": "On your device: a copy of your data, so the app works offline, and your language, theme, color and list grouping. The copy is removed when you sign out, or when the app finds out your session has ended, unless something is still waiting to be sent; clearing this site's data in the browser removes it too.",
+            "push": "For each device where you turn notifications on: the address its browser gives to receive them, and your language. It goes when you turn them off, sign out or delete your account."
         },
         "sees": {
             "title": "Who sees it",
@@ -186,7 +187,8 @@
             "cloudflare": "Cloudflare hosts the app and keeps its database, acting only on Tarja's instructions. Its platform also keeps a log of each request the app receives, with technical details of the connection, for at most 7 days.",
             "google": "Google handles the sign-in: it learns that you use Tarja and sends it your account details, under its own privacy policy.",
             "transfers": "Both are companies based in the United States, so your data may be handled outside the European Union, under the safeguards the EU accepts for such transfers.",
-            "none": "Tarja has no ads and no analytics, and it sends your data to nobody else. Nothing is sold."
+            "none": "Tarja has no ads and no analytics, and it sends your data to nobody else. Nothing is sold.",
+            "push": "With notifications on, the push service of your browser (Google, Apple, Mozilla or Microsoft) carries each one to your device. It is encrypted, so the service can't read it, but it sees when one is sent and to which device."
         },
         "keeps": {
             "title": "How long, and deleting your account",
@@ -203,7 +205,7 @@
             "write": "Ask anything about your data, or object to a use of it or ask to limit it, by writing to the contact above. You'll get an answer within a month.",
             "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos (aepd.es), or to the one of the EU country where you live."
         },
-        "updated": "Last updated: 12 November 2026."
+        "updated": "Last updated: 14 November 2026."
     },
     "settings": {
         "title": "Settings",
@@ -293,6 +295,15 @@
                 "ok": "Operational",
                 "error": "Can't reach the server"
             }
+        },
+        "notifications": {
+            "title": "Notifications",
+            "hint": "Hear about a shared expense somebody adds with you, also with Tarja closed.",
+            "toggle": "Notifications on this device",
+            "unsupported": "This browser can't show notifications. On an iPhone, add Tarja to the Home Screen first.",
+            "denied": "Notifications are blocked for Tarja. Allow them in the settings of the browser.",
+            "offline": "Turning them on or off needs a connection.",
+            "failed": "That didn't work. Try again."
         }
     },
     "categoryManager": {
@@ -675,6 +686,11 @@
             "copied": "Link copied.",
             "sendFailed": "Couldn't copy or share the link. Select it above and copy it yourself.",
             "revoke": "Revoke link"
+        },
+        "pushSuggestion": {
+            "text": "Want to hear when somebody adds an expense with you?",
+            "turnOn": "Turn on",
+            "notNow": "Not now"
         }
     },
     "summary": {

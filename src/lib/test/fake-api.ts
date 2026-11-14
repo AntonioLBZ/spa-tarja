@@ -53,6 +53,8 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
 
     const writes: Expense[] = [];
     const attempts: Expense[] = [];
+    // What the device sent to keep or delete its push subscription
+    const pushBodies: Array<{ method: string; body: unknown }> = [];
     const requests: string[] = [];
     // The user each request said it was made for, by request, null when it named nobody
     const requestUsers: Array<{ request: string; user: string | null }> = [];
@@ -210,6 +212,13 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
             return Response.json({ budgets: saved });
         }
 
+        if (url.pathname === '/api/push/key' && method === 'GET') return Response.json({ key: 'B'.repeat(87) });
+
+        if (url.pathname === '/api/push' && (method === 'PUT' || method === 'DELETE')) {
+            pushBodies.push({ method, body: JSON.parse(String(init?.body)) });
+            return new Response(null, { status: 204 });
+        }
+
         if (url.pathname === '/api/profile' && method === 'GET') return Response.json(profile);
 
         if (url.pathname === '/api/profile' && method === 'PUT') {
@@ -269,6 +278,7 @@ const createFakeApi = (options: FakeApiOptions = {}) => {
         budgetBodies,
         profile,
         profileBodies,
+        pushBodies,
         accountDeletions,
         hold,
         groups: fakeGroups.groups,

@@ -53,7 +53,7 @@ A tap opens the group (`/groups/$groupId`), or Groups (`/groups`) for several gr
     - Where the permission was denied, the switch is off and a line says it is changed in the settings of the browser.
 - **The suggestion.** The screen of an open group with another member who is a user shows, under the title, a quiet `Notice` ("Want to hear when somebody adds an expense with you?") with two ghost `Button`s, Turn on (which does what the switch does) and Not now, only while push is there, the permission was never asked (`default`), the device has no subscription and the person never answered it on this device. Either answer, or a refusal of the browser's prompt, is kept for good on the device (`tarja:push-suggestion:<user id>` in `localStorage`, forgotten with the rest of the user's local data, [authentication](authentication.md)).
 - **Kept fresh.** While the switch is on, the device sends its subscription again when the app opens and when the language changes, so the server holds the current address and language, and a subscription the browser renewed by itself is caught up.
-- **Signing out** with the button deletes the subscription of the device on the server, before the session ends, and unsubscribes it in the browser; a sign-out the server decides (the session ended) unsubscribes it in the browser, and the server deletes its row when the push service answers it is gone. Another account signing in on the same browser starts with the switch off.
+- **Signing out** with the button deletes the subscription of the device on the server first, while the session can still ask it, and unsubscribes it in the browser; a sign-out the server decides (the session ended) unsubscribes it in the browser, and the server deletes its row when the push service answers it is gone. Another account signing in on the same browser starts with the switch off.
 
 ### The server
 
@@ -66,9 +66,9 @@ A tap opens the group (`/groups/$groupId`), or Groups (`/groups`) for several gr
 
 ### The service worker
 
-- A script of its own (`src/push-worker.ts`), built with the app and imported by the generated service worker, handles `push` and `notificationclick`. It words a message with the copy of the banner (`notices.*`), in the language the message carries.
+- A script of its own (`src/features/notices/push-worker.ts`), built with the app as a classic script, `push-worker.js` (a plugin of `vite.config.ts`), and imported by the generated service worker (`importScripts`), handles `push` and `notificationclick`. It words a message with the copy of the banner (`notices.*` only, so it doesn't carry the rest of the locales), in the language the message carries, through the same `wordNotices`.
 - **A push**: if a window of the app is visible, it posts it `{ type: 'sync' }`, and that window refetches the groups, so the watcher pulls and the banner tells it. Otherwise, and always in Safari, which takes away the subscription of a site that receives a push without showing a notification, it shows one: the title and the message of the banner, the app's icon, tagged with the group so a later one of the same group replaces it, summed up with the one it replaces ("3 new expenses"), and the path of the group in its data.
-- **A tap** focuses a window of the app and takes it to that path, or opens one there.
+- **A tap** posts `{ type: 'open', path }` to a window of the app, which moves its router there, and focuses it; with no window it opens one there. `PushSync` (`src/features/notifications`) is what listens in the page, to `sync` and `open` alike.
 
 ## Privacy
 

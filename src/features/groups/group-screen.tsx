@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
 import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
+import { PushSuggestion } from '@/features/notifications/push-suggestion';
 
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
@@ -52,6 +53,7 @@ const GroupView = (props: GroupViewProps) => {
         <section className="group-screen">
             {inTab ? <h2 className={titleClsx}>{words.title}</h2> : <h1 className={titleClsx}>{words.title}</h1>}
             <EntryRefusals groupId={group.id} />
+            <PushSuggestion group={group} />
             {hasData && (
                 <>
                     <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
