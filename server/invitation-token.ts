@@ -1,4 +1,5 @@
 import { isInvitationToken } from '@core/invitation';
+import { fromBase64Url, toBase64Url } from '@server/base64url';
 
 const encoder = new TextEncoder();
 
@@ -10,16 +11,6 @@ const hmacKey = (secret: string) => {
         'sign',
         'verify',
     ]);
-};
-
-const toBase64Url = (bytes: ArrayBuffer): string => {
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(bytes)));
-    return base64.replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
-};
-
-const fromBase64Url = (text: string): Uint8Array<ArrayBuffer> => {
-    const binary = atob(text.replaceAll('-', '+').replaceAll('_', '/'));
-    return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 };
 
 // The token of the link of an invitation: its id and a signature of it, which the database never holds, so that the

@@ -4,6 +4,10 @@ interface Env {
     BETTER_AUTH_SECRET: string;
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
+    // The key that signs pushes, a JWK of P-256; without it there are no push notifications
+    VAPID_PRIVATE_KEY?: string;
+    // Who runs the server, as a `mailto:`, which the push services may write to
+    VAPID_SUBJECT?: string;
 }
 
 declare namespace Cloudflare {
@@ -11,5 +15,9 @@ declare namespace Cloudflare {
         BETTER_AUTH_SECRET: string;
         GOOGLE_CLIENT_ID: string;
         GOOGLE_CLIENT_SECRET: string;
+        // The key that signs pushes, a JWK of P-256; without it there are no push notifications
+        VAPID_PRIVATE_KEY?: string;
+        // Who runs the server, as a `mailto:`, which the push services may write to
+        VAPID_SUBJECT?: string;
     }
 }

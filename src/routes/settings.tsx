@@ -6,6 +6,7 @@ import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { About } from '@/features/about/about';
 import { Account } from '@/features/auth/account';
 import { YourData } from '@/features/export/your-data';
+import { NotificationsSection } from '@/features/notifications/notifications-section';
 import { Profile } from '@/features/profile/profile';
 import { ACCENTS, useAccent } from '@/lib/accent';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
@@ -44,6 +45,7 @@ const Settings = () => {
                 onChange={setAccent}
             />
             <Profile />
+            <NotificationsSection />
             <section className="settings__section">
                 <h2 className="settings__heading">{t('categories.title')}</h2>
                 <p className="settings__hint">{t('categories.description')}</p>

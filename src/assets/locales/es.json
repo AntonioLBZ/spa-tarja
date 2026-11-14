@@ -173,7 +173,8 @@
             "written": "Lo que escribes: gastos, categorías, ingresos, presupuestos, grupos, amigos, gastos compartidos, los pagos con los que se saldan las cuentas y los nombres que das a las personas de tus grupos.",
             "invitations": "Los enlaces de invitación que creas. Cada uno sirve una vez, durante 14 días.",
             "sessions": "Cada vez que inicias sesión, una sesión: unas cookies en tu navegador que la mantienen abierta y, en el servidor, la dirección IP y el navegador desde los que se abrió. Al cerrar sesión se borra; una que dejas de usar se queda hasta que eliminas tu cuenta.",
-            "device": "En tu dispositivo: una copia de tus datos, para que la app funcione sin conexión, y tu idioma, tema, color y cómo agrupas la lista. La copia se borra al cerrar sesión, o cuando la app comprueba que la sesión ha terminado, salvo que algo siga esperando a enviarse; borrar los datos de este sitio en el navegador también la quita."
+            "device": "En tu dispositivo: una copia de tus datos, para que la app funcione sin conexión, y tu idioma, tema, color y cómo agrupas la lista. La copia se borra al cerrar sesión, o cuando la app comprueba que la sesión ha terminado, salvo que algo siga esperando a enviarse; borrar los datos de este sitio en el navegador también la quita.",
+            "push": "Por cada dispositivo en el que actives los avisos: la dirección que da su navegador para recibirlos y tu idioma. Se borra al desactivarlos o al eliminar tu cuenta. Al cerrar sesión dejan de llegar a ese dispositivo enseguida, y la dirección se borra cuando el servicio de notificaciones avise de que ya no funciona."
         },
         "sees": {
             "title": "Quién lo ve",
@@ -186,7 +187,8 @@
             "cloudflare": "Cloudflare aloja la app y guarda su base de datos, y solo actúa según las instrucciones de Tarja. Su plataforma también guarda un registro de cada petición que recibe la app, con datos técnicos de la conexión, durante 7 días como máximo.",
             "google": "Google gestiona el inicio de sesión: sabe que usas Tarja y le envía los datos de tu cuenta, según su propia política de privacidad.",
             "transfers": "Las dos son empresas con sede en Estados Unidos, así que tus datos pueden tratarse fuera de la Unión Europea, con las garantías que la UE acepta para esas transferencias.",
-            "none": "Tarja no tiene anuncios ni analítica, y no envía tus datos a nadie más. No se vende nada."
+            "none": "Tarja no tiene anuncios ni analítica, y no envía tus datos a nadie más. No se vende nada.",
+            "push": "Con los avisos activados, el servicio de notificaciones de tu navegador (Google, Apple, Mozilla o Microsoft) lleva cada uno a tu dispositivo. Va cifrado, así que no puede leerlo, pero sabe cuándo se envía y a qué dispositivo."
         },
         "keeps": {
             "title": "Cuánto tiempo y eliminar tu cuenta",
@@ -203,7 +205,7 @@
             "write": "Preguntar lo que quieras sobre tus datos, u oponerte a un uso de ellos o pedir que se limite, escribiendo al contacto de arriba. La respuesta llega en un mes como máximo.",
             "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos (aepd.es), o ante la del país de la UE en el que vivas."
         },
-        "updated": "Última actualización: 12 de noviembre de 2026."
+        "updated": "Última actualización: 14 de noviembre de 2026."
     },
     "settings": {
         "title": "Ajustes",
@@ -293,6 +295,15 @@
                 "ok": "Operativo",
                 "error": "Sin conexión con el servidor"
             }
+        },
+        "notifications": {
+            "title": "Avisos",
+            "hint": "Entérate de los gastos compartidos que alguien añade contigo, también con Tarja cerrada.",
+            "toggle": "Avisos en este dispositivo",
+            "unsupported": "Este navegador no puede mostrar avisos. En un iPhone, añade antes Tarja a la pantalla de inicio.",
+            "denied": "Los avisos están bloqueados para Tarja. Permítelos en los ajustes del navegador.",
+            "offline": "Para activarlos o desactivarlos hace falta conexión.",
+            "failed": "No se ha podido. Inténtalo de nuevo."
         }
     },
     "categoryManager": {
@@ -675,6 +686,11 @@
             "copied": "Enlace copiado.",
             "sendFailed": "No se pudo copiar ni compartir el enlace. Selecciónalo arriba y cópialo tú.",
             "revoke": "Retirar enlace"
+        },
+        "pushSuggestion": {
+            "text": "¿Quieres enterarte cuando alguien añada un gasto contigo?",
+            "turnOn": "Activar",
+            "notNow": "Ahora no"
         }
     },
     "summary": {
@@ -768,5 +784,15 @@
         "offline": "Estás sin conexión. Conéctate para guardar tu apodo.",
         "invalid": "Un apodo necesita al menos un carácter visible y ningún control de dirección del texto.",
         "failed": "No se pudo guardar tu apodo. Inténtalo de nuevo."
+    },
+    "notices": {
+        "groupsTitle": "Grupos",
+        "expense": "{actor} añadió {text} · tu parte {part}",
+        "untitled": "un gasto",
+        "paidYou": "{actor} te pagó {amount}",
+        "youPaid": "{actor} anotó que le pagaste {amount}",
+        "expenses": "{count, plural, one {# gasto nuevo} other {# gastos nuevos}}",
+        "entries": "{count, plural, one {# movimiento nuevo} other {# movimientos nuevos}}",
+        "entriesInGroups": "{count} movimientos nuevos en {groups} grupos"
     }
 }

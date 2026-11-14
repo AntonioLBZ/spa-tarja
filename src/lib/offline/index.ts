@@ -1,6 +1,8 @@
 export { OutboxProvider, useGroupOutbox, useOutbox } from './outbox-context';
 export { createOutbox, type Outbox, type OutboxState, type PendingEntry, type Rejection } from './outbox';
 export { groupEntriesQuery, syncGroup } from './group-sync';
+export { WATCH_EVERY_MS, useGroupWatcher } from './group-watcher';
+export { emitNotices, subscribeNotices, type NoticeListener } from './notices';
 export { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
 export { idbStorage, type KeyValueStorage } from './storage';
 export { forgetSharedWith, readSharedWith, rememberSharedWith } from './shared-with';

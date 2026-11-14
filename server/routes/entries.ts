@@ -1,5 +1,5 @@
 import { sValidator } from '@hono/standard-validator';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import * as v from 'valibot';
 
 import { isDefaultCategoryId } from '@core/categories';
@@ -8,6 +8,7 @@ import { groupIdSchema } from '@core/shared-group';
 import { canonicalMember } from '@core/shared-member';
 import { listEntryChanges, readEntry, upsertEntry, type StoredEntry } from '@server/db/entries';
 import { closedFor, readGroup, type GroupState } from '@server/db/groups';
+import { notifyEntry } from '@server/push-notices';
 
 import { DEFAULT_PAGE_SIZE, changesQuery } from './expenses';
 import { CLOSED, NOT_FOUND } from './groups';
@@ -84,6 +85,17 @@ const keptEntry = (state: GroupState, kept: StoredEntry | null, updatedAt: numbe
     return reads && kept.entry.updatedAt === updatedAt ? kept.entry : null;
 };
 
+// Runs work after the answer is sent, while the request lives on; a push that fails is dropped, as the next sync brings
+// the entry anyway
+const afterAnswer = (c: Context<AppEnv>, work: Promise<void>) => {
+    const settled = work.catch(() => undefined);
+    try {
+        c.executionCtx.waitUntil(settled);
+    } catch {
+        // No execution context, as in a request made straight to the app: the work runs on its own
+    }
+};
+
 const entriesRoutes = new Hono<AppEnv>()
     // A member who left reads the group only up to its cursor the moment they left
     .get('/:groupId/entries', groupParam, sValidator('query', changesQuery), async (c) => {
@@ -119,7 +131,11 @@ const entriesRoutes = new Hono<AppEnv>()
         if (refusal) return c.json({ error: refusal }, 422);
         if (setsCardOfAnother(state, input, stored?.entry ?? null)) return c.json({ error: 'not-the-payer' }, 422);
         const written = await upsertEntry(db, { groupId, id, userId }, input);
-        if (written) return c.json(written, 200);
+        if (written) {
+            // A push for an entry this write made, after the answer (ADR-0025)
+            if (!stored && written.deletedAt === null) afterAnswer(c, notifyEntry(c.env, state, written));
+            return c.json(written, 200);
+        }
 
         // Nothing was written: the stored entry is as new, or since the reads above the id went to another group or the
         // group closed for the caller

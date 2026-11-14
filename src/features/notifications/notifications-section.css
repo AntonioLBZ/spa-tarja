@@ -1,0 +1,16 @@
+.notifications-section {
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.notifications-section__title {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+.notifications-section__hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}

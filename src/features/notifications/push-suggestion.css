@@ -1,0 +1,10 @@
+.push-suggestion {
+    display: grid;
+    gap: var(--size-1);
+}
+
+.push-suggestion__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}

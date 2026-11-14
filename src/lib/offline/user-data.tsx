@@ -3,6 +3,7 @@ import { createContext, use, useLayoutEffect, useState, type ReactNode } from 'r
 
 import { bindApiUser } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
+import { forgetPushInBrowser } from '@/lib/push';
 import { createQueryClient } from '@/lib/query-client';
 
 import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
@@ -65,7 +66,10 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             unbind();
             data.outbox.pause();
             data.groupOutbox.pause();
-            if (getState().status === 'signed-out') void data.discardWhenIdle().catch(() => undefined);
+            if (getState().status !== 'signed-out') return;
+            // Whatever is waiting to be sent, this device stops getting the notifications of who signed out
+            void forgetPushInBrowser().catch(() => undefined);
+            void data.discardWhenIdle().catch(() => undefined);
         };
     }, [user.id, data, getState]);
 

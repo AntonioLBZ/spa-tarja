@@ -114,6 +114,32 @@ describe('GET /api/groups', () => {
             expect(Object.keys(member).sort()).toEqual(['claimed', 'id', 'leftAt', 'mergedInto', 'name', 'role']);
         }
     });
+
+    it('answers 0 as the cursor of a group without entries', async () => {
+        await makeGroup(ana);
+
+        expect((await listGroups(ana))[0]?.seq).toBe(0);
+    });
+
+    it('answers the cursor of the last entry written', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        const brunoId = memberNamed(group, 'Bruno');
+        await seedEntry(group.id, { paidBy: group.me, shares: { [brunoId]: 500 } });
+        await seedEntry(group.id, { paidBy: group.me, shares: { [brunoId]: 300 }, deletedAt: 2 });
+
+        expect((await listGroups(ana))[0]?.seq).toBe(2);
+    });
+
+    it('answers a member who left no more than the cursor they left at', async () => {
+        const group = await sharedWithBruno();
+        const brunoId = memberNamed(group, 'Bruno');
+        await seedEntry(group.id, { paidBy: group.me, shares: { [group.me]: 500 } });
+        await groupOf(await send(bruno, 'DELETE', `/groups/${group.id}/members/${brunoId}`));
+        await seedEntry(group.id, { paidBy: group.me, shares: { [group.me]: 700 } });
+
+        expect((await listGroups(bruno))[0]?.seq).toBe(1);
+        expect((await listGroups(ana))[0]?.seq).toBe(2);
+    });
 });
 
 describe('PUT /api/groups/:id, a new group', () => {
@@ -134,6 +160,7 @@ describe('PUT /api/groups/:id, a new group', () => {
             me: body.me.id,
             showInExpenses: true,
             pinnedAt: null,
+            seq: 0,
             members: [
                 { id: body.me.id, name: 'Ana', role: 'owner', claimed: true, leftAt: null, mergedInto: null },
                 ...body.others.map((other) => ({
@@ -432,7 +459,7 @@ describe('DELETE /api/groups/:id', () => {
 
         const deleted = await groupOf(await remove(ana, group.id));
 
-        expect(deleted).toEqual({ ...group, members: deleted.members, closed: 'deleted' });
+        expect(deleted).toEqual({ ...group, members: deleted.members, closed: 'deleted', seq: 2 });
         expect((await listGroups(bruno))[0]).toMatchObject({ id: group.id, closed: 'deleted' });
         expect(await rows('shared_groups', group.id)).toBe(1);
         expect(await rows('shared_members', group.id)).toBe(2);

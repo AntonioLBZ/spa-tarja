@@ -9,8 +9,10 @@ import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { stubApi } from '@/lib/test/render-app';
 
 import { groupEntriesQuery, syncGroup } from './group-sync';
+import { subscribeNotices } from './notices';
 import { GROUP_OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
 
+import type { Notice } from '@core/notices';
 import type { SharedGroup } from '@core/shared-group';
 
 const group = sampleGroup();
@@ -383,5 +385,85 @@ describe('pushing the entries of a group', () => {
         expect(api.entriesOf(group.id).map((item) => item.text)).toEqual(['Mine']);
         expect(cached()?.entries.map((item) => item.text)).toEqual(['Mine']);
         expect(outbox.getState().pending).toEqual([]);
+    });
+});
+
+describe('telling what a pull brought', () => {
+    function listen(client: ReturnType<typeof createQueryClient>) {
+        const told: Notice[][] = [];
+        subscribeNotices(client, (notices) => told.push([...notices]));
+        return told;
+    }
+
+    it('tells a new entry another member made with a share of the person', async () => {
+        const { api, client, sync } = setup({ entries: [sampleEntry(group)] });
+        const told = listen(client);
+        await sync();
+        const dinner = sampleEntry(group);
+
+        api.serverWriteEntry(dinner, bea);
+        await sync();
+
+        expect(told).toEqual([[expect.objectContaining({ kind: 'expense', entryId: dinner.id, authorId: bea })]]);
+    });
+
+    it('tells the first entry of a group the device held empty', async () => {
+        const { api, client, sync } = setup();
+        const told = listen(client);
+        await sync();
+
+        api.serverWriteEntry(sampleEntry(group), bea);
+        await sync();
+
+        expect(told).toHaveLength(1);
+    });
+
+    it('tells nothing on the first pull of a group', async () => {
+        const { api, client, sync } = setup();
+        const told = listen(client);
+        api.serverWriteEntry(sampleEntry(group), bea);
+
+        await sync();
+
+        expect(told).toEqual([]);
+    });
+
+    it('tells nothing when a pull fails halfway, and tells it once when the next one goes through', async () => {
+        const { api, client, sync } = setup({ entries: [sampleEntry(group)], pageSize: 1 });
+        const told = listen(client);
+        await sync();
+        api.serverWriteEntry(sampleEntry(group), bea);
+        api.serverWriteEntry(sampleEntry(group), bea);
+        let pages = 0;
+        stubApi((url, init) => {
+            if (url.pathname.endsWith('/entries') && ++pages === 2) throw new TypeError('Failed to fetch');
+            return api.handler(url, init);
+        });
+
+        await expect(sync()).rejects.toThrow();
+        expect(told).toEqual([]);
+        stubApi(api.handler);
+        await sync();
+
+        expect(told).toHaveLength(1);
+        expect(told[0]).toHaveLength(2);
+    });
+
+    it('tells nothing of what a restored copy holds already', async () => {
+        const held = sampleEntry(group);
+        const { api, client, sync } = setup({ entries: [held] });
+        await sync();
+        const restored = createQueryClient();
+        restored.setQueryData(GROUPS_KEY, client.getQueryData(GROUPS_KEY));
+        restored.setQueryData(groupEntriesKey(group.id), client.getQueryData(groupEntriesKey(group.id)));
+        const told = listen(restored);
+        api.serverWriteEntry({ ...held, text: 'Edited', updatedAt: 2 }, bea);
+
+        await restored.fetchQuery({
+            ...groupEntriesQuery(createOutbox<PendingEntry>(createMemoryStorage(), GROUP_OUTBOX_STORAGE_KEY), group.id),
+            staleTime: 0,
+        });
+
+        expect(told).toEqual([]);
     });
 });

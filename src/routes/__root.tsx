@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { BannerProvider } from '@/components/banner/banner';
 import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-nav';
 import { Brand } from '@/components/brand/brand';
 import { ButtonLink } from '@/components/button/button-link';
@@ -12,6 +13,8 @@ import { AddExpenseButton } from '@/features/expenses/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/expense-sheet';
 import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 import { useOpenAdd } from '@/features/expenses/use-open-add';
+import { NoticeBanner } from '@/features/notices/notice-banner';
+import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
 import { isPrerelease } from '@/lib/prerelease';
@@ -46,16 +49,20 @@ const RootLayout = () => {
     return (
         <ExpenseSheetProvider>
             <ToastProvider dismissLabel={t('dismiss')}>
-                <div className={rootClsx}>
-                    {wide ? <RootHeader /> : <RootPhoneHeader />}
-                    <main className="root__main">
-                        <Outlet />
-                    </main>
-                    {!wide && <RootTabs />}
-                    <ExpenseSheet />
-                    <AppUpdate />
-                    <NicknamePrompt />
-                </div>
+                <BannerProvider dismissLabel={t('dismiss')}>
+                    <div className={rootClsx}>
+                        {wide ? <RootHeader /> : <RootPhoneHeader />}
+                        <main className="root__main">
+                            <Outlet />
+                        </main>
+                        {!wide && <RootTabs />}
+                        <ExpenseSheet />
+                        <AppUpdate />
+                        <NicknamePrompt />
+                        <NoticeBanner />
+                        <PushSync />
+                    </div>
+                </BannerProvider>
             </ToastProvider>
         </ExpenseSheetProvider>
     );

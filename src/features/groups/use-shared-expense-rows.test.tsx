@@ -83,7 +83,10 @@ describe('useSharedExpenseRows', () => {
         await act(() => result.current.outbox.put({ ...entry, updatedAt: 2, deletedAt: 2 }));
 
         expect(result.current.rows).toEqual([]);
-        expect(result.current.sourceOf(entry.id)).toMatchObject({ group, entry: { id: entry.id, deletedAt: 2 } });
+        expect(result.current.sourceOf(entry.id)).toMatchObject({
+            group: { ...group, seq: 1 },
+            entry: { id: entry.id, deletedAt: 2 },
+        });
         expect(result.current.pendingIds.has(entry.id)).toBe(true);
     });
 

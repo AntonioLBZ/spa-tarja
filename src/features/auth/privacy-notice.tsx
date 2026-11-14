@@ -61,6 +61,7 @@ const PrivacyNotice = () => {
                         <li>{t('stored.nickname')}</li>
                         <li>{t('stored.written')}</li>
                         <li>{t('stored.invitations')}</li>
+                        <li>{t('stored.push')}</li>
                         <li>{t('stored.sessions')}</li>
                         <li>{t('stored.device')}</li>
                     </ul>
@@ -75,6 +76,7 @@ const PrivacyNotice = () => {
                     <h3 className="privacy-notice__heading">{t('others.title')}</h3>
                     <p>{t('others.cloudflare')}</p>
                     <p>{t('others.google')}</p>
+                    <p>{t('others.push')}</p>
                     <p>{t('others.transfers')}</p>
                     <p>{t('others.none')}</p>
                 </section>

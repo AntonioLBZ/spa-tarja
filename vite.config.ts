@@ -5,10 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { cloudflare } from '@cloudflare/vite-plugin';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { build, defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { PUSH_WORKER, pushWorkerBuild } from './push-worker.config';
+
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
+
 const appName = prerelease ? 'Tarja Pre' : 'Tarja';
 const iconFolder = prerelease ? 'prerelease/' : '';
 
@@ -49,12 +52,25 @@ const prereleasePage = (): Plugin => {
     };
 };
 
+// Builds the script of push notifications next to the client's files
+const pushWorker = (): Plugin => {
+    return {
+        name: 'tarja-push-worker',
+        apply: 'build',
+        applyToEnvironment: (environment) => environment.name === 'client',
+        writeBundle: async (options) => {
+            await build(pushWorkerBuild(options.dir ?? 'dist/client'));
+        },
+    };
+};
+
 export default defineConfig({
     plugins: [
         tanstackRouter({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '\\.test\\.tsx?$' }),
         react(),
         cloudflare(),
         prereleasePage(),
+        pushWorker(),
         VitePWA({
             // The new version waits for the user, so an update never reloads the app halfway through an expense
             registerType: 'prompt',
@@ -90,6 +106,7 @@ export default defineConfig({
                 navigateFallback: '/index.html',
                 navigateFallbackDenylist: [/^\/api\//],
                 cleanupOutdatedCaches: true,
+                importScripts: [`/${PUSH_WORKER}`],
             },
         }),
     ],

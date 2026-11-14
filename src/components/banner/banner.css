@@ -1,0 +1,98 @@
+/* Always in the page, so what comes in is announced. Over the header and under the top safe area; it never takes a click
+   that is not the banner's. */
+.banner-region {
+    display: flex;
+    inset-block-start: 0;
+    inset-inline: 0;
+    justify-content: center;
+    padding: calc(env(safe-area-inset-top) + var(--size-4)) max(var(--size-4), env(safe-area-inset-right)) 0
+        max(var(--size-4), env(safe-area-inset-left));
+    pointer-events: none;
+    position: fixed;
+    z-index: 2;
+}
+
+/* A box with the notch on the color of the header, like the banner of a system notification, with the shadow of what
+   floats over the page. In from above with a fade and a short shift, and out the same way; a swipe moves it with the
+   finger and it leaves to that side. */
+.banner {
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border-color: var(--color-border);
+    border-style: solid;
+    border-width: 0 0 var(--size-1) var(--size-1);
+    box-shadow: var(--shadow-popup);
+    display: flex;
+    gap: var(--size-2);
+    max-width: 40rem;
+    padding-inline-end: var(--size-1);
+    pointer-events: auto;
+    touch-action: pan-y;
+    transform: translateX(var(--banner-shift, 0));
+    transition:
+        opacity var(--duration-base) var(--ease-enter),
+        transform var(--duration-base) var(--ease-enter);
+    width: 100%;
+
+    @starting-style {
+        opacity: 0;
+        transform: translateY(calc(-1 * var(--size-2)));
+    }
+}
+
+.banner--dragged {
+    transition: none;
+}
+
+.banner--leaving-up,
+.banner--leaving-left,
+.banner--leaving-right {
+    opacity: 0;
+    pointer-events: none;
+    transition-timing-function: var(--ease-exit);
+}
+
+.banner--leaving-up {
+    transform: translateY(calc(-1 * var(--size-2)));
+}
+
+.banner--leaving-left {
+    transform: translateX(-100%);
+}
+
+.banner--leaving-right {
+    transform: translateX(100%);
+}
+
+/* The title and the message, one button as wide as the box */
+.banner__open {
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    display: grid;
+    flex: 1 1 auto;
+    font: inherit;
+    gap: var(--size-1);
+    min-height: var(--size-touch);
+    min-width: 0;
+    padding: var(--size-2) var(--size-3);
+    text-align: start;
+}
+
+.banner__title {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+}
+
+.banner__message {
+    overflow-wrap: anywhere;
+}
+
+/* The icon in the middle of a box as tall as a touch target */
+.banner__dismiss {
+    align-items: center;
+    display: inline-flex;
+    flex: none;
+    justify-content: center;
+}

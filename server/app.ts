@@ -15,6 +15,7 @@ import { incomeRoutes } from './routes/income';
 import { invitationsRoutes } from './routes/invitations';
 import { membersRoutes } from './routes/members';
 import { profileRoutes } from './routes/profile';
+import { pushRoutes } from './routes/push';
 
 import type { AppEnv } from '@server/env';
 
@@ -36,6 +37,7 @@ const app = new Hono<AppEnv>()
     .use('/groups/*', withUser)
     .use('/invitations/*', withUser)
     .use('/account/*', withUser)
+    .use('/push/*', withUser)
     .route('/account', accountRoutes)
     .route('/budgets', budgetsRoutes)
     .route('/categories', categoriesRoutes)
@@ -45,7 +47,8 @@ const app = new Hono<AppEnv>()
     .route('/groups', entriesRoutes)
     .route('/income', incomeRoutes)
     .route('/invitations', invitationsRoutes)
-    .route('/profile', profileRoutes);
+    .route('/profile', profileRoutes)
+    .route('/push', pushRoutes);
 
 type AppType = typeof app;
 

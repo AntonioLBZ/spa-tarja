@@ -5,6 +5,7 @@ import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useAuth, useUser } from '@/lib/auth';
 import { useGroupOutbox, useOutbox } from '@/lib/offline';
+import { turnPushOff } from '@/lib/push';
 
 import { DeleteAccount } from './delete-account';
 
@@ -23,6 +24,8 @@ const Account = () => {
     const handleSignOut = async () => {
         setPhase('signing-out');
         try {
+            // The server stops pushing to this device while the session can still ask it to
+            await turnPushOff().catch(() => undefined);
             await signOut();
         } catch {
             setPhase('failed');

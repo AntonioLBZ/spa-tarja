@@ -159,6 +159,8 @@ interface SharedGroup {
     showInExpenses: boolean;
     // When the caller pinned it to the Expenses screen; null when they didn't or it is closed for them
     pinnedAt: number | null;
+    // The group's cursor as the caller reads it, so a device can tell which groups moved since it last pulled them
+    seq: number;
     // In the group's order, those who left included
     members: GroupMember[];
 }

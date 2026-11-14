@@ -37,6 +37,7 @@ const GROUP: SharedGroup = {
     me: 'marta',
     showInExpenses: true,
     pinnedAt: null,
+    seq: 0,
     members: [
         member('marta', 'Marta', { role: 'owner' }),
         member('bruno', 'Bruno'),
