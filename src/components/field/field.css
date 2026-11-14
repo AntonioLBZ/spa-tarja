@@ -35,7 +35,10 @@
     background: var(--color-border);
     content: '';
     inline-size: var(--size-1);
-    inset-block: 0 calc(-1 * var(--size-1));
+
+    /* Into the bottom edge by half its width, never to its foot: the border snaps to whole pixels and this edge,
+       transformed, may not, so a pixel of difference stays inside the corner instead of sticking out under it */
+    inset-block: 0 calc(-0.5 * var(--size-1));
     inset-inline-start: 0;
     pointer-events: none;
     position: absolute;
