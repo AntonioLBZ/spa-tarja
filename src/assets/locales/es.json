@@ -40,7 +40,7 @@
             "submit": "Añadir",
             "save": "Guardar",
             "cancel": "Cancelar",
-            "amountInvalid": "Introduce un importe mayor que cero.",
+            "amountInvalid": "Pon un importe válido.",
             "chargeDateInvalid": "No se puede cargar antes del día del gasto.",
             "dateInvalid": "Elige el día del gasto.",
             "personalInvalid": "Introduce un importe, o déjalo vacío si fue todo tuyo.",

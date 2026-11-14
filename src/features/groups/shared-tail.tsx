@@ -1,8 +1,8 @@
 import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Checkbox } from '@/components/checkbox/checkbox';
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
@@ -424,6 +424,10 @@ const SharedPeople = (props: SharedPeopleProps) => {
     const sumBad = tried && problem?.kind === 'left';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
     const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
+    const currencySign =
+        new Intl.NumberFormat(locale, { style: 'currency', currency: group.currency })
+            .formatToParts(0)
+            .find((part) => part.type === 'currency')?.value ?? group.currency;
     const percent = (basisPoints: number) =>
         new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
             Math.abs(basisPoints) / HUNDRED_PERCENT
@@ -451,16 +455,24 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 )}
             </Field>
 
-            <ChoiceGroup
-                legend={t('mode')}
-                name={`${id}-split`}
-                options={SPLIT_MODES.map((value) => ({ value, label: t(`modes.${value}`) }))}
-                value={mode}
-                onChange={tail.pickMode}
-            />
-
             <fieldset className="shared-people">
                 <legend className="shared-people__legend">{t('people')}</legend>
+                {/* How it is split, by the sign of each mode, at the end of the row of the legend */}
+                <div className="shared-people__modes" role="group" aria-label={t('mode')}>
+                    {SPLIT_MODES.map((value) => (
+                        <Button
+                            key={value}
+                            ghost
+                            glyph
+                            className="shared-people__mode"
+                            aria-label={t(`modes.${value}`)}
+                            aria-pressed={mode === value}
+                            onClick={() => tail.pickMode(value)}
+                        >
+                            [{value === 'equal' ? '=' : value === 'percent' ? t('percentUnit') : currencySign}]
+                        </Button>
+                    ))}
+                </div>
                 <ul className="shared-people__list">
                     {tail.rows.map((row) => (
                         <li key={row.id} className="shared-people__row">

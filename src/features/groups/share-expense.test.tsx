@@ -122,7 +122,7 @@ function shareValues() {
 
 function pickMode(mode: 'equal' | 'percent' | 'exact') {
     openSplit();
-    fireEvent.click(screen.getByRole('radio', { name: share.modes[mode] }));
+    fireEvent.click(screen.getByRole('button', { name: share.modes[mode] }));
 }
 
 function percent(basisPoints: number, locale = 'en') {
@@ -624,7 +624,7 @@ describe('splitting by percent', () => {
         fireEvent.click(screen.getByRole('radio', { name: es.expenses.form.forShared }));
         fireEvent.change(screen.getByLabelText(es.expenses.form.amount), { target: { value: '10' } });
         openSplit();
-        fireEvent.click(screen.getByRole('radio', { name: es.groups.share.modes.percent }));
+        fireEvent.click(screen.getByRole('button', { name: es.groups.share.modes.percent }));
 
         const fields = within(screen.getByRole('group', { name: es.groups.share.people })).getAllByRole('textbox');
         expect(fields.map((input) => (input as HTMLInputElement).value)).toEqual(['33,34', '33,33', '33,33']);
@@ -1043,6 +1043,28 @@ describe('the split, folded', () => {
 
         expect(splitToggle().getAttribute('aria-expanded')).toBe('true');
         expect(document.activeElement).toBe(shareField(you, 'amountOf'));
+    });
+
+    it("chooses how it is split by the sign of each mode, beside Who's in, the one in use pressed", async () => {
+        await openHome([trip()]);
+        fireEvent.click(forChoice(form.forShared));
+        fireEvent.click(splitToggle());
+
+        const modes = screen.getByRole('group', { name: share.mode });
+        const buttons = within(modes).getAllByRole('button');
+        expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+            share.modes.equal,
+            share.modes.percent,
+            share.modes.exact,
+        ]);
+        expect(buttons.map((button) => button.textContent)).toEqual(['[=]', `[${share.percentUnit}]`, '[€]']);
+        expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false']);
+        expect(modes.closest('fieldset')).toBe(screen.getByRole('group', { name: share.people }));
+
+        fireEvent.click(buttons[2]!);
+
+        expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'false', 'true']);
+        expect(shareField('Bea', 'amountOf')).toBeDefined();
     });
 
     it('ends each percentage with its sign', async () => {

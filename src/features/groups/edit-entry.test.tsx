@@ -115,7 +115,7 @@ describe('editing a shared expense', () => {
         expect(field(form.date).value).toBe('2026-10-20');
         expect(chosenOption(form.category)).toBe(en.categories.food);
         expect(chosenOption(share.paidBy)).toBe('Bea');
-        expect((screen.getByRole('radio', { name: share.modes.percent }) as HTMLInputElement).checked).toBe(true);
+        expect(screen.getByRole('button', { name: share.modes.percent }).getAttribute('aria-pressed')).toBe('true');
         expect(shareValues()).toEqual(['33.30', '33.30', '33.40']);
         expect(screen.getByRole('button', { name: form.save })).toBeDefined();
         expect(screen.getByRole('button', { name: form.cancel })).toBeDefined();

@@ -40,7 +40,7 @@
             "submit": "Add",
             "save": "Save",
             "cancel": "Cancel",
-            "amountInvalid": "Enter an amount above zero.",
+            "amountInvalid": "Enter a valid amount.",
             "chargeDateInvalid": "It can't be charged before the day of the expense.",
             "dateInvalid": "Pick the day of the expense.",
             "personalInvalid": "Enter an amount, or leave it empty if it was all yours.",
