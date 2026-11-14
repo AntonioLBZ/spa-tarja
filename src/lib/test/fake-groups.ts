@@ -91,6 +91,11 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
     const cursorOf = (groupId: string) =>
         Math.max(0, ...rows.filter((row) => row.groupId === groupId).map((row) => row.seq));
 
+    // A group as the test user reads it, with its cursor as far as they read it
+    const asSeen = (group: SharedGroup): SharedGroup => {
+        return { ...group, seq: Math.min(cursorOf(group.id), leftSeq.get(group.id) ?? Infinity) };
+    };
+
     const storeEntry = (groupId: string, entry: LedgerEntry) => {
         const seq = cursorOf(groupId) + 1;
         const at = rows.findIndex((row) => row.entry.id === entry.id);
@@ -132,6 +137,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
             me: input.me.id,
             showInExpenses: true,
             pinnedAt: null,
+            seq: 0,
             members: [
                 newMember(input.me.id, personName(profile), true, 'owner'),
                 ...input.others.map((other) => newMember(other.id, other.name, false)),
@@ -298,7 +304,7 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
 
     // Answers a request under /api/groups or /api/invitations
     const handle = (url: URL, method: string, init?: RequestInit): Response => {
-        if (url.pathname === '/api/groups' && method === 'GET') return Response.json({ groups });
+        if (url.pathname === '/api/groups' && method === 'GET') return Response.json({ groups: groups.map(asSeen) });
 
         const ofLinks = url.pathname === '/api/invitations' && (method === 'GET' || method === 'POST');
         if (ofLinks || (method === 'DELETE' && url.pathname.startsWith('/api/invitations/'))) {
@@ -319,10 +325,10 @@ const createFakeGroups = (options: FakeGroupsOptions, state: FakeGroupsState, pr
         if (state.groupRefusal) return refuse(state.groupRefusal);
         if (!group) {
             const made = rest === '' && method === 'PUT' ? newGroup(groupId, json(init)) : { status: 404 };
-            return 'status' in made ? refuse(made) : Response.json(made);
+            return 'status' in made ? refuse(made) : Response.json(asSeen(made));
         }
         const refusal = changeGroup(group, rest, method, init);
-        return refusal ? refuse(refusal) : Response.json(group);
+        return refusal ? refuse(refusal) : Response.json(asSeen(group));
     };
 
     return {

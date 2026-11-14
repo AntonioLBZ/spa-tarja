@@ -55,6 +55,7 @@ function group(overrides: Partial<SharedGroup> = {}): SharedGroup {
         me: 'ana',
         showInExpenses: true,
         pinnedAt: null,
+        seq: 0,
         members: [member('ana', 'Ana', { role: 'owner' }), member('bea', 'Bea')],
         ...overrides,
     };

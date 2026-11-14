@@ -9,6 +9,7 @@ interface GroupRow {
     currency: string;
     simplify_debts: number;
     deleted_at: number | null;
+    seq: number;
 }
 
 interface MemberRow {
@@ -35,6 +36,8 @@ interface StoredGroup {
     currency: string;
     simplifyDebts: boolean;
     deletedAt: number | null;
+    // The group's cursor: the seq of the last entry written to it, 0 without any
+    seq: number;
 }
 
 // A member with what only the server knows of it: the user behind it never leaves the server
@@ -57,7 +60,8 @@ interface GroupState {
     me: StoredMember;
 }
 
-const GROUP_COLUMNS = 'id, kind, name, currency, simplify_debts, deleted_at';
+const GROUP_COLUMNS = `id, kind, name, currency, simplify_debts, deleted_at,
+    (SELECT COALESCE(MAX(seq), 0) FROM shared_entries WHERE group_id = shared_groups.id) AS seq`;
 
 const MEMBERS_WITH_NICKNAMES = `
     SELECT m.id, m.group_id, m.user_id, m.name, profile.nickname, m.role, m.created_at, m.claimed_at, m.left_at, m.left_seq,
@@ -112,6 +116,7 @@ const toStates = (userId: string, groups: GroupRow[], members: MemberRow[]): Gro
             currency: row.currency,
             simplifyDebts: row.simplify_debts === 1,
             deletedAt: row.deleted_at,
+            seq: row.seq,
         };
         const ofGroup = members.filter((member) => member.group_id === row.id).map(toMember);
         const me = ofGroup.find((member) => member.userId === userId);
@@ -175,6 +180,7 @@ const toSharedGroup = (state: GroupState): SharedGroup => {
         me: me.id,
         showInExpenses: me.showInExpenses,
         pinnedAt: closedFor(state) === null ? me.pinnedAt : null,
+        seq: me.leftSeq === null ? group.seq : Math.min(group.seq, me.leftSeq),
         members: visibleMembers(state),
     };
 };

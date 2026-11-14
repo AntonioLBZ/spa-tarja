@@ -310,7 +310,7 @@ describe('useLedger', () => {
         const { result } = renderLedger(group.id);
 
         await waitFor(() => expect(result.current.ledger?.hasData).toBe(true));
-        expect(result.current.ledger!.group).toEqual(group);
+        expect(result.current.ledger!.group).toEqual({ ...group, seq: 1 });
         expect(result.current.ledger!.entries.map((entry) => entry.id)).toEqual([dinner.id]);
         expect(api.requests.filter((request) => request.includes('/entries'))).toEqual([
             expect.stringContaining(`GET /api/groups/${group.id}/entries`),

@@ -39,6 +39,7 @@ const GROUPS: SharedGroup[] = [
         me: MARTA,
         showInExpenses: true,
         pinnedAt: null,
+        seq: 0,
         members: [
             member(MARTA, 'Marta', { role: 'owner' }),
             member('66666666-6666-4666-8666-666666666662', 'Bruno'),
@@ -56,6 +57,7 @@ const GROUPS: SharedGroup[] = [
         me: '66666666-6666-4666-8666-666666666664',
         showInExpenses: true,
         pinnedAt: null,
+        seq: 0,
         members: [
             member('66666666-6666-4666-8666-666666666664', 'Marta', { role: 'owner' }),
             member('66666666-6666-4666-8666-666666666665', 'Dani', { claimed: false }),
