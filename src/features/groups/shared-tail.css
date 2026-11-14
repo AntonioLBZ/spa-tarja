@@ -45,12 +45,16 @@
     padding: 0;
 }
 
-/* The person takes what the share leaves of the row */
+/* The person takes what the share leaves of the row, which is as tall as a box of a share in every mode, so switching
+   the mode moves nothing */
 .shared-people__row {
     align-items: center;
     display: grid;
     gap: var(--size-4);
     grid-template-columns: minmax(0, 1fr) auto;
+
+    /* A box of a share: the touch height and its bottom edge */
+    min-block-size: calc(var(--size-touch) + var(--size-1));
 }
 
 /* Wide enough for an amount of nine characters with its padding and the notch */
