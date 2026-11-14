@@ -174,7 +174,7 @@
             "invitations": "Los enlaces de invitación que creas. Cada uno sirve una vez, durante 14 días.",
             "sessions": "Cada vez que inicias sesión, una sesión: unas cookies en tu navegador que la mantienen abierta y, en el servidor, la dirección IP y el navegador desde los que se abrió. Al cerrar sesión se borra; una que dejas de usar se queda hasta que eliminas tu cuenta.",
             "device": "En tu dispositivo: una copia de tus datos, para que la app funcione sin conexión, y tu idioma, tema, color y cómo agrupas la lista. La copia se borra al cerrar sesión, o cuando la app comprueba que la sesión ha terminado, salvo que algo siga esperando a enviarse; borrar los datos de este sitio en el navegador también la quita.",
-            "push": "Por cada dispositivo en el que actives los avisos: la dirección que da su navegador para recibirlos y tu idioma. Se borra al desactivarlos, al cerrar sesión o al eliminar tu cuenta."
+            "push": "Por cada dispositivo en el que actives los avisos: la dirección que da su navegador para recibirlos y tu idioma. Se borra al desactivarlos o al eliminar tu cuenta. Al cerrar sesión dejan de llegar a ese dispositivo enseguida, y la dirección se borra cuando el servicio de notificaciones avise de que ya no funciona."
         },
         "sees": {
             "title": "Quién lo ve",

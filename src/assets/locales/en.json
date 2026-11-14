@@ -174,7 +174,7 @@
             "invitations": "The invitation links you make. Each works once, for 14 days.",
             "sessions": "Each time you sign in, a session: cookies in your browser that keep you signed in and, on the server, the IP address and the browser it was opened from. Signing out deletes the session; one you stop using stays until you delete your account.",
             "device": "On your device: a copy of your data, so the app works offline, and your language, theme, color and list grouping. The copy is removed when you sign out, or when the app finds out your session has ended, unless something is still waiting to be sent; clearing this site's data in the browser removes it too.",
-            "push": "For each device where you turn notifications on: the address its browser gives to receive them, and your language. It goes when you turn them off, sign out or delete your account."
+            "push": "For each device where you turn notifications on: the address its browser gives to receive them, and your language. It is deleted when you turn them off or delete your account. Signing out stops them on that device at once, and the address is deleted when the push service next says it no longer works."
         },
         "sees": {
             "title": "Who sees it",
