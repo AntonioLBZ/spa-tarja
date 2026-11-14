@@ -21,7 +21,7 @@ interface DialogProps {
     closeOnOutside?: boolean;
     // The browser closed it, as Escape does
     onClose: () => void;
-    // Ghost buttons or links, apart under what it holds
+    // Ghost buttons or links, apart under what it holds; a sheet that holds a form may add its main button (ADR-0026)
     actions?: ReactNode;
     children: ReactNode;
 }

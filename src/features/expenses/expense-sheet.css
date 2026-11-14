@@ -1,0 +1,4 @@
+/* The main action keeps the width of the foot; Cancel, while editing or duplicating, sits beside it */
+.expense-sheet__submit {
+    flex: 1;
+}

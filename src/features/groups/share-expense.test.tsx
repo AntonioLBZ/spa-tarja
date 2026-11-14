@@ -86,6 +86,15 @@ function addButton() {
     return screen.getByRole('button', { name: form.submit }) as HTMLButtonElement;
 }
 
+async function addIsRefused() {
+    const amount = field(form.amount).value;
+    expect(addButton().disabled).toBe(false);
+    fireEvent.click(addButton());
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(screen.getByRole('dialog', { name: form.title })).toBeDefined();
+    expect(field(form.amount).value).toBe(amount);
+}
+
 function people() {
     return screen.getByRole('group', { name: share.people });
 }
@@ -220,7 +229,7 @@ describe('the choice For', () => {
         expect(screen.getByText(share.none)).toBeDefined();
         expect(screen.queryByRole('combobox', { name: share.with })).toBeNull();
         fill({ amount: '10' });
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 });
 
@@ -326,7 +335,7 @@ describe('splitting equally', () => {
         });
     });
 
-    it('keeps Add off and says so while nobody is in', async () => {
+    it('saves nothing and says so while nobody is in', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
         fill({ amount: '10' });
@@ -334,16 +343,18 @@ describe('splitting equally', () => {
         for (const name of [you, 'Bea', 'Cris']) fireEvent.click(checkbox(name));
 
         expect(screen.getByRole('alert').textContent).toBe(share.nobody);
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 
-    it('keeps Add off while the amount is not one', async () => {
+    it('saves nothing and marks the amount while it is not one', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
 
         fill({ amount: 'ten' });
 
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
+        expect(field(form.amount).getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(field(form.amount));
     });
 
     it('offers neither as payer nor among the people a member who left or was merged', async () => {
@@ -564,7 +575,7 @@ describe('splitting by percent', () => {
         ]);
     });
 
-    it('says what is left or over, and keeps Add off until it adds up to 100', async () => {
+    it('says what is left or over, and saves nothing until it adds up to 100', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
         fill({ amount: '10' });
@@ -574,11 +585,11 @@ describe('splitting by percent', () => {
         expect(within(theForm()).getByRole('status').textContent).toBe(
             t('groups.share.percentLeft', { percent: percent(250) })
         );
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
 
         fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '40' } });
         expect(screen.getByRole('alert').textContent).toBe(t('groups.share.percentOver', { percent: percent(667) }));
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
 
         fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '33.33' } });
         expect(screen.queryByRole('alert')).toBeNull();
@@ -595,7 +606,7 @@ describe('splitting by percent', () => {
 
         expect(screen.getByRole('alert').textContent).toBe(share.percentInvalid);
         expect(shareField('Bea', 'percentOf').getAttribute('aria-invalid')).toBe('true');
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 
     it('reads the percentages with the decimal comma of Spanish', async () => {
@@ -659,7 +670,7 @@ describe('splitting by amount', () => {
         });
     });
 
-    it('says what is unassigned or over, and keeps Add off until it adds up', async () => {
+    it('says what is unassigned or over, marks it once Add is pressed, and saves nothing until it adds up', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
         fill({ amount: '10' });
@@ -669,15 +680,19 @@ describe('splitting by amount', () => {
         expect(within(theForm()).getByRole('status').textContent).toBe(
             t('groups.share.unassigned', { amount: euros(233) })
         );
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
+        expect(within(theForm()).getByRole('alert').textContent).toBe(
+            t('groups.share.unassigned', { amount: euros(233) })
+        );
+        expect(shareField('Bea', 'amountOf').getAttribute('aria-invalid')).toBe('true');
 
         fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '4.83' } });
         expect(screen.getByRole('alert').textContent).toBe(t('groups.share.over', { amount: euros(150) }));
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
 
         fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: 'x' } });
         expect(screen.getByRole('alert').textContent).toBe(share.amountInvalid);
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 
     it('keeps who is in when the mode changes back to equal', async () => {
@@ -761,7 +776,7 @@ describe('how you paid', () => {
         fireEvent.click(checkbox(you));
 
         expect(within(theForm()).getByRole('alert').textContent).toBe(share.cardNeedsYou);
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 
     it('refuses a charge before the day of the expense, as for an expense of one person', async () => {
@@ -922,7 +937,7 @@ describe('making a friend from the form', () => {
         expect(screen.queryByLabelText(/their name/i)).toBeNull();
         expect(screen.queryByRole('button', { name: /add the friend/i })).toBeNull();
         fill({ amount: '10' });
-        expect(addButton().disabled).toBe(true);
+        await addIsRefused();
     });
 });
 

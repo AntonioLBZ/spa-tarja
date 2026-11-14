@@ -21,10 +21,16 @@ const ensureAddSheet = (): HTMLElement => {
     return screen.getByRole('dialog', { name: en.expenses.form.title });
 };
 
+// Opens More options of the add form when it is folded, for a test about what it holds
+const openMoreOptions = (): void => {
+    const toggle = screen.queryByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) });
+    if (toggle?.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+
 // Presses Close on the sheet that is open: the page behind it answers nothing until then
 const closeSheet = async () => {
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en.expenses.form.close }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 };
 
-export { closeSheet, ensureAddSheet, openAddSheet };
+export { closeSheet, ensureAddSheet, openAddSheet, openMoreOptions };

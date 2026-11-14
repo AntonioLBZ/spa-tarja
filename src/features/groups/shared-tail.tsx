@@ -81,13 +81,19 @@ interface SharedHead {
 
 interface SharedTailProps {
     tail: SharedTailState;
-    payment: PaymentState;
     // On the screen of a group, the one it is shared in, with nothing to choose
     fixed: boolean;
+    // Add was pressed: what is left to assign and a payer who is gone are said as errors
+    tried?: boolean;
 }
 
 interface SharedPeopleProps {
     group: SharedGroup;
+    tail: SharedTailState;
+    tried: boolean;
+}
+
+interface SharedPaymentProps {
     tail: SharedTailState;
     payment: PaymentState;
 }
@@ -341,13 +347,17 @@ const useSharedTail = (
 };
 
 const SharedTail = (props: SharedTailProps) => {
-    const { tail, payment, fixed } = props;
+    const { tail, fixed, tried = false } = props;
     const t = useTranslations('groups');
     const { group } = tail;
     const options = useGroupOptions(tail.choices);
 
     if (tail.choices.length === 0) {
-        return <Notice tone="quiet">{t('share.none')}</Notice>;
+        return (
+            <Notice tone={tried ? 'danger' : 'quiet'} role={tried ? 'alert' : undefined}>
+                {t('share.none')}
+            </Notice>
+        );
     }
 
     return (
@@ -359,20 +369,22 @@ const SharedTail = (props: SharedTailProps) => {
                     )}
                 </Field>
             )}
-            {group && <SharedPeople group={group} tail={tail} payment={payment} />}
+            {group && <SharedPeople group={group} tail={tail} tried={tried} />}
         </>
     );
 };
 
 // Who paid and who is in, with the share of each
 const SharedPeople = (props: SharedPeopleProps) => {
-    const { group, tail, payment } = props;
+    const { group, tail, tried } = props;
     const t = useTranslations('groups.share');
     const { locale } = useLocale();
     const words = useGroupWords(group);
     const id = useId();
     const { mode, problem } = tail;
     const byPercent = mode === 'percent';
+    // Once Add was pressed, shares that don't add up are each marked, as what is left is an error then
+    const sumBad = tried && problem?.kind === 'left';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
     const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
     const percent = (basisPoints: number) =>
@@ -382,7 +394,11 @@ const SharedPeople = (props: SharedPeopleProps) => {
 
     return (
         <>
-            <Field label={t('paidBy')} hint={tail.payerGone ? t('payerLeft') : undefined}>
+            <Field
+                label={t('paidBy')}
+                hint={tail.payerGone && !tried ? t('payerLeft') : undefined}
+                error={tried && tail.payer === null ? t('payerLeft') : null}
+            >
                 {(control) => (
                     <Select
                         {...control}
@@ -421,8 +437,10 @@ const SharedPeople = (props: SharedPeopleProps) => {
                                 <FieldBox>
                                     <input
                                         className="shared-people__input"
-                                        aria-describedby={row.invalid ? `${id}-invalid` : undefined}
-                                        aria-invalid={row.invalid}
+                                        aria-describedby={
+                                            row.invalid ? `${id}-invalid` : sumBad ? `${id}-left` : undefined
+                                        }
+                                        aria-invalid={row.invalid || sumBad}
                                         aria-label={t(byPercent ? 'percentOf' : 'amountOf', {
                                             name: words.nameInList(row.id),
                                         })}
@@ -449,7 +467,14 @@ const SharedPeople = (props: SharedPeopleProps) => {
                     {t(byPercent ? 'percentInvalid' : 'amountInvalid')}
                 </Notice>
             )}
-            {problem?.kind === 'left' && problem.left > 0 && (
+            {problem?.kind === 'left' && problem.left > 0 && tried && (
+                <Notice tone="danger" role="alert" id={`${id}-left`}>
+                    {byPercent
+                        ? t('percentLeft', { percent: percent(problem.left) })
+                        : t('unassigned', { amount: money(problem.left) })}
+                </Notice>
+            )}
+            {problem?.kind === 'left' && problem.left > 0 && !tried && (
                 <p className="field__hint" role="status">
                     {byPercent
                         ? t('percentLeft', { percent: percent(problem.left) })
@@ -457,23 +482,39 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 </p>
             )}
             {problem?.kind === 'left' && problem.left < 0 && (
-                <Notice tone="danger" role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-left`}>
                     {byPercent
                         ? t('percentOver', { percent: percent(problem.left) })
                         : t('over', { amount: money(problem.left) })}
                 </Notice>
             )}
-
-            {tail.payerIsMe && (
-                <PaymentFields
-                    label={t('howYouPaid')}
-                    hint={t('othersNow')}
-                    error={tail.cardWithoutYou ? t('cardNeedsYou') : null}
-                    state={payment}
-                />
-            )}
         </>
     );
 };
 
-export { SharedTail, useSharedTail, type EntrySource, type SharedTailProps, type SharedTailState };
+// How the person paid, only when they did; the form folds it under More options
+const SharedPayment = (props: SharedPaymentProps) => {
+    const { tail, payment } = props;
+    const t = useTranslations('groups.share');
+
+    if (!tail.group || !tail.payerIsMe) return null;
+
+    return (
+        <PaymentFields
+            label={t('howYouPaid')}
+            hint={t('othersNow')}
+            error={tail.cardWithoutYou ? t('cardNeedsYou') : null}
+            state={payment}
+        />
+    );
+};
+
+export {
+    SharedPayment,
+    SharedTail,
+    useSharedTail,
+    type EntrySource,
+    type SharedPaymentProps,
+    type SharedTailProps,
+    type SharedTailState,
+};

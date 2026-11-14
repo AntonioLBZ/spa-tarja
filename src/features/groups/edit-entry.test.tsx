@@ -445,12 +445,18 @@ describe('duplicating a shared expense', () => {
         expect(optionNames(share.paidBy)).toEqual([share.paidByNone, you, 'Bea']);
         expect(screen.getByText(share.payerLeft)).toBeDefined();
         const submit = screen.getByRole('button', { name: form.submit }) as HTMLButtonElement;
-        expect(submit.disabled).toBe(true);
+        expect(submit.disabled).toBe(false);
+        fireEvent.click(submit);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(api.entryWrites).toHaveLength(0);
+        const paidBy = screen.getByRole('combobox', { name: share.paidBy });
+        expect(screen.getByRole('alert').textContent).toBe(share.payerLeft);
+        expect(paidBy.getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(paidBy);
 
         pickOption(share.paidBy, 'Bea');
 
         expect(screen.queryByText(share.payerLeft)).toBeNull();
-        expect(submit.disabled).toBe(false);
         fireEvent.click(submit);
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
