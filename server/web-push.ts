@@ -128,6 +128,7 @@ const sendPush = async (target: PushTarget, message: unknown, key: VapidKey, sub
                 Urgency: 'normal',
             },
             body,
+            redirect: 'manual',
         });
         if (response.status === 404 || response.status === 410) return 'gone';
         return response.ok ? 'sent' : 'failed';

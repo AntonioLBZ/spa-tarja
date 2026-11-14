@@ -106,6 +106,7 @@ describe('sendPush', () => {
         expect(url).toBe(target.endpoint);
         const headers = new Headers(init.headers);
         expect(init.method).toBe('POST');
+        expect(init.redirect).toBe('manual');
         expect(headers.get('TTL')).toBe('86400');
         expect(headers.get('Urgency')).toBe('normal');
         expect(headers.get('Content-Encoding')).toBe('aes128gcm');
@@ -116,8 +117,15 @@ describe('sendPush', () => {
         expect((await sendWith(async () => new Response(null, { status }))).result).toBe('gone');
     });
 
-    it('says it failed on any other answer, and when the request fails', async () => {
+    it('says it failed on any other answer, a redirect included, and when the request fails', async () => {
         expect((await sendWith(async () => new Response(null, { status: 500 }))).result).toBe('failed');
+        expect(
+            (
+                await sendWith(
+                    async () => new Response(null, { status: 301, headers: { location: 'https://evil.test' } })
+                )
+            ).result
+        ).toBe('failed');
         expect((await sendWith(async () => Promise.reject(new TypeError('Failed to fetch')))).result).toBe('failed');
     });
 });
