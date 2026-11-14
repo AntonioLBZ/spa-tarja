@@ -41,7 +41,7 @@ Rules:
 - One accent at a time and one danger color. There are no success or warning colors: use text, an icon or position instead. A new color needs a reason and an update to this table.
 - Components use only the semantic `--color-*` tokens, never raw values. Raw values live in `tokens.css`.
 - Never convey meaning by color alone.
-- What someone owes or is owed is not an error and has no color: the words say it ("You owe", "owes you", "Settled"), and `--color-danger` stays for errors and for what deletes.
+- What someone owes or is owed is not an error and has no color: the words say it ("You owe", "owes you", "Nothing to settle"), and `--color-danger` stays for errors and for what deletes.
 - Contrast follows WCAG 2 AA: 4.5:1 for text, 3:1 for focus rings and the marks of a chart. Structural borders are ink, 18:1 or more. Two decorations are not held to 3:1, because something else says what they frame (owner decision, 2026-10-29):
     - The hairline `--color-border-subtle`, 1.4 to 1.6:1 in both themes. It draws disabled notches, quiet notices, the Delete notch, the chart grid and the rules of the numbers table; the text names each box.
     - The ink notch on an accent fill (primary button, checked option of a choice group, pressed toggle), 1.5 to 2.4:1 in dark and 2.0 to 4.2:1 in light. The fill, at 4.5:1 or more against the page, is what marks the control.

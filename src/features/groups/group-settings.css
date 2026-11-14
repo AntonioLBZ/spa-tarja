@@ -10,6 +10,17 @@
     overflow-wrap: anywhere;
 }
 
+.group-settings__part {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-settings__heading {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
 .group-settings__section {
     display: grid;
     gap: var(--size-2);

@@ -37,8 +37,8 @@ interface SectionProps {
     disabled: boolean;
 }
 
-// The settings of a group or a friend, ending with the way to leave or delete it. A closed group keeps only the
-// person's own switches.
+// The settings of a group or a friend: what its owner changes for everybody, then what is the person's own, the people,
+// and last the way to leave or delete it. A closed group keeps only the person's own switches.
 const GroupSettings = (props: GroupSettingsProps) => {
     const { groupId } = props;
 
@@ -57,13 +57,17 @@ const SettingsView = (props: SettingsViewProps) => {
         <section className="group-settings">
             <h1 className="group-settings__title">{t('edit.title', { name: words.title })}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
-            <PersonalSwitches group={group} disabled={!online} />
             {open && group.kind === 'group' && isOwner(group) && (
-                <>
+                <section className="group-settings__part">
+                    <h2 className="group-settings__heading">{t('edit.forGroup')}</h2>
                     <GroupName group={group} disabled={!online} />
                     <SimplifyDebts group={group} disabled={!online} />
-                </>
+                </section>
             )}
+            <section className="group-settings__part">
+                <h2 className="group-settings__heading">{t('edit.forYou')}</h2>
+                <PersonalSwitches group={group} disabled={!online} />
+            </section>
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
             {open && <CloseGroup ledger={ledger} disabled={!online} />}
         </section>

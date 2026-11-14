@@ -186,17 +186,19 @@ const SettleUp = (props: SettleUpProps) => {
         return t('after.owes', { from: words.nameOf(debtor), to: words.nameOf(creditor), amount });
     };
 
-    // What the two would owe each other once this is saved, as the group would show it
+    const before = debtBetween(debts, from, to);
+    // What the two would owe each other once this is saved, as the group would show it; nothing when paying the debt
+    // shown clears it, which goes without saying
     const after = (net: number) => {
         if (net > 0) return afterDebt(from, to, net);
         if (net < 0) return afterDebt(to, from, -net);
+        if (cents === Math.abs(before)) return false;
         if (from === group.me || to === group.me) {
             return t('after.youSettled', { name: words.nameOf(from === group.me ? to : from) });
         }
         return t('after.settled', { from: words.nameOf(from), to: words.nameOf(to) });
     };
 
-    const before = debtBetween(debts, from, to);
     const fields = settlementFields(from, to, cents, draft.date);
     // The debts once this is saved, which a payment that is not the whole of a line can change for other lines
     const debtsAfter = () => groupDebts([...entries, newEntry(group, fields)], group.members, group.simplifyDebts);

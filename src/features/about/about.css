@@ -4,6 +4,10 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
+.about > .button {
+    justify-self: start;
+}
+
 .about__title {
     font-size: var(--font-size-m);
     margin: 0;

@@ -142,10 +142,10 @@
     },
     "auth": {
         "title": "Sign in to Tarja",
-        "description": "Your expenses stay with your account, on every device you use.",
+        "description": "Track your expenses and split them with friends. Works offline, on all your devices.",
         "google": "Continue with Google",
         "opening": "Opening Google…",
-        "privacy": "Signing in gives Tarja your name and email from Google, to keep your expenses in your account. You can download them and delete your account at any time.",
+        "privacy": "Google shares your name and email with Tarja. You can download your data or delete your account at any time.",
         "loading": "Checking your session…",
         "unreachable": "Can't reach Tarja. Check your connection and try again.",
         "failed": "Couldn't sign you in. Try again.",
@@ -228,7 +228,7 @@
         "profile": {
             "title": "Profile",
             "label": "Nickname",
-            "hint": "Your friends see this name. It doesn't have to be unique. Until you set one, they see your first name, {name}.",
+            "hint": "The name your friends see you by. Until you set one, they'll see: {name}.",
             "save": "Save",
             "remove": "Remove",
             "offline": "You're offline. Connect to change your nickname.",
@@ -238,12 +238,12 @@
         },
         "categories": {
             "title": "Categories",
-            "description": "Create your own categories to sort your expenses, and pick their color and icon.",
+            "description": "Create your own categories to sort your expenses.",
             "link": "Manage categories"
         },
         "data": {
             "title": "Your data",
-            "description": "Download a copy of your data: everything in a JSON file, or just the expenses in a CSV file that opens in a spreadsheet. They are made on this device, so they work offline.",
+            "description": "Download a copy of your data.",
             "json": "All your data (JSON)",
             "csv": "Only the expenses (CSV)",
             "loading": "Loading the expenses of your groups so they go in the files…",
@@ -285,7 +285,7 @@
             }
         },
         "about": {
-            "title": "About",
+            "title": "About Tarja",
             "version": "Version",
             "status": {
                 "label": "Status",
@@ -397,18 +397,18 @@
         "balance": {
             "owed": "You are owed {amount}",
             "owe": "You owe {amount}",
-            "allSettled": "All settled",
-            "youSettled": "You're settled",
+            "allSettled": "You have nothing to settle",
+            "youSettled": "You have nothing to settle",
             "memberOwed": "{name} is owed {amount}",
             "memberOwes": "{name} owes {amount}",
-            "memberSettled": "{name} is settled"
+            "memberSettled": "{name} has nothing to settle"
         },
         "debts": {
             "label": "Balances",
             "youOwe": "You owe {name} {amount}",
             "owesYou": "{name} owes you {amount}",
             "owes": "{from} owes {to} {amount}",
-            "none": "Nobody owes anybody.",
+            "none": "Nothing left to settle.",
             "simplified": "Simplified debts: the fewest payments that settle the group. A payment may name someone you didn't share with.",
             "everyone": "Everyone's balance"
         },
@@ -471,7 +471,8 @@
             }
         },
         "offline": "You're offline. Connect to make or change a group, or to invite a friend.",
-        "empty": "You have no groups or friends yet. Make a group, or invite a friend who uses Tarja with a link.",
+        "empty": "You have no groups or friends yet.",
+        "emptyHint": "Make a group, or invite a friend with a link.",
         "totalsWait": "Couldn't load the expenses of every group, so there are no totals yet. Connect to see them.",
         "lists": {
             "groups": "Groups",
@@ -481,7 +482,7 @@
             "archived": "Archived"
         },
         "row": {
-            "settled": "Settled",
+            "settled": "Nothing to settle",
             "deleted": "Deleted",
             "deletedFriend": "No longer a friend",
             "left": "You left",
@@ -506,7 +507,7 @@
         },
         "links": {
             "make": "Invite a friend",
-            "hint": "For someone who uses Tarja or will. You get a link to send them, and you become friends when they accept. It works once, for {days} days.",
+            "hint": "Each invitation works once and expires after {days} days.",
             "title": "Invitation links",
             "loadFailed": "Couldn't load your invitation links."
         },
@@ -536,19 +537,21 @@
         },
         "edit": {
             "link": "Edit group",
+            "forGroup": "Group settings",
+            "forYou": "Your settings",
             "linkFriend": "Edit friend",
             "title": "Edit {name}",
             "show": "Show in my expenses",
-            "showHint": "When it's off, this group's expenses are not in your list, summary, charts or budgets.",
+            "showHint": "Your share counts in your list, summary, charts and budgets.",
             "archive": "Archive",
             "unarchive": "Bring back",
             "name": "Name",
             "simplify": "Simplify debts",
-            "simplifyHint": "Shows the fewest payments that settle the group. It doesn't change any expense.",
+            "simplifyHint": "Fewer payments to settle up. Expenses stay the same.",
             "save": "Save",
             "pin": "Pin to Expenses",
-            "pinHint": "It shows as a tab on the Expenses screen.",
-            "pinFull": "You can pin {max} groups to Expenses. Unpin one to pin another."
+            "pinHint": "Shows as a tab in Expenses.",
+            "pinFull": "You already have {max} pinned to Expenses. Unpin one to pin another."
         },
         "people": {
             "title": "People",
@@ -586,23 +589,23 @@
         },
         "close": {
             "leave": {
-                "button": "Leave the group",
+                "button": "Leave group",
                 "question": "Leave {name}?",
-                "what": "The group closes for you as it is today. Its expenses stay in your list, and you can turn them off here. If a friend of yours in the group adds you back, you will see everything written in the meantime.",
+                "what": "You'll see it as it is today, and its expenses stay in your list. If a friend adds you back, you'll see what was written meanwhile.",
                 "confirm": "Leave",
                 "unsettled": "Your balance in {name} isn't zero. Settle up before you leave."
             },
             "delete": {
-                "button": "Delete the group",
+                "button": "Delete group",
                 "question": "Delete {name}?",
-                "what": "The group closes for everybody in it. The expenses stay in your list, and you can turn them off here.",
+                "what": "It closes for everyone. Its expenses stay in your list.",
                 "confirm": "Delete",
                 "unsettled": "Not every balance in {name} is zero. Settle up before you delete it."
             },
             "deleteFriend": {
                 "button": "Remove friend",
                 "question": "Remove {name} from your friends?",
-                "what": "What you shared stays as it was. It stays in your list, and you can turn it off here.",
+                "what": "What you shared stays as it was, and in your list.",
                 "confirm": "Remove",
                 "unsettled": "You and {name} aren't settled. Settle up before you remove them."
             },
@@ -698,7 +701,7 @@
     },
     "budgets": {
         "title": "Budgets",
-        "hint": "A limit holds for the following months until one sets another. Leave a field empty, or type 0, for no limit from this month on.",
+        "hint": "Each limit carries over to the following months. Leave it empty to remove it.",
         "total": "Total",
         "save": "Save",
         "invalid": "Enter an amount, or leave it empty for no limit.",

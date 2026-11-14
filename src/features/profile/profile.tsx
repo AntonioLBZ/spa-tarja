@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -25,6 +25,7 @@ const Profile = () => {
     const online = useOnline();
     const { data: profile } = useQuery(profileQuery());
     const { save } = useProfileActions();
+    const hintId = useId();
 
     const stored = profile?.nickname ?? null;
     // What the person typed, over the stored nickname until it is saved, so an answer that comes late never replaces it
@@ -64,11 +65,14 @@ const Profile = () => {
     return (
         <section className="profile">
             <h2 className="profile__title">{t('title')}</h2>
+            <p className="profile__hint" id={hintId}>
+                {t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
+            </p>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <form className="profile__form" onSubmit={handleSubmit}>
                 <Field
                     label={t('label')}
-                    hint={t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
+                    describedBy={hintId}
                     error={invalid ? t('invalid') : null}
                     actions={
                         <>

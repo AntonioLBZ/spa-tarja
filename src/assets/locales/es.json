@@ -142,10 +142,10 @@
     },
     "auth": {
         "title": "Inicia sesión en Tarja",
-        "description": "Tus gastos quedan en tu cuenta, en todos los dispositivos que uses.",
+        "description": "Apunta tus gastos y repártelos con tus amigos. Funciona sin conexión y en todos tus dispositivos.",
         "google": "Continuar con Google",
         "opening": "Abriendo Google…",
-        "privacy": "Al entrar, Google le da a Tarja tu nombre y tu correo, para guardar tus gastos en tu cuenta. Puedes descargarlos y eliminar tu cuenta cuando quieras.",
+        "privacy": "Google le da a Tarja tu nombre y tu correo. Puedes descargar tus datos o eliminar tu cuenta cuando quieras.",
         "loading": "Comprobando tu sesión…",
         "unreachable": "No se puede conectar con Tarja. Revisa tu conexión e inténtalo de nuevo.",
         "failed": "No se pudo iniciar sesión. Inténtalo de nuevo.",
@@ -228,7 +228,7 @@
         "profile": {
             "title": "Perfil",
             "label": "Apodo",
-            "hint": "Tus amigos ven este nombre. No tiene por qué ser único. Mientras no pongas uno, ven tu nombre de pila, {name}.",
+            "hint": "El nombre con el que te ven tus amigos. Mientras no pongas uno, verán: {name}.",
             "save": "Guardar",
             "remove": "Quitar",
             "offline": "Estás sin conexión. Conéctate para cambiar tu apodo.",
@@ -238,12 +238,12 @@
         },
         "categories": {
             "title": "Categorías",
-            "description": "Crea tus propias categorías para clasificar tus gastos y elige su color e icono.",
+            "description": "Crea tus propias categorías para clasificar tus gastos.",
             "link": "Gestionar categorías"
         },
         "data": {
             "title": "Tus datos",
-            "description": "Descarga una copia de tus datos: todo en un archivo JSON, o solo los gastos en un CSV que se abre en una hoja de cálculo. Se hacen en este dispositivo, así que funcionan sin conexión.",
+            "description": "Descarga una copia de tus datos.",
             "json": "Todos tus datos (JSON)",
             "csv": "Solo los gastos (CSV)",
             "loading": "Cargando los gastos de tus grupos para incluirlos en los archivos…",
@@ -268,7 +268,7 @@
             "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",
             "unsynced": "Hay gastos sin sincronizar. Se quedan en este dispositivo hasta que vuelvas a iniciar sesión.",
             "delete": {
-                "open": "Eliminar la cuenta",
+                "open": "Eliminar cuenta",
                 "title": "¿Eliminar tu cuenta?",
                 "goes": "Tus gastos, categorías, ingresos, presupuestos y apodo se borran para siempre, y también los grupos y los amigos en los que eres la única persona con cuenta, con todos los nombres y gastos que contienen. No se puede deshacer.",
                 "stays": "Los gastos compartidos de tus grupos y con tus amigos se quedan para los demás, y en ellos apareces como «Usuario eliminado», sin tu nombre ni el que un grupo te había puesto antes de que entraras. Tus amigos ya no te tendrán entre sus amigos.",
@@ -285,7 +285,7 @@
             }
         },
         "about": {
-            "title": "Acerca de",
+            "title": "Acerca de Tarja",
             "version": "Versión",
             "status": {
                 "label": "Estado",
@@ -397,18 +397,18 @@
         "balance": {
             "owed": "Te deben {amount}",
             "owe": "Debes {amount}",
-            "allSettled": "Todo saldado",
-            "youSettled": "Tienes las cuentas saldadas",
+            "allSettled": "No tienes cuentas pendientes",
+            "youSettled": "No tienes cuentas pendientes",
             "memberOwed": "A {name} le deben {amount}",
             "memberOwes": "{name} debe {amount}",
-            "memberSettled": "{name} tiene las cuentas saldadas"
+            "memberSettled": "{name} no tiene cuentas pendientes"
         },
         "debts": {
             "label": "Saldos",
             "youOwe": "Debes {amount} a {name}",
             "owesYou": "{name} te debe {amount}",
             "owes": "{from} debe {amount} a {to}",
-            "none": "Nadie debe nada.",
+            "none": "No hay cuentas pendientes.",
             "simplified": "Deudas simplificadas: el menor número de pagos que salda el grupo. Algún pago puede ser para alguien con quien no compartiste gastos.",
             "everyone": "El saldo de cada persona"
         },
@@ -471,7 +471,8 @@
             }
         },
         "offline": "Estás sin conexión. Conéctate para crear o cambiar un grupo, o para invitar a un amigo.",
-        "empty": "Aún no tienes grupos ni amigos. Crea un grupo, o invita con un enlace a un amigo que use Tarja.",
+        "empty": "Aún no tienes grupos ni amigos.",
+        "emptyHint": "Crea un grupo o invita a un amigo con un enlace.",
         "totalsWait": "No se pudieron cargar los gastos de todos los grupos, así que aún no hay totales. Conéctate para verlos.",
         "lists": {
             "groups": "Grupos",
@@ -481,7 +482,7 @@
             "archived": "Archivados"
         },
         "row": {
-            "settled": "Sin deudas",
+            "settled": "Sin cuentas pendientes",
             "deleted": "Eliminado",
             "deletedFriend": "Ya no está entre tus amigos",
             "left": "Saliste",
@@ -506,7 +507,7 @@
         },
         "links": {
             "make": "Invitar a un amigo",
-            "hint": "Para quien usa Tarja o la va a usar. Obtienes un enlace para enviárselo y seréis amigos cuando lo acepte. Sirve una vez, durante {days} días.",
+            "hint": "Cada invitación se puede usar una vez y caduca a los {days} días.",
             "title": "Enlaces de invitación",
             "loadFailed": "No se pudieron cargar tus enlaces de invitación."
         },
@@ -536,19 +537,21 @@
         },
         "edit": {
             "link": "Editar grupo",
+            "forGroup": "Ajustes del grupo",
+            "forYou": "Tus ajustes",
             "linkFriend": "Editar amigo",
             "title": "Editar {name}",
             "show": "Mostrar en mis gastos",
-            "showHint": "Si lo desactivas, los gastos de este grupo no salen en tu lista, tu resumen, tus gráficos ni tus presupuestos.",
+            "showHint": "Tu parte cuenta en tu lista, resumen, gráficos y presupuestos.",
             "archive": "Archivar",
             "unarchive": "Recuperar",
             "name": "Nombre",
             "simplify": "Simplificar deudas",
-            "simplifyHint": "Muestra el menor número de pagos que salda el grupo. No cambia ningún gasto.",
+            "simplifyHint": "Menos pagos para quedar en paz. Los gastos no cambian.",
             "save": "Guardar",
             "pin": "Fijar en Gastos",
-            "pinHint": "Aparece como pestaña en la pantalla Gastos.",
-            "pinFull": "Puedes fijar {max} grupos en Gastos. Desfija uno para fijar otro."
+            "pinHint": "Sale como pestaña en Gastos.",
+            "pinFull": "Ya tienes {max} fijados en Gastos. Desfija uno para fijar otro."
         },
         "people": {
             "title": "Personas",
@@ -588,21 +591,21 @@
             "leave": {
                 "button": "Salir del grupo",
                 "question": "¿Salir de {name}?",
-                "what": "El grupo se cierra para ti tal como está hoy. Sus gastos siguen en tu lista, y puedes quitarlos aquí. Si un amigo tuyo del grupo te vuelve a añadir, verás todo lo que se haya escrito mientras tanto.",
+                "what": "Lo verás tal como está hoy y sus gastos seguirán en tu lista. Si un amigo te vuelve a añadir, verás lo que se haya escrito mientras tanto.",
                 "confirm": "Salir",
                 "unsettled": "Tu saldo en {name} no está a cero. Salda cuentas antes de salir."
             },
             "delete": {
-                "button": "Eliminar el grupo",
+                "button": "Eliminar grupo",
                 "question": "¿Eliminar {name}?",
-                "what": "El grupo se cierra para todas las personas que están en él. Los gastos siguen en tu lista, y puedes quitarlos aquí.",
+                "what": "Se cierra para todos. Sus gastos siguen en tu lista.",
                 "confirm": "Eliminar",
                 "unsettled": "No todos los saldos de {name} están a cero. Primero hay que saldar cuentas."
             },
             "deleteFriend": {
                 "button": "Quitar de amigos",
                 "question": "¿Quitar a {name} de tus amigos?",
-                "what": "Lo que compartíais se queda como estaba. Sigue en tu lista, y puedes quitarlo aquí.",
+                "what": "Lo que compartíais se queda como estaba y sigue en tu lista.",
                 "confirm": "Quitar",
                 "unsettled": "Aún hay deudas entre {name} y tú. Primero hay que saldar cuentas."
             },
@@ -698,7 +701,7 @@
     },
     "budgets": {
         "title": "Presupuestos",
-        "hint": "Un límite se mantiene en los meses siguientes hasta que uno fije otro. Deja un campo vacío, o escribe 0, para quitar el límite desde este mes.",
+        "hint": "Cada límite vale también para los meses siguientes. Déjalo vacío para quitarlo.",
         "total": "Total",
         "save": "Guardar",
         "invalid": "Introduce un importe, o déjalo vacío para quitar el límite.",

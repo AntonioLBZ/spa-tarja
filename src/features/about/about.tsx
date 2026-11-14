@@ -3,12 +3,13 @@ import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
 import { Card, CardList } from '@/components/card/card';
+import { PrivacyNotice } from '@/features/auth/privacy-notice';
 import { healthQuery } from '@/lib/api';
 import { appVersion } from '@/lib/version';
 
 import './about.css';
 
-// The version of the build and whether the API and its database answer
+// The version of the build, whether the API and its database answer, and the privacy notice
 const About = () => {
     const t = useTranslations('settings.about');
     const health = useQuery(healthQuery());
@@ -32,6 +33,7 @@ const About = () => {
                     </dd>
                 </Card>
             </CardList>
+            <PrivacyNotice />
         </section>
     );
 };

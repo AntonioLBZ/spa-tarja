@@ -64,7 +64,15 @@ const Groups = () => {
                     {t('group.loadFailed')}
                 </Notice>
             )}
-            {hasData && (open.length > 0 ? <GroupTotals ledgers={open} /> : <Notice tone="quiet">{t('empty')}</Notice>)}
+            {hasData &&
+                (open.length > 0 ? (
+                    <GroupTotals ledgers={open} />
+                ) : (
+                    <Notice tone="quiet">
+                        <span className="groups__empty-line">{t('empty')}</span>
+                        <span className="groups__empty-line">{t('emptyHint')}</span>
+                    </Notice>
+                ))}
             {pins.full && <p className="groups__pin-full">{t('edit.pinFull', { max: MAX_PINNED_GROUPS })}</p>}
             {pins.failure && (
                 <Notice tone="danger" role="alert">

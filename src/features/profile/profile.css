@@ -9,6 +9,12 @@
     margin: 0;
 }
 
+.profile__hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
 .profile__form {
     display: grid;
     gap: var(--size-1);

@@ -363,7 +363,7 @@ describe('settling up in the simplified view', () => {
         expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('10.00');
         expect(document.activeElement).toBe(amount());
-        expect(hint()).toBe(sentences(crisOwesBea, t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' })));
+        expect(hint()).toBe(sentences(crisOwesBea));
     });
 
     it('starts on you and on the one the view says you owe', async () => {
@@ -577,7 +577,7 @@ describe('the form', () => {
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         const debt = t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) });
 
-        expect(hint()).toBe(sentences(debt, t('groups.settle.after.youSettled', { name: 'Bea' })));
+        expect(hint()).toBe(sentences(debt));
         fireEvent.change(amount(), { target: { value: '20' } });
         expect(hint()).toBe(sentences(debt, t('groups.settle.after.owesYou', { name: 'Bea', amount: euros(500) })));
         fireEvent.change(amount(), { target: { value: '10' } });
@@ -597,7 +597,7 @@ describe('the form', () => {
 
         expect(chosenOption(text.from)).toBe('Cris');
         expect(chosenOption(text.to)).toBe('Bea');
-        expect(hint()).toContain(t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' }));
+        expect(hint()).not.toContain(t('groups.settle.after.settled', { from: 'Cris', to: 'Bea' }));
         fireEvent.change(amount(), { target: { value: '2' } });
         expect(hint()).toContain(t('groups.settle.after.owes', { from: 'Cris', to: 'Bea', amount: euros(500) }));
     });

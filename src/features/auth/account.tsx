@@ -7,7 +7,6 @@ import { useAuth, useUser } from '@/lib/auth';
 import { useGroupOutbox, useOutbox } from '@/lib/offline';
 
 import { DeleteAccount } from './delete-account';
-import { PrivacyNotice } from './privacy-notice';
 
 import './account.css';
 
@@ -47,7 +46,6 @@ const Account = () => {
                 {phase === 'signing-out' ? t('signingOut') : t('signOut')}
             </Button>
             <DeleteAccount />
-            <PrivacyNotice />
         </section>
     );
 };
