@@ -8,9 +8,10 @@ import react from '@vitejs/plugin-react';
 import { build, defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { PUSH_WORKER, pushWorkerBuild } from './push-worker.config';
+
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
 
-const PUSH_WORKER = 'push-worker.js';
 const appName = prerelease ? 'Tarja Pre' : 'Tarja';
 const iconFolder = prerelease ? 'prerelease/' : '';
 
@@ -51,30 +52,14 @@ const prereleasePage = (): Plugin => {
     };
 };
 
-// The script the service worker imports for push notifications (ADR-0025), built on its own as a classic script, since
-// a service worker that isn't a module can only import one
+// Builds the script of push notifications next to the client's files
 const pushWorker = (): Plugin => {
     return {
         name: 'tarja-push-worker',
         apply: 'build',
         applyToEnvironment: (environment) => environment.name === 'client',
         writeBundle: async (options) => {
-            await build({
-                configFile: false,
-                logLevel: 'warn',
-                resolve: { tsconfigPaths: true },
-                build: {
-                    outDir: options.dir,
-                    emptyOutDir: false,
-                    copyPublicDir: false,
-                    lib: {
-                        entry: fileURLToPath(new URL('./src/features/notices/push-worker.ts', import.meta.url)),
-                        formats: ['iife'],
-                        name: 'tarjaPush',
-                        fileName: () => PUSH_WORKER,
-                    },
-                },
-            });
+            await build(pushWorkerBuild(options.dir ?? 'dist/client'));
         },
     };
 };

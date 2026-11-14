@@ -1,4 +1,4 @@
-import { createTranslator } from 'use-intl';
+import { createTranslator } from 'use-intl/core';
 
 import { notices as enNotices } from '@/assets/locales/en.json';
 import { notices as esNotices } from '@/assets/locales/es.json';
