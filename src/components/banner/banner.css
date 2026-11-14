@@ -12,14 +12,16 @@
     z-index: 2;
 }
 
-/* A box with the notch on the color of the header, like the banner of a system notification. In from above with a fade
-   and a short shift, and out the same way; a swipe moves it with the finger and it leaves to that side. */
+/* A box with the notch on the color of the header, like the banner of a system notification, with the shadow of what
+   floats over the page. In from above with a fade and a short shift, and out the same way; a swipe moves it with the
+   finger and it leaves to that side. */
 .banner {
     align-items: center;
     background: var(--color-bg-secondary);
     border-color: var(--color-border);
     border-style: solid;
     border-width: 0 0 var(--size-1) var(--size-1);
+    box-shadow: var(--shadow-popup);
     display: flex;
     gap: var(--size-2);
     max-width: 40rem;
