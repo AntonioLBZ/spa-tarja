@@ -4,3 +4,7 @@ BETTER_AUTH_SECRET=
 # From the Google Cloud console (Google Auth Platform > Clients)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+# The key that signs push notifications, a JWK of P-256 on one line:
+# node -e "const k=require('crypto').generateKeyPairSync('ec',{namedCurve:'prime256v1'}).privateKey.export({format:'jwk'});console.log(JSON.stringify(k))"
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=mailto:
