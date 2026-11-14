@@ -388,7 +388,7 @@ const SharedTail = (props: SharedTailProps) => {
     );
 };
 
-// Who paid and how it is split, folded under a line that says both
+// Who paid and how it is split: a line that says both, and under it the toggle that opens them to change
 const SharedSplit = (props: SharedPeopleProps) => {
     const { group, tail, tried } = props;
     const t = useTranslations('groups.share');
@@ -402,16 +402,12 @@ const SharedSplit = (props: SharedPeopleProps) => {
     const split = t(`summary.${tail.mode}`, { count: tail.inCount });
 
     return (
-        <Disclosure
-            chevron
-            open={tail.splitOpen}
-            summary={t('split')}
-            hint={t('summary.line', { payer, split })}
-            onOpenChange={tail.setSplitOpen}
-            keepMounted
-        >
-            <SharedPeople group={group} tail={tail} tried={tried} />
-        </Disclosure>
+        <div className="shared-split">
+            <p className="field__hint">{t('summary.line', { payer, split })}</p>
+            <Disclosure chevron open={tail.splitOpen} summary={t('split')} onOpenChange={tail.setSplitOpen} keepMounted>
+                <SharedPeople group={group} tail={tail} tried={tried} />
+            </Disclosure>
+        </div>
     );
 };
 

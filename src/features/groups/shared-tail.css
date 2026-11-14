@@ -1,3 +1,8 @@
+.shared-split {
+    display: grid;
+    gap: var(--size-2);
+}
+
 .shared-people {
     border: 0;
     margin: 0;

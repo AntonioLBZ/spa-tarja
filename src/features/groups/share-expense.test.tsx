@@ -1001,16 +1001,17 @@ describe('the sync of a shared expense added at home', () => {
 describe('the split, folded', () => {
     const splitToggle = () => screen.getByRole('button', { name: new RegExp(`^${share.split}`) });
 
-    it('says who paid and how it is split while it is closed, and opens to change them', async () => {
+    it('says who paid and how it is split above the toggle, which opens them to change', async () => {
         await openHome([trip()]);
         fireEvent.click(forChoice(form.forShared));
 
         expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
+        expect(splitToggle().textContent).toBe(share.split);
         const line = t('groups.share.summary.line', {
             payer: share.summary.youPaid,
             split: t('groups.share.summary.equal', { count: 3 }),
         });
-        expect(splitToggle().textContent).toBe(`${share.split}${line}`);
+        expect(screen.getByText(line)).toBeDefined();
         expect(screen.queryByRole('group', { name: share.people })).toBeNull();
 
         fireEvent.click(splitToggle());
@@ -1019,13 +1020,14 @@ describe('the split, folded', () => {
         pickOption(share.paidBy, 'Bea');
         fireEvent.click(checkbox('Cris'));
         pickMode('percent');
-        fireEvent.click(splitToggle());
-        expect(splitToggle().textContent).toBe(
-            `${share.split}${t('groups.share.summary.line', {
-                payer: t('groups.share.summary.paid', { name: 'Bea' }),
-                split: t('groups.share.summary.percent', { count: 2 }),
-            })}`
-        );
+        expect(
+            screen.getByText(
+                t('groups.share.summary.line', {
+                    payer: t('groups.share.summary.paid', { name: 'Bea' }),
+                    split: t('groups.share.summary.percent', { count: 2 }),
+                })
+            )
+        ).toBeDefined();
     });
 
     it('opens on Add when what is to fix is in it, with the focus on it', async () => {
