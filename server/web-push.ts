@@ -47,6 +47,37 @@ const newLocalKeys = async (): Promise<CryptoKeyPair> => {
     ])) as CryptoKeyPair;
 };
 
+// The shared secret of two P-256 keys. The types of the Workers call the key `$public`, which the runtime reads as
+// `public`.
+const ecdhSecret = async (privateKey: CryptoKey, publicPoint: Uint8Array<ArrayBuffer>) => {
+    const other = await crypto.subtle.importKey('raw', publicPoint, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+    const algorithm = { name: 'ECDH', public: other } as unknown as SubtleCryptoDeriveKeyAlgorithm;
+    return new Uint8Array(await crypto.subtle.deriveBits(algorithm, privateKey, 256));
+};
+
+// The key and the nonce of the content (RFC 8291, section 3.4), from the secret both sides share
+const contentKeys = async (
+    shared: Uint8Array<ArrayBuffer>,
+    auth: Uint8Array<ArrayBuffer>,
+    uaPublic: Uint8Array<ArrayBuffer>,
+    asPublic: Uint8Array<ArrayBuffer>,
+    salt: Uint8Array<ArrayBuffer>
+) => {
+    const prkKey = await hmac(auth, shared);
+    const keyInfo = concat(
+        encoder.encode('WebPush: info'),
+        new Uint8Array([0]),
+        uaPublic,
+        asPublic,
+        new Uint8Array([1])
+    );
+    const prk = await hmac(salt, await hmac(prkKey, keyInfo));
+    return {
+        cek: (await hmac(prk, info('aes128gcm'))).slice(0, 16),
+        nonce: (await hmac(prk, info('nonce'))).slice(0, 12),
+    };
+};
+
 // The body of a push for one subscription, `aes128gcm` (RFC 8291): a key pair and a salt of its own each time, unless the
 // test of the RFC's example fixes them
 const encryptPayload = async (
@@ -58,23 +89,8 @@ const encryptPayload = async (
     const local = fixed?.localKeys ?? (await newLocalKeys());
     const uaPublic = fromBase64Url(target.p256dh);
     const asPublic = new Uint8Array((await crypto.subtle.exportKey('raw', local.publicKey)) as ArrayBuffer);
-    const uaKey = await crypto.subtle.importKey('raw', uaPublic, { name: 'ECDH', namedCurve: 'P-256' }, false, []);
-    // The types of the Workers call the key `$public`, which the runtime reads as `public`
-    const ecdh = { name: 'ECDH', public: uaKey } as unknown as SubtleCryptoDeriveKeyAlgorithm;
-    const shared = new Uint8Array(await crypto.subtle.deriveBits(ecdh, local.privateKey, 256));
-
-    const prkKey = await hmac(fromBase64Url(target.auth), shared);
-    const keyInfo = concat(
-        encoder.encode('WebPush: info'),
-        new Uint8Array([0]),
-        uaPublic,
-        asPublic,
-        new Uint8Array([1])
-    );
-    const ikm = await hmac(prkKey, keyInfo);
-    const prk = await hmac(salt, ikm);
-    const cek = (await hmac(prk, info('aes128gcm'))).slice(0, 16);
-    const nonce = (await hmac(prk, info('nonce'))).slice(0, 12);
+    const shared = await ecdhSecret(local.privateKey, uaPublic);
+    const { cek, nonce } = await contentKeys(shared, fromBase64Url(target.auth), uaPublic, asPublic, salt);
 
     const aes = await crypto.subtle.importKey('raw', cek, 'AES-GCM', false, ['encrypt']);
     const record = concat(plaintext, new Uint8Array([2]));
@@ -120,4 +136,4 @@ const sendPush = async (target: PushTarget, message: unknown, key: VapidKey, sub
     }
 };
 
-export { encryptPayload, sendPush, vapidAuthorization, type PushResult, type PushTarget };
+export { contentKeys, ecdhSecret, encryptPayload, sendPush, vapidAuthorization, type PushResult, type PushTarget };
