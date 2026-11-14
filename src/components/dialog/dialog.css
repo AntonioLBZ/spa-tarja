@@ -188,6 +188,11 @@
     }
 }
 
+/* What it holds stacks under the title row, whatever the layers of its fields */
+.dialog--page .dialog__body {
+    isolation: isolate;
+}
+
 /* Edge to edge over the padding of the page, so nothing scrolls past it at the sides */
 .dialog--page .dialog__head {
     background: var(--color-bg-secondary);

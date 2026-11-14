@@ -70,19 +70,6 @@ describe('header', () => {
         ).toBe(false);
     });
 
-    it('leaves what was typed in the form alone through Expenses and the logo', async () => {
-        await home();
-        const dialog = await openAddSheet();
-        fireEvent.change(within(dialog).getByLabelText(en.expenses.form.text), { target: { value: 'Lunch' } });
-        act(() => (dialog as HTMLDialogElement).close());
-
-        fireEvent.click(link(en.nav.expenses));
-        fireEvent.click(link('Tarja'));
-        const again = await openAddSheet();
-
-        expect((within(again).getByLabelText(en.expenses.form.text) as HTMLInputElement).value).toBe('Lunch');
-    });
-
     it('leads home from another screen with no form open, from Expenses and from the logo', async () => {
         await home('/summary');
 

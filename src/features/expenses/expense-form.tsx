@@ -57,8 +57,6 @@ interface ExpenseFormProps {
     onDone?: () => void;
     // Called once a new expense is saved, not an edit, with the day it was made
     onAdded?: (day: string) => void;
-    // Told whether a new expense holds a draft worth keeping: an amount or a description
-    onDraftChange?: (drafting: boolean) => void;
 }
 
 interface StartingFields {
@@ -144,7 +142,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         copyingEntry = null,
         onDone,
         onAdded,
-        onDraftChange,
     } = props;
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
@@ -187,12 +184,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const formRef = useRef<HTMLFormElement>(null);
     const [saving, setSaving] = useState(false);
     const [failure, setFailure] = useState<'saveFailed' | 'readOnly' | null>(null);
-
-    const drafting = source === null && entry === null && (amount.trim() !== '' || text.trim() !== '');
-    useEffect(() => {
-        onDraftChange?.(drafting);
-        return () => onDraftChange?.(false);
-    }, [drafting, onDraftChange]);
 
     const totalCents = parseAmount(amount, locale);
     const payment = usePayment(start, date);

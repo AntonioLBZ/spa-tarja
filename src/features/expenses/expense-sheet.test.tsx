@@ -85,7 +85,7 @@ describe('the sheet of the add form', () => {
         expect(within(dialog).getByRole('form', { name: en.expenses.form.title })).toBeDefined();
     });
 
-    it('keeps what was typed when it is closed and opened again', async () => {
+    it('drops what was typed when it is closed, and opens empty again', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
         const dialog = await openAddSheet();
@@ -95,20 +95,19 @@ describe('the sheet of the add form', () => {
         expect(screen.queryByRole('dialog')).toBeNull();
         const again = await openAddSheet();
 
-        expect(amountIn(again).value).toBe('12');
+        expect(amountIn(again).value).toBe('');
     });
 
-    it('closes on a tap outside, keeping what was typed', async () => {
+    it('stays open on a tap outside, so a stray tap loses nothing typed', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
         const dialog = await openAddSheet();
         fireEvent.change(amountIn(dialog), { target: { value: '12' } });
 
         tapOutside(dialog);
-        expect(screen.queryByRole('dialog')).toBeNull();
-        const again = await openAddSheet();
 
-        expect(amountIn(again).value).toBe('12');
+        expect(screen.getByRole('dialog', { name: en.expenses.form.title })).toBe(dialog);
+        expect(amountIn(dialog).value).toBe('12');
     });
 
     it('closes after an expense is added, and the expense is in the list', async () => {

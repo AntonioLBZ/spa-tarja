@@ -13,8 +13,8 @@ import { useExpenseSheet } from './expense-sheet-state';
 
 import './expense-sheet.css';
 
-// The expense form in a sheet. It is built on the first "+" and stays in the page afterwards, so what was typed
-// survives closing it. Editing or duplicating an expense loads it into the same form, which a new key puts back to
+// The expense form in a sheet, built on the first "+". Every "+" starts a new, empty form, so closing it drops what
+// was typed (ADR-0026). Editing or duplicating an expense loads it into the same form, which a new key puts back to
 // adding once that is over.
 const ExpenseSheet = () => {
     const t = useTranslations('expenses.form');
@@ -24,7 +24,6 @@ const ExpenseSheet = () => {
         open,
         close,
         addKey,
-        markDraft,
         endAdd,
         editing,
         copying,
@@ -89,7 +88,8 @@ const ExpenseSheet = () => {
             variant={wide ? 'sheet' : 'page'}
             title={title}
             closeLabel={t('close')}
-            closeOnOutside={!isEdit && !isCopy}
+            // Closing drops what was typed, so a stray tap on the veil doesn't close it
+            closeOnOutside={false}
             initialFocus={() => (isEdit || isCopy ? null : (body.current?.querySelector('input') ?? null))}
             onClose={() => {
                 if (open) close();
@@ -123,7 +123,6 @@ const ExpenseSheet = () => {
                     copyingEntry={copyingEntry?.entry ?? null}
                     onDone={handleDone}
                     onAdded={handleAdded}
-                    onDraftChange={markDraft}
                 />
             </div>
         </Dialog>

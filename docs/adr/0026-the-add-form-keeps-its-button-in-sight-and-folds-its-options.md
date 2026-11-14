@@ -17,7 +17,9 @@ Confirmed by the owner:
 - **More options.** Amount, Description, Category and For are always shown, and so is With for a shared expense. Who paid, how it is split and who is in fold under a `Disclosure` "Split" whose toggle says them while it is closed ("Paid by you · equally among 3 people"); it opens to change them, and on Add when something in it is to fix. A share by percent ends with "%" in its box. The day, how it is paid (its charge date and your part) and the installments (and their parts), or, shared, the day and How you paid, go under a `Disclosure` "More options" at the end of the form, kept in the page while closed. Its toggle says what they hold while it is closed (the day and the payment), so nothing is saved that the person can't see. It starts open when an edit or a duplicate holds something other than what a new expense starts with (another day, a card, a plan), and it closes again once a new expense is added.
 - **Add is never off.** Pressing it checks the form: every problem is marked on its own field, with its message, and the focus goes to the first one (opening More options first when it is there). A problem that was only a quiet line while typing (what is left to assign, a payer who is gone) is said as an error once Add has been pressed, until the form is saved. A marked field clears as it is corrected. A second press while saving is ignored, without dimming the button.
 
-This refines ADR-0016, which put the form's actions at its end and kept Add off until the expense could be saved.
+- **Closing drops what was typed.** Closing the form (the way back, the ×, Escape, the back button of a phone) throws away the expense being added, and every "+" starts a new, empty form, so what is on the screen after a "+" is never a leftover. Since closing now loses something, a tap outside the floating dialog no longer closes the add form, as it doesn't close Edit and Duplicate.
+
+This refines ADR-0016, which put the form's actions at its end, kept Add off until the expense could be saved and kept a draft through closing, and ADR-0024, which let a tap outside close the add form.
 
 ## Consequences
 
@@ -27,6 +29,8 @@ This refines ADR-0016, which put the form's actions at its end and kept Add off 
 - No server, migration, API, outbox or sync change.
 
 ## Alternatives considered
+
+- Keeping the draft through closing, as before: the next "+" could open on a half typed expense the person had given up on.
 
 - Fields two to a row (Amount with Date, Description with Category): shorter, but cramped at 320 px, and the payment and installments still push Add down.
 - Only the button stuck to the foot: the button is in sight, but the form stays as long.

@@ -98,7 +98,7 @@ describe('the plus inside a group', () => {
         expect(forChoice(form.forMe).checked).toBe(true);
     });
 
-    it('keeps a draft typed elsewhere, as it was', async () => {
+    it('drops a draft typed elsewhere once closed, and starts in the group of the screen', async () => {
         const group = trip();
         await open('/', [group]);
         const dialog = await openAddSheet();
@@ -108,8 +108,9 @@ describe('the plus inside a group', () => {
         await goToGroup('Trip');
         const again = await openAddSheet();
 
-        expect((within(again).getByLabelText(form.amount) as HTMLInputElement).value).toBe('12');
-        expect(forChoice(form.forMe).checked).toBe(true);
+        expect((within(again).getByLabelText(form.amount) as HTMLInputElement).value).toBe('');
+        expect(forChoice(form.forShared).checked).toBe(true);
+        expect(chosenOption(share.with)).toBe('Trip');
     });
 
     it('takes the group of the screen it is opened from while nothing is typed', async () => {
