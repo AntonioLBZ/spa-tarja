@@ -31,6 +31,8 @@ interface PersonalStart {
 interface PersonalTailProps {
     tail: PersonalTailState;
     payment: PaymentState;
+    // Add was pressed: what is left of the plan is said as an error
+    tried?: boolean;
 }
 
 type PersonalTailState = ReturnType<typeof usePersonalTail>;
@@ -81,6 +83,8 @@ const usePersonalTail = (start: PersonalStart, totalCents: number | null, date: 
                   ? 'remaining'
                   : null;
 
+    const personalBad = personalText !== '' && personalCents === null;
+
     return {
         personal,
         personalCents,
@@ -95,6 +99,8 @@ const usePersonalTail = (start: PersonalStart, totalCents: number | null, date: 
         partCents,
         balance,
         partsProblem,
+        // Something to fix in what the form folds under More options
+        optionsProblem: partsProblem !== null || personalOver || personalBad,
         typePersonal: (value: string) => {
             setPersonal(value);
             setPersonalInvalid(false);
@@ -110,7 +116,7 @@ const usePersonalTail = (start: PersonalStart, totalCents: number | null, date: 
         // Whether it can be saved; a part of yours that isn't an amount is marked
         check: (): boolean => {
             if (partsProblem !== null) return false;
-            if (personalText !== '' && personalCents === null) {
+            if (personalBad) {
                 setPersonalInvalid(true);
                 return false;
             }
@@ -130,12 +136,14 @@ const usePersonalTail = (start: PersonalStart, totalCents: number | null, date: 
 };
 
 const PersonalTail = (props: PersonalTailProps) => {
-    const { tail, payment } = props;
+    const { tail, payment, tried = false } = props;
     const t = useTranslations('expenses.form');
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const id = useId();
     const { parts, partsProblem, balance } = tail;
+    // Once Add was pressed, parts that don't add up are each marked, as what is left is an error then
+    const sumBad = tried && (partsProblem === 'over' || partsProblem === 'remaining');
 
     return (
         <>
@@ -191,13 +199,13 @@ const PersonalTail = (props: PersonalTailProps) => {
                     <Field
                         key={tail.planDates[index]}
                         label={t('part', { part: index + 1, parts, date: shortDate(tail.planDates[index]!) })}
-                        describedBy={partsProblem === 'invalid' ? `${id}-parts-error` : undefined}
+                        describedBy={partsProblem === 'invalid' || sumBad ? `${id}-parts-error` : undefined}
                     >
                         {(control) => (
                             <input
                                 {...control}
                                 // The one message under the parts speaks for all of them
-                                aria-invalid={tail.partCents[index] === null || tail.partCents[index]! < 1}
+                                aria-invalid={sumBad || tail.partCents[index] === null || tail.partCents[index]! < 1}
                                 autoComplete="off"
                                 inputMode="decimal"
                                 required
@@ -215,11 +223,16 @@ const PersonalTail = (props: PersonalTailProps) => {
                 </Notice>
             )}
             {partsProblem === 'over' && (
-                <Notice tone="danger" role="alert">
+                <Notice tone="danger" role="alert" id={sumBad ? `${id}-parts-error` : undefined}>
                     {t('over', { amount: formatAmount(-balance, DEFAULT_CURRENCY, locale) })}
                 </Notice>
             )}
-            {partsProblem === 'remaining' && (
+            {partsProblem === 'remaining' && tried && (
+                <Notice tone="danger" role="alert" id={`${id}-parts-error`}>
+                    {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
+                </Notice>
+            )}
+            {partsProblem === 'remaining' && !tried && (
                 <p className="field__hint" role="status">
                     {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
                 </p>

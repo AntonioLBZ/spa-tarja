@@ -85,7 +85,7 @@ describe('the sheet of the add form', () => {
         expect(within(dialog).getByRole('form', { name: en.expenses.form.title })).toBeDefined();
     });
 
-    it('keeps what was typed when it is closed and opened again', async () => {
+    it('drops what was typed when it is closed, and opens empty again', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
         const dialog = await openAddSheet();
@@ -95,20 +95,19 @@ describe('the sheet of the add form', () => {
         expect(screen.queryByRole('dialog')).toBeNull();
         const again = await openAddSheet();
 
-        expect(amountIn(again).value).toBe('12');
+        expect(amountIn(again).value).toBe('');
     });
 
-    it('closes on a tap outside, keeping what was typed', async () => {
+    it('stays open on a tap outside, so a stray tap loses nothing typed', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
         const dialog = await openAddSheet();
         fireEvent.change(amountIn(dialog), { target: { value: '12' } });
 
         tapOutside(dialog);
-        expect(screen.queryByRole('dialog')).toBeNull();
-        const again = await openAddSheet();
 
-        expect(amountIn(again).value).toBe('12');
+        expect(screen.getByRole('dialog', { name: en.expenses.form.title })).toBe(dialog);
+        expect(amountIn(dialog).value).toBe('12');
     });
 
     it('closes after an expense is added, and the expense is in the list', async () => {
@@ -290,5 +289,67 @@ describe('the way to the sheet', () => {
         const dialog = await openAddSheet();
 
         expect(amountIn(dialog)).toBeDefined();
+    });
+});
+
+describe('the add form on a phone', () => {
+    const lunch = expense();
+
+    it('takes the whole screen, with the way back first in its title row and Add at its end', async () => {
+        stubViewport(false);
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        const dialog = await openAddSheet();
+
+        expect(dialog.classList.contains('dialog--page')).toBe(true);
+        const head = dialog.querySelector<HTMLElement>('.dialog__head')!;
+        expect(
+            within(head)
+                .getAllByRole('button')
+                .map((button) => button.getAttribute('aria-label') ?? button.textContent)
+        ).toEqual([en.expenses.form.close, en.expenses.form.submit]);
+        expect(dialog.querySelector('.dialog__actions')).toBeNull();
+    });
+
+    it('adds the expense from the button of the title row', async () => {
+        stubViewport(false);
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+
+        await add('5', 'Coffee');
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        expect(await screen.findByText('Coffee')).toBeDefined();
+    });
+
+    it('ends an edit with the way back, as Cancel does, with no Cancel of its own', async () => {
+        stubViewport(false);
+        stubApi(createFakeApi({ expenses: [lunch] }).handler);
+        renderApp();
+        await screen.findByText('Lunch');
+        openRow('Lunch');
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.list.editItem', { name: 'Lunch' }) }));
+        const dialog = await screen.findByRole('dialog', { name: en.expenses.form.editTitle });
+
+        expect(within(dialog).queryByRole('button', { name: en.expenses.form.cancel })).toBeNull();
+        expect(within(dialog).getByRole('button', { name: en.expenses.form.save })).toBeDefined();
+        fireEvent.click(within(dialog).getByRole('button', { name: en.expenses.form.close }));
+
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(document.activeElement).toBe(screen.getByText('Lunch').closest('button'));
+    });
+
+    it('is the floating dialog from 40 rem, with Add at its foot', async () => {
+        stubViewport(true);
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        const dialog = await openAddSheet();
+
+        expect(dialog.classList.contains('dialog--sheet')).toBe(true);
+        const foot = dialog.querySelector<HTMLElement>('.dialog__actions')!;
+        expect(within(foot).getByRole('button', { name: en.expenses.form.submit })).toBeDefined();
     });
 });

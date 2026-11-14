@@ -2,14 +2,3 @@
     display: grid;
     gap: var(--size-4);
 }
-
-/* The main action keeps the width of the form; Cancel, while editing, sits beside it */
-.expense-form__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
-.expense-form__submit {
-    flex: 1;
-}

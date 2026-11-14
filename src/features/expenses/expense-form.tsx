@@ -1,15 +1,15 @@
-import { useEffect, useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { useBudgetWarning } from '@/features/budgets/use-budget-warning';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords } from '@/features/groups/group-failure';
-import { SharedTail, useSharedTail } from '@/features/groups/shared-tail';
+import { SharedPayment, SharedTail, useSharedTail } from '@/features/groups/shared-tail';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
 import { useUser } from '@/lib/auth';
@@ -25,6 +25,7 @@ import { createExpenses, draftOf, reviseExpenses, type Draft } from './create-ex
 import { usePayment } from './payment-fields';
 import { PersonalTail, usePersonalTail, type TypedParts } from './personal-tail';
 import { useSaveExpense } from './use-save-expense';
+import { useShortDate } from './use-short-date';
 import { useSuggestCategory } from './use-suggest-category';
 
 import type { Expense } from '@core/expense';
@@ -37,6 +38,8 @@ import './expense-form.css';
 type ForWhom = 'me' | 'shared';
 
 interface ExpenseFormProps {
+    // The id of the form, which the button that sends it names from the foot of the sheet around it
+    id: string;
     // Its name, which the sheet around it (ExpenseSheet) shows too
     title: string;
     // The group of the screen the form is on, where the expense is shared with nothing to choose
@@ -54,8 +57,6 @@ interface ExpenseFormProps {
     onDone?: () => void;
     // Called once a new expense is saved, not an edit, with the day it was made
     onAdded?: (day: string) => void;
-    // Told whether a new expense holds a draft worth keeping: an amount or a description
-    onDraftChange?: (drafting: boolean) => void;
 }
 
 interface StartingFields {
@@ -131,6 +132,7 @@ const entryFields = (group: SharedGroup, entry: SharedExpenseEntry, locale: stri
 // typed in it while the form is open, so switching back and forth loses nothing.
 const ExpenseForm = (props: ExpenseFormProps) => {
     const {
+        id: formId,
         title,
         group,
         startGroup,
@@ -140,10 +142,11 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         copyingEntry = null,
         onDone,
         onAdded,
-        onDraftChange,
     } = props;
     const t = useTranslations('expenses.form');
+    const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
+    const shortDate = useShortDate();
     const user = useUser();
     const save = useSaveExpense();
     const { save: saveEntry } = useEntryActions();
@@ -161,7 +164,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             ? entryFields(group, entry, locale, copyingEntry !== null)
             : startingFields(source && draftOf(source), locale, copying !== null)
     );
-    const isEdit = editing !== null || editingEntry !== null;
     const startFor: ForWhom = group || startGroup ? 'shared' : 'me';
     const suggest = useSuggestCategory(source === null && entry === null);
     const [amount, setAmount] = useState(start.amount);
@@ -170,14 +172,18 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const [date, setDate] = useState(start.date);
     const [forWhom, setForWhom] = useState<ForWhom>(startFor);
     const [amountInvalid, setAmountInvalid] = useState(false);
+    const [dateInvalid, setDateInvalid] = useState(false);
+    // Add was pressed with something to fix: what was a quiet line while typing is said as an error until it is saved
+    const [tried, setTried] = useState(false);
+    // Asks the first marked field for the focus once the marks are drawn
+    const [focusAsk, setFocusAsk] = useState(0);
+    // What a new expense starts with is folded; an edit or a copy that holds something else starts open (ADR-0026)
+    const [optionsOpen, setOptionsOpen] = useState(
+        () => start.date !== toDateString(new Date()) || start.payment !== 'direct' || start.installments > 1
+    );
+    const formRef = useRef<HTMLFormElement>(null);
     const [saving, setSaving] = useState(false);
     const [failure, setFailure] = useState<'saveFailed' | 'readOnly' | null>(null);
-
-    const drafting = source === null && entry === null && (amount.trim() !== '' || text.trim() !== '');
-    useEffect(() => {
-        onDraftChange?.(drafting);
-        return () => onDraftChange?.(false);
-    }, [drafting, onDraftChange]);
 
     const totalCents = parseAmount(amount, locale);
     const payment = usePayment(start, date);
@@ -201,7 +207,30 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const categoryId = pick ?? saved ?? suggestion;
     const shownCategory = offered(categoryId) ? categoryId : FALLBACK_CATEGORY_ID;
     const showSuggestion = start.categoryId === null && pick === null && suggestion !== FALLBACK_CATEGORY_ID;
-    const canSave = isShared ? shared.valid : personal.partsProblem === null;
+
+    // The first field marked, else the first message of a problem, comes into view with the focus when it can take it
+    useEffect(() => {
+        if (focusAsk === 0) return;
+        const form = formRef.current;
+        if (!form) return;
+        const marked = form.querySelector<HTMLElement>('[aria-invalid="true"]');
+        if (marked) {
+            marked.focus();
+            marked.scrollIntoView?.({ block: 'center' });
+            return;
+        }
+        form.querySelector<HTMLElement>('[role="alert"]')?.scrollIntoView?.({ block: 'center' });
+    }, [focusAsk]);
+
+    const today = toDateString(new Date());
+    const paymentWords = isShared && !shared.payerIsMe ? null : tPayment(payment.payment);
+    const optionsSummary = [
+        date === today ? t('today') : date ? shortDate(date) : null,
+        paymentWords,
+        !isShared && personal.parts > 1 ? t('installmentsOption', { count: personal.parts }) : null,
+    ]
+        .filter(Boolean)
+        .join(' · ');
 
     const resetForm = () => {
         setAmount('');
@@ -211,6 +240,8 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         personal.reset();
         shared.reset();
         setForWhom(startFor);
+        setTried(false);
+        setOptionsOpen(false);
     };
 
     const savePersonal = async (amountCents: number) => {
@@ -268,22 +299,26 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         event.preventDefault();
         if (saving) return;
 
+        // Every problem is marked at once, each on its own field
         const amountCents = totalCents;
-        if (amountCents === null || amountCents < 1) {
-            setAmountInvalid(true);
-            return;
-        }
-
-        if (isShared ? !shared.valid : !personal.check()) return;
-
+        const amountBad = amountCents === null || amountCents < 1;
+        const tailBad = isShared ? !shared.valid : !personal.check();
         const chargeDate = isShared ? shared.chargeDate : payment.chargeDate;
-        if (chargeDate !== null && chargeDate < date) {
-            payment.setChargeInvalid(true);
+        const dateBad = date === '';
+        const chargeBad = !dateBad && chargeDate !== null && chargeDate < date;
+        setAmountInvalid(amountBad);
+        setDateInvalid(dateBad);
+        payment.setChargeInvalid(chargeBad);
+        if (amountBad || dateBad || tailBad || chargeBad) {
+            const optionsBad = dateBad || chargeBad || (isShared ? shared.cardWithoutYou : personal.optionsProblem);
+            if (optionsBad) setOptionsOpen(true);
+            if (isShared && shared.splitProblem) shared.setSplitOpen(true);
+            setTried(true);
+            setFailure(null);
+            setFocusAsk((ask) => ask + 1);
             return;
         }
 
-        setAmountInvalid(false);
-        payment.setChargeInvalid(false);
         setFailure(null);
         setSaving(true);
         try {
@@ -293,16 +328,22 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         }
     };
 
-    // The sheet around it shows its title (ExpenseSheet)
+    // The sheet around it shows its title and the button that sends it (ExpenseSheet)
     return (
-        <form className="expense-form" aria-label={title} onSubmit={(event) => void handleSubmit(event)}>
+        <form
+            ref={formRef}
+            className="expense-form"
+            id={formId}
+            aria-label={title}
+            noValidate
+            onSubmit={(event) => void handleSubmit(event)}
+        >
             <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
                 {(control) => (
                     <input
                         {...control}
                         autoComplete="off"
                         inputMode="decimal"
-                        required
                         type="text"
                         value={amount}
                         onChange={(event) => {
@@ -335,21 +376,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 )}
             </Field>
 
-            <Field label={t('date')}>
-                {(control) => (
-                    <input
-                        {...control}
-                        required
-                        type="date"
-                        value={date}
-                        onChange={(event) => {
-                            setDate(event.target.value);
-                            payment.setChargeInvalid(false);
-                        }}
-                    />
-                )}
-            </Field>
-
             {/* An edit keeps an expense of one person as it is */}
             {!group && !editing && (
                 <ChoiceGroup
@@ -364,24 +390,43 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 />
             )}
 
-            {isShared ? (
-                <SharedTail tail={shared} payment={payment} fixed={group !== undefined} />
-            ) : (
-                <PersonalTail tail={personal} payment={payment} />
-            )}
+            {isShared && <SharedTail tail={shared} fixed={group !== undefined} tried={tried} />}
+
+            <Disclosure
+                chevron
+                keepMounted
+                open={optionsOpen}
+                summary={t('moreOptions')}
+                hint={optionsSummary || undefined}
+                onOpenChange={setOptionsOpen}
+            >
+                <Field label={t('date')} error={dateInvalid ? t('dateInvalid') : null}>
+                    {(control) => (
+                        <input
+                            {...control}
+                            type="date"
+                            value={date}
+                            onChange={(event) => {
+                                setDate(event.target.value);
+                                setDateInvalid(false);
+                                payment.setChargeInvalid(false);
+                            }}
+                        />
+                    )}
+                </Field>
+
+                {isShared ? (
+                    <SharedPayment tail={shared} payment={payment} />
+                ) : (
+                    <PersonalTail tail={personal} payment={payment} tried={tried} />
+                )}
+            </Disclosure>
 
             {failure && !amountInvalid && (
                 <Notice tone="danger" role="alert">
                     {failure === 'readOnly' ? failureWords('readOnly') : t('saveFailed')}
                 </Notice>
             )}
-
-            <div className="expense-form__actions">
-                <Button className="expense-form__submit" variant="primary" disabled={saving || !canSave} type="submit">
-                    {isEdit ? t('save') : t('submit')}
-                </Button>
-                {(source || entry) && <Button onClick={onDone}>{t('cancel')}</Button>}
-            </div>
         </form>
     );
 };

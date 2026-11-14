@@ -134,6 +134,115 @@
     }
 }
 
+/* The shadow they cast on what is under them (ADR-0018): full until the sheet is scrolled to its end. Where
+   scroll-driven animations are missing it stays invisible */
+.dialog--sheet .dialog__actions::after {
+    box-shadow: 0 calc(-1 * var(--size-1)) var(--size-3) var(--color-shadow);
+    content: '';
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+@keyframes dialog-actions-shadow {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+@supports (animation-timeline: scroll()) {
+    .dialog--sheet .dialog__actions::after {
+        animation: dialog-actions-shadow linear both;
+        animation-range: calc(100% - var(--size-6)) 100%;
+        animation-timeline: scroll(nearest block);
+    }
+}
+
+/* A page takes the whole screen of a phone and comes up from below. Its title row, with the way back at its start and
+   the main action at its end, stays stuck to the top while the form scrolls under it (ADR-0026) */
+.dialog--page {
+    --dialog-start: max(var(--size-4), env(safe-area-inset-left));
+    --dialog-end-inline: max(var(--size-4), env(safe-area-inset-right));
+
+    block-size: 100dvh;
+    border-width: 0;
+    inline-size: 100%;
+    margin: 0;
+    max-block-size: none;
+    max-inline-size: none;
+    overscroll-behavior: contain;
+    padding-block: 0 calc(var(--size-4) + env(safe-area-inset-bottom));
+    padding-inline: var(--dialog-start) var(--dialog-end-inline);
+    transform: translateY(100%);
+}
+
+.dialog--page[open] {
+    @starting-style {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+}
+
+/* What it holds stacks under the title row, whatever the layers of its fields */
+.dialog--page .dialog__body {
+    isolation: isolate;
+}
+
+/* Edge to edge over the padding of the page, so nothing scrolls past it at the sides */
+.dialog--page .dialog__head {
+    background: var(--color-bg-secondary);
+    inset-block-start: 0;
+    margin-inline: calc(-1 * var(--dialog-start)) calc(-1 * var(--dialog-end-inline));
+    min-block-size: calc(var(--size-touch) + 2 * var(--size-2) + env(safe-area-inset-top));
+    padding-block: calc(var(--size-2) + env(safe-area-inset-top)) var(--size-2);
+    padding-inline: var(--dialog-start) var(--dialog-end-inline);
+    position: sticky;
+    z-index: 1;
+}
+
+.dialog--page .dialog__title {
+    flex: 1;
+    min-inline-size: 0;
+}
+
+.dialog__close--back {
+    justify-content: flex-start;
+}
+
+/* The shadow the title row casts on what is scrolled under it (ADR-0018): nothing at the top, full after a short scroll.
+   Where scroll-driven animations are missing it stays invisible */
+.dialog--page .dialog__head::after {
+    box-shadow: var(--shadow-popup);
+    content: '';
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+}
+
+@keyframes dialog-head-shadow {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@supports (animation-timeline: scroll()) {
+    .dialog--page .dialog__head::after {
+        animation: dialog-head-shadow linear both;
+        animation-range: 0 var(--size-6);
+        animation-timeline: scroll(nearest block);
+    }
+}
+
 /* A phone would scroll the page behind a modal, which the browser only makes inert */
 :root:has(dialog[open]) {
     overflow: hidden;
@@ -158,6 +267,33 @@
             opacity: 0;
             transform: translateY(var(--size-2));
         }
+    }
+
+    .dialog--page {
+        --dialog-start: var(--size-4);
+        --dialog-end-inline: var(--size-4);
+
+        block-size: auto;
+        border-width: 0 0 var(--size-1) var(--size-1);
+        inline-size: calc(100% - var(--size-8));
+        margin: auto;
+        max-block-size: calc(100dvh - var(--size-8));
+        max-inline-size: 32rem;
+        padding: 0 var(--size-4) var(--size-4);
+        transform: translateY(var(--size-2));
+    }
+
+    .dialog--page[open] {
+        @starting-style {
+            opacity: 0;
+            transform: translateY(var(--size-2));
+        }
+    }
+
+    .dialog--page .dialog__head {
+        min-block-size: auto;
+        padding-block: var(--size-4) var(--size-2);
+        padding-inline: var(--size-4);
     }
 
     :root:has(dialog[open]) {

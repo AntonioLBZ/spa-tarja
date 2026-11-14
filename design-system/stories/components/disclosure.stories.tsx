@@ -20,6 +20,7 @@ const Story: Meta<DisclosureProps> = {
         defaultOpen: { control: false },
         heading: { control: 'inline-radio', options: [undefined, 'h2', 'h3'] },
         summary: { control: 'text' },
+        hint: { control: 'text' },
     },
 };
 

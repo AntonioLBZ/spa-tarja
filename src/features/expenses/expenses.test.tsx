@@ -282,6 +282,86 @@ describe('expense form', () => {
         expect(amount.getAttribute('aria-invalid')).toBe('true');
         expect(field(en.expenses.form.text).hasAttribute('aria-describedby')).toBe(false);
     });
+
+    it('keeps Add on with nothing typed, and marks the amount with the focus on it when it is pressed', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        ensureAddSheet();
+        const add = screen.getByRole('button', { name: en.expenses.form.submit }) as HTMLButtonElement;
+
+        expect(add.disabled).toBe(false);
+        fireEvent.click(add);
+
+        const amount = field(en.expenses.form.amount);
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.amountInvalid);
+        expect(amount.getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(amount);
+        expect(api.writes).toHaveLength(0);
+
+        fireEvent.change(amount, { target: { value: '5' } });
+        expect(amount.getAttribute('aria-invalid')).toBe('false');
+        expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it('folds the day and the payment under More options, saying what they hold while it is closed', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        ensureAddSheet();
+
+        const toggle = screen.getByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) });
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(toggle.textContent).toBe(
+            `${en.expenses.form.moreOptions}${en.expenses.form.today} · ${en.expenses.payment.direct}`
+        );
+        expect(screen.queryByRole('combobox', { name: en.expenses.form.payment })).toBeNull();
+
+        fireEvent.click(toggle);
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(toggle.textContent).toBe(en.expenses.form.moreOptions);
+        expect(screen.getByRole('combobox', { name: en.expenses.form.payment })).toBeDefined();
+    });
+
+    it('opens More options when what is to fix is there, with the focus on it', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        fireEvent.change(field(en.expenses.form.amount), { target: { value: '5' } });
+        fireEvent.change(field(en.expenses.form.date), { target: { value: '' } });
+        const toggle = screen.getByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) });
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.form.submit }));
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.dateInvalid);
+        expect(document.activeElement).toBe(field(en.expenses.form.date));
+        expect(api.writes).toHaveLength(0);
+    });
+
+    it('folds More options again once an expense is added', async () => {
+        const api = createFakeApi();
+        stubApi(api.handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+        pickPayment('credit');
+        const toggle = screen.getByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) });
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+        fillAndSubmit({ amount: '5', text: 'Lunch' });
+
+        await waitFor(() => expect(api.writes).toHaveLength(1));
+        ensureAddSheet();
+        expect(
+            screen
+                .getByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) })
+                .getAttribute('aria-expanded')
+        ).toBe('false');
+    });
 });
 
 describe('deferred expenses', () => {
@@ -724,12 +804,15 @@ describe('installments', () => {
 
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
 
-        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' }))).toBeDefined();
-        expect(submit().disabled).toBe(true);
-        fireEvent.submit(submit().closest('form')!);
+        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' })).getAttribute('role')).toBe('status');
+        expect(submit().disabled).toBe(false);
+        fireEvent.click(submit());
         await new Promise((resolve) => setTimeout(resolve, 20));
         expect(api.writes).toHaveLength(0);
-        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' }))).toBeDefined();
+        expect(screen.getByRole('alert').textContent).toBe(t('expenses.form.remaining', { amount: '€1.00' }));
+        expect(partField(1, 3, DAYS[0]!).getAttribute('aria-invalid')).toBe('true');
+        expect(partField(3, 3, DAYS[2]!).getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(partField(1, 3, DAYS[0]!));
     });
 
     it('refuse parts that go over the total', async () => {
@@ -740,8 +823,10 @@ describe('installments', () => {
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '6' } });
 
         expect((await screen.findByRole('alert')).textContent).toBe(t('expenses.form.over', { amount: '€1.00' }));
-        expect(submit().disabled).toBe(true);
+        fireEvent.click(submit());
+        await new Promise((resolve) => setTimeout(resolve, 20));
         expect(api.writes).toHaveLength(0);
+        expect(document.activeElement).toBe(partField(1, 3, DAYS[0]!));
     });
 
     it('refuse a part that is not an amount above zero', async () => {
@@ -754,21 +839,26 @@ describe('installments', () => {
 
         expect((await screen.findByRole('alert')).textContent).toBe(en.expenses.form.partInvalid);
         expect(partField(2, 2, DAYS[1]!).getAttribute('aria-invalid')).toBe('true');
-        expect(submit().disabled).toBe(true);
+        fireEvent.click(submit());
+        await new Promise((resolve) => setTimeout(resolve, 20));
         expect(api.writes).toHaveLength(0);
+        expect(document.activeElement).toBe(partField(2, 2, DAYS[1]!));
     });
 
     it('add up again once the parts are fixed', async () => {
-        await open();
+        const api = await open();
         typeAmount('15');
         pickInstallments(3);
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
-        expect(submit().disabled).toBe(true);
+        fireEvent.click(submit());
+        expect(screen.getByRole('alert').textContent).toBe(t('expenses.form.remaining', { amount: '€1.00' }));
 
         fireEvent.change(partField(2, 3, DAYS[1]!), { target: { value: '6' } });
 
-        expect(submit().disabled).toBe(false);
         expect(screen.queryByText(/Remaining/)).toBeNull();
+        expect(partField(1, 3, DAYS[0]!).getAttribute('aria-invalid')).toBe('false');
+        fireEvent.click(submit());
+        await waitFor(() => expect(api.writes).toHaveLength(3));
     });
 
     it('are saved as one expense for each part, linked as a plan, each counting in its own month', async () => {
@@ -1966,6 +2056,22 @@ describe('editing an expense', () => {
         ]);
         expect(editButton('Lunch').textContent).toBe(en.expenses.list.edit);
         expect(editButton('Lunch').disabled).toBe(false);
+    });
+
+    it('opens More options for an expense paid by card, and keeps it folded for one made today and paid now', async () => {
+        await open([
+            expense({ text: 'Cinema', amountCents: 900, date: TODAY }),
+            expense({ text: 'Shoes', amountCents: 6000, date: TODAY, payment: 'credit', chargeDate: '2026-11-25' }),
+        ]);
+        const toggle = () => screen.getByRole('button', { name: new RegExp(`^${en.expenses.form.moreOptions}`) });
+
+        edit('Cinema');
+        expect(toggle().getAttribute('aria-expanded')).toBe('false');
+        cancel();
+
+        edit('Shoes');
+        expect(toggle().getAttribute('aria-expanded')).toBe('true');
+        expect(chosenPayment()).toBe(en.expenses.payment.credit);
     });
 
     it('loads the expense into the form, under a title and buttons that say so', async () => {

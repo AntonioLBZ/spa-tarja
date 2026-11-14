@@ -160,29 +160,17 @@ describe('ExpenseSheetProvider', () => {
         expect(result.current.addKey).toBeGreaterThan(before);
     });
 
-    it('keeps the form on openAdd while it holds a draft', () => {
+    it('starts a new form on every openAdd, also after the sheet was closed', () => {
         const { result } = setup();
 
         act(() => result.current.openAdd());
-        act(() => result.current.markDraft(true));
-        const kept = result.current.addKey;
+        const first = result.current.addKey;
         act(() => result.current.close());
+        expect(result.current.open).toBe(false);
         act(() => result.current.openAdd());
 
-        expect(result.current.addKey).toBe(kept);
+        expect(result.current.addKey).toBeGreaterThan(first);
         expect(result.current.open).toBe(true);
-    });
-
-    it('starts a fresh form again once the draft is gone', () => {
-        const { result } = setup();
-
-        act(() => result.current.openAdd());
-        act(() => result.current.markDraft(true));
-        act(() => result.current.markDraft(false));
-        const before = result.current.addKey;
-        act(() => result.current.openAdd());
-
-        expect(result.current.addKey).toBeGreaterThan(before);
     });
 
     it('closes when an add is over, and the next one starts a new form', () => {

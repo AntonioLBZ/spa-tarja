@@ -23,7 +23,7 @@ interface EntryCopy extends EntrySource {
 
 interface ExpenseSheetState {
     open: boolean;
-    // Closes the sheet. An add keeps what was typed; an edit or a copy ends, as Cancel does.
+    // Closes the sheet, dropping what was typed (ADR-0026); an edit or a copy ends, as Cancel does.
     close: () => void;
     // Opens the sheet on a new expense. `group` is where a shared one starts, the open group of the screen.
     openAdd: (options?: { group?: SharedGroup | null }) => void;
@@ -31,10 +31,8 @@ interface ExpenseSheetState {
     startGroup: SharedGroup | null;
     // A new expense was saved: the sheet closes. The form has emptied itself, so the next "+" starts a new one.
     endAdd: () => void;
-    // Changes when the next add must start a new form rather than keep the one in the page
+    // Changes on every add, which starts a new, empty form
     addKey: number;
-    // The form tells whether it holds a draft worth keeping
-    markDraft: (drafting: boolean) => void;
     // The expense, or every part of its plan, that the form is editing; null while it adds a new one
     editing: readonly Expense[] | null;
     // Loads the expense into the form and opens the sheet
@@ -84,7 +82,6 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
     const [editingEntry, setEditingEntry] = useState<EntrySource | null>(null);
     const [copyingEntry, setCopyingEntry] = useState<EntryCopy | null>(null);
     const copies = useRef(0);
-    const drafting = useRef(false);
     const [refocus, setRefocus] = useState<string | null>(null);
     const [added, setAdded] = useState<{ day: string } | null>(null);
 
@@ -128,15 +125,12 @@ const ExpenseSheetProvider = (props: ExpenseSheetProviderProps) => {
             openAdd: (options) => {
                 clear();
                 setStartGroup(options?.group ?? null);
-                if (!drafting.current) setAddKey((key) => key + 1);
+                setAddKey((key) => key + 1);
                 setOpen(true);
             },
             startGroup,
             endAdd: () => setOpen(false),
             addKey,
-            markDraft: (isDrafting: boolean) => {
-                drafting.current = isDrafting;
-            },
             editing,
             startEdit: (parts: readonly Expense[]) => {
                 clear();

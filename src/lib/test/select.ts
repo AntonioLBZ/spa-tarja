@@ -1,14 +1,20 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 
-import { ensureAddSheet } from './sheet';
+import { ensureAddSheet, openMoreOptions, openSplit } from './sheet';
 
 // Drives a select the way a person does, by the label of its field
 
-// A select that is not in the page is one of the add form, which the "+" opens
+// A select that is not in the page is one of the add form, which the "+" opens, maybe folded under More options
 const trigger = (label: string): HTMLElement => {
     const found = screen.queryByRole('combobox', { name: label });
     if (found) return found;
     ensureAddSheet();
+    const inForm = screen.queryByRole('combobox', { name: label });
+    if (inForm) return inForm;
+    openSplit();
+    const inSplit = screen.queryByRole('combobox', { name: label });
+    if (inSplit) return inSplit;
+    openMoreOptions();
     return screen.getByRole('combobox', { name: label });
 };
 

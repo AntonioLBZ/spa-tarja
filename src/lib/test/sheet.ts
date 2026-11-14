@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { expect } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import es from '@/assets/locales/es.json';
 
 // The "+" is in the bar or in the header, never inside a screen
 const isPlus = (button: HTMLElement) => button.closest('main') === null;
@@ -21,10 +22,26 @@ const ensureAddSheet = (): HTMLElement => {
     return screen.getByRole('dialog', { name: en.expenses.form.title });
 };
 
+// Opens More options of the add form when it is folded, for a test about what it holds
+const openMoreOptions = (): void => {
+    const toggle = screen.queryByRole('button', {
+        name: new RegExp(`^(${en.expenses.form.moreOptions}|${es.expenses.form.moreOptions})`),
+    });
+    if (toggle?.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+
+// Opens the split of a shared expense when it is folded, for a test about who paid and who is in
+const openSplit = (): void => {
+    const toggle = screen.queryByRole('button', {
+        name: new RegExp(`^(${en.groups.share.split}|${es.groups.share.split})`),
+    });
+    if (toggle?.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+};
+
 // Presses Close on the sheet that is open: the page behind it answers nothing until then
 const closeSheet = async () => {
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: en.expenses.form.close }));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
 };
 
-export { closeSheet, ensureAddSheet, openAddSheet };
+export { closeSheet, ensureAddSheet, openAddSheet, openMoreOptions, openSplit };

@@ -11,7 +11,7 @@ import { seedFavouring } from '@/lib/test/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { closeSheet, openAddSheet } from '@/lib/test/sheet';
+import { closeSheet, openAddSheet, openSplit } from '@/lib/test/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/test/fake-groups';
@@ -77,6 +77,7 @@ function field(label: string) {
 }
 
 function people() {
+    openSplit();
     return screen.getByRole('group', { name: share.people });
 }
 
@@ -114,7 +115,7 @@ describe('editing a shared expense', () => {
         expect(field(form.date).value).toBe('2026-10-20');
         expect(chosenOption(form.category)).toBe(en.categories.food);
         expect(chosenOption(share.paidBy)).toBe('Bea');
-        expect((screen.getByRole('radio', { name: share.modes.percent }) as HTMLInputElement).checked).toBe(true);
+        expect(screen.getByRole('button', { name: share.modes.percent }).getAttribute('aria-pressed')).toBe('true');
         expect(shareValues()).toEqual(['33.30', '33.30', '33.40']);
         expect(screen.getByRole('button', { name: form.save })).toBeDefined();
         expect(screen.getByRole('button', { name: form.cancel })).toBeDefined();
@@ -445,12 +446,18 @@ describe('duplicating a shared expense', () => {
         expect(optionNames(share.paidBy)).toEqual([share.paidByNone, you, 'Bea']);
         expect(screen.getByText(share.payerLeft)).toBeDefined();
         const submit = screen.getByRole('button', { name: form.submit }) as HTMLButtonElement;
-        expect(submit.disabled).toBe(true);
+        expect(submit.disabled).toBe(false);
+        fireEvent.click(submit);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(api.entryWrites).toHaveLength(0);
+        const paidBy = screen.getByRole('combobox', { name: share.paidBy });
+        expect(screen.getByRole('alert').textContent).toBe(share.payerLeft);
+        expect(paidBy.getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(paidBy);
 
         pickOption(share.paidBy, 'Bea');
 
         expect(screen.queryByText(share.payerLeft)).toBeNull();
-        expect(submit.disabled).toBe(false);
         fireEvent.click(submit);
         await waitFor(() => expect(api.entryWrites).toHaveLength(1));
         expect(api.entryWrites[0]).toMatchObject({ paidBy: bea.id, payment: 'direct' });
@@ -599,7 +606,7 @@ describe('the group screen without a form of its own', () => {
         expect((within(dialog).getByLabelText(form.amount) as HTMLInputElement).value).toBe('10.00');
         expect(within(dialog).queryByRole('radio', { name: form.forShared })).toBeNull();
         expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
-        expect(within(dialog).getByRole('group', { name: share.people })).toBeDefined();
+        expect(within(dialog).getByRole('button', { name: new RegExp(`^${share.split}`) })).toBeDefined();
     });
 
     it('opens the sheet to duplicate an entry as a new one of the same group', async () => {

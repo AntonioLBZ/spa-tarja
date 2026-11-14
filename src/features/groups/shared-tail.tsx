@@ -1,8 +1,9 @@
 import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Button } from '@/components/button/button';
 import { Checkbox } from '@/components/checkbox/checkbox';
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
@@ -81,13 +82,19 @@ interface SharedHead {
 
 interface SharedTailProps {
     tail: SharedTailState;
-    payment: PaymentState;
     // On the screen of a group, the one it is shared in, with nothing to choose
     fixed: boolean;
+    // Add was pressed: what is left to assign and a payer who is gone are said as errors
+    tried?: boolean;
 }
 
 interface SharedPeopleProps {
     group: SharedGroup;
+    tail: SharedTailState;
+    tried: boolean;
+}
+
+interface SharedPaymentProps {
     tail: SharedTailState;
     payment: PaymentState;
 }
@@ -196,12 +203,19 @@ const useSharedTail = (
 ) => {
     const { groups } = useGroups();
     const { locale } = useLocale();
-    const [draft, setDraft] = useState<SharedDraft>(() =>
+    const [initial] = useState<SharedDraft>(() =>
         fixed && source
             ? draftOfEntry(fixed, source.entry, source.copy, locale)
             : startGroupId
               ? { ...START, groupId: startGroupId }
               : START
+    );
+    const [draft, setDraft] = useState<SharedDraft>(initial);
+    // Who paid and how it is split fold under a summary; they start open on a payer who is gone, to be chosen
+    const [splitOpen, setSplitOpen] = useState(
+        () =>
+            initial.paidBy !== null &&
+            !(fixed?.members.some((member) => member.id === initial.paidBy && member.leftAt === null) ?? false)
     );
     // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
     const [seed, setSeed] = useState(randomSeed);
@@ -290,6 +304,11 @@ const useSharedTail = (
         mode: draft.mode,
         problem,
         valid,
+        inCount: inIds.length,
+        splitOpen,
+        setSplitOpen,
+        // Something to fix in what folds under the split
+        splitProblem: payer === null || problem !== null || cardWithoutYou,
         // The day the payer's card charges it; only the payer says how they paid
         chargeDate: payerIsMe ? payment.chargeDate : null,
         pickGroup: (groupId: string) => setDraft({ ...START, mode: draft.mode, groupId }),
@@ -336,18 +355,23 @@ const useSharedTail = (
         reset: () => {
             setDraft({ ...START, groupId: group?.id ?? null });
             setSeed(randomSeed());
+            setSplitOpen(false);
         },
     };
 };
 
 const SharedTail = (props: SharedTailProps) => {
-    const { tail, payment, fixed } = props;
+    const { tail, fixed, tried = false } = props;
     const t = useTranslations('groups');
     const { group } = tail;
     const options = useGroupOptions(tail.choices);
 
     if (tail.choices.length === 0) {
-        return <Notice tone="quiet">{t('share.none')}</Notice>;
+        return (
+            <Notice tone={tried ? 'danger' : 'quiet'} role={tried ? 'alert' : undefined}>
+                {t('share.none')}
+            </Notice>
+        );
     }
 
     return (
@@ -359,22 +383,51 @@ const SharedTail = (props: SharedTailProps) => {
                     )}
                 </Field>
             )}
-            {group && <SharedPeople group={group} tail={tail} payment={payment} />}
+            {group && <SharedSplit group={group} tail={tail} tried={tried} />}
         </>
+    );
+};
+
+// Who paid and how it is split: a line that says both, and under it the toggle that opens them to change
+const SharedSplit = (props: SharedPeopleProps) => {
+    const { group, tail, tried } = props;
+    const t = useTranslations('groups.share');
+    const words = useGroupWords(group);
+    const payer =
+        tail.payer === null
+            ? t('paidByNone')
+            : tail.payerIsMe
+              ? t('summary.youPaid')
+              : t('summary.paid', { name: words.nameOf(tail.payer) });
+    const split = t(`summary.${tail.mode}`, { count: tail.inCount });
+
+    return (
+        <div className="shared-split">
+            <p className="field__hint">{t('summary.line', { payer, split })}</p>
+            <Disclosure chevron open={tail.splitOpen} summary={t('split')} onOpenChange={tail.setSplitOpen} keepMounted>
+                <SharedPeople group={group} tail={tail} tried={tried} />
+            </Disclosure>
+        </div>
     );
 };
 
 // Who paid and who is in, with the share of each
 const SharedPeople = (props: SharedPeopleProps) => {
-    const { group, tail, payment } = props;
+    const { group, tail, tried } = props;
     const t = useTranslations('groups.share');
     const { locale } = useLocale();
     const words = useGroupWords(group);
     const id = useId();
     const { mode, problem } = tail;
     const byPercent = mode === 'percent';
+    // Once Add was pressed, shares that don't add up are each marked, as what is left is an error then
+    const sumBad = tried && problem?.kind === 'left';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
     const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
+    const currencySign =
+        new Intl.NumberFormat(locale, { style: 'currency', currency: group.currency })
+            .formatToParts(0)
+            .find((part) => part.type === 'currency')?.value ?? group.currency;
     const percent = (basisPoints: number) =>
         new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
             Math.abs(basisPoints) / HUNDRED_PERCENT
@@ -382,7 +435,11 @@ const SharedPeople = (props: SharedPeopleProps) => {
 
     return (
         <>
-            <Field label={t('paidBy')} hint={tail.payerGone ? t('payerLeft') : undefined}>
+            <Field
+                label={t('paidBy')}
+                hint={tail.payerGone && !tried ? t('payerLeft') : undefined}
+                error={tried && tail.payer === null ? t('payerLeft') : null}
+            >
                 {(control) => (
                     <Select
                         {...control}
@@ -398,16 +455,24 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 )}
             </Field>
 
-            <ChoiceGroup
-                legend={t('split')}
-                name={`${id}-split`}
-                options={SPLIT_MODES.map((value) => ({ value, label: t(`modes.${value}`) }))}
-                value={mode}
-                onChange={tail.pickMode}
-            />
-
             <fieldset className="shared-people">
                 <legend className="shared-people__legend">{t('people')}</legend>
+                {/* How it is split, by the sign of each mode, at the end of the row of the legend */}
+                <div className="shared-people__modes" role="group" aria-label={t('mode')}>
+                    {SPLIT_MODES.map((value) => (
+                        <Button
+                            key={value}
+                            ghost
+                            glyph
+                            className="shared-people__mode"
+                            aria-label={t(`modes.${value}`)}
+                            aria-pressed={mode === value}
+                            onClick={() => tail.pickMode(value)}
+                        >
+                            [{value === 'equal' ? '=' : value === 'percent' ? t('percentUnit') : currencySign}]
+                        </Button>
+                    ))}
+                </div>
                 <ul className="shared-people__list">
                     {tail.rows.map((row) => (
                         <li key={row.id} className="shared-people__row">
@@ -418,11 +483,13 @@ const SharedPeople = (props: SharedPeopleProps) => {
                             />
                             {row.cents !== null && <span>{money(row.cents)}</span>}
                             {row.text !== null && (
-                                <FieldBox>
+                                <FieldBox suffix={byPercent ? t('percentUnit') : undefined}>
                                     <input
                                         className="shared-people__input"
-                                        aria-describedby={row.invalid ? `${id}-invalid` : undefined}
-                                        aria-invalid={row.invalid}
+                                        aria-describedby={
+                                            row.invalid ? `${id}-invalid` : sumBad ? `${id}-left` : undefined
+                                        }
+                                        aria-invalid={row.invalid || sumBad}
                                         aria-label={t(byPercent ? 'percentOf' : 'amountOf', {
                                             name: words.nameInList(row.id),
                                         })}
@@ -449,7 +516,14 @@ const SharedPeople = (props: SharedPeopleProps) => {
                     {t(byPercent ? 'percentInvalid' : 'amountInvalid')}
                 </Notice>
             )}
-            {problem?.kind === 'left' && problem.left > 0 && (
+            {problem?.kind === 'left' && problem.left > 0 && tried && (
+                <Notice tone="danger" role="alert" id={`${id}-left`}>
+                    {byPercent
+                        ? t('percentLeft', { percent: percent(problem.left) })
+                        : t('unassigned', { amount: money(problem.left) })}
+                </Notice>
+            )}
+            {problem?.kind === 'left' && problem.left > 0 && !tried && (
                 <p className="field__hint" role="status">
                     {byPercent
                         ? t('percentLeft', { percent: percent(problem.left) })
@@ -457,23 +531,39 @@ const SharedPeople = (props: SharedPeopleProps) => {
                 </p>
             )}
             {problem?.kind === 'left' && problem.left < 0 && (
-                <Notice tone="danger" role="alert">
+                <Notice tone="danger" role="alert" id={`${id}-left`}>
                     {byPercent
                         ? t('percentOver', { percent: percent(problem.left) })
                         : t('over', { amount: money(problem.left) })}
                 </Notice>
             )}
-
-            {tail.payerIsMe && (
-                <PaymentFields
-                    label={t('howYouPaid')}
-                    hint={t('othersNow')}
-                    error={tail.cardWithoutYou ? t('cardNeedsYou') : null}
-                    state={payment}
-                />
-            )}
         </>
     );
 };
 
-export { SharedTail, useSharedTail, type EntrySource, type SharedTailProps, type SharedTailState };
+// How the person paid, only when they did; the form folds it under More options
+const SharedPayment = (props: SharedPaymentProps) => {
+    const { tail, payment } = props;
+    const t = useTranslations('groups.share');
+
+    if (!tail.group || !tail.payerIsMe) return null;
+
+    return (
+        <PaymentFields
+            label={t('howYouPaid')}
+            hint={t('othersNow')}
+            error={tail.cardWithoutYou ? t('cardNeedsYou') : null}
+            state={payment}
+        />
+    );
+};
+
+export {
+    SharedPayment,
+    SharedTail,
+    useSharedTail,
+    type EntrySource,
+    type SharedPaymentProps,
+    type SharedTailProps,
+    type SharedTailState,
+};

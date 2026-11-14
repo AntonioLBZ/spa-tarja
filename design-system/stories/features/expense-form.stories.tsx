@@ -1,3 +1,4 @@
+import { Button } from '@/components/button/button';
 import { ToastProvider } from '@/components/toast/toast';
 import { ExpenseForm as ExpenseFormComponent, type ExpenseFormProps } from '@/features/expenses/expense-form';
 import { fn } from 'storybook/test';
@@ -74,8 +75,9 @@ interface ExpenseFormStoryProps extends Omit<ExpenseFormProps, 'editing' | 'copy
 
 const Story: Meta<ExpenseFormStoryProps> = {
     title: 'Features/ExpenseForm',
-    args: { title: 'Add an expense', mode: 'adding', inGroup: false, onDone: fn(), onAdded: fn() },
+    args: { id: 'expense-form', title: 'Add an expense', mode: 'adding', inGroup: false, onDone: fn(), onAdded: fn() },
     argTypes: {
+        id: { control: false },
         title: { control: 'text' },
         mode: { control: 'inline-radio', options: ['adding', 'editing', 'copying'] },
         inGroup: { control: 'boolean' },
@@ -94,12 +96,18 @@ export const ExpenseForm = (args: ExpenseFormStoryProps) => {
                 api={{ categories: [...CUSTOM_CATEGORIES], expenses: [SAVED], groups: GROUPS }}
             >
                 {() => (
-                    <ExpenseFormComponent
-                        {...props}
-                        group={inGroup ? GROUPS[0] : undefined}
-                        editing={mode === 'editing' ? [SAVED] : undefined}
-                        copying={mode === 'copying' ? [SAVED] : undefined}
-                    />
+                    <>
+                        <ExpenseFormComponent
+                            {...props}
+                            group={inGroup ? GROUPS[0] : undefined}
+                            editing={mode === 'editing' ? [SAVED] : undefined}
+                            copying={mode === 'copying' ? [SAVED] : undefined}
+                        />
+                        {/* In the app the sheet around the form holds its button */}
+                        <Button variant="primary" form={props.id} type="submit">
+                            {mode === 'editing' ? 'Save' : 'Add'}
+                        </Button>
+                    </>
                 )}
             </AppData>
         </ToastProvider>

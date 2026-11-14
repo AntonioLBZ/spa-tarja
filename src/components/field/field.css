@@ -114,6 +114,22 @@
     z-index: 1;
 }
 
+/* Where the text ends: before the room of the suffix */
+.field__box--suffix :is(input, select) {
+    padding-inline-end: calc(var(--size-3) + 1.5ch);
+}
+
+/* At the end of the box, on the line of the text */
+.field__suffix {
+    align-items: center;
+    color: var(--color-content-secondary);
+    display: flex;
+    inset-block: var(--field-pad-top) var(--field-pad-bottom);
+    inset-inline-end: var(--size-3);
+    pointer-events: none;
+    position: absolute;
+}
+
 /* Up: small, at the top of the box, with the text under it */
 .field__label {
     color: var(--color-content-secondary);
