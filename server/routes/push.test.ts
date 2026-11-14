@@ -87,6 +87,29 @@ describe('PUT /api/push', () => {
         expect(await stored(ana.userId)).toHaveLength(1);
     });
 
+    it('leaves an address with its person when the caller sends other keys for it', async () => {
+        const sent = subscription();
+        await send(bruno, 'PUT', '/push', sent);
+
+        const taken = { ...sent, keys: { p256dh: 'C'.repeat(87), auth: 'D'.repeat(22) } };
+        expect((await send(ana, 'PUT', '/push', taken)).status).toBe(204);
+
+        expect(await stored(bruno.userId)).toHaveLength(1);
+        expect(await stored(ana.userId)).toEqual([]);
+    });
+
+    it('takes new keys for an address the caller holds already', async () => {
+        const sent = subscription();
+        await send(ana, 'PUT', '/push', sent);
+
+        await send(ana, 'PUT', '/push', { ...sent, keys: { p256dh: 'C'.repeat(87), auth: 'D'.repeat(22) } });
+
+        const { results } = await env.DB.prepare('SELECT auth FROM push_subscriptions WHERE endpoint = ?1')
+            .bind(sent.endpoint)
+            .all<{ auth: string }>();
+        expect(results).toEqual([{ auth: 'D'.repeat(22) }]);
+    });
+
     it(`keeps at most ${MAX_PUSH_SUBSCRIPTIONS}, dropping the one sent longest ago`, async () => {
         const sent = Array.from({ length: MAX_PUSH_SUBSCRIPTIONS + 1 }, () => subscription());
         for (const one of sent) await send(ana, 'PUT', '/push', one);

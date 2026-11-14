@@ -16,8 +16,8 @@ interface PushRow {
     locale: PushLocale;
 }
 
-// Keeps the subscription of a device under the caller, moving it from whoever held that address, and keeps only their
-// newest ones, in one batch
+// Keeps the subscription of a device under the caller, and keeps only their newest ones, in one batch. An address held
+// by somebody else moves to the caller only with the same keys, the browser's own, so knowing an address takes nothing
 const savePushSubscription = async (db: D1Database, userId: string, input: PushSubscriptionInput, now: number) => {
     await db.batch([
         db
@@ -25,7 +25,9 @@ const savePushSubscription = async (db: D1Database, userId: string, input: PushS
                 `INSERT INTO push_subscriptions (id, user_id, endpoint, p256dh, auth, locale, created_at, updated_at)
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)
                  ON CONFLICT (endpoint) DO UPDATE SET user_id = excluded.user_id, p256dh = excluded.p256dh,
-                    auth = excluded.auth, locale = excluded.locale, updated_at = excluded.updated_at`
+                    auth = excluded.auth, locale = excluded.locale, updated_at = excluded.updated_at
+                 WHERE push_subscriptions.user_id = excluded.user_id
+                    OR (push_subscriptions.p256dh = excluded.p256dh AND push_subscriptions.auth = excluded.auth)`
             )
             .bind(crypto.randomUUID(), userId, input.endpoint, input.keys.p256dh, input.keys.auth, input.locale, now),
         db
@@ -50,12 +52,15 @@ const deletePushSubscription = async (db: D1Database, endpoint: string, userId?:
         .run();
 };
 
-// The subscriptions of these users
+// The subscriptions of these users, the newest first
 const listPushSubscriptions = async (db: D1Database, userIds: readonly string[]): Promise<StoredPushSubscription[]> => {
     if (userIds.length === 0) return [];
     const marks = userIds.map((_, index) => `?${index + 1}`).join(', ');
     const { results } = await db
-        .prepare(`SELECT user_id, endpoint, p256dh, auth, locale FROM push_subscriptions WHERE user_id IN (${marks})`)
+        .prepare(
+            `SELECT user_id, endpoint, p256dh, auth, locale FROM push_subscriptions WHERE user_id IN (${marks})
+                 ORDER BY updated_at DESC, rowid DESC`
+        )
         .bind(...userIds)
         .all<PushRow>();
     return results.map((row) => ({
