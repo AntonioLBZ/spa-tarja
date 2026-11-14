@@ -2,10 +2,13 @@ import { queryOptions, type QueryClient } from '@tanstack/react-query';
 
 import { ApiError, GROUPS_KEY, fetchEntryChanges, groupEntriesKey, putEntry, type GroupEntriesState } from '@/lib/api';
 import { upsertById } from '@core/expense-merge';
+import { noticesFor } from '@core/notices';
 
+import { emitNotices } from './notices';
 import { inTurn, pushPending } from './sync';
 
 import type { Outbox, PendingEntry } from './outbox';
+import type { LedgerEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
 // What a group says no to for good about an entry (ADR-0013): the group is gone or closed, the caller isn't in it, or
@@ -51,17 +54,22 @@ const pullGroup = async (client: QueryClient, groupId: string): Promise<GroupEnt
     const known = client.getQueryData<GroupEntriesState>(groupEntriesKey(groupId)) ?? { entries: [], cursor: 0 };
     const byId = new Map(known.entries.map((entry) => [entry.id, entry]));
     let cursor = known.cursor;
+    const group = client.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === groupId);
     // A closed group no longer changes: a pull that starts once it is known to be closed is the last one it needs
-    const closed = client
-        .getQueryData<SharedGroup[]>(GROUPS_KEY)
-        ?.some((group) => group.id === groupId && group.closed);
+    const closed = Boolean(group?.closed);
+    // A first pull brings the whole history, which is told to nobody (ADR-0025)
+    const held = known.cursor > 0 ? known.entries : undefined;
+    const pulled: LedgerEntry[] = [];
 
     for (;;) {
         const page = await fetchEntryChanges(groupId, cursor);
         for (const entry of page.entries) byId.set(entry.id, entry);
+        pulled.push(...page.entries);
         cursor = page.cursor;
-        if (!page.hasMore) return { entries: [...byId.values()], cursor, ...(closed ? { final: true as const } : {}) };
+        if (!page.hasMore) break;
     }
+    if (group) emitNotices(client, noticesFor(group, held, pulled));
+    return { entries: [...byId.values()], cursor, ...(closed ? { final: true as const } : {}) };
 };
 
 // Pushes the group's own pending entries, then pulls what changed after its cursor, after any sync of the group running
