@@ -40,8 +40,9 @@
     gap: var(--size-1);
 }
 
-/* A card whose whole box is the link to a page of the settings, as tall as a row of the app */
-.settings__card {
+/* A card whose whole box is the link to a page of the settings, as tall as a row of the app. No padding of its own,
+   whatever order the stylesheets load in, so the link alone sets the height */
+.settings__item > .settings__card {
     padding-block: 0;
     position: relative;
 }
@@ -51,12 +52,14 @@
     outline-offset: var(--focus-offset);
 }
 
+/* The title and the chevron sit low, just over the line, while the link keeps the height of a touch */
 .settings__card-link {
-    align-items: center;
+    align-items: flex-end;
     color: var(--color-content-primary);
     display: flex;
     gap: var(--size-2);
     min-height: var(--size-touch);
+    padding-bottom: var(--size-1);
     text-decoration: none;
 }
 
