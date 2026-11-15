@@ -57,7 +57,7 @@
     padding-inline: 0;
 }
 
-/* Tabs: words in a row with no box, the checked one in ink with the ink bar under it, as the pinned tabs (ADR-0034) */
+/* Tabs: words in a row with no box, each a tab (ADR-0034) */
 .choice-group--tabs .choice-group__options {
     border-width: 0;
     flex-wrap: nowrap;
@@ -67,20 +67,6 @@
 
 .choice-group--tabs .choice-group__option {
     flex: 0 1 auto;
-}
-
-.choice-group--tabs .choice-group__text {
-    border: 0;
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-m);
-    font-weight: 700;
-    margin: 0;
-    min-inline-size: var(--size-touch);
-    overflow-wrap: normal;
-    padding: 0;
-    position: relative;
-    transition: color var(--duration-base) var(--ease-standard);
-    white-space: nowrap;
 }
 
 .choice-group__input:checked + .choice-group__text {
@@ -104,21 +90,8 @@
     color: inherit;
 }
 
-.choice-group--tabs .choice-group__input:checked + .choice-group__text {
-    background: none;
-    color: var(--color-content-primary);
-}
-
-.choice-group--tabs .choice-group__input:checked + .choice-group__text::after {
-    border-bottom: var(--size-1) solid var(--color-border);
-    content: '';
-    inset-block-end: 0;
-    inset-inline: 0;
-    position: absolute;
-}
-
-.choice-group--tabs .choice-group__input:focus-visible + .choice-group__text,
-.choice-group--tabs .choice-group__input:checked:focus-visible + .choice-group__text {
-    outline-color: var(--color-border-focus);
+/* Around the word of a tab, outside it, in the focus color */
+.choice-group__input:focus-visible + .tab {
+    outline: var(--focus-width) solid var(--color-border-focus);
     outline-offset: var(--focus-offset);
 }

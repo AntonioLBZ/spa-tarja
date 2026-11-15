@@ -2,6 +2,7 @@ import clsx from 'clsx';
 
 import type { CSSProperties, ReactNode } from 'react';
 
+import '@/components/tab/tab.css';
 import './choice-group.css';
 
 interface ChoiceOption<Value extends string> {
@@ -30,6 +31,7 @@ const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const groupClsx = clsx('choice-group', { 'choice-group--swatch': swatch, 'choice-group--tabs': tabs });
     const legendClsx = clsx('choice-group__legend', { 'visually-hidden': tabs });
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
+    const textClsx = (checked: boolean) => (tabs ? clsx('tab', { 'tab--current': checked }) : 'choice-group__text');
     // In characters, since the font is monospace: a column has to hold the widest word whole
     const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
     const optionsStyle = swatch || tabs ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
@@ -53,7 +55,7 @@ const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
                             aria-label={swatch ? option.label : undefined}
                             onChange={() => onChange(option.value)}
                         />
-                        <span className="choice-group__text">
+                        <span className={textClsx(option.value === value)}>
                             {swatch ? (option.content ?? option.label) : option.label}
                         </span>
                     </label>

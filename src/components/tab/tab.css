@@ -1,0 +1,38 @@
+/* A tab: a word with no box, in secondary ink, the current one in ink with the ink bar under it; the same for the
+   tabs that are links (the pinned groups, ADR-0021) and the ones that are a choice (ADR-0034) */
+.tab {
+    align-items: center;
+    color: var(--color-content-secondary);
+    cursor: pointer;
+    display: flex;
+    flex: 0 1 auto;
+    font-size: var(--font-size-m);
+    font-weight: 700;
+    min-block-size: var(--size-touch);
+    min-inline-size: var(--size-touch);
+    position: relative;
+    text-decoration: none;
+    transition: color var(--duration-base) var(--ease-standard);
+    white-space: nowrap;
+}
+
+.tab--current,
+.tab[aria-current='page'] {
+    color: var(--color-content-primary);
+}
+
+.tab--current::after,
+.tab[aria-current='page']::after {
+    border-bottom: var(--size-1) solid var(--color-border);
+    content: '';
+    inset-block-end: 0;
+    inset-inline: 0;
+    position: absolute;
+}
+
+/* A name too long for the row is cut */
+.tab__word {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

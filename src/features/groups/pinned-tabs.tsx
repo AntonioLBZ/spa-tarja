@@ -1,5 +1,7 @@
-import { Link, useSearch } from '@tanstack/react-router';
+import { useSearch } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
+
+import { TabLink } from '@/components/tab/tab-link';
 
 import { useGroupWords } from './use-group-words';
 
@@ -40,14 +42,9 @@ const PinnedTabs = (props: PinnedTabsProps) => {
 
     return (
         <nav className="pinned-tabs" aria-label={t('tabs')}>
-            <Link
-                className="pinned-tabs__tab pinned-tabs__tab--home"
-                to="/"
-                activeOptions={ACTIVE}
-                viewTransition={slideTo(0, shown)}
-            >
-                <span className="pinned-tabs__word">{t('title')}</span>
-            </Link>
+            <TabLink className="pinned-tabs__home" to="/" activeOptions={ACTIVE} viewTransition={slideTo(0, shown)}>
+                {t('title')}
+            </TabLink>
             {groups.map((group, index) => (
                 <PinnedTab key={group.id} group={group} slide={slideTo(index + 1, shown)} />
             ))}
@@ -60,16 +57,9 @@ const PinnedTab = (props: PinnedTabProps) => {
     const { title } = useGroupWords(group);
 
     return (
-        <Link
-            className="pinned-tabs__tab"
-            to="/"
-            search={{ group: group.id }}
-            activeOptions={ACTIVE}
-            title={title}
-            viewTransition={slide}
-        >
-            <span className="pinned-tabs__word">{title}</span>
-        </Link>
+        <TabLink to="/" search={{ group: group.id }} activeOptions={ACTIVE} title={title} viewTransition={slide}>
+            {title}
+        </TabLink>
     );
 };
 
