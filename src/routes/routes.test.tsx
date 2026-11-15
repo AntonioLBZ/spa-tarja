@@ -128,7 +128,9 @@ describe('header', () => {
     it.each([
         ['/charts', en.nav.summary, en.charts.title],
         ['/budgets', en.nav.summary, en.budgets.title],
-        ['/categories', en.nav.settings, en.categoryManager.title],
+        ['/settings/appearance', en.nav.settings, en.settings.appearance.title],
+        ['/settings/categories', en.nav.settings, en.categoryManager.title],
+        ['/settings/account', en.nav.settings, en.settings.account.title],
     ])('underlines the section %s is reached from, which it marks as current', async (path, section, title) => {
         await home(path);
         await screen.findByRole('heading', { name: title });
@@ -138,7 +140,7 @@ describe('header', () => {
         expect(link(en.nav.expenses).hasAttribute('aria-current')).toBe(false);
     });
 
-    it.each(['/', '/groups', '/summary', '/settings', '/charts', '/budgets', '/categories'])(
+    it.each(['/', '/groups', '/summary', '/settings', '/charts', '/budgets', '/settings/categories'])(
         'never underlines the logo, on %s or on the way home from it',
         async (path) => {
             await home(path);
@@ -217,7 +219,9 @@ describe('bottom navigation', () => {
         ['/settings', en.nav.settings],
         ['/charts', en.nav.summary],
         ['/budgets', en.nav.summary],
-        ['/categories', en.nav.settings],
+        ['/settings/appearance', en.nav.settings],
+        ['/settings/categories', en.nav.settings],
+        ['/settings/account', en.nav.settings],
         ['/nowhere', en.nav.expenses],
     ])('marks only the tab %s is reached from', async (path, name) => {
         await phone(path);
@@ -366,7 +370,9 @@ describe('the way back on a phone', () => {
     }
 
     it.each([
-        ['/categories', en.nav.settings, '/settings'],
+        ['/settings/appearance', en.nav.settings, '/settings'],
+        ['/settings/categories', en.nav.settings, '/settings'],
+        ['/settings/account', en.nav.settings, '/settings'],
         ['/charts', en.nav.summary, '/summary'],
         ['/budgets', en.nav.summary, '/summary'],
         [`/groups/${group.id}`, en.nav.groups, '/groups'],
@@ -399,7 +405,7 @@ describe('the way back on a phone', () => {
     });
 
     it('is named for the place it leads to, with the words that show in it', async () => {
-        const { header } = await phone('/categories');
+        const { header } = await phone('/settings/account');
 
         const link = header.getByRole('link', { name: backName(en.nav.settings) });
         expect(link.getAttribute('aria-label')).toContain(link.textContent);

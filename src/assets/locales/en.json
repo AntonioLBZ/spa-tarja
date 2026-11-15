@@ -203,9 +203,9 @@
         },
         "rights": {
             "title": "Your rights",
-            "see": "See and download what you wrote and the groups you are in: in {settings}, under “{data}”. For the rest, such as your account details and sessions, write to the contact above.",
-            "correct": "Correct it: change your nickname in {settings}, under “{profile}”, rename yourself in an open group from its list of people, and edit your expenses and the rest of what you wrote. For anything else, such as the name Tarja took from Google, write to the contact above.",
-            "delete": "Delete it: in {settings}, press “{delete}”.",
+            "see": "See and download what you wrote and the groups you are in: in {settings} › {account}, under “{data}”. For the rest, such as your account details and sessions, write to the contact above.",
+            "correct": "Correct it: change your nickname in {settings} › {account}, under “{profile}”, rename yourself in an open group from its list of people, and edit your expenses and the rest of what you wrote. For anything else, such as the name Tarja took from Google, write to the contact above.",
+            "delete": "Delete it: in {settings} › {account}, press “{delete}”.",
             "write": "Ask anything about your data, or object to a use of it or ask to limit it, by writing to the contact above. You'll get an answer within a month.",
             "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos (aepd.es), or to the one of the EU country where you live."
         },
@@ -215,6 +215,9 @@
         "title": "Settings",
         "language": {
             "title": "Language"
+        },
+        "appearance": {
+            "title": "Appearance"
         },
         "theme": {
             "title": "Theme",
@@ -257,9 +260,7 @@
             "removeFailed": "Couldn't remove your nickname. Try again."
         },
         "categories": {
-            "title": "Categories",
-            "description": "Create your own categories to sort your expenses.",
-            "link": "Manage categories"
+            "title": "Categories"
         },
         "data": {
             "title": "Your data",
@@ -283,6 +284,7 @@
         },
         "account": {
             "title": "Account",
+            "session": "Session",
             "signOut": "Sign out",
             "signingOut": "Signing out…",
             "signOutFailed": "Couldn't sign out. Signing out needs a connection.",

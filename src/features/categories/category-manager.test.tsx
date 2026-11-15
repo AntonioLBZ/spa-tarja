@@ -43,7 +43,7 @@ function add(name: string) {
 async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
     const api = createFakeApi(options);
     stubApi(api.handler);
-    renderApp({ path: '/categories' });
+    renderApp({ path: '/settings/categories' });
     await screen.findByRole('heading', { name: text.title });
     return api;
 }
@@ -59,7 +59,7 @@ describe('reaching the screen', () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
 
-        fireEvent.click(await screen.findByRole('link', { name: en.settings.categories.link }));
+        fireEvent.click(await screen.findByRole('link', { name: en.settings.categories.title }));
 
         expect(await screen.findByRole('heading', { name: text.title })).toBeDefined();
     });
@@ -156,7 +156,7 @@ describe('listing', () => {
 
     it('says so when the categories cannot be loaded', async () => {
         stubApi(() => new Response(null, { status: 500 }));
-        renderApp({ path: '/categories' });
+        renderApp({ path: '/settings/categories' });
 
         expect(await screen.findByText(text.loadFailed)).toBeDefined();
         expect(screen.queryByText(text.custom.empty)).toBeNull();

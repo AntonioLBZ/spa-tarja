@@ -203,9 +203,9 @@
         },
         "rights": {
             "title": "Tus derechos",
-            "see": "Ver y descargar lo que escribiste y los grupos en los que estás: en {settings}, en «{data}». Para el resto, como los datos de tu cuenta y tus sesiones, escribe al contacto de arriba.",
-            "correct": "Corregirlos: cambia tu apodo en {settings}, en «{profile}», cambia tu nombre en un grupo abierto desde su lista de personas, y edita tus gastos y el resto de lo que escribiste. Para lo demás, como el nombre que Tarja tomó de Google, escribe al contacto de arriba.",
-            "delete": "Borrarlos: en {settings}, pulsa «{delete}».",
+            "see": "Ver y descargar lo que escribiste y los grupos en los que estás: en {settings} › {account}, en «{data}». Para el resto, como los datos de tu cuenta y tus sesiones, escribe al contacto de arriba.",
+            "correct": "Corregirlos: cambia tu apodo en {settings} › {account}, en «{profile}», cambia tu nombre en un grupo abierto desde su lista de personas, y edita tus gastos y el resto de lo que escribiste. Para lo demás, como el nombre que Tarja tomó de Google, escribe al contacto de arriba.",
+            "delete": "Borrarlos: en {settings} › {account}, pulsa «{delete}».",
             "write": "Preguntar lo que quieras sobre tus datos, u oponerte a un uso de ellos o pedir que se limite, escribiendo al contacto de arriba. La respuesta llega en un mes como máximo.",
             "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos (aepd.es), o ante la del país de la UE en el que vivas."
         },
@@ -215,6 +215,9 @@
         "title": "Ajustes",
         "language": {
             "title": "Idioma"
+        },
+        "appearance": {
+            "title": "Apariencia"
         },
         "theme": {
             "title": "Tema",
@@ -257,9 +260,7 @@
             "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
         },
         "categories": {
-            "title": "Categorías",
-            "description": "Crea tus propias categorías para clasificar tus gastos.",
-            "link": "Gestionar categorías"
+            "title": "Categorías"
         },
         "data": {
             "title": "Tus datos",
@@ -283,6 +284,7 @@
         },
         "account": {
             "title": "Cuenta",
+            "session": "Sesión",
             "signOut": "Cerrar sesión",
             "signingOut": "Cerrando sesión…",
             "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",

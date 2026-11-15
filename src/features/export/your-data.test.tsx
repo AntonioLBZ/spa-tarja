@@ -70,7 +70,7 @@ async function readBlob(blob: Blob): Promise<string> {
 async function open(options: Parameters<typeof createFakeApi>[0] = {}) {
     const api = createFakeApi(options);
     const fetchMock = stubApi(api.handler);
-    const app = renderApp({ path: '/settings' });
+    const app = renderApp({ path: '/settings/account' });
     await screen.findByRole('heading', { name: en.settings.data.title });
     await waitFor(() => {
         expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success');
@@ -122,19 +122,11 @@ afterEach(() => {
 });
 
 describe('your data in the settings', () => {
-    it('is a section between the categories and the account, with a hint and two buttons', async () => {
+    it('is a section of the page of the account, between the profile and the session, with a hint and two buttons', async () => {
         await open();
 
         const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
-        expect(headings).toEqual([
-            en.settings.amounts.title,
-            en.settings.profile.title,
-            en.settings.notifications.title,
-            en.settings.categories.title,
-            en.settings.data.title,
-            en.settings.account.title,
-            en.settings.about.title,
-        ]);
+        expect(headings).toEqual([en.settings.profile.title, en.settings.data.title, en.settings.account.session]);
         expect(screen.getByText(en.settings.data.description)).toBeDefined();
         expect(screen.getByRole('button', { name: en.settings.data.json }).getAttribute('type')).toBe('button');
         expect(screen.getByRole('button', { name: en.settings.data.csv }).getAttribute('type')).toBe('button');
@@ -189,7 +181,7 @@ describe('the JSON file', () => {
         const group = sampleGroup();
         await leaveCopy(storage, [group], [sampleEntry(group, { text: 'Shared dinner' })]);
         stubApi(createFakeApi({ expenses: [expense({ text: 'Mine' })], groups: [group] }).handler);
-        const app = renderApp({ path: '/settings', storage });
+        const app = renderApp({ path: '/settings/account', storage });
         await screen.findByRole('heading', { name: en.settings.data.title });
         await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
         expect(app.queryClient.getQueryData(groupEntriesKey(group.id))).toBeDefined();
@@ -415,7 +407,7 @@ describe('the CSV file', () => {
         localStorage.setItem('tarja:locale', 'es');
         const api = createFakeApi({ expenses: [expense({ text: 'Almuerzo', amountCents: 1250 })] });
         stubApi(api.handler);
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: es.settings.data.title });
         await waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
 
@@ -624,7 +616,7 @@ describe('the shared expenses in the CSV file', () => {
             createFakeApi({ groups: [group], entries: [sampleEntry(group, { text: 'Cena', shares: halves(2000) })] })
                 .handler
         );
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: es.settings.data.title });
         await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(group.id))?.status).toBe('success'));
 
@@ -664,7 +656,7 @@ describe('while the groups are loading', () => {
         const api = createFakeApi({ groups: [group], entries: [sampleEntry(group, { text: 'Dinner' })] });
         stubApi(api.handler);
         const release = api.hold();
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: en.settings.data.title });
 
         expect(screen.getByText(en.settings.data.loading).getAttribute('role')).toBe('status');
@@ -691,7 +683,7 @@ describe('while the groups are loading', () => {
             if (url.pathname.endsWith('/entries')) await gate;
             return api.handler(url, init);
         });
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await settings(app);
         await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
 
@@ -713,7 +705,7 @@ describe('while the groups are loading', () => {
             return api.handler(url, init);
         });
         vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await advance(1_000);
         await vi.waitFor(() => expect(app.queryClient.getQueryState(EXPENSES_KEY)?.status).toBe('success'));
     };
@@ -771,7 +763,7 @@ describe('while the groups are loading', () => {
             if (url.pathname === `/api/groups/${lost.id}/entries`) throw new TypeError('Failed to fetch');
             return api.handler(url, init);
         });
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await settings(app);
         await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(lost.id))?.status).toBe('error'));
         await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(found.id))?.status).toBe('success'));
@@ -799,7 +791,7 @@ describe('while the groups are loading', () => {
         });
         onlineManager.setOnline(false);
         stubApi(createFakeApi({ groups: [group] }).handler);
-        renderApp({ path: '/settings', storage });
+        renderApp({ path: '/settings/account', storage });
         await screen.findByRole('heading', { name: en.settings.data.title });
 
         await screen.findByText(en.settings.data.missing);
@@ -814,7 +806,7 @@ describe('while the groups are loading', () => {
             if (url.pathname === '/api/groups') throw new TypeError('Failed to fetch');
             return api.handler(url, init);
         });
-        const app = renderApp({ path: '/settings' });
+        const app = renderApp({ path: '/settings/account' });
         await settings(app);
         await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('error'));
 
@@ -833,7 +825,7 @@ describe('while the groups are loading', () => {
         const api = createFakeApi({ groups: [group] });
         api.state.offline = true;
         stubApi(api.handler);
-        const app = renderApp({ path: '/settings', storage });
+        const app = renderApp({ path: '/settings/account', storage });
         await screen.findByRole('heading', { name: en.settings.data.title });
         await waitFor(() => expect(app.queryClient.getQueryData(groupEntriesKey(group.id))).toBeDefined());
 

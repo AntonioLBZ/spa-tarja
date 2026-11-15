@@ -16,7 +16,7 @@ const text = en.settings.profile;
 async function open(nickname: string | null = null) {
     const api = createFakeApi({ nickname });
     stubApi(api.handler);
-    const app = renderApp({ path: '/settings' });
+    const app = renderApp({ path: '/settings/account' });
     await screen.findByRole('heading', { name: text.title });
     await waitFor(() => expect(app.queryClient.getQueryState(PROFILE_KEY)?.status).toBe('success'));
     return { api, app };
@@ -42,15 +42,15 @@ afterEach(() => {
 });
 
 describe('the profile section', () => {
-    it('comes after the amounts and before the categories', async () => {
+    it('comes first on the page of the account, before your data', async () => {
         await open();
 
-        const accent = screen.getByRole('heading', { name: en.settings.amounts.title });
+        const page = screen.getByRole('heading', { level: 1, name: en.settings.account.title });
         const profile = screen.getByRole('heading', { name: text.title });
-        const categories = screen.getByRole('heading', { name: en.settings.categories.title });
+        const data = screen.getByRole('heading', { name: en.settings.data.title });
 
-        expect(accent.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-        expect(profile.compareDocumentPosition(categories) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(page.compareDocumentPosition(profile) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(profile.compareDocumentPosition(data) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('says who sees the nickname and names the account that stands in for it', async () => {
@@ -145,7 +145,7 @@ describe('saving the nickname', () => {
             if (init?.method === 'PUT') await held;
             return api.handler(url, init);
         });
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: text.title });
 
         save('Anita');
@@ -165,7 +165,7 @@ describe('saving the nickname', () => {
             if (init?.method === 'PUT') await held;
             return api.handler(url, init);
         });
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: text.title });
         save('Ana');
 
@@ -249,7 +249,7 @@ describe('without a connection', () => {
         stubApi(api.handler);
         onlineManager.setOnline(false);
 
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
 
         expect(await screen.findByText(text.offline)).toBeDefined();
         expect(field().disabled).toBe(true);
@@ -275,7 +275,7 @@ describe('in Spanish', () => {
         localStorage.setItem('tarja:locale', 'es');
         stubApi(createFakeApi({ nickname: 'Anita' }).handler);
 
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
 
         expect(await screen.findByRole('heading', { name: es.settings.profile.title })).toBeDefined();
         expect(screen.getByLabelText(es.settings.profile.label)).toBeDefined();

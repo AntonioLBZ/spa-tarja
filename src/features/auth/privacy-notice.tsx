@@ -16,6 +16,7 @@ const PrivacyNotice = () => {
     // The controls the notice points at, by the names they have in the settings
     const controls = {
         settings: settings('title'),
+        account: settings('account.title'),
         data: settings('data.title'),
         profile: settings('profile.title'),
         delete: settings('account.delete.open'),

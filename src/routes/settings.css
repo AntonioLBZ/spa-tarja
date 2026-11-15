@@ -25,3 +25,47 @@
     font-size: var(--font-size-s);
     margin: 0;
 }
+
+/* A card whose whole box is the link to a page of the settings */
+.settings__card {
+    position: relative;
+}
+
+.settings__card:has(.settings__card-link:focus-visible) {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.settings__card-link {
+    align-items: center;
+    color: var(--color-content-primary);
+    display: flex;
+    gap: var(--size-2);
+    min-height: var(--size-touch);
+    text-decoration: none;
+}
+
+.settings__card-link::after {
+    content: '';
+    inset: 0;
+    position: absolute;
+}
+
+/* The ring goes around the card the link covers, not around its text */
+.settings__card-link:focus-visible {
+    outline: none;
+}
+
+.settings__card-body {
+    display: grid;
+    flex: 1;
+    gap: var(--size-1);
+    min-width: 0;
+}
+
+.settings__card-detail {
+    color: var(--color-content-secondary);
+    display: grid;
+    font-size: var(--font-size-s);
+    overflow-wrap: anywhere;
+}

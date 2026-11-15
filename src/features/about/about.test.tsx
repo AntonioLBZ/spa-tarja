@@ -24,14 +24,14 @@ function row(about: ReturnType<typeof within>, name: string) {
 }
 
 describe('About', () => {
-    it('is the last section of the settings, after the account', async () => {
+    it('is the last section of the settings, after the notifications', async () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
 
         const about = await screen.findByRole('heading', { name: en.settings.about.title });
-        const account = screen.getByRole('heading', { name: en.settings.account.title });
+        const notifications = screen.getByRole('heading', { name: en.settings.notifications.title });
 
-        expect(account.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(notifications.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         const sections = document.querySelectorAll('.settings > section');
         expect(sections[sections.length - 1]!.contains(about)).toBe(true);
     });

@@ -77,7 +77,7 @@ function openButton() {
 async function openDialog(storage: KeyValueStorage = createMemoryStorage()) {
     const api = createFakeApi();
     stubApi(api.handler);
-    const app = renderApp({ path: '/settings', storage });
+    const app = renderApp({ path: '/settings/account', storage });
     fireEvent.click(await openButton());
     const dialog = await screen.findByRole('dialog', { name: text.title });
     return { api, app, dialog };
@@ -119,7 +119,7 @@ afterEach(() => {
 describe('delete account', () => {
     it('is a button under Sign out', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
 
         const button = await openButton();
 
@@ -186,7 +186,7 @@ describe('delete account', () => {
     it('is off offline, says it needs a connection and sends nothing', async () => {
         const api = createFakeApi();
         stubApi(api.handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const button = await openButton();
 
         onlineManager.setOnline(false);

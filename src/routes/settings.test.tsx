@@ -62,9 +62,105 @@ describe('settings', () => {
         });
     });
 
+    describe('the page of settings', () => {
+        it('holds the language, the three cards together, Notifications and About, in this order', async () => {
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            const language = await screen.findByRole('group', { name: en.settings.language.title });
+            const links = [en.settings.appearance.title, en.settings.categories.title, en.settings.account.title].map(
+                (name) => screen.getByRole('link', { name: new RegExp(`^${name}`) })
+            );
+            const list = links[0]!.closest('ul')!;
+            const notifications = screen.getByRole('heading', { name: en.settings.notifications.title });
+            const about = screen.getByRole('heading', { name: en.settings.about.title });
+
+            expect(links.every((item) => item.closest('ul') === list)).toBe(true);
+            expect(within(list).getAllByRole('link')).toEqual(links);
+            const order = [language, list, notifications, about];
+            for (let i = 1; i < order.length; i++) {
+                expect(
+                    order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING
+                ).toBeTruthy();
+            }
+            expect(screen.queryByRole('group', { name: en.settings.theme.title })).toBeNull();
+            expect(screen.queryByRole('heading', { name: en.settings.data.title })).toBeNull();
+        });
+
+        it.each([
+            [en.settings.appearance.title, '/settings/appearance', en.settings.appearance.title],
+            [en.settings.categories.title, '/settings/categories', en.categoryManager.title],
+            [en.settings.account.title, '/settings/account', en.settings.account.title],
+        ])('leads from the card %s to its page, with a chevron', async (name, href, title) => {
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            const card = await screen.findByRole('link', { name: new RegExp(`^${name}`) });
+            expect(card.getAttribute('href')).toBe(href);
+            expect(card.closest('li')!.querySelector('svg[data-icon="chevron_right"]')).not.toBeNull();
+
+            fireEvent.click(card);
+
+            expect(await screen.findByRole('heading', { level: 1, name: title })).toBeDefined();
+        });
+
+        it('says on the Account card the first name of the account and the email while there is no nickname', async () => {
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            const card = await screen.findByRole('link', { name: new RegExp(`^${en.settings.account.title}`) });
+
+            await waitFor(() => expect(within(card).getByText('Ana')).toBeDefined());
+            expect(within(card).getByText(TEST_USER.email)).toBeDefined();
+        });
+
+        it('says on the Account card the nickname when there is one', async () => {
+            stubApi(createFakeApi({ nickname: 'Anita' }).handler);
+            renderApp({ path: '/settings' });
+
+            const card = await screen.findByRole('link', { name: new RegExp(`^${en.settings.account.title}`) });
+
+            expect(await within(card).findByText('Anita')).toBeDefined();
+            expect(within(card).getByText(TEST_USER.email)).toBeDefined();
+        });
+
+        it('is in Spanish too', async () => {
+            localStorage.setItem('tarja:locale', 'es');
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            expect(
+                await screen.findByRole('link', { name: new RegExp(`^${es.settings.appearance.title}`) })
+            ).toBeDefined();
+            expect(screen.getByRole('link', { name: new RegExp(`^${es.settings.categories.title}`) })).toBeDefined();
+            expect(screen.getByRole('link', { name: new RegExp(`^${es.settings.account.title}`) })).toBeDefined();
+        });
+
+        it('sends the old address of the categories to their page', async () => {
+            stubApi(createFakeApi().handler);
+            const { router } = renderApp({ path: '/categories' });
+
+            expect(await screen.findByRole('heading', { level: 1, name: en.categoryManager.title })).toBeDefined();
+            expect(router.state.location.pathname).toBe('/settings/categories');
+        });
+    });
+
+    describe('the page of appearance', () => {
+        it('has its title, the theme first and Amounts under it', async () => {
+            renderApp({ path: '/settings/appearance' });
+
+            const title = await screen.findByRole('heading', { level: 1, name: en.settings.appearance.title });
+            const theme = screen.getByRole('group', { name: en.settings.theme.title });
+            const amounts = screen.getByRole('heading', { name: en.settings.amounts.title });
+
+            expect(title.compareDocumentPosition(theme) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(theme.compareDocumentPosition(amounts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+    });
+
     describe('theme', () => {
         it('lists light and dark first and system last, the one that follows the device', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
             await radio(en.settings.theme.light);
 
             const group = screen.getByRole('group', { name: en.settings.theme.title });
@@ -77,7 +173,7 @@ describe('settings', () => {
         });
 
         it('starts on the light theme', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             expect((await radio(en.settings.theme.light)).checked).toBe(true);
             expect((await radio(en.settings.theme.system)).checked).toBe(false);
@@ -85,7 +181,7 @@ describe('settings', () => {
         });
 
         it('applies an explicit choice and remembers it', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio(en.settings.theme.dark));
             expect(root.dataset.theme).toBe('dark');
@@ -102,7 +198,7 @@ describe('settings', () => {
         it('comes back with the stored theme', async () => {
             localStorage.setItem('tarja:theme', 'dark');
 
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             expect((await radio(en.settings.theme.dark)).checked).toBe(true);
             await waitFor(() => expect(root.dataset.theme).toBe('dark'));
@@ -111,7 +207,7 @@ describe('settings', () => {
         it('moves the browser toolbar color with an explicit theme and gives it back for system', async () => {
             document.head.innerHTML = '<meta name="theme-color" content="#f4f4f4">';
             const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')!;
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio(en.settings.theme.dark));
             expect(meta.content).not.toBe('#f4f4f4');
@@ -128,7 +224,7 @@ describe('settings', () => {
             }));
             localStorage.setItem('tarja:theme', 'system');
             root.style.setProperty('--duration-slow', '50ms');
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio(en.settings.theme.dark));
 
@@ -138,7 +234,7 @@ describe('settings', () => {
 
         it('fades the colors while it changes', async () => {
             root.style.setProperty('--duration-slow', '50ms');
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio(en.settings.theme.dark));
 
@@ -151,7 +247,7 @@ describe('settings', () => {
         it('is gone: no choice of it, and the root is gray whatever an older version stored', async () => {
             localStorage.setItem('tarja:accent', 'pink');
 
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             await radio(en.settings.theme.dark);
             expect(screen.queryAllByRole('radio').some((input) => (input as HTMLInputElement).name === 'accent')).toBe(
@@ -170,7 +266,7 @@ describe('settings', () => {
         });
 
         it('comes after the theme, with every cue on, the usual palette and the euro', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             const heading = await screen.findByRole('heading', { name: en.settings.amounts.title });
             const theme = screen.getByRole('group', { name: en.settings.theme.title });
@@ -182,8 +278,25 @@ describe('settings', () => {
             expect((await radio('€')).checked).toBe(true);
         });
 
+        it('shows above the boxes an amount that comes in and one that goes out, as the choices draw them', async () => {
+            renderApp({ path: '/settings/appearance' });
+            const color = await box(en.settings.amounts.color.label);
+            const sample = document.querySelector('.amount-settings__sample')!;
+            const amounts = () => [...sample.querySelectorAll('.amount')];
+
+            expect(sample.compareDocumentPosition(color) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(amounts().map((item) => item.textContent)).toEqual(['+€20.00', '−€12.50']);
+            expect(amounts().map((item) => item.className)).toEqual(['amount amount--in', 'amount amount--out']);
+
+            fireEvent.click(color);
+            fireEvent.click(await box(en.settings.amounts.sign.label));
+
+            expect(amounts().map((item) => item.textContent)).toEqual(['€20.00', '€12.50']);
+            expect(amounts().map((item) => item.className)).toEqual(['amount', 'amount']);
+        });
+
         it('turns each cue off and remembers it', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await box(en.settings.amounts.sign.label));
             fireEvent.click(await box(en.settings.amounts.arrows.label));
@@ -193,7 +306,7 @@ describe('settings', () => {
         });
 
         it('switches to the palette for color blindness, only while color is on', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await box(en.settings.amounts.colorBlind.label));
             expect(root.dataset.moneyPalette).toBe('color-blind');
@@ -204,7 +317,7 @@ describe('settings', () => {
         });
 
         it('draws the symbol chosen, without converting anything', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio('$'));
 
@@ -215,35 +328,11 @@ describe('settings', () => {
         it('comes back as it was stored', async () => {
             localStorage.setItem('tarja:amounts', JSON.stringify({ sign: false, colorBlind: true, symbol: '£' }));
 
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             expect((await box(en.settings.amounts.sign.label)).checked).toBe(false);
             expect((await radio('£')).checked).toBe(true);
             await waitFor(() => expect(root.dataset.moneyPalette).toBe('color-blind'));
-        });
-    });
-
-    describe('categories', () => {
-        it('is a section that says what categories are for, with the way in to manage them', async () => {
-            stubApi(createFakeApi().handler);
-            renderApp({ path: '/settings' });
-
-            expect(await screen.findByRole('heading', { name: en.settings.categories.title })).toBeDefined();
-            expect(screen.getByText(en.settings.categories.description)).toBeDefined();
-
-            fireEvent.click(screen.getByRole('link', { name: en.settings.categories.link }));
-
-            expect(await screen.findByRole('heading', { name: en.categoryManager.title })).toBeDefined();
-        });
-
-        it('is in Spanish too', async () => {
-            localStorage.setItem('tarja:locale', 'es');
-            stubApi(createFakeApi().handler);
-            renderApp({ path: '/settings' });
-
-            expect(await screen.findByRole('heading', { name: es.settings.categories.title })).toBeDefined();
-            expect(screen.getByText(es.settings.categories.description)).toBeDefined();
-            expect(screen.getByRole('link', { name: es.settings.categories.link })).toBeDefined();
         });
     });
 
@@ -274,14 +363,14 @@ describe('settings', () => {
         }
 
         it('shows who is signed in', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/account' });
 
             expect(await screen.findByText(TEST_USER.name)).toBeDefined();
             expect(screen.getByText(TEST_USER.email)).toBeDefined();
         });
 
         it('signs out and asks to sign in again', async () => {
-            const { fakeAuth } = renderApp({ path: '/settings' });
+            const { fakeAuth } = renderApp({ path: '/settings/account' });
 
             fireEvent.click(await signOutButton());
 
@@ -291,7 +380,7 @@ describe('settings', () => {
         });
 
         it('says it is signing out while the server answers', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/account' });
 
             fireEvent.click(await signOutButton());
 
@@ -302,14 +391,14 @@ describe('settings', () => {
         });
 
         it('stays signed in, and says why, when there is no connection to sign out', async () => {
-            const { fakeAuth } = renderApp({ path: '/settings' });
+            const { fakeAuth } = renderApp({ path: '/settings/account' });
             const button = await signOutButton();
             fakeAuth.state.offline = true;
 
             fireEvent.click(button);
 
             expect((await screen.findByRole('alert')).textContent).toBe(en.settings.account.signOutFailed);
-            expect(screen.getByRole('heading', { name: en.settings.title })).toBeDefined();
+            expect(screen.getByRole('heading', { level: 1, name: en.settings.account.title })).toBeDefined();
             expect((await signOutButton()).hasAttribute('disabled')).toBe(false);
             expect(readCachedUser()).toEqual(TEST_USER);
 
@@ -324,7 +413,7 @@ describe('settings', () => {
             const storage = createMemoryStorage();
             await seedCopy(storage, TEST_USER.id);
             await seedCopy(storage, 'someone-else');
-            renderApp({ path: '/settings', storage });
+            renderApp({ path: '/settings/account', storage });
 
             fireEvent.click(await signOutButton());
 
@@ -339,7 +428,7 @@ describe('settings', () => {
             await seedCopy(storage, TEST_USER.id);
             stubApi(createFakeApi().handler);
             onlineManager.setOnline(false);
-            renderApp({ path: '/settings', storage });
+            renderApp({ path: '/settings/account', storage });
             expect(await screen.findByText(en.settings.account.unsynced)).toBeDefined();
 
             fireEvent.click(await signOutButton());
@@ -374,7 +463,7 @@ describe('settings', () => {
             await seedCopy(storage, TEST_USER.id);
             stubApi(createFakeApi().handler);
             onlineManager.setOnline(false);
-            renderApp({ path: '/settings', storage });
+            renderApp({ path: '/settings/account', storage });
             expect(await screen.findByText(en.settings.account.unsynced)).toBeDefined();
 
             fireEvent.click(await signOutButton());

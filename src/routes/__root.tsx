@@ -181,7 +181,12 @@ const RootHeader = () => {
                         {t('summary')}
                         {underline('/summary')}
                     </Link>
-                    <Link className="root__link" to="/settings" aria-current={current('/settings')}>
+                    <Link
+                        className="root__link"
+                        to="/settings"
+                        activeOptions={{ exact: true }}
+                        aria-current={current('/settings')}
+                    >
                         {t('settings')}
                         {underline('/settings')}
                     </Link>

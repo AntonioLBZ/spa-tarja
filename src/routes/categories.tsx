@@ -1,5 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 
-import { CategoryManager } from '@/features/categories/category-manager';
-
-export const Route = createFileRoute('/categories')({ component: CategoryManager });
+// Where the categories were before the settings had pages, kept for old links and installed apps (ADR-0032)
+export const Route = createFileRoute('/categories')({
+    beforeLoad: () => {
+        throw redirect({ to: '/settings/categories', replace: true });
+    },
+});

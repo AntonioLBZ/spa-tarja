@@ -236,8 +236,9 @@ describe('the page and the service worker', () => {
         push = installFakePush({ permission: 'granted', subscribed: true });
         const subscription = push.state.subscription!;
         const { api } = await openSettings();
+        fireEvent.click(screen.getByRole('link', { name: new RegExp(`^${en.settings.account.title}`) }));
 
-        fireEvent.click(screen.getByRole('button', { name: en.settings.account.signOut }));
+        fireEvent.click(await screen.findByRole('button', { name: en.settings.account.signOut }));
 
         await waitFor(() => expect(subscription.unsubscribe).toHaveBeenCalled());
         expect(api.pushBodies).toContainEqual({ method: 'DELETE', body: { endpoint: subscription.endpoint } });

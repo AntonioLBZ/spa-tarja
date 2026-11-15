@@ -6,7 +6,9 @@ const DEPTHS: Record<string, number> = {
     '/settings': 1,
     '/summary': 1,
     '/groups': 1,
-    '/categories': 2,
+    '/settings/appearance': 2,
+    '/settings/categories': 2,
+    '/settings/account': 2,
     '/charts': 2,
     '/budgets': 2,
 };
@@ -35,7 +37,9 @@ const SECTIONS: Record<string, NavSection> = {
     '/charts': '/summary',
     '/budgets': '/summary',
     '/settings': '/settings',
-    '/categories': '/settings',
+    '/settings/appearance': '/settings',
+    '/settings/categories': '/settings',
+    '/settings/account': '/settings',
 };
 
 const navSection = (pathname: string): NavSection => {

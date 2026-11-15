@@ -29,14 +29,14 @@ afterEach(() => {
 });
 
 describe('privacy notice in the settings', () => {
-    it('is a button in the account section, and the notice is closed until it is pressed', async () => {
+    it('is a button in the section about Tarja, and the notice is closed until it is pressed', async () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
 
         const button = await openButton();
 
-        const signOut = screen.getByRole('button', { name: en.settings.account.signOut });
-        expect(signOut.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const about = screen.getByRole('heading', { name: en.settings.about.title });
+        expect(about.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         expect(screen.queryByRole('dialog')).toBeNull();
     });
 
@@ -102,6 +102,7 @@ describe('privacy notice in the settings', () => {
         renderApp({ path: '/settings' });
         const dialog = await openNotice();
 
+        expect(dialog.textContent).toContain(en.settings.account.title);
         expect(dialog.textContent).toContain(en.settings.data.title);
         expect(dialog.textContent).toContain(en.settings.account.delete.open);
         expect(dialog.textContent).toContain(en.settings.profile.title);
@@ -111,7 +112,7 @@ describe('privacy notice in the settings', () => {
         const fetchMock = stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
         const button = await openButton();
-        await screen.findByRole('heading', { name: en.settings.data.title });
+        await screen.findByRole('heading', { name: en.settings.notifications.title });
         const before = fetchMock.mock.calls.length;
 
         fireEvent.click(button);
