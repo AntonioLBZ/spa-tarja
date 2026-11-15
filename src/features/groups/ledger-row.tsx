@@ -91,13 +91,14 @@ const LedgerRow = (props: LedgerRowProps) => {
         <span className="expense-item__body">
             <span className="visually-hidden">{sentence}</span>
             <span className="expense-item__name" aria-hidden="true">
-                {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
-                <span className="expense-item__text">{name}</span>
-                {entry.kind === 'settlement' && (
+                {entry.kind === 'expense' ? (
+                    <CategoryBadge style={styleOf(entry.categoryId)} />
+                ) : (
                     <span className="ledger-row__mark">
                         <Icon name="payments" />
                     </span>
                 )}
+                <span className="expense-item__text">{name}</span>
             </span>
             {touch === 'moves' && (
                 <span className="expense-item__amount" aria-hidden="true">

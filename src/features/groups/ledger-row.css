@@ -44,32 +44,19 @@
     white-space: nowrap;
 }
 
-/* A settlement is told apart from an expense: smaller and quiet, its amount neutral, and the icon of Settle up in the
-   middle of its leader of dots, where the leader is split in two (ADR-0030) */
+/* A settlement is told apart from an expense: smaller and quiet, its amount neutral, and the icon of Settle up where
+   an expense has its category, so every icon lines up in one column (ADR-0030) */
 .ledger-row--settlement .expense-item__body {
     color: var(--color-content-secondary);
     font-size: var(--font-size-s);
 }
 
-.ledger-row--settlement .expense-item__name::after {
-    display: none;
-}
-
+/* As wide as a category badge, so the names after it line up too */
 .ledger-row__mark {
-    align-items: center;
-    display: flex;
-    flex: 1 1 0;
-    gap: var(--size-2);
-    min-inline-size: 1.25rem;
-}
-
-.ledger-row__mark::before,
-.ledger-row__mark::after {
-    content: var(--leader-dots) / '';
-    flex: 1 1 0;
-    min-inline-size: 0;
-    overflow: hidden;
-    white-space: nowrap;
+    display: inline-flex;
+    flex: none;
+    inline-size: 1.5rem;
+    justify-content: center;
 }
 
 .ledger-row__mark .icon {

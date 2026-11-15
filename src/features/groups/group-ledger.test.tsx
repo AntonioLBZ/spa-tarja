@@ -258,7 +258,11 @@ describe('the ledger of a group', () => {
         ]);
         expect(first.querySelector('.category-badge')).toBeNull();
         expect(first.classList.contains('ledger-row--settlement')).toBe(true);
-        expect(first.querySelector('.ledger-row__mark [data-icon]')?.getAttribute('data-icon')).toBe('payments');
+        expect(
+            first
+                .querySelector('.expense-item__name > .ledger-row__mark:first-child [data-icon]')
+                ?.getAttribute('data-icon')
+        ).toBe('payments');
         expect(theLedger().querySelector('.expense-list__total')).toBeNull();
     });
 
