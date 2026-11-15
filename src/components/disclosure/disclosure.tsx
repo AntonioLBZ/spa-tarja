@@ -24,6 +24,10 @@ interface DisclosureProps {
     keepMounted?: boolean;
     // A chevron at the end of the toggle, a half turn when open
     chevron?: boolean;
+    // Where the toggle lines up what it holds and the chevron: in the middle, or on the first line of a tall row
+    align?: 'center' | 'top';
+    // The chevron in the middle of a column as wide as a touch target, with no gap before it
+    wideChevron?: boolean;
     toggleRef?: Ref<HTMLButtonElement>;
     className?: string;
     children: ReactNode;
@@ -62,6 +66,8 @@ const Disclosure = (props: DisclosureProps) => {
         disabled,
         keepMounted,
         chevron,
+        align = 'center',
+        wideChevron,
         toggleRef,
         className,
         children,
@@ -103,7 +109,11 @@ const Disclosure = (props: DisclosureProps) => {
             )}
         </button>
     );
-    const disclosureClsx = clsx('disclosure', className);
+    const disclosureClsx = clsx(
+        'disclosure',
+        { 'disclosure--top': align === 'top', 'disclosure--wide-chevron': wideChevron },
+        className
+    );
 
     return (
         <Tag className={disclosureClsx}>

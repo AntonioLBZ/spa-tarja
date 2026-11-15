@@ -108,7 +108,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     }
 
     return (
-        <Disclosure as="li" className={expenseClsx} chevron toggleRef={toggleRef} summary={body}>
+        <Disclosure as="li" className={expenseClsx} chevron align="top" toggleRef={toggleRef} summary={body}>
             <div className="expense-item__actions">
                 <Button
                     ghost

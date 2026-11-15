@@ -127,7 +127,7 @@ const LedgerRow = (props: LedgerRowProps) => {
     }
 
     return (
-        <Disclosure as="li" className={rowClsx} chevron toggleRef={focusRef} summary={body}>
+        <Disclosure as="li" className={rowClsx} chevron align="top" toggleRef={focusRef} summary={body}>
             {entry.kind === 'expense' && (
                 <ul className="ledger-row__breakdown" aria-label={t('ledger.breakdown')}>
                     <li className="ledger-row__share">

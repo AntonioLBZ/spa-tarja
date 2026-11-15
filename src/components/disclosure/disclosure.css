@@ -66,6 +66,26 @@
     transition: transform var(--duration-base) var(--ease-standard);
 }
 
+/* The chevron on the first line of a row that grows under it; a row whose first line is shorter moves it with
+   --disclosure-chevron-offset */
+.disclosure--top .disclosure__toggle {
+    align-items: flex-start;
+}
+
+.disclosure--top .disclosure__chevron {
+    padding-block-start: var(--disclosure-chevron-offset, var(--size-2));
+}
+
+/* The chevron in a column as wide as a touch target, so the end of the summary lines up with the icon buttons under it */
+.disclosure--wide-chevron .disclosure__toggle {
+    gap: 0;
+}
+
+.disclosure--wide-chevron .disclosure__chevron {
+    justify-content: center;
+    min-inline-size: var(--size-touch);
+}
+
 .disclosure__toggle[aria-expanded='true'] .disclosure__chevron {
     transform: rotate(180deg);
 }

@@ -93,6 +93,7 @@ const GroupBalances = (props: GroupBalancesProps) => {
                                 className="group-balances__person"
                                 key={person}
                                 chevron
+                                wideChevron
                                 defaultOpen={person === me}
                                 summary={
                                     <span className="group-balances__head">

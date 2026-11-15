@@ -17,16 +17,6 @@
     border-block-start: var(--size-px) solid var(--color-border-subtle);
 }
 
-/* The chevron takes the width of a touch, as the Settle up of a line does, so the totals line up with the amounts */
-.group-balances .disclosure__toggle {
-    gap: 0;
-}
-
-.group-balances .disclosure__chevron {
-    justify-content: center;
-    min-inline-size: var(--size-touch);
-}
-
 .group-balances__head,
 .group-balances__line {
     align-items: center;

@@ -65,8 +65,8 @@
 }
 
 /* Its first line is shorter, so its chevron climbs by the difference to stay on it */
-.ledger-row--settlement .disclosure__chevron {
-    padding-block-start: calc(var(--size-2) - (1.5 * (var(--font-size-m) - var(--font-size-s)) / 2));
+.ledger-row--settlement {
+    --disclosure-chevron-offset: calc(var(--size-2) - (1.5 * (var(--font-size-m) - var(--font-size-s)) / 2));
 }
 
 /* Who wrote the entry last, quiet, in the open row only */

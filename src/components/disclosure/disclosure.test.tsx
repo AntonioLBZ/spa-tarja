@@ -218,6 +218,22 @@ describe('Disclosure', () => {
         expect(toggle().textContent).toBe('Details');
     });
 
+    it('lines up in the middle unless asked for the top or a wide chevron', () => {
+        const { container, rerender } = render(<Disclosure summary="Details">Shown</Disclosure>);
+        const root = container.firstElementChild!;
+
+        expect(root.className).toBe('disclosure');
+
+        rerender(
+            <Disclosure summary="Details" align="top" wideChevron>
+                Shown
+            </Disclosure>
+        );
+
+        expect(root.classList.contains('disclosure--top')).toBe(true);
+        expect(root.classList.contains('disclosure--wide-chevron')).toBe(true);
+    });
+
     it.each([
         ['div', 'DIV'],
         ['li', 'LI'],
