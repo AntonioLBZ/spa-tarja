@@ -64,8 +64,8 @@ const Profile = () => {
 
     return (
         <section className="profile">
-            <h2 className="profile__title">{t('title')}</h2>
-            <p className="profile__hint" id={hintId}>
+            <h2>{t('title')}</h2>
+            <p className="hint" id={hintId}>
                 {t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
             </p>
             {!online && <Notice role="status">{t('offline')}</Notice>}

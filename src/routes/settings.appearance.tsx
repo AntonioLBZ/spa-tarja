@@ -14,7 +14,7 @@ const Appearance = () => {
 
     return (
         <section className="settings">
-            <h1 className="settings__title">{t('appearance.title')}</h1>
+            <h1>{t('appearance.title')}</h1>
             <ChoiceGroup
                 legend={t('theme.title')}
                 name="theme"

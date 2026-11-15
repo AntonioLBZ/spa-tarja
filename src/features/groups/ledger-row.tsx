@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
@@ -144,9 +145,9 @@ const LedgerRow = (props: LedgerRowProps) => {
                     ))}
                 </ul>
             )}
-            {wrote && <p className="ledger-row__wrote">{wrote}</p>}
+            {wrote && <p className="hint ledger-row__wrote">{wrote}</p>}
             {onDelete && (
-                <div className="expense-item__actions">
+                <Actions>
                     {onEdit && (
                         <Button
                             ghost
@@ -177,7 +178,7 @@ const LedgerRow = (props: LedgerRowProps) => {
                     >
                         {tList('delete')}
                     </Button>
-                </div>
+                </Actions>
             )}
             {onDelete && blocked && (
                 <Notice tone="quiet" id={reasonId}>

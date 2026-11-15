@@ -13,7 +13,7 @@ const AccountPage = () => {
 
     return (
         <section className="settings">
-            <h1 className="settings__title">{t('account.title')}</h1>
+            <h1>{t('account.title')}</h1>
             <Profile />
             <YourData />
             <Account />

@@ -76,7 +76,7 @@ const InviteFriend = (props: InviteFriendProps) => {
                 >
                     {t('links.make')}
                 </Button>
-                <p className="invite-friend__hint">{t('links.hint', { days: INVITATION_DAYS })}</p>
+                <p className="hint invite-friend__hint">{t('links.hint', { days: INVITATION_DAYS })}</p>
             </div>
             {failure && (
                 <Notice tone="danger" role="alert">

@@ -5,17 +5,6 @@
     justify-items: start;
 }
 
-.your-data__title {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
-.your-data__hint {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
-}
-
 /* Two equal columns while a label fits in each; when it doesn't, each takes a line of its own */
 .your-data__actions {
     display: grid;

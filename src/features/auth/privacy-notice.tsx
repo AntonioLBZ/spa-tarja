@@ -37,7 +37,7 @@ const PrivacyNotice = () => {
                 <p>{t('intro')}</p>
                 <p>{t('age')}</p>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('who.title')}</h3>
+                    <h3>{t('who.title')}</h3>
                     <p>{t('who.text')}</p>
                     <div className="privacy-notice__links">
                         <a className="button button--ghost" href={CONTACT_MAILTO}>
@@ -54,7 +54,7 @@ const PrivacyNotice = () => {
                     </div>
                 </section>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('stored.title')}</h3>
+                    <h3>{t('stored.title')}</h3>
                     <p>{t('stored.intro')}</p>
                     <p>{t('stored.basis')}</p>
                     <ul className="privacy-notice__list">
@@ -68,13 +68,13 @@ const PrivacyNotice = () => {
                     </ul>
                 </section>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('sees.title')}</h3>
+                    <h3>{t('sees.title')}</h3>
                     <p>{t('sees.members')}</p>
                     <p>{t('sees.own')}</p>
                     <p>{t('sees.unregistered')}</p>
                 </section>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('others.title')}</h3>
+                    <h3>{t('others.title')}</h3>
                     <p>{t('others.cloudflare')}</p>
                     <p>{t('others.google')}</p>
                     <p>{t('others.push')}</p>
@@ -82,14 +82,14 @@ const PrivacyNotice = () => {
                     <p>{t('others.none')}</p>
                 </section>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('keeps.title')}</h3>
+                    <h3>{t('keeps.title')}</h3>
                     <p>{t('keeps.how')}</p>
                     <p>{t('keeps.goes')}</p>
                     <p>{t('keeps.stays')}</p>
                     <p>{t('keeps.backups')}</p>
                 </section>
                 <section className="privacy-notice__section">
-                    <h3 className="privacy-notice__heading">{t('rights.title')}</h3>
+                    <h3>{t('rights.title')}</h3>
                     <ul className="privacy-notice__list">
                         <li>{t('rights.see', controls)}</li>
                         <li>{t('rights.correct', controls)}</li>

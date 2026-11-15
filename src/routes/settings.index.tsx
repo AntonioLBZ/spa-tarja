@@ -36,7 +36,7 @@ const SettingsCard = (props: SettingsCardProps) => {
                     <Icon name="chevron_right" />
                 </Link>
             </Card>
-            <p className="settings__card-hint" id={hintId}>
+            <p className="hint settings__card-hint" id={hintId}>
                 {hint}
             </p>
         </li>
@@ -66,7 +66,7 @@ const Settings = () => {
 
     return (
         <section className="settings">
-            <h1 className="settings__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
             <ChoiceGroup
                 legend={t('language.title')}
                 name="locale"

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
@@ -82,7 +83,7 @@ const CategoryRow = (props: CategoryRowProps) => {
                     <p className="category-row__question">
                         {t('deleteConfirm', { name: category.name, fallback: fallbackLabel })}
                     </p>
-                    <div className="category-row__actions">
+                    <Actions>
                         <Button
                             ghost
                             variant="danger"
@@ -95,7 +96,7 @@ const CategoryRow = (props: CategoryRowProps) => {
                         <Button ghost ref={cancelButton} onClick={() => setAsking(false)}>
                             {t('cancel')}
                         </Button>
-                    </div>
+                    </Actions>
                     {failed && (
                         <Notice tone="danger" role="alert">
                             {t('deleteFailed')}
@@ -103,7 +104,7 @@ const CategoryRow = (props: CategoryRowProps) => {
                     )}
                 </>
             ) : (
-                <div className="category-row__actions">
+                <Actions>
                     <Button
                         ghost
                         aria-label={t('editItem', { name: category.name })}
@@ -122,7 +123,7 @@ const CategoryRow = (props: CategoryRowProps) => {
                     >
                         {t('delete')}
                     </Button>
-                </div>
+                </Actions>
             )}
         </Disclosure>
     );

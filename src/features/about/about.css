@@ -8,11 +8,6 @@
     justify-self: start;
 }
 
-.about__title {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
 .about__status--error {
     color: var(--color-danger);
 }

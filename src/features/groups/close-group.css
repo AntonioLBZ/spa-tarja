@@ -8,9 +8,3 @@
     margin: 0;
     overflow-wrap: anywhere;
 }
-
-.close-group__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}

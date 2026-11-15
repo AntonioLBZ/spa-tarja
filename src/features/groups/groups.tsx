@@ -56,7 +56,7 @@ const Groups = () => {
 
     return (
         <section className="groups">
-            <h1 className="groups__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <EntryRefusals />
             {!hasData && (isError || isWaitingForNetwork) && (
@@ -73,7 +73,7 @@ const Groups = () => {
                         <span className="groups__empty-line">{t('emptyHint')}</span>
                     </Notice>
                 ))}
-            {pins.full && <p className="groups__pin-full">{t('edit.pinFull', { max: MAX_PINNED_GROUPS })}</p>}
+            {pins.full && <p className="hint">{t('edit.pinFull', { max: MAX_PINNED_GROUPS })}</p>}
             {pins.failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(pins.failure)}
@@ -111,9 +111,7 @@ const ListSection = (props: ListSectionProps) => {
 
     return (
         <section className="groups__section" aria-labelledby={headingId}>
-            <h2 className="groups__heading" id={headingId}>
-                {title}
-            </h2>
+            <h2 id={headingId}>{title}</h2>
             {children}
         </section>
     );

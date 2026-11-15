@@ -2,6 +2,7 @@ import { useId, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
@@ -142,7 +143,7 @@ const PersonRow = (props: PersonRowProps) => {
     return (
         <Disclosure as="li" chevron summary={summary} open={expanded} onOpenChange={handleOpenChange}>
             {step === 'actions' && (
-                <div className="person-row__actions">
+                <Actions>
                     {canRename && (
                         <Button
                             ghost
@@ -188,7 +189,7 @@ const PersonRow = (props: PersonRowProps) => {
                             {t('people.remove')}
                         </Button>
                     )}
-                </div>
+                </Actions>
             )}
             {step === 'renaming' && (
                 <form className="person-row__form" onSubmit={handleRename}>
@@ -209,12 +210,12 @@ const PersonRow = (props: PersonRowProps) => {
                             />
                         )}
                     </Field>
-                    <div className="person-row__actions">
+                    <Actions>
                         <Button ghost disabled={disabled || busy} type="submit">
                             {t('people.save')}
                         </Button>
                         {cancel(false)}
-                    </div>
+                    </Actions>
                 </form>
             )}
             {step === 'merging' && (
@@ -233,7 +234,7 @@ const PersonRow = (props: PersonRowProps) => {
                             />
                         )}
                     </Field>
-                    <div className="person-row__actions">
+                    <Actions>
                         <Button
                             ghost
                             aria-label={t('people.mergeConfirmItem', { name })}
@@ -243,7 +244,7 @@ const PersonRow = (props: PersonRowProps) => {
                             {t('people.mergeConfirm')}
                         </Button>
                         {cancel(false, true)}
-                    </div>
+                    </Actions>
                 </>
             )}
             {step === 'handingOver' && (
@@ -251,7 +252,7 @@ const PersonRow = (props: PersonRowProps) => {
                     <p id={questionId} className="person-row__question">
                         {t('people.makeOwnerQuestion', { name })}
                     </p>
-                    <div className="person-row__actions">
+                    <Actions>
                         <Button
                             ghost
                             aria-label={t('people.makeOwnerItem', { name })}
@@ -261,7 +262,7 @@ const PersonRow = (props: PersonRowProps) => {
                             {t('people.makeOwner')}
                         </Button>
                         {cancel(true, true)}
-                    </div>
+                    </Actions>
                 </>
             )}
             {step === 'removing' && (
@@ -270,7 +271,7 @@ const PersonRow = (props: PersonRowProps) => {
                     <p id={questionId} className="person-row__question">
                         {cents ? t('people.unsettled', { name }) : t('people.removeConfirm', { name })}
                     </p>
-                    <div className="person-row__actions">
+                    <Actions>
                         {!cents && (
                             <Button
                                 ghost
@@ -283,7 +284,7 @@ const PersonRow = (props: PersonRowProps) => {
                             </Button>
                         )}
                         {cancel(true, true)}
-                    </div>
+                    </Actions>
                 </>
             )}
             {failure && (

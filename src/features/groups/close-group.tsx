@@ -2,6 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
@@ -103,7 +104,7 @@ const CloseGroup = (props: CloseGroupProps) => {
                             {t(`${way}.unsettled`, { name: words.title })}
                         </p>
                     )}
-                    <div className="close-group__actions">
+                    <Actions>
                         {asking === 'question' ? (
                             <Button
                                 ghost
@@ -121,7 +122,7 @@ const CloseGroup = (props: CloseGroupProps) => {
                         <Button ghost ref={cancel} aria-describedby={textId} onClick={() => ask(null)}>
                             {t('cancel')}
                         </Button>
-                    </div>
+                    </Actions>
                 </>
             )}
             {failure && (

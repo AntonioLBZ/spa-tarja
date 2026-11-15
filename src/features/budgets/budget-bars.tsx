@@ -54,7 +54,7 @@ const BudgetBars = (props: BudgetBarsProps) => {
                             </span>
                             <span className="budget-bar__percent">{use.percent} %</span>
                         </div>
-                        <p className="budget-bar__amounts">
+                        <p className="hint">
                             {t('bar.of', { spent: money(use.spentCents), limit: money(use.limitCents) })}
                             {over && ` · ${t('bar.over', { amount: money(use.spentCents - use.limitCents) })}`}
                         </p>

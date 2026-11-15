@@ -3,27 +3,11 @@
     gap: var(--size-8);
 }
 
-.settings__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
 .settings__section {
     display: grid;
     gap: var(--size-2);
     grid-template-columns: minmax(0, 1fr);
     justify-items: start;
-}
-
-.settings__heading {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
-.settings__hint {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
 }
 
 /* The cards of the pages, each with its hint under it: far enough apart to read as one group each */
@@ -66,8 +50,5 @@
 }
 
 .settings__card-hint {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
     overflow-wrap: anywhere;
 }

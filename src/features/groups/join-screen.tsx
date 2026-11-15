@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
@@ -103,14 +104,14 @@ const JoinScreen = (props: JoinScreenProps) => {
                     <Sheet label={name}>
                         <p className="join__text">{t('join.asks', { name })}</p>
                         <p className="join__text">{t('join.what', { name })}</p>
-                        <div className="join__actions">
+                        <Actions>
                             <Button ghost disabled={!online || busy} onClick={() => void answer(true)}>
                                 {t('join.accept')}
                             </Button>
                             <Button ghost disabled={!online || busy} onClick={() => void answer(false)}>
                                 {t('join.decline')}
                             </Button>
-                        </div>
+                        </Actions>
                     </Sheet>
                     {failure && (
                         <Notice tone="danger" role="alert">

@@ -20,12 +20,6 @@
     font-weight: 700;
 }
 
-.budget-bar__amounts {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
-}
-
 .budget-bar__track {
     block-size: var(--size-2);
     border: var(--size-px) solid var(--color-border);

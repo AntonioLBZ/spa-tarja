@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useId, type RefCallback } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
@@ -109,7 +110,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
 
     return (
         <Disclosure as="li" className={expenseClsx} chevron align="top" toggleRef={toggleRef} summary={body}>
-            <div className="expense-item__actions">
+            <Actions>
                 <Button
                     ghost
                     aria-describedby={editable ? undefined : reasonId}
@@ -137,7 +138,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                 >
                     {t('delete')}
                 </Button>
-            </div>
+            </Actions>
             {!editable && (
                 <Notice tone="quiet" id={reasonId}>
                     {source ? tLedger('leftCantEdit') : t('editIncomplete')}

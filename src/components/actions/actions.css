@@ -1,0 +1,6 @@
+/* Actions side by side, a ghost's width apart, on as many lines as they need */
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}

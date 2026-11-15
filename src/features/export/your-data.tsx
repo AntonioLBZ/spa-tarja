@@ -71,10 +71,10 @@ const YourData = () => {
 
     return (
         <section className="your-data">
-            <h2 className="your-data__title" id={YOUR_DATA_ID} tabIndex={-1}>
+            <h2 id={YOUR_DATA_ID} tabIndex={-1}>
                 {t('title')}
             </h2>
-            <p className="your-data__hint">{t('description')}</p>
+            <p className="hint">{t('description')}</p>
             {loading && <Notice role="status">{t('loading')}</Notice>}
             {!loading && missing && (
                 <Notice tone="danger" role="status">

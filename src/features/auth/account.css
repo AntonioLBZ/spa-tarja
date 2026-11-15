@@ -5,11 +5,6 @@
     justify-items: start;
 }
 
-.account__title {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
 .account__user {
     display: grid;
     margin: 0;

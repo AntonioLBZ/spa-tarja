@@ -8,11 +8,6 @@
     margin: 0;
 }
 
-.privacy-notice__heading {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
 .privacy-notice__list {
     display: grid;
     gap: var(--size-2);

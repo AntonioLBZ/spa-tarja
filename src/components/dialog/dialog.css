@@ -94,9 +94,6 @@
 
 /* The actions are ghosts, which line up with the text above them */
 .dialog__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
     margin-top: var(--size-4);
 }
 

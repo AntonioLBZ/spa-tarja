@@ -236,7 +236,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
 
     return (
         <section className="group-ledger">
-            <h2 className="group-ledger__title" ref={title} tabIndex={-1}>
+            <h2 ref={title} tabIndex={-1}>
                 {t('title')}
             </h2>
             {failure && (

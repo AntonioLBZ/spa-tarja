@@ -85,7 +85,7 @@ const Charts = () => {
 
     return (
         <section className="charts">
-            <h1 className="charts__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
 
             <ChoiceGroup
                 legend={t('group.title')}

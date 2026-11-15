@@ -34,7 +34,7 @@ const Account = () => {
 
     return (
         <section className="account">
-            <h2 className="account__title">{t('session')}</h2>
+            <h2>{t('session')}</h2>
             <p className="account__user">
                 <span className="account__name">{user.name}</span>
                 <span className="account__email">{user.email}</span>

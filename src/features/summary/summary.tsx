@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Amount } from '@/components/amount/amount';
 import { CardList, CardTerm } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
@@ -41,7 +42,7 @@ const Summary = () => {
 
     return (
         <section className="summary">
-            <h1 className="summary__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
 
             <MonthSwitch
                 monthName={monthName}
@@ -61,10 +62,10 @@ const Summary = () => {
                     </CardTerm>
                 )}
             </CardList>
-            {summary.leftCents === null && <p className="summary__hint">{t('leftHint')}</p>}
+            {summary.leftCents === null && <p className="hint">{t('leftHint')}</p>}
 
             {income.isError && income.data === undefined && (
-                <p className="summary__hint" role="alert">
+                <p className="hint" role="alert">
                     {t('loadFailed')}
                 </p>
             )}
@@ -74,14 +75,14 @@ const Summary = () => {
 
             <IncomeForm month={month} monthName={monthName} income={set} />
 
-            <div className="summary__links">
+            <Actions>
                 <Link className="summary__link" to="/budgets">
                     {t('budgetsLink')}
                 </Link>
                 <Link className="summary__link" to="/charts">
                     {t('chartsLink')}
                 </Link>
-            </div>
+            </Actions>
         </section>
     );
 };

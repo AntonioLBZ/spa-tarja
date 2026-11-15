@@ -18,7 +18,7 @@ const About = () => {
 
     return (
         <section className="about">
-            <h2 className="about__title">{t('title')}</h2>
+            <h2>{t('title')}</h2>
             <CardList as="dl">
                 <CardTerm term={t('version')}>{appVersion()}</CardTerm>
                 <CardTerm term={t('status.label')}>

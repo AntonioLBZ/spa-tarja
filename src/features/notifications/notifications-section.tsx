@@ -17,8 +17,8 @@ const NotificationsSection = () => {
 
     return (
         <section className="notifications-section">
-            <h2 className="notifications-section__title">{t('title')}</h2>
-            <p className="notifications-section__hint">{t('hint')}</p>
+            <h2>{t('title')}</h2>
+            <p className="hint">{t('hint')}</p>
             {state === 'unsupported' && <Notice tone="quiet">{t('unsupported')}</Notice>}
             {state === 'denied' && <Notice tone="quiet">{t('denied')}</Notice>}
             {usable && !online && <Notice role="status">{t('offline')}</Notice>}

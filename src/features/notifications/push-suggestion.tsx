@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { useUser } from '@/lib/auth';
@@ -41,7 +42,7 @@ const PushSuggestion = (props: PushSuggestionProps) => {
     return (
         <div className="push-suggestion">
             <Notice tone="quiet">{t('text')}</Notice>
-            <div className="push-suggestion__actions">
+            <Actions>
                 <Button
                     ghost
                     disabled={busy}
@@ -55,7 +56,7 @@ const PushSuggestion = (props: PushSuggestionProps) => {
                 <Button ghost disabled={busy} onClick={answer}>
                     {t('notNow')}
                 </Button>
-            </div>
+            </Actions>
         </div>
     );
 };

@@ -101,7 +101,7 @@ const Budgets = () => {
 
     return (
         <section className="budgets">
-            <h1 className="budgets__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
 
             <MonthSwitch
                 monthName={monthName}
@@ -110,9 +110,9 @@ const Budgets = () => {
                 onNext={() => setMonth(shiftMonth(month, 1))}
             />
 
-            <p className="budgets__hint">{t('hint')}</p>
+            <p className="hint">{t('hint')}</p>
             {isError && (
-                <p className="budgets__hint" role="alert">
+                <p className="hint" role="alert">
                     {t('loadFailed')}
                 </p>
             )}

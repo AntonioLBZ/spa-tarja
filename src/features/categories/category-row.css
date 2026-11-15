@@ -3,12 +3,6 @@
     overflow-wrap: anywhere;
 }
 
-.category-row__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
 .category-row__question {
     margin: 0;
 }

@@ -11,12 +11,6 @@
     margin: 0;
 }
 
-.spending-stats__change {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
-}
-
 .spending-stats__arrow {
     color: var(--color-content-primary);
     font-weight: 700;

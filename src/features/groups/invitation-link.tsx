@@ -1,6 +1,7 @@
 import { useId, useMemo, useState, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
@@ -65,14 +66,14 @@ const InvitationLink = (props: InvitationLinkProps) => {
                     />
                 )}
             </Field>
-            <div className="invitation-link__actions">
+            <Actions>
                 <Button ghost disabled={disabled} onClick={() => void send()}>
                     {canShare() ? t('share') : t('copy')}
                 </Button>
                 <Button ghost disabled={disabled || busy} onClick={onRevoke}>
                     {t('revoke')}
                 </Button>
-            </div>
+            </Actions>
             {sent === 'copied' && <Notice role="status">{t('copied')}</Notice>}
             {sent === 'failed' && (
                 <Notice tone="danger" role="alert">

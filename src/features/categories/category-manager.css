@@ -4,11 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.category-manager__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
 .category-manager__form {
     display: grid;
     gap: var(--size-1);
@@ -22,12 +17,6 @@
     display: grid;
     gap: var(--size-2);
     grid-template-columns: minmax(0, 1fr);
-}
-
-.category-manager__hint {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
 }
 
 /* A built-in category on its sheet: nothing to open, so no notch and no chevron, as tall as a row that does open */

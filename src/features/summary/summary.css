@@ -4,23 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.summary__title {
-    font-size: var(--font-size-l);
-    margin: 0;
-}
-
-.summary__hint {
-    color: var(--color-content-secondary);
-    font-size: var(--font-size-s);
-    margin: 0;
-}
-
-.summary__links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
 .summary__link {
     align-items: center;
     display: inline-flex;

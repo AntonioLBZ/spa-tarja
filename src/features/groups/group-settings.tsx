@@ -59,13 +59,13 @@ const SettingsView = (props: SettingsViewProps) => {
             {!online && <Notice role="status">{t('offline')}</Notice>}
             {open && group.kind === 'group' && isOwner(group) && (
                 <section className="group-settings__part">
-                    <h2 className="group-settings__heading">{t('edit.forGroup')}</h2>
+                    <h2>{t('edit.forGroup')}</h2>
                     <GroupName group={group} disabled={!online} />
                     <SimplifyDebts group={group} disabled={!online} />
                 </section>
             )}
             <section className="group-settings__part">
-                <h2 className="group-settings__heading">{t('edit.forYou')}</h2>
+                <h2>{t('edit.forYou')}</h2>
                 <PersonalSwitches group={group} disabled={!online} />
             </section>
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}

@@ -182,7 +182,7 @@ const ExpenseList = (props: ExpenseListProps) => {
     // Still loading: nothing to show yet, and not waiting for a connection that may take long
     if (!hasData && !isError && !isWaitingForNetwork) return null;
 
-    const titleClsx = clsx('expense-list__title', { 'visually-hidden': titleHidden });
+    const titleClsx = clsx({ 'visually-hidden': titleHidden });
     const labelClsx = clsx({
         'expense-list__label--category': grouping === 'category',
         'expense-list__label--date': grouping !== 'category',

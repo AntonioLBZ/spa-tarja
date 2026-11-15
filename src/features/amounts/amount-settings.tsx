@@ -15,8 +15,8 @@ const AmountSettings = () => {
 
     return (
         <section className="amount-settings">
-            <h2 className="amount-settings__title">{t('title')}</h2>
-            <p className="amount-settings__hint">{t('hint')}</p>
+            <h2>{t('title')}</h2>
+            <p className="hint">{t('hint')}</p>
             <p className="amount-settings__sample" aria-hidden="true">
                 <Amount {...amount(2000, undefined, { cues: true, arrow: true })} />
                 <Amount {...amount(-1250, undefined, { cues: true, arrow: true })} />

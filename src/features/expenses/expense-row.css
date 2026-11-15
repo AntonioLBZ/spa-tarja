@@ -63,12 +63,6 @@
     font-style: italic;
 }
 
-.expense-item__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
 /* The name is joined to the amount by a leader of dots, which gives way when the name wraps */
 .expense-item__name::after {
     color: var(--color-content-secondary);

@@ -113,7 +113,7 @@ const CategoryManager = () => {
 
     return (
         <section className="category-manager">
-            <h1 className="category-manager__title">{t('title')}</h1>
+            <h1>{t('title')}</h1>
 
             {!online && <Notice role="status">{t('offline')}</Notice>}
 
@@ -192,7 +192,7 @@ const CategoryManager = () => {
             )}
 
             <section className="category-manager__section">
-                <p className="category-manager__hint">{t('builtIn.note')}</p>
+                <p className="hint">{t('builtIn.note')}</p>
                 <Sheet label={t('builtIn.title')}>
                     <CardList flush>
                         {DEFAULT_CATEGORY_IDS.map((categoryId) => (

@@ -55,6 +55,24 @@ button:disabled {
     cursor: default;
 }
 
+/* The title of a screen and of a section; zero specificity, so a class can still set what differs */
+:where(h1) {
+    font-size: var(--font-size-l);
+    margin: 0;
+}
+
+:where(h2, h3) {
+    font-size: var(--font-size-m);
+    margin: 0;
+}
+
+/* The quiet line under a heading or beside a value */
+.hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
 /* Hidden on screen, still read by assistive technology */
 .visually-hidden {
     block-size: 1px;

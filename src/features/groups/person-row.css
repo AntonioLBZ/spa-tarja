@@ -28,12 +28,6 @@
     overflow-wrap: anywhere;
 }
 
-.person-row__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-}
-
 .person-row__form {
     display: grid;
     gap: var(--size-2);

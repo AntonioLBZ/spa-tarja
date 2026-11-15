@@ -5,18 +5,10 @@
 }
 
 .join__title {
-    font-size: var(--font-size-l);
-    margin: 0;
     overflow-wrap: anywhere;
 }
 
 .join__text {
     margin: 0;
     overflow-wrap: anywhere;
-}
-
-.join__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
 }

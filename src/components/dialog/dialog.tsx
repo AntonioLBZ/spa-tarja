@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from 'react';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { useOverflowMark } from '@/lib/use-overflow-mark';
@@ -119,7 +120,7 @@ const Dialog = (props: DialogProps) => {
                 {isPage && headAction}
             </div>
             <div className="dialog__body">{children}</div>
-            {actions && <div className="dialog__actions">{actions}</div>}
+            {actions && <Actions className="dialog__actions">{actions}</Actions>}
         </dialog>
     );
 };

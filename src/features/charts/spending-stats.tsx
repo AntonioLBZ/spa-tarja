@@ -89,7 +89,7 @@ const SpendingStats = (props: SpendingStatsProps) => {
                 <strong>{money(totalCents)}</strong>
             </p>
             {line && (
-                <p className="spending-stats__change">
+                <p className="hint">
                     {line.arrow && (
                         <span className="spending-stats__arrow" aria-hidden="true">
                             {line.arrow}

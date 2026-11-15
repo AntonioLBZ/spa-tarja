@@ -5,11 +5,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.expense-list__title {
-    font-size: var(--font-size-m);
-    margin: 0;
-}
-
 .expense-list__label--category {
     align-items: center;
     display: flex;
