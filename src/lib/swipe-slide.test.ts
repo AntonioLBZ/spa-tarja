@@ -14,13 +14,18 @@ const fakeAnimation = (duration: number) => {
         },
         pause: vi.fn(),
         finish: vi.fn(),
+        cancel: vi.fn(),
     };
 };
 
 const stubTransition = () => {
     const animations = [fakeAnimation(360), fakeAnimation(200)];
-    const skipTransition = vi.fn();
-    const transition = { ready: Promise.resolve(), skipTransition };
+    let end: () => void = () => undefined;
+    const finished = new Promise<void>((resolve) => {
+        end = resolve;
+    });
+    const skipTransition = vi.fn(() => end());
+    const transition = { ready: Promise.resolve(), finished, skipTransition };
     const startViewTransition = vi.fn();
     Object.defineProperty(document, 'startViewTransition', { configurable: true, value: startViewTransition });
     Object.defineProperty(document, 'activeViewTransition', { configurable: true, value: null });
@@ -28,7 +33,7 @@ const stubTransition = () => {
     const start = () => {
         Object.defineProperty(document, 'activeViewTransition', { configurable: true, value: transition });
     };
-    return { animations, skipTransition, start };
+    return { animations, skipTransition, start, end: () => end() };
 };
 
 const moves = (start: () => void = () => undefined) => {
@@ -131,6 +136,36 @@ describe('followSlide', () => {
         followSlide({ go, undo }).release(false);
 
         await vi.waitFor(() => expect(undo).toHaveBeenCalledOnce(), { timeout: 2000 });
+    });
+});
+
+describe('followSlide when its transition ends', () => {
+    it('ends the animations it took, and stops moving them', async () => {
+        const { animations, start, end } = stubTransition();
+        const { go, undo } = moves(start);
+        const drag = followSlide({ go, undo });
+        await vi.waitFor(() => expect(animations[0]!.pause).toHaveBeenCalled());
+
+        end();
+        await vi.waitFor(() => expect(animations[0]!.cancel).toHaveBeenCalled());
+        drag.follow(0.5);
+        drag.release(false);
+
+        expect(animations.map((animation) => animation.currentTime)).toEqual([0, 0]);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(undo).not.toHaveBeenCalled();
+    });
+
+    it('never takes the animations another slide took', async () => {
+        const { animations, start } = stubTransition();
+        followSlide(moves(start));
+        await vi.waitFor(() => expect(animations[0]!.pause).toHaveBeenCalledOnce());
+        Object.defineProperty(document, 'activeViewTransition', { configurable: true, value: null });
+
+        followSlide(moves(start));
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        expect(animations[0]!.pause).toHaveBeenCalledOnce();
     });
 });
 

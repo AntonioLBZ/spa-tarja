@@ -37,13 +37,18 @@ const newTransition = async (before: ViewTransition | null | undefined) => {
     return null;
 };
 
-// The animations of the pictures of a view transition, each turned to move evenly with the finger
+// The animations a slide already took, which a later slide must not take again
+const taken = new WeakSet<Animation>();
+
+// The animations of the pictures of a view transition, each turned to move evenly with the finger. Once turned they no
+// longer belong to the styles, so nothing ends them but the slide that took them.
 const pictureAnimations = () => {
     const animations = document.getAnimations().filter((animation) => {
         const effect = animation.effect as KeyframeEffect | null;
-        return effect?.pseudoElement?.startsWith('::view-transition') ?? false;
+        return !taken.has(animation) && (effect?.pseudoElement?.startsWith('::view-transition') ?? false);
     });
     for (const animation of animations) {
+        taken.add(animation);
         animation.pause();
         const effect = animation.effect as KeyframeEffect;
         effect.setKeyframes(effect.getKeyframes().map((keyframe) => ({ ...keyframe, easing: 'linear' })));
@@ -62,12 +67,14 @@ const place = (animations: readonly Animation[], progress: number) => {
 // Out over what is left of the slide's time, decelerating
 const easeOut = (share: number) => 1 - (1 - share) ** 3;
 
-const glide = async (animations: readonly Animation[], from: number, to: number, ms: number) => {
+// Moves the slide over time, until it gets there or its transition is over
+const glide = async (animations: readonly Animation[], from: number, to: number, ms: number, over: () => boolean) => {
     const startedAt = await nextFrame();
     for (let now = startedAt; now - startedAt < ms; now = await nextFrame()) {
+        if (over()) return;
         place(animations, from + (to - from) * easeOut((now - startedAt) / ms));
     }
-    place(animations, to);
+    if (!over()) place(animations, to);
 };
 
 // A slide that follows the finger: the new screen is opened as the swipe starts, its view transition is held, and the
@@ -92,18 +99,23 @@ const followSlide = (moves: SlideMoves): SwipeDrag => {
     let animations: Animation[] | null = null;
     let transition: ViewTransition | null = null;
     let prepared = false;
+    // The transition ended, by itself, skipped or replaced by another one
+    let over = false;
+    const isOver = () => over;
 
     const settle = async (goOn: boolean) => {
         if (!transition || !animations) {
             if (!goOn) await undo();
             return;
         }
+        if (over) return;
         if (goOn) {
-            await glide(animations, progress, 1, ms * (1 - progress));
-            for (const animation of animations) animation.finish();
+            await glide(animations, progress, 1, ms * (1 - progress), isOver);
+            if (!over) for (const animation of animations) animation.finish();
             return;
         }
-        await glide(animations, progress, 0, ms * progress);
+        await glide(animations, progress, 0, ms * progress, isOver);
+        if (over) return;
         await undo();
         await nextFrame();
         transition.skipTransition();
@@ -114,9 +126,16 @@ const followSlide = (moves: SlideMoves): SwipeDrag => {
     void newTransition(before).then(async (started) => {
         transition = started;
         if (started) {
+            const ended = () => {
+                over = true;
+                for (const animation of animations ?? []) animation.cancel();
+            };
+            started.finished.then(ended, ended);
             await started.ready.catch(() => undefined);
-            animations = pictureAnimations();
-            place(animations, progress);
+            if (!over) {
+                animations = pictureAnimations();
+                place(animations, progress);
+            }
         }
         prepared = true;
         if (released !== null) await settle(released);
@@ -125,7 +144,7 @@ const followSlide = (moves: SlideMoves): SwipeDrag => {
     return {
         follow: (next) => {
             progress = next;
-            if (animations && released === null) place(animations, progress);
+            if (animations && released === null && !over) place(animations, progress);
         },
         release: (goOn) => {
             if (released !== null) return;
