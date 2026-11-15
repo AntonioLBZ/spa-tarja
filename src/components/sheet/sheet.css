@@ -35,6 +35,10 @@
     padding-inline: 0;
 }
 
+.sheet .disclosure__toggle::before {
+    content: none;
+}
+
 .sheet .disclosure__panel {
     padding-block: 0 var(--size-3);
     padding-inline-start: 0;
