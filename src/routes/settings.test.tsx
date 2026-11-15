@@ -63,13 +63,15 @@ describe('settings', () => {
     });
 
     describe('the page of settings', () => {
+        const link = (name: string) => screen.getByRole('link', { name });
+
         it('holds the language, the three cards together, Notifications and About, in this order', async () => {
             stubApi(createFakeApi().handler);
             renderApp({ path: '/settings' });
 
             const language = await screen.findByRole('group', { name: en.settings.language.title });
             const links = [en.settings.appearance.title, en.settings.categories.title, en.settings.account.title].map(
-                (name) => screen.getByRole('link', { name: new RegExp(`^${name}`) })
+                link
             );
             const list = links[0]!.closest('ul')!;
             const notifications = screen.getByRole('heading', { name: en.settings.notifications.title });
@@ -91,37 +93,57 @@ describe('settings', () => {
             [en.settings.appearance.title, '/settings/appearance', en.settings.appearance.title],
             [en.settings.categories.title, '/settings/categories', en.categoryManager.title],
             [en.settings.account.title, '/settings/account', en.settings.account.title],
-        ])('leads from the card %s to its page, with a chevron', async (name, href, title) => {
+        ])('leads from the card %s, its title alone and a chevron, to its page', async (name, href, title) => {
             stubApi(createFakeApi().handler);
             renderApp({ path: '/settings' });
 
-            const card = await screen.findByRole('link', { name: new RegExp(`^${name}`) });
+            const card = await screen.findByRole('link', { name });
             expect(card.getAttribute('href')).toBe(href);
-            expect(card.closest('li')!.querySelector('svg[data-icon="chevron_right"]')).not.toBeNull();
+            expect(card.textContent).toBe(name);
+            expect(card.querySelector('svg[data-icon="chevron_right"]')).not.toBeNull();
 
             fireEvent.click(card);
 
             expect(await screen.findByRole('heading', { level: 1, name: title })).toBeDefined();
         });
 
-        it('says on the Account card the first name of the account and the email while there is no nickname', async () => {
+        it.each([
+            [en.settings.appearance.title, en.settings.appearance.hint],
+            [en.settings.categories.title, en.settings.categories.hint],
+        ])('says under the card %s, outside it, what its page holds', async (name, hint) => {
             stubApi(createFakeApi().handler);
             renderApp({ path: '/settings' });
 
-            const card = await screen.findByRole('link', { name: new RegExp(`^${en.settings.account.title}`) });
+            const card = await screen.findByRole('link', { name, description: hint });
+            const text = screen.getByText(hint);
 
-            await waitFor(() => expect(within(card).getByText('Ana')).toBeDefined());
-            expect(within(card).getByText(TEST_USER.email)).toBeDefined();
+            expect(card.contains(text)).toBe(false);
+            expect(card.closest('li')!.contains(text)).toBe(true);
+            expect(card.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
-        it('says on the Account card the nickname when there is one', async () => {
+        it('says under the Account card the first name of the account and the email while there is no nickname', async () => {
+            stubApi(createFakeApi().handler);
+            renderApp({ path: '/settings' });
+
+            expect(
+                await screen.findByRole('link', {
+                    name: en.settings.account.title,
+                    description: `Ana · ${TEST_USER.email}`,
+                })
+            ).toBeDefined();
+        });
+
+        it('says under the Account card the nickname when there is one', async () => {
             stubApi(createFakeApi({ nickname: 'Anita' }).handler);
             renderApp({ path: '/settings' });
 
-            const card = await screen.findByRole('link', { name: new RegExp(`^${en.settings.account.title}`) });
-
-            expect(await within(card).findByText('Anita')).toBeDefined();
-            expect(within(card).getByText(TEST_USER.email)).toBeDefined();
+            expect(
+                await screen.findByRole('link', {
+                    name: en.settings.account.title,
+                    description: `Anita · ${TEST_USER.email}`,
+                })
+            ).toBeDefined();
         });
 
         it('is in Spanish too', async () => {
@@ -130,10 +152,18 @@ describe('settings', () => {
             renderApp({ path: '/settings' });
 
             expect(
-                await screen.findByRole('link', { name: new RegExp(`^${es.settings.appearance.title}`) })
+                await screen.findByRole('link', {
+                    name: es.settings.appearance.title,
+                    description: es.settings.appearance.hint,
+                })
             ).toBeDefined();
-            expect(screen.getByRole('link', { name: new RegExp(`^${es.settings.categories.title}`) })).toBeDefined();
-            expect(screen.getByRole('link', { name: new RegExp(`^${es.settings.account.title}`) })).toBeDefined();
+            expect(
+                screen.getByRole('link', {
+                    name: es.settings.categories.title,
+                    description: es.settings.categories.hint,
+                })
+            ).toBeDefined();
+            expect(screen.getByRole('link', { name: es.settings.account.title })).toBeDefined();
         });
 
         it('sends the old address of the categories to their page', async () => {

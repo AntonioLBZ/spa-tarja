@@ -217,7 +217,8 @@
             "title": "Language"
         },
         "appearance": {
-            "title": "Appearance"
+            "title": "Appearance",
+            "hint": "Theme and amounts"
         },
         "theme": {
             "title": "Theme",
@@ -260,7 +261,8 @@
             "removeFailed": "Couldn't remove your nickname. Try again."
         },
         "categories": {
-            "title": "Categories"
+            "title": "Categories",
+            "hint": "Your own, beside the built-in ones"
         },
         "data": {
             "title": "Your data",
@@ -285,6 +287,7 @@
         "account": {
             "title": "Account",
             "session": "Session",
+            "hint": "{name} · {email}",
             "signOut": "Sign out",
             "signingOut": "Signing out…",
             "signOutFailed": "Couldn't sign out. Signing out needs a connection.",

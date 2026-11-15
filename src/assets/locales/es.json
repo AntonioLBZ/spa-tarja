@@ -217,7 +217,8 @@
             "title": "Idioma"
         },
         "appearance": {
-            "title": "Apariencia"
+            "title": "Apariencia",
+            "hint": "Tema e importes"
         },
         "theme": {
             "title": "Tema",
@@ -260,7 +261,8 @@
             "removeFailed": "No se pudo quitar tu apodo. Inténtalo de nuevo."
         },
         "categories": {
-            "title": "Categorías"
+            "title": "Categorías",
+            "hint": "Las tuyas, junto a las de siempre"
         },
         "data": {
             "title": "Tus datos",
@@ -285,6 +287,7 @@
         "account": {
             "title": "Cuenta",
             "session": "Sesión",
+            "hint": "{name} · {email}",
             "signOut": "Cerrar sesión",
             "signingOut": "Cerrando sesión…",
             "signOutFailed": "No se pudo cerrar la sesión. Para cerrarla hace falta conexión.",

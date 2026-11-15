@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link, createFileRoute } from '@tanstack/react-router';
+import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Card, CardList } from '@/components/card/card';
+import { Card } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Icon } from '@/components/icon/icon';
 import { About } from '@/features/about/about';
@@ -12,30 +13,33 @@ import { useUser } from '@/lib/auth';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { personName } from '@core/shared-group';
 
-import type { ReactNode } from 'react';
-
 import './settings.css';
 
 interface SettingsCardProps {
     to: '/settings/appearance' | '/settings/categories' | '/settings/account';
     title: string;
-    children?: ReactNode;
+    // What the page holds, said under the card and outside it
+    hint: string;
 }
 
-// A card that leads to a page of the settings: the link covers it, the chevron ends it
+// A card that leads to a page of the settings: its title and a chevron on one line, the link covering it, and under
+// it the hint that describes the link
 const SettingsCard = (props: SettingsCardProps) => {
-    const { to, title, children } = props;
+    const { to, title, hint } = props;
+    const hintId = useId();
 
     return (
-        <Card as="li" className="settings__card">
-            <Link className="settings__card-link" to={to}>
-                <span className="settings__card-body">
-                    <span>{title}</span>
-                    {children && <span className="settings__card-detail">{children}</span>}
-                </span>
-                <Icon name="chevron_right" />
-            </Link>
-        </Card>
+        <li className="settings__item">
+            <Card className="settings__card">
+                <Link className="settings__card-link" to={to} aria-describedby={hintId}>
+                    <span className="settings__card-title">{title}</span>
+                    <Icon name="chevron_right" />
+                </Link>
+            </Card>
+            <p className="settings__card-hint" id={hintId}>
+                {hint}
+            </p>
+        </li>
     );
 };
 
@@ -44,12 +48,14 @@ const AccountCard = () => {
     const t = useTranslations('settings');
     const user = useUser();
     const { data: profile } = useQuery(profileQuery());
+    const name = personName({ nickname: profile?.nickname ?? null, name: profile?.name ?? user.name });
 
     return (
-        <SettingsCard to="/settings/account" title={t('account.title')}>
-            <span>{personName({ nickname: profile?.nickname ?? null, name: profile?.name ?? user.name })}</span>
-            <span>{user.email}</span>
-        </SettingsCard>
+        <SettingsCard
+            to="/settings/account"
+            title={t('account.title')}
+            hint={t('account.hint', { name, email: user.email })}
+        />
     );
 };
 
@@ -68,11 +74,11 @@ const Settings = () => {
                 value={locale}
                 onChange={setLocale}
             />
-            <CardList>
-                <SettingsCard to="/settings/appearance" title={t('appearance.title')} />
-                <SettingsCard to="/settings/categories" title={t('categories.title')} />
+            <ul className="settings__cards">
+                <SettingsCard to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
+                <SettingsCard to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />
                 <AccountCard />
-            </CardList>
+            </ul>
             <NotificationsSection />
             <About />
         </section>

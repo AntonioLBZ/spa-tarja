@@ -26,8 +26,23 @@
     margin: 0;
 }
 
-/* A card whose whole box is the link to a page of the settings */
+/* The cards of the pages, each with its hint under it: far enough apart to read as one group each */
+.settings__cards {
+    display: grid;
+    gap: var(--size-4);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.settings__item {
+    display: grid;
+    gap: var(--size-1);
+}
+
+/* A card whose whole box is the link to a page of the settings, as tall as a row of the app */
 .settings__card {
+    padding-block: 0;
     position: relative;
 }
 
@@ -56,16 +71,17 @@
     outline: none;
 }
 
-.settings__card-body {
-    display: grid;
+.settings__card-title {
     flex: 1;
-    gap: var(--size-1);
     min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.settings__card-detail {
+.settings__card-hint {
     color: var(--color-content-secondary);
-    display: grid;
     font-size: var(--font-size-s);
+    margin: 0;
     overflow-wrap: anywhere;
 }
