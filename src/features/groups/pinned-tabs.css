@@ -5,11 +5,15 @@
     display: flex;
     gap: var(--size-4);
     min-inline-size: 0;
+}
+
+/* While the screen slides from tab to tab, the tabs hold still and only the mark changes word. The row never moves
+   from where it was: the page may have been scrolled, and the row would sweep down the screen. Named only then: on the
+   way to another screen the row is part of the screen and leaves with it. */
+:root:active-view-transition-type(tabs) .pinned-tabs {
     view-transition-name: pinned-tabs;
 }
 
-/* While the screen under them slides, the tabs hold still and only the mark changes word. The row never moves from
-   where it was: the page may have been scrolled, and the row would sweep down the screen. */
 ::view-transition-group(pinned-tabs) {
     animation: none;
 }

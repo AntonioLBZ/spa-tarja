@@ -21,9 +21,10 @@ interface PinnedTabProps {
     slide: TabSlide;
 }
 
-// The tabs slide the screen along their row like the sections along the bar: to the right of the shown one is next
+// The tabs slide the screen along their row like the sections along the bar: to the right of the shown one is next.
+// `tabs` says the row stays on both screens, so it alone holds still.
 const slideTo = (index: number, shown: number): TabSlide => {
-    return { types: [index > shown ? 'next' : 'previous'] };
+    return { types: [index > shown ? 'next' : 'previous', 'tabs'] };
 };
 
 // Exact, search included, so that only the tab of what is shown is current
