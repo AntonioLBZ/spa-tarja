@@ -88,15 +88,10 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     glyph
                     aria-haspopup="dialog"
                     aria-label={t('toggle', { count: filterCount })}
-                    className="expense-list-controls__toggle"
+                    badge={filterCount > 0 ? filterCount : undefined}
                     onClick={() => setOpen(true)}
                 >
                     <Icon name="filter_list" />
-                    {filterCount > 0 && (
-                        <span aria-hidden="true" className="expense-list-controls__count">
-                            {filterCount}
-                        </span>
-                    )}
                 </Button>
             </div>
 

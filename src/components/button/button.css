@@ -102,3 +102,22 @@ a.button {
     inline-size: 100%;
     padding-inline-end: var(--size-2);
 }
+
+/* The size of the words of the header */
+.button--small {
+    font-size: var(--font-size-s);
+}
+
+/* The mark sits in the corner, out of the flow, so the symbol never moves */
+.button--badged {
+    position: relative;
+}
+
+.button__badge {
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    line-height: 1;
+    position: absolute;
+}

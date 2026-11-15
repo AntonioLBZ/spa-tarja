@@ -13,10 +13,12 @@ interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
     // Text only, for a link on paper or inside another edge
     ghost?: boolean;
     block?: boolean;
+    // In the size of the words of the header
+    small?: boolean;
 }
 
 const ButtonAnchor = (props: ButtonAnchorProps) => {
-    const { variant = 'default', glyph, ghost, block, className, ...rest } = props;
+    const { variant = 'default', glyph, ghost, block, small, className, ...rest } = props;
     const buttonClsx = clsx(
         'button',
         {
@@ -24,6 +26,7 @@ const ButtonAnchor = (props: ButtonAnchorProps) => {
             'button--glyph': glyph,
             'button--ghost': ghost,
             'button--block': block,
+            'button--small': small,
         },
         className
     );

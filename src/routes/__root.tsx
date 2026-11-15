@@ -181,6 +181,7 @@ const RootBack = () => {
     return 'params' in target ? (
         <ButtonLink
             ghost
+            small
             className="root__back"
             to={target.to}
             params={target.params}
@@ -189,7 +190,7 @@ const RootBack = () => {
             {content}
         </ButtonLink>
     ) : (
-        <ButtonLink ghost className="root__back" to={target.to} aria-label={t('back', { place })}>
+        <ButtonLink ghost small className="root__back" to={target.to} aria-label={t('back', { place })}>
             {content}
         </ButtonLink>
     );

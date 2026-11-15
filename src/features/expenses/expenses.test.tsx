@@ -2982,7 +2982,7 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(searchBox().type).toBe('search');
             expect(filtersToggle(0).getAttribute('aria-haspopup')).toBe('dialog');
-            expect(filtersToggle(0).querySelector('.expense-list-controls__count')).toBeNull();
+            expect(filtersToggle(0).querySelector('.button__badge')).toBeNull();
             expect(filtersSheet().open).toBe(false);
             expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
             expect(showing(3, 4)).toBeNull();
@@ -3024,7 +3024,7 @@ describe('searching, filtering and grouping the list', () => {
 
             pickOption(f.category, en.categories.groceries);
 
-            expect(filtersToggle(1).querySelector('.expense-list-controls__count')!.textContent).toBe('1');
+            expect(filtersToggle(1).querySelector('.button__badge')!.textContent).toBe('1');
             expect(
                 within(filtersSheet()).getByText(t('expenses.filters.showing', { shown: 1, total: 4 }))
             ).toBeDefined();

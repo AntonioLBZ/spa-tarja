@@ -15,26 +15,6 @@
     min-inline-size: 0;
 }
 
-/* A square of a touch with the icon in its middle; the number of filters on sits in its corner, out of the flow, so the
-   icon never moves */
-.expense-list-controls__toggle {
-    align-items: center;
-    block-size: var(--size-touch);
-    display: inline-flex;
-    inline-size: var(--size-touch);
-    justify-content: center;
-    position: relative;
-}
-
-.expense-list-controls__count {
-    font-size: var(--font-size-s);
-    font-weight: 700;
-    inset-block-start: 0;
-    inset-inline-end: 0;
-    line-height: 1;
-    position: absolute;
-}
-
 /* At the right end of the actions of the sheet */
 .expense-list-controls__close {
     margin-inline-start: auto;

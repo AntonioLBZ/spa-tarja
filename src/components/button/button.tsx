@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import type { ComponentPropsWithRef } from 'react';
+import type { ComponentPropsWithRef, ReactNode } from 'react';
 
 import './button.css';
 
@@ -15,7 +15,11 @@ type ButtonProps = ComponentPropsWithRef<'button'> & {
     ghost?: boolean;
     // As wide as its row, which gives its bottom edge the tail of the L
     block?: boolean;
+    // In the size of the words of the header
+    small?: boolean;
     pressed?: boolean;
+    // A short mark in the corner of a glyph box, hidden from assistive technology: the name has to say it
+    badge?: ReactNode;
 } & GlyphName;
 
 const Button = (props: ButtonProps) => {
@@ -24,8 +28,11 @@ const Button = (props: ButtonProps) => {
         glyph,
         ghost,
         block,
+        small,
         pressed,
+        badge,
         className,
+        children,
         type = 'button',
         'aria-pressed': ariaPressed = pressed,
         ...rest
@@ -38,12 +45,23 @@ const Button = (props: ButtonProps) => {
             'button--glyph': glyph,
             'button--ghost': ghost,
             'button--block': block,
+            'button--small': small,
             'button--pressed': pressed,
+            'button--badged': badge != null,
         },
         className
     );
 
-    return <button {...rest} aria-pressed={ariaPressed} className={buttonClsx} type={type} />;
+    return (
+        <button {...rest} aria-pressed={ariaPressed} className={buttonClsx} type={type}>
+            {children}
+            {badge != null && (
+                <span aria-hidden="true" className="button__badge">
+                    {badge}
+                </span>
+            )}
+        </button>
+    );
 };
 
 export { Button, type ButtonProps, type ButtonVariant, type GlyphName };

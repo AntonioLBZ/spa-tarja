@@ -13,10 +13,12 @@ const Story: Meta<ButtonProps> = {
         glyph: false,
         ghost: false,
         block: false,
+        small: false,
         pressed: false,
         onClick: fn(),
     },
     argTypes: {
+        badge: { control: 'text' },
         children: { control: 'text' },
         variant: { control: 'inline-radio', options: ['default', 'primary', 'danger'] },
     },

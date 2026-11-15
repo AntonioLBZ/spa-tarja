@@ -50,6 +50,32 @@ describe('Button', () => {
         expect(screen.getByRole('button', { name: 'Download' }).className).toBe('button button--block');
     });
 
+    it('takes the size of the words of the header when small', () => {
+        render(<Button small>Add expense</Button>);
+
+        expect(screen.getByRole('button', { name: 'Add expense' }).className).toBe('button button--small');
+    });
+
+    it('puts a badge in the corner, hidden from assistive technology, named by the label', () => {
+        render(
+            <Button glyph aria-label="Filters, 2 on" badge={2}>
+                ≡
+            </Button>
+        );
+
+        const button = screen.getByRole('button', { name: 'Filters, 2 on' });
+        const badge = button.querySelector('.button__badge')!;
+        expect(button.className).toBe('button button--glyph button--badged');
+        expect(badge.textContent).toBe('2');
+        expect(badge.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('has no badge unless given one', () => {
+        render(<Button>Save</Button>);
+
+        expect(screen.getByRole('button', { name: 'Save' }).querySelector('.button__badge')).toBeNull();
+    });
+
     it('draws a glyph in a box with even padding and is named by its label', () => {
         render(
             <Button glyph aria-label="Previous month">
