@@ -50,7 +50,7 @@ const GroupList = (props: GroupListProps) => {
     return (
         <CardList>
             {ledgers.map((ledger) => (
-                <Card key={ledger.group.id} as="li" className="group-card">
+                <Card key={ledger.group.id} as="li" linked className="group-card">
                     <GroupRow card ledger={ledger} pins={pins} />
                 </Card>
             ))}

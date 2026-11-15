@@ -1,9 +1,38 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { Card, CardList } from './card';
+import { Card, CardList, CardTerm } from './card';
 
 describe('Card', () => {
+    it('lets its one link cover it when linked', () => {
+        render(
+            <Card linked>
+                <a href="/settings/account">Account</a>
+            </Card>
+        );
+
+        const card = screen.getByRole('link', { name: 'Account' }).parentElement!;
+        expect(card.className).toBe('card card--linked');
+    });
+
+    it('names a value with a term, in a description list', () => {
+        render(
+            <CardList as="dl">
+                <CardTerm term="Spent">12</CardTerm>
+                <CardTerm strong term="Left">
+                    3
+                </CardTerm>
+            </CardList>
+        );
+
+        const terms = screen.getAllByRole('term');
+        const values = screen.getAllByRole('definition');
+        expect(terms.map((term) => term.textContent)).toEqual(['Spent', 'Left']);
+        expect(values.map((value) => value.textContent)).toEqual(['12', '3']);
+        expect(terms[0]!.parentElement!.className).toBe('card card-term');
+        expect(terms[1]!.parentElement!.className).toBe('card card-term card-term--strong');
+    });
+
     it('is a div unless told otherwise', () => {
         render(<Card>Rent</Card>);
 

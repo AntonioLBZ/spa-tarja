@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
-import { Card, CardList } from '@/components/card/card';
+import { CardList, CardTerm } from '@/components/card/card';
 import { PrivacyNotice } from '@/features/auth/privacy-notice';
 import { healthQuery } from '@/lib/api';
 import { appVersion } from '@/lib/version';
@@ -20,18 +20,12 @@ const About = () => {
         <section className="about">
             <h2 className="about__title">{t('title')}</h2>
             <CardList as="dl">
-                <Card className="about__row">
-                    <dt>{t('version')}</dt>
-                    <dd className="about__value">{appVersion()}</dd>
-                </Card>
-                <Card className="about__row">
-                    <dt>{t('status.label')}</dt>
-                    <dd className="about__value">
-                        <span className={statusClsx} role="status">
-                            {t(`status.${state}`)}
-                        </span>
-                    </dd>
-                </Card>
+                <CardTerm term={t('version')}>{appVersion()}</CardTerm>
+                <CardTerm term={t('status.label')}>
+                    <span className={statusClsx} role="status">
+                        {t(`status.${state}`)}
+                    </span>
+                </CardTerm>
             </CardList>
             <PrivacyNotice />
         </section>

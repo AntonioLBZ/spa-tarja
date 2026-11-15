@@ -13,23 +13,6 @@
     margin: 0;
 }
 
-.about__row {
-    align-items: center;
-    display: flex;
-    gap: var(--size-3);
-    justify-content: space-between;
-}
-
-.about__row dt {
-    color: var(--color-content-secondary);
-}
-
-.about__value {
-    margin: 0;
-    overflow-wrap: anywhere;
-    text-align: end;
-}
-
 .about__status--error {
     color: var(--color-danger);
 }

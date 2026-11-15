@@ -30,7 +30,7 @@ const SettingsCard = (props: SettingsCardProps) => {
 
     return (
         <li className="settings__item">
-            <Card className="settings__card">
+            <Card linked className="settings__card">
                 <Link className="settings__card-link" to={to} aria-describedby={hintId}>
                     <span className="settings__card-title">{title}</span>
                     <Icon name="chevron_right" />

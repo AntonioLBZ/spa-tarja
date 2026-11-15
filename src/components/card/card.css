@@ -4,6 +4,51 @@
     padding: var(--size-2) 0;
 }
 
+/* Its one link stretches over it; a button in it, positioned and later, stays above the link. The ring goes around the
+   card, not around the text of the link */
+.card--linked {
+    position: relative;
+}
+
+.card--linked a::after {
+    content: '';
+    inset: 0;
+    position: absolute;
+}
+
+.card--linked a:focus-visible {
+    outline: none;
+}
+
+.card--linked:has(a:focus-visible) {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+/* A term and its value on one line while they fit */
+.card-term {
+    align-items: center;
+    display: flex;
+    gap: var(--size-3);
+    justify-content: space-between;
+}
+
+.card-term__term {
+    color: var(--color-content-secondary);
+}
+
+.card-term__value {
+    margin: 0;
+    overflow-wrap: anywhere;
+    text-align: end;
+}
+
+.card-term--strong .card-term__term,
+.card-term--strong .card-term__value {
+    color: inherit;
+    font-weight: 700;
+}
+
 .card-list {
     display: grid;
     gap: var(--size-2);

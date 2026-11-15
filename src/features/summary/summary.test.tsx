@@ -241,7 +241,7 @@ describe('the numbers of a month', () => {
             income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }],
         });
 
-        const labels = [...document.querySelectorAll('.summary__row dt')].map((label) => label.textContent);
+        const labels = [...document.querySelectorAll('.card-term__term')].map((label) => label.textContent);
         expect(labels).toEqual([text.income, text.voucher, text.paidBack, text.spent, text.left]);
     });
 

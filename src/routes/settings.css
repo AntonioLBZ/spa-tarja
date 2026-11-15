@@ -44,12 +44,6 @@
    whatever order the stylesheets load in, so the link alone sets the height */
 .settings__item > .settings__card {
     padding-block: 0;
-    position: relative;
-}
-
-.settings__card:has(.settings__card-link:focus-visible) {
-    outline: var(--focus-width) solid var(--color-border-focus);
-    outline-offset: var(--focus-offset);
 }
 
 /* The title and the chevron sit low, just over the line, while the link keeps the height of a touch */
@@ -61,17 +55,6 @@
     min-height: var(--size-touch);
     padding-bottom: var(--size-1);
     text-decoration: none;
-}
-
-.settings__card-link::after {
-    content: '';
-    inset: 0;
-    position: absolute;
-}
-
-/* The ring goes around the card the link covers, not around its text */
-.settings__card-link:focus-visible {
-    outline: none;
 }
 
 .settings__card-title {

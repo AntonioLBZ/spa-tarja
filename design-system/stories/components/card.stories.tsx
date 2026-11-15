@@ -5,7 +5,7 @@ import type { Meta } from '@storybook/react-vite';
 const Story: Meta<CardProps> = {
     title: 'Components/Card',
     component: CardComponent,
-    args: { children: 'A row drawn as its bottom edge' },
+    args: { children: 'A row drawn as its bottom edge', linked: false },
     argTypes: { as: { control: false }, children: { control: 'text' } },
 };
 

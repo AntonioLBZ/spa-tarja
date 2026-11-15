@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Amount } from '@/components/amount/amount';
-import { Card, CardList } from '@/components/card/card';
+import { CardList, CardTerm } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
@@ -51,33 +51,14 @@ const Summary = () => {
             />
 
             <CardList as="dl">
-                <Card className="summary__row">
-                    <dt>{t('income')}</dt>
-                    <dd className="summary__value">{set ? money(set.amountCents) : t('notSet')}</dd>
-                </Card>
-                {summary.voucherCents > 0 && (
-                    <Card className="summary__row">
-                        <dt>{t('voucher')}</dt>
-                        <dd className="summary__value">{money(summary.voucherCents)}</dd>
-                    </Card>
-                )}
-                {summary.paidBackCents > 0 && (
-                    <Card className="summary__row">
-                        <dt>{t('paidBack')}</dt>
-                        <dd className="summary__value">{money(summary.paidBackCents)}</dd>
-                    </Card>
-                )}
-                <Card className="summary__row">
-                    <dt>{t('spent')}</dt>
-                    <dd className="summary__value">{money(summary.spentCents)}</dd>
-                </Card>
+                <CardTerm term={t('income')}>{set ? money(set.amountCents) : t('notSet')}</CardTerm>
+                {summary.voucherCents > 0 && <CardTerm term={t('voucher')}>{money(summary.voucherCents)}</CardTerm>}
+                {summary.paidBackCents > 0 && <CardTerm term={t('paidBack')}>{money(summary.paidBackCents)}</CardTerm>}
+                <CardTerm term={t('spent')}>{money(summary.spentCents)}</CardTerm>
                 {summary.leftCents !== null && left && (
-                    <Card className="summary__row summary__row--left">
-                        <dt>{t('left')}</dt>
-                        <dd className="summary__value">
-                            <Amount {...left} text={left.sign ? left.text : money(summary.leftCents)} spokenSign />
-                        </dd>
-                    </Card>
+                    <CardTerm strong term={t('left')}>
+                        <Amount {...left} text={left.sign ? left.text : money(summary.leftCents)} spokenSign />
+                    </CardTerm>
                 )}
             </CardList>
             {summary.leftCents === null && <p className="summary__hint">{t('leftHint')}</p>}
