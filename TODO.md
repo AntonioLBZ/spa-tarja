@@ -15,6 +15,7 @@ Items build on each other in the order they appear below. Delete an item when it
     7. The rows of the old fixed user (`docs/specs/authentication.md`) that nobody can reach: delete them if they hold nothing worth keeping.
     8. The Google consent screen (Google Cloud console): publishing status, app name and support email.
 - On a real phone, on the prerelease: the list of a `Select` ([`DESIGN.md`](design-system/DESIGN.md#select)). On Android Chrome and on iOS Safari 27 it is the styled one, with the icons, and opens above the field at the bottom of a sheet (Plazos, Pago); on an older iOS it is the system's list, names only, and the icon of the field still follows the choice; on both, the bottom bar comes back once the list is closed.
+- On a real phone (Android Chrome and iOS Safari), the swipe between screens ([ADR-0035](docs/adr/0035-a-swipe-moves-between-screens.md)): that it doesn't fight the scroll, the back gesture of the system or the pinch zoom, and that a swipe during a slide starts the next one.
 - On a real phone, in production, the notifications ([notifications](docs/specs/notifications.md)): a push with Tarja closed (Android Chrome, and iOS with the app on the Home Screen), a tap on it opening the group, the banner with the app open and its swipe, and the switch of the settings turned off and on again. And in Workers Logs, that the outgoing requests to the push services don't log their address.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 

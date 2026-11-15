@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +11,7 @@ import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption } from '@/lib/test/select';
 import { openAddSheet } from '@/lib/test/sheet';
+import { stubViewport } from '@/lib/test/viewport';
 import { MAX_PINNED_GROUPS } from '@core/shared-group';
 
 import type { SharedGroup } from '@core/shared-group';
@@ -90,6 +91,24 @@ describe('the tabs of the Expenses screen', () => {
 
         await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
         expect(screen.queryByRole('link', { name: en.groups.edit.link })).toBeNull();
+    });
+
+    it('are swiped through on a phone before Groups', async () => {
+        stubViewport(false);
+        await open('/', [named('Trip', { pinnedAt: 1_000 })]);
+        await waitFor(() => tab('Trip'));
+        const swipe = () => {
+            const main = document.querySelector('main')!;
+            const init = { bubbles: true, isPrimary: true, pointerId: 1, pointerType: 'touch', clientY: 300 };
+            main.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: 600 }));
+            main.dispatchEvent(new PointerEvent('pointerup', { ...init, clientX: 200 }));
+        };
+
+        act(swipe);
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+
+        act(swipe);
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
     });
 });
 

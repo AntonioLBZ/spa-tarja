@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { backTarget, navSection, routeDepth, slideTypes } from './route-transition';
+import { backTarget, navSection, routeDepth, slideTypes, swipeTarget, type SwipeFrom } from './route-transition';
 
 function at(pathname: string) {
     return { pathname } as never;
@@ -157,5 +157,68 @@ describe('slideTypes', () => {
         expect(between(undefined, '/settings')).toBe(false);
         expect(between('/settings', '/settings')).toBe(false);
         expect(between('/', '/')).toBe(false);
+    });
+});
+
+describe('swipeTarget', () => {
+    const from = (pathname: string, more: Partial<SwipeFrom> = {}): SwipeFrom => {
+        return { pathname, shown: null, pinned: [], lastHomeTab: null, ...more };
+    };
+
+    it('moves along the sections in the order of the bar', () => {
+        expect(swipeTarget(from('/'), 'next')).toEqual({ to: '/groups', group: null, types: ['next'] });
+        expect(swipeTarget(from('/groups'), 'next')).toEqual({ to: '/summary', group: null, types: ['next'] });
+        expect(swipeTarget(from('/summary'), 'next')).toEqual({ to: '/settings', group: null, types: ['next'] });
+        expect(swipeTarget(from('/settings'), 'previous')).toEqual({
+            to: '/summary',
+            group: null,
+            types: ['previous'],
+        });
+        expect(swipeTarget(from('/groups'), 'previous')).toEqual({ to: '/', group: null, types: ['previous'] });
+    });
+
+    it('stops at both ends', () => {
+        expect(swipeTarget(from('/'), 'previous')).toBeUndefined();
+        expect(swipeTarget(from('/settings'), 'next')).toBeUndefined();
+    });
+
+    it('goes through the pinned tabs of Expenses before Groups, sliding only the screen under them', () => {
+        const pinned = ['a', 'b'];
+
+        expect(swipeTarget(from('/', { pinned }), 'next')).toEqual({ to: '/', group: 'a', types: ['next', 'tabs'] });
+        expect(swipeTarget(from('/', { pinned, shown: 'a' }), 'next')).toEqual({
+            to: '/',
+            group: 'b',
+            types: ['next', 'tabs'],
+        });
+        expect(swipeTarget(from('/', { pinned, shown: 'b' }), 'next')).toEqual({
+            to: '/groups',
+            group: null,
+            types: ['next'],
+        });
+        expect(swipeTarget(from('/', { pinned, shown: 'a' }), 'previous')).toEqual({
+            to: '/',
+            group: null,
+            types: ['previous', 'tabs'],
+        });
+        expect(swipeTarget(from('/', { pinned }), 'previous')).toBeUndefined();
+    });
+
+    it('comes back to Expenses on the tab shown last, as the bar does, while it is still pinned', () => {
+        const pinned = ['a', 'b'];
+
+        expect(swipeTarget(from('/groups', { pinned, lastHomeTab: 'a' }), 'previous')).toEqual({
+            to: '/',
+            group: 'a',
+            types: ['previous'],
+        });
+        expect(swipeTarget(from('/groups', { pinned, lastHomeTab: 'gone' }), 'previous')?.group).toBeNull();
+    });
+
+    it('does nothing from a screen below a section or outside the bar', () => {
+        for (const pathname of ['/charts', '/settings/account', '/groups/0b6f3c1e', '/join/a.b', '/nowhere']) {
+            expect(swipeTarget(from(pathname), 'next')).toBeUndefined();
+            expect(swipeTarget(from(pathname), 'previous')).toBeUndefined();
+        }
     });
 });

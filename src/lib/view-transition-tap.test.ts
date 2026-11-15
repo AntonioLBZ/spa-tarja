@@ -79,4 +79,19 @@ describe('endTransitionsOnTap', () => {
 
         expect(skipTransition).not.toHaveBeenCalled();
     });
+
+    it('leaves alone a finger that moved, which is a swipe', async () => {
+        const skipTransition = stubTransition();
+        const onClick = placeButton();
+        stop = endTransitionsOnTap();
+
+        document.dispatchEvent(
+            new PointerEvent('pointerdown', { isPrimary: true, button: 0, clientX: 200, clientY: 6 })
+        );
+        tap({ clientX: 60 });
+
+        await Promise.resolve();
+        expect(skipTransition).not.toHaveBeenCalled();
+        expect(onClick).not.toHaveBeenCalled();
+    });
 });

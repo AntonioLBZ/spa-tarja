@@ -280,6 +280,50 @@ describe('bottom navigation', () => {
         expect(within(screen.getByRole('banner')).getAllByRole('link')).toHaveLength(5);
     });
 
+    function swipe(dx: number) {
+        const main = document.querySelector('main')!;
+        const init = { bubbles: true, isPrimary: true, pointerId: 1, pointerType: 'touch', clientY: 300 };
+        main.dispatchEvent(new PointerEvent('pointerdown', { ...init, clientX: 500 }));
+        main.dispatchEvent(new PointerEvent('pointerup', { ...init, clientX: 500 + dx }));
+    }
+
+    it('goes to the next tab on a swipe to the left and back on a swipe to the right', async () => {
+        await phone();
+        await screen.findByText(en.expenses.list.empty);
+
+        act(() => swipe(-400));
+        expect(await screen.findByRole('heading', { level: 1, name: en.groups.title })).toBeDefined();
+
+        act(() => swipe(-400));
+        expect(await screen.findByRole('heading', { name: en.summary.title })).toBeDefined();
+
+        act(() => swipe(400));
+        act(() => swipe(400));
+        expect(await screen.findByText(en.expenses.list.empty)).toBeDefined();
+        expect(tab(en.nav.expenses).getAttribute('aria-current')).toBe('page');
+    });
+
+    it('leaves the screen below a tab where it is on a swipe', async () => {
+        await phone('/charts');
+        const heading = await screen.findByRole('heading', { level: 1 });
+
+        act(() => swipe(-400));
+
+        expect(screen.getByRole('heading', { level: 1 })).toBe(heading);
+        expect(tab(en.nav.summary).getAttribute('aria-current')).toBe('page');
+    });
+
+    it('takes no swipe on a wide screen', async () => {
+        stubViewport(true);
+        stubApi(createFakeApi().handler);
+        renderApp();
+        await screen.findByText(en.expenses.list.empty);
+
+        act(() => swipe(-400));
+
+        expect(screen.getByText(en.expenses.list.empty)).toBeDefined();
+    });
+
     it('swaps the bar for the header words when the screen widens, keeping what was typed', async () => {
         const viewport = await phone();
         const dialog = await openAddSheet();

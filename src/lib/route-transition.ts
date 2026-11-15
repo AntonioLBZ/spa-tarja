@@ -81,4 +81,51 @@ const slideTypes = (change: LocationChange): string[] | false => {
     return [to > from ? 'forward' : 'back'];
 };
 
-export { backTarget, navSection, routeDepth, slideTypes, type BackTarget, type NavSection };
+type SwipeDirection = 'next' | 'previous';
+
+// A screen a swipe leads to: a section, and on Expenses the tab of a pinned group (null for Expenses itself)
+interface SwipeStop {
+    to: NavSection;
+    group: string | null;
+    types: string[];
+}
+
+interface SwipeFrom {
+    pathname: string;
+    // The pinned group shown under its tab, null on Expenses itself
+    shown: string | null;
+    pinned: readonly string[];
+    // The tab of Expenses shown last, where the bar's Expenses leads
+    lastHomeTab: string | null;
+}
+
+// The screens a swipe moves along: the tabs of Expenses, in the order of its title, then the sections in the order of
+// the bar. Only from the screen of a section: a deeper one, or a page outside the bar, has no neighbours.
+const swipeTarget = (from: SwipeFrom, direction: SwipeDirection): SwipeStop | undefined => {
+    const { pathname, shown, pinned, lastHomeTab } = from;
+    const section = SECTION_ORDER.find((candidate) => candidate === pathname);
+    if (section === undefined) return undefined;
+    const step = direction === 'next' ? 1 : -1;
+    if (section === '/') {
+        const tabs = [null, ...pinned];
+        const tab = tabs[tabs.indexOf(shown) + step];
+        if (tab !== undefined) return { to: '/', group: tab, types: [direction, 'tabs'] };
+    }
+    const to = SECTION_ORDER[SECTION_ORDER.indexOf(section) + step];
+    if (to === undefined) return undefined;
+    const group = to === '/' && lastHomeTab !== null && pinned.includes(lastHomeTab) ? lastHomeTab : null;
+    return { to, group, types: [direction] };
+};
+
+export {
+    backTarget,
+    navSection,
+    routeDepth,
+    slideTypes,
+    swipeTarget,
+    type BackTarget,
+    type NavSection,
+    type SwipeDirection,
+    type SwipeFrom,
+    type SwipeStop,
+};

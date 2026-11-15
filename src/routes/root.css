@@ -143,9 +143,16 @@
     width: 100%;
 }
 
-/* On a phone the bar has the bottom of the page: room for it, and for the safe area it pads itself with */
+/* On a phone the bar has the bottom of the page: room for it, and for the safe area it pads itself with. A sideways
+   drag is left to the swipe between screens, and the page still scrolls and zooms; while a slide runs the touch goes to
+   the root, which then does the same. */
 .root--tabs .root__main {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + var(--size-6));
+    touch-action: pan-y pinch-zoom;
+}
+
+:root:active-view-transition:has(.root--tabs) {
+    touch-action: pan-y pinch-zoom;
 }
 
 /* Screens slide under a still header and bottom bar, each under its own name. What moves is the picture of the

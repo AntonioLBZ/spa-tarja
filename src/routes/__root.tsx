@@ -1,6 +1,6 @@
-import { Link, Outlet, createRootRoute, useRouterState } from '@tanstack/react-router';
+import { Link, Outlet, createRootRoute, useNavigate, useRouter, useRouterState } from '@tanstack/react-router';
 import clsx from 'clsx';
-import { useRef } from 'react';
+import { useRef, type RefObject } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { BannerProvider } from '@/components/banner/banner';
@@ -13,14 +13,23 @@ import { AddExpenseButton } from '@/features/expenses/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/expense-sheet';
 import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 import { useOpenAdd } from '@/features/expenses/use-open-add';
+import { usePinnedGroups } from '@/features/groups/pinned-groups';
 import { NoticeBanner } from '@/features/notices/notice-banner';
 import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
 import { useLastHomeTab } from '@/lib/offline';
 import { isPrerelease } from '@/lib/prerelease';
-import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
+import {
+    backTarget,
+    navSection,
+    swipeTarget,
+    type BackTarget,
+    type NavSection,
+    type SwipeDirection,
+} from '@/lib/route-transition';
 import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
+import { useSwipe } from '@/lib/use-swipe';
 import { useWide } from '@/lib/use-wide';
 
 import type { MouseEvent, ReactNode } from 'react';
@@ -42,10 +51,39 @@ const useSection = () => {
     return navSection(useShownPathname());
 };
 
+// On a phone a swipe across the screen of a section goes to its neighbour, as along the tabs of Expenses and the bar
+const useSwipeNavigation = (main: RefObject<HTMLElement | null>, on: boolean) => {
+    const router = useRouter();
+    const navigate = useNavigate();
+    const pinned = usePinnedGroups();
+    const lastHomeTab = useLastHomeTab();
+
+    useSwipe(
+        main,
+        (direction: SwipeDirection) => {
+            const { pathname, search } = router.state.location;
+            const asked = (search as { group?: string }).group?.toLowerCase();
+            const ids = pinned.map((group) => group.id);
+            const shown = ids.find((id) => id === asked) ?? null;
+            const stop = swipeTarget({ pathname, shown, pinned: ids, lastHomeTab }, direction);
+            if (!stop) return;
+            const viewTransition = { types: stop.types };
+            if (stop.to === '/') {
+                void navigate({ to: '/', search: stop.group === null ? {} : { group: stop.group }, viewTransition });
+            } else {
+                void navigate({ to: stop.to, viewTransition });
+            }
+        },
+        on
+    );
+};
+
 const RootLayout = () => {
     const t = useTranslations('toast');
     const wide = useWide();
     const rootClsx = clsx('root', { 'root--tabs': !wide });
+    const main = useRef<HTMLElement>(null);
+    useSwipeNavigation(main, !wide);
 
     return (
         <ExpenseSheetProvider>
@@ -53,7 +91,7 @@ const RootLayout = () => {
                 <BannerProvider dismissLabel={t('dismiss')}>
                     <div className={rootClsx}>
                         {wide ? <RootHeader /> : <RootPhoneHeader />}
-                        <main className="root__main">
+                        <main className="root__main" ref={main}>
                             <Outlet />
                         </main>
                         {!wide && <RootTabs />}
