@@ -64,20 +64,20 @@ const LedgerRow = (props: LedgerRowProps) => {
     const payer = words.nameOf(entry.paidBy);
     const total = money(entry.amountCents);
     const name = words.entryName(entry);
-    // Paying a debt back is not earning: a settlement shows its amount neutral, with no color and no sign
-    const effect = {
-        ...amount(cents, entry.currency, { cues: true }),
-        ...(entry.kind === 'settlement' && { color: false, sign: false }),
-    };
+    const settlement = entry.kind === 'settlement';
+    // Paying a debt back is not earning: a settlement always shows its whole amount, neutral, with no color and no
+    // sign, whether it is the person's or not
+    const effect = settlement ? { text: total } : amount(cents, entry.currency, { cues: true });
+    const shown = settlement || touch === 'moves';
 
-    // Who paid the whole, which a settlement of the person's own already says in its name
-    const paid =
-        entry.kind === 'settlement' && touch === 'moves'
-            ? null
-            : paidByMe
-              ? t('ledger.youPaidTotal', { total })
-              : t('ledger.paidTotal', { name: payer, total });
-    const quiet = touch === 'moves' ? null : t(`ledger.${touch}`);
+    // Who paid the whole, which a settlement already says in its name; a settlement counts for nobody, so it says
+    // nothing of the person either
+    const paid = settlement
+        ? null
+        : paidByMe
+          ? t('ledger.youPaidTotal', { total })
+          : t('ledger.paidTotal', { name: payer, total });
+    const quiet = settlement || touch === 'moves' ? null : t(`ledger.${touch}`);
 
     const sentence = (() => {
         if (entry.kind === 'settlement') return t('ledger.spoken.settlement', { name, total });
@@ -100,23 +100,22 @@ const LedgerRow = (props: LedgerRowProps) => {
                 )}
                 <span className="expense-item__text">{name}</span>
             </span>
-            {touch === 'moves' && (
+            {shown && (
                 <span className="expense-item__amount" aria-hidden="true">
                     <Amount {...effect} />
                 </span>
             )}
-            {(date || paid || quiet || wrote || pending) && (
+            {(date || paid || quiet || (wrote && !settlement) || pending) && (
                 <span className="expense-item__meta">
                     {date && <span>{date}</span>}
                     {paid && <span aria-hidden="true">{paid}</span>}
                     {quiet && <span aria-hidden="true">{quiet}</span>}
-                    {wrote && <span>{wrote}</span>}
+                    {wrote && !settlement && <span>{wrote}</span>}
                     {pending && <span className="expense-item__pending">{tList('pending')}</span>}
                 </span>
             )}
         </span>
     );
-    const settlement = entry.kind === 'settlement';
     const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving, 'ledger-row--settlement': settlement });
     const blocked = namesSomeoneWhoLeft(entry, group);
 

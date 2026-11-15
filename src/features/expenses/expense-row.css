@@ -18,9 +18,10 @@
 }
 
 /* What the toggle shows: the name and the amount, and the details under them. The row of the details exists only when
-   there are some, so a row without them has no gap under it */
+   there are some, so a row without them has no gap under it. Everything sits on the first line, so a name that wraps
+   never moves its icon, its amount or the chevron down */
 .expense-item__body {
-    align-items: center;
+    align-items: start;
     display: grid;
     flex: 1;
     gap: var(--size-1) var(--size-3);
@@ -30,7 +31,7 @@
 }
 
 .expense-item__name {
-    align-items: center;
+    align-items: flex-start;
     display: flex;
     gap: var(--size-2);
     grid-area: 1 / 1;

@@ -147,6 +147,18 @@ const SIX: SharedGroup = {
 
 const share = (ids: string[], cents: number) => ids.map((memberId) => ({ memberId, cents }));
 
+// Long names, to see that they wrap and never push the amount or the chevron away
+const LONG: SharedGroup = {
+    ...GROUP,
+    id: 'long',
+    name: 'Summer house',
+    members: [
+        member('marta', 'Marta', { role: 'owner' }),
+        member('max', 'Maximiliano Fernández-Castellanos'),
+        member('bart', 'Bartolomeo Villanueva'),
+    ],
+};
+
 // A ledger of each size: every kind of row a person reads in it
 const LEDGERS: [string, SharedGroup, LedgerEntry[]][] = [
     [
@@ -204,6 +216,34 @@ const LEDGERS: [string, SharedGroup, LedgerEntry[]][] = [
             },
         ],
     ],
+    [
+        'Long names',
+        LONG,
+        [
+            entry({
+                id: 'long-dinner',
+                text: 'Dinner at the restaurant by the old harbour with everybody',
+                paidBy: 'max',
+                amountCents: 123456,
+                shares: share(['marta', 'max', 'bart'], 41152),
+                updatedBy: 'max',
+            }),
+            {
+                ...ENTRIES.settlement,
+                id: 'long-settle',
+                paidBy: 'max',
+                shares: [{ memberId: 'bart', cents: 325 }],
+                amountCents: 325,
+            },
+            {
+                ...ENTRIES.settlement,
+                id: 'long-mine',
+                paidBy: 'marta',
+                shares: [{ memberId: 'max', cents: 98765 }],
+                amountCents: 98765,
+            },
+        ],
+    ],
 ];
 
 // Both sizes, light beside dark; the toolbar's Amounts turns color off and on
@@ -256,5 +296,9 @@ Ledgers.globals = { viewport: { value: 'desktop' } };
 export const LedgersOnAPhone = () => <Ledgers />;
 LedgersOnAPhone.globals = { viewport: { value: 'phone' } };
 LedgersOnAPhone.parameters = { layout: 'fullscreen' };
+
+export const LedgersOnANarrowPhone = () => <Ledgers />;
+LedgersOnANarrowPhone.globals = { viewport: { value: 'narrow' } };
+LedgersOnANarrowPhone.parameters = { layout: 'fullscreen' };
 
 export default Story;

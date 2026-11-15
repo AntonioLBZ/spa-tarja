@@ -251,11 +251,8 @@ describe('the ledger of a group', () => {
         expect(amountOf(t('groups.ledger.paidYou', { name: 'Bea' }))).toBe(euros(800));
         expect(rowOf(t('groups.ledger.paidYou', { name: 'Bea' })).querySelector('.amount')!.className).toBe('amount');
         const others = t('groups.ledger.paid', { from: 'Bea', to: 'Cris' });
-        expect(amountOf(others)).toBeNull();
-        expect(details(others).slice(1)).toEqual([
-            t('groups.ledger.paidTotal', { name: 'Bea', total: euros(400) }),
-            ledger.notIn,
-        ]);
+        expect(amountOf(others)).toBe(euros(400));
+        expect(details(others)).toHaveLength(1);
         expect(first.querySelector('.category-badge')).toBeNull();
         expect(first.classList.contains('ledger-row--settlement')).toBe(true);
         expect(
