@@ -1,6 +1,6 @@
 # ADR-0028: Amounts show which way they go
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context

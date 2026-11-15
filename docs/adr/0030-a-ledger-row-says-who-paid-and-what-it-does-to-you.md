@@ -1,6 +1,6 @@
 # ADR-0030: A ledger row says who paid and what it does to you
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context

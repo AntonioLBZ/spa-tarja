@@ -1,6 +1,6 @@
 # ADR-0029: The balances of a group fold by each person's net balance
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context
