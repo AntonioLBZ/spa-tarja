@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
@@ -92,6 +93,11 @@ const LedgerRow = (props: LedgerRowProps) => {
             <span className="expense-item__name" aria-hidden="true">
                 {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
                 <span className="expense-item__text">{name}</span>
+                {entry.kind === 'settlement' && (
+                    <span className="ledger-row__mark">
+                        <Icon name="payments" />
+                    </span>
+                )}
             </span>
             {touch === 'moves' && (
                 <span className="expense-item__amount" aria-hidden="true">
@@ -109,12 +115,13 @@ const LedgerRow = (props: LedgerRowProps) => {
             )}
         </span>
     );
-    const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
+    const settlement = entry.kind === 'settlement';
+    const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving, 'ledger-row--settlement': settlement });
     const blocked = namesSomeoneWhoLeft(entry, group);
 
     if (!onDelete && entry.kind === 'settlement') {
         return (
-            <li ref={focusRef} className="expense-item ledger-row ledger-row--still" tabIndex={-1}>
+            <li ref={focusRef} className="expense-item ledger-row--still ledger-row--settlement" tabIndex={-1}>
                 {body}
             </li>
         );

@@ -77,3 +77,13 @@
     overflow: hidden;
     white-space: nowrap;
 }
+
+/* The chevron of a row that opens sits on the line of the name and the amount, at the top, however tall the row grows
+   under them */
+.expense-item .disclosure__toggle {
+    align-items: flex-start;
+}
+
+.expense-item .disclosure__chevron {
+    padding-block-start: var(--size-2);
+}
