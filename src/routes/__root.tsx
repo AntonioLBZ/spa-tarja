@@ -28,6 +28,7 @@ import {
     type NavSection,
     type SwipeDirection,
 } from '@/lib/route-transition';
+import { followSlide, skipNextSlide } from '@/lib/swipe-slide';
 import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
 import { useSwipe } from '@/lib/use-swipe';
 import { useWide } from '@/lib/use-wide';
@@ -51,31 +52,43 @@ const useSection = () => {
     return navSection(useShownPathname());
 };
 
-// On a phone a swipe across the screen of a section goes to its neighbour, as along the tabs of Expenses and the bar
+// On a phone a swipe across the screen of a section goes to its neighbour, as along the tabs of Expenses and the bar,
+// the screen following the finger
 const useSwipeNavigation = (main: RefObject<HTMLElement | null>, on: boolean) => {
     const router = useRouter();
     const navigate = useNavigate();
     const pinned = usePinnedGroups();
     const lastHomeTab = useLastHomeTab();
 
-    useSwipe(
-        main,
-        (direction: SwipeDirection) => {
-            const { pathname, search } = router.state.location;
-            const asked = (search as { group?: string }).group?.toLowerCase();
-            const ids = pinned.map((group) => group.id);
-            const shown = ids.find((id) => id === asked) ?? null;
-            const stop = swipeTarget({ pathname, shown, pinned: ids, lastHomeTab }, direction);
-            if (!stop) return;
-            const viewTransition = { types: stop.types };
+    const begin = (direction: SwipeDirection) => {
+        const { pathname, search } = router.state.location;
+        const asked = (search as { group?: string }).group?.toLowerCase();
+        const ids = pinned.map((group) => group.id);
+        const shown = ids.find((id) => id === asked) ?? null;
+        const stop = swipeTarget({ pathname, shown, pinned: ids, lastHomeTab }, direction);
+        if (!stop) return undefined;
+        const viewTransition = { types: stop.types };
+        const go = () => {
             if (stop.to === '/') {
                 void navigate({ to: '/', search: stop.group === null ? {} : { group: stop.group }, viewTransition });
             } else {
                 void navigate({ to: stop.to, viewTransition });
             }
-        },
-        on
-    );
+        };
+        const undo = () => {
+            return new Promise<void>((resolve) => {
+                const off = router.subscribe('onResolved', () => {
+                    off();
+                    resolve();
+                });
+                skipNextSlide();
+                router.history.back();
+            });
+        };
+        return followSlide({ go, undo });
+    };
+
+    useSwipe(main, begin, on);
 };
 
 const RootLayout = () => {

@@ -1,6 +1,7 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
 
-import { slideTypes } from './lib/route-transition';
+import { slideTypes, type LocationChange } from './lib/route-transition';
+import { takeSkippedSlide } from './lib/swipe-slide';
 import { routeTree } from './routeTree.gen';
 
 const createAppRouter = (history?: RouterHistory) => {
@@ -9,7 +10,9 @@ const createAppRouter = (history?: RouterHistory) => {
         history,
         defaultPreload: 'intent',
         scrollRestoration: true,
-        defaultViewTransition: { types: slideTypes },
+        defaultViewTransition: {
+            types: (change: LocationChange) => (takeSkippedSlide() ? false : slideTypes(change)),
+        },
     });
 };
 

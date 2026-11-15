@@ -2,19 +2,19 @@ import { render } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useSwipe } from './use-swipe';
+import { useSwipe, type SwipeDrag } from './use-swipe';
 
 import type { SwipeDirection } from './route-transition';
 
 interface AreaProps {
-    onSwipe: (direction: SwipeDirection) => void;
+    begin: (direction: SwipeDirection) => SwipeDrag | undefined;
     on?: boolean;
 }
 
 const Area = (props: AreaProps) => {
-    const { onSwipe, on = true } = props;
+    const { begin, on = true } = props;
     const main = useRef<HTMLElement>(null);
-    useSwipe(main, onSwipe, on);
+    useSwipe(main, begin, on);
 
     return (
         <>
@@ -29,10 +29,15 @@ const Area = (props: AreaProps) => {
     );
 };
 
-const show = (on = true) => {
+const show = (on = true, ends = false) => {
     const onSwipe = vi.fn();
-    const view = render(<Area onSwipe={onSwipe} on={on} />);
-    return { onSwipe, view };
+    const follow = vi.fn();
+    const begin = vi.fn((direction: SwipeDirection): SwipeDrag | undefined => {
+        if (ends) return undefined;
+        return { follow, release: (go) => (go ? onSwipe(direction) : undefined) };
+    });
+    const view = render(<Area begin={begin} on={on} />);
+    return { onSwipe, begin, follow, view };
 };
 
 const press = (type: string, target: Element, x: number, y: number, init: PointerEventInit = {}) => {
@@ -131,6 +136,43 @@ describe('useSwipe', () => {
         link.click();
 
         expect(onClick).toHaveBeenCalledOnce();
+    });
+
+    it('follows the finger as a share of the screen once it goes clearly sideways', () => {
+        const { begin, follow } = show();
+        const width = window.innerWidth;
+
+        press('pointerdown', text(), 800, 300);
+        press('pointermove', text(), 795, 300);
+        expect(begin).not.toHaveBeenCalled();
+        press('pointermove', text(), 800 - width / 4, 300);
+        press('pointermove', text(), 800 - width / 2, 300);
+
+        expect(begin).toHaveBeenCalledExactlyOnceWith('next');
+        expect(follow.mock.calls).toEqual([[0.25], [0.5]]);
+    });
+
+    it('goes back when the finger comes back before it lifts, or the touch is taken away', () => {
+        const { onSwipe } = show();
+
+        press('pointerdown', text(), 800, 300);
+        press('pointermove', text(), 500, 300);
+        press('pointermove', text(), 790, 300);
+        press('pointerup', text(), 790, 300);
+        press('pointerdown', text(), 800, 300);
+        press('pointermove', text(), 300, 300);
+        press('pointercancel', text(), 300, 300);
+
+        expect(onSwipe).not.toHaveBeenCalled();
+    });
+
+    it('lets go of a stroke where there is nothing more to go to', () => {
+        const { begin, follow } = show(true, true);
+
+        drag(text(), 800, 300);
+
+        expect(begin).toHaveBeenCalledOnce();
+        expect(follow).not.toHaveBeenCalled();
     });
 
     it('does nothing while off', () => {

@@ -124,6 +124,7 @@ export {
     slideTypes,
     swipeTarget,
     type BackTarget,
+    type LocationChange,
     type NavSection,
     type SwipeDirection,
     type SwipeFrom,
