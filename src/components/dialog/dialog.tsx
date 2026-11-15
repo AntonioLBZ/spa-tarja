@@ -3,6 +3,7 @@ import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from '
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
+import { useOverflowMark } from '@/lib/use-overflow-mark';
 
 import './dialog.css';
 
@@ -46,6 +47,8 @@ const Dialog = (props: DialogProps) => {
         children,
     } = props;
     const ref = useRef<HTMLDialogElement>(null);
+    // The shadows of its edges are drawn only while something scrolls under them
+    useOverflowMark(ref);
     const titleId = useId();
     // Where the press started: one that starts in the box and ends on the veil, as a text selection does, is no tap outside
     const pressedOutside = useRef(false);

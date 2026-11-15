@@ -89,6 +89,14 @@ interface SharedTailProps {
     tried?: boolean;
 }
 
+interface LineProps {
+    children: string;
+}
+
+interface SharedSummaryProps {
+    tail: SharedTailState;
+}
+
 interface SharedPeopleProps {
     group: SharedGroup;
     tail: SharedTailState;
@@ -220,17 +228,22 @@ const useSharedTail = (
     );
     // Picks who gets the cents left of an equal split: drawn once per expense, so the amounts don't move as it is typed
     const [seed, setSeed] = useState(randomSeed);
+    // The summary of the split, shown beside the tabs of the form, describes its toggle
+    const summaryId = useId();
     const user = useUser();
     const [remembered] = useState(() => readSharedWith(user.id));
     const choices = useMemo(() => (fixed ? [fixed] : openChoices(groups)), [fixed, groups]);
 
+    // The one picked, else the one used last, else the only one; with more and none of those, none is guessed (ADR-0034)
     const group =
         choices.find((item) => item.id === draft.groupId) ??
         choices.find((item) => item.id === remembered) ??
-        choices[0];
+        (choices.length === 1 ? choices[0] : undefined);
     // Those who can take part: a member who left, or was merged, can't
     const present = group?.members.filter((member) => member.leftAt === null) ?? [];
     const me = group?.me ?? null;
+    // As they are listed: the person first, the others in the order of the group
+    const people = [...present.filter((member) => member.id === me), ...present.filter((member) => member.id !== me)];
     // Null is nobody yet: the one who paid is gone, and a payer is never guessed
     const payer = draft.paidBy === null ? me : (present.find((member) => member.id === draft.paidBy)?.id ?? null);
     const payerGone = draft.paidBy !== null && payer === null;
@@ -281,7 +294,7 @@ const useSharedTail = (
 
     // What each member who can take part shows: nothing when out or when their part comes to nothing; else, split
     // equally, their share once there is an amount, and otherwise what is typed for them
-    const rows = present.map((member) => {
+    const rows = people.map((member) => {
         const isIn = inIds.includes(member.id);
         const share = shares?.find((item) => item.memberId === member.id)?.cents ?? 0;
         return {
@@ -296,7 +309,8 @@ const useSharedTail = (
     return {
         choices,
         group,
-        present,
+        people,
+        summaryId,
         payer,
         payerGone,
         payerIsMe,
@@ -309,7 +323,7 @@ const useSharedTail = (
         splitOpen,
         setSplitOpen,
         // Something to fix in what folds under the split
-        splitProblem: payer === null || problem !== null || cardWithoutYou,
+        splitProblem: group === undefined || payer === null || problem !== null || cardWithoutYou,
         // The day the payer's card charges it; only the payer says how they paid
         chargeDate: payerIsMe ? payment.chargeDate : null,
         pickGroup: (groupId: string) => setDraft({ ...START, mode: draft.mode, groupId }),
@@ -364,8 +378,6 @@ const useSharedTail = (
 const SharedTail = (props: SharedTailProps) => {
     const { tail, fixed, tried = false } = props;
     const t = useTranslations('groups');
-    const { group } = tail;
-    const options = useGroupOptions(tail.choices);
 
     if (tail.choices.length === 0) {
         return (
@@ -375,23 +387,64 @@ const SharedTail = (props: SharedTailProps) => {
         );
     }
 
+    return <SharedSplit tail={tail} fixed={fixed} tried={tried} />;
+};
+
+// Who it is with, who paid and how it is split: a line that says them, and under it the toggle that opens them to
+// change, With first (ADR-0034)
+const SharedSplit = (props: Required<SharedTailProps>) => {
+    const { tail, fixed, tried } = props;
+    const t = useTranslations('groups.share');
+    const options = useGroupOptions(tail.choices);
+    const { group } = tail;
+    const noneYet = group ? [] : [{ value: '', label: t('withNone') }];
+
     return (
-        <>
-            {!fixed && (
-                <Field label={t('share.with')}>
-                    {(control) => (
-                        <Select {...control} options={options} value={group?.id ?? ''} onChange={tail.pickGroup} />
-                    )}
-                </Field>
-            )}
-            {group && <SharedSplit group={group} tail={tail} tried={tried} />}
-        </>
+        <div className="shared-split">
+            <Disclosure
+                chevron
+                keepMounted
+                open={tail.splitOpen}
+                summary={t('split')}
+                describedBy={tail.summaryId}
+                onOpenChange={tail.setSplitOpen}
+            >
+                {!fixed && (
+                    <Field label={t('with')} error={tried && !group ? t('withMissing') : null}>
+                        {(control) => (
+                            <Select
+                                {...control}
+                                options={[...noneYet, ...options]}
+                                value={group?.id ?? ''}
+                                onChange={(value) => {
+                                    if (value !== '') tail.pickGroup(value);
+                                }}
+                            />
+                        )}
+                    </Field>
+                )}
+                {group && <SharedPeople group={group} tail={tail} tried={tried} />}
+            </Disclosure>
+        </div>
     );
 };
 
-// Who paid and how it is split: a line that says both, and under it the toggle that opens them to change
-const SharedSplit = (props: SharedPeopleProps) => {
-    const { group, tail, tried } = props;
+// Who it is with, who paid and how it is split, a short line each, which the form shows beside its tabs (ADR-0034)
+const SharedSummary = (props: SharedSummaryProps) => {
+    const { tail } = props;
+    const t = useTranslations('groups.share');
+
+    if (tail.choices.length === 0) return null;
+
+    return (
+        <p className="shared-summary" id={tail.summaryId}>
+            {tail.group ? <SummaryLines group={tail.group} tail={tail} /> : <Line>{t('withNone')}</Line>}
+        </p>
+    );
+};
+
+const SummaryLines = (props: Omit<SharedPeopleProps, 'tried'>) => {
+    const { group, tail } = props;
     const t = useTranslations('groups.share');
     const words = useGroupWords(group);
     const payer =
@@ -400,15 +453,27 @@ const SharedSplit = (props: SharedPeopleProps) => {
             : tail.payerIsMe
               ? t('summary.youPaid')
               : t('summary.paid', { name: words.nameOf(tail.payer) });
-    const split = t(`summary.${tail.mode}`, { count: tail.inCount });
 
     return (
-        <div className="shared-split">
-            <p className="field__hint">{t('summary.line', { payer, split })}</p>
-            <Disclosure chevron open={tail.splitOpen} summary={t('split')} onOpenChange={tail.setSplitOpen} keepMounted>
-                <SharedPeople group={group} tail={tail} tried={tried} />
-            </Disclosure>
-        </div>
+        <>
+            <Line>{t('summary.with', { name: words.title })}</Line>
+            <Line>{payer}</Line>
+            <Line>{t(`summary.${tail.mode}`, { count: tail.inCount })}</Line>
+        </>
+    );
+};
+
+// One line, cut when it doesn't fit; a pause between lines for a screen reader, which reads them as one
+const Line = (props: LineProps) => {
+    const { children } = props;
+
+    return (
+        <>
+            <span className="shared-summary__line" title={children}>
+                {children}
+            </span>
+            <span className="visually-hidden">. </span>
+        </>
     );
 };
 
@@ -449,7 +514,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                         {...control}
                         options={[
                             ...nobodyYet,
-                            ...tail.present.map((member) => ({ value: member.id, label: words.nameInList(member.id) })),
+                            ...tail.people.map((member) => ({ value: member.id, label: words.nameInList(member.id) })),
                         ]}
                         value={tail.payer ?? ''}
                         onChange={(value) => {
@@ -564,10 +629,12 @@ const SharedPayment = (props: SharedPaymentProps) => {
 
 export {
     SharedPayment,
+    SharedSummary,
     SharedTail,
     useSharedTail,
     type EntrySource,
     type SharedPaymentProps,
+    type SharedSummaryProps,
     type SharedTailProps,
     type SharedTailState,
 };

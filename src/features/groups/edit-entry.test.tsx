@@ -121,6 +121,24 @@ describe('editing a shared expense', () => {
         expect(screen.getByRole('button', { name: form.cancel })).toBeDefined();
     });
 
+    it('says the split at the top of the form, with no tabs and no choice of group', async () => {
+        const group = trip();
+        await open(group, [dinner(group, { paidBy: bea.id })]);
+
+        fireEvent.click(actionOf('Dinner', 'editItem'));
+
+        const dialog = screen.getByRole('dialog', { name: form.editTitle });
+        const top = dialog.querySelector('.expense-form__top');
+        expect(top).not.toBeNull();
+        expect(within(dialog).queryByRole('group', { name: form.for })).toBeNull();
+        expect([...top!.querySelectorAll('.shared-summary__line')].map((line) => line.textContent)).toEqual([
+            t('groups.share.summary.with', { name: 'Trip' }),
+            t('groups.share.summary.paid', { name: 'Bea' }),
+            t('groups.share.summary.equal', { count: 3 }),
+        ]);
+        expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
+    });
+
     it('opens the amounts as saved and leaves out who was not in', async () => {
         const group = trip();
         await open(group, [

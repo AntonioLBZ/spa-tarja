@@ -25,7 +25,7 @@ const SWATCHES = [
 const Story: Meta<ChoiceGroupProps<string>> = {
     title: 'Components/ChoiceGroup',
     component: ChoiceGroupComponent,
-    args: { legend: 'Theme', name: 'theme', options: OPTIONS, value: 'light', swatch: false },
+    args: { legend: 'Theme', name: 'theme', options: OPTIONS, value: 'light', swatch: false, tabs: false },
     argTypes: {
         value: { control: 'inline-radio', options: OPTIONS.map((option) => option.value) },
         options: { control: false },
@@ -35,7 +35,7 @@ const Story: Meta<ChoiceGroupProps<string>> = {
 // The choice is kept in the args, so the control follows what is clicked
 export const ChoiceGroup = (args: ChoiceGroupProps<string>) => {
     const [, updateArgs] = useArgs();
-    // `swatch` swaps the words for icons, with the first one checked until another is picked
+    // `swatch` swaps the words for icons, with the first one checked until another is picked; `tabs` draws the words as tabs
     const options = args.swatch ? SWATCHES : args.options;
     const value = options.some((option) => option.value === args.value) ? args.value : (options[0]?.value ?? '');
 

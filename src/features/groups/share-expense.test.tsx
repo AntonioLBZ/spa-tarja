@@ -69,6 +69,17 @@ function balance() {
     return spokenText(within(screen.getByRole('main')).getByRole('status'));
 }
 
+function splitToggle() {
+    return screen.getByRole('button', { name: new RegExp(`^${share.split}`) });
+}
+
+function summaryLines() {
+    const toggle = screen.queryByRole('button', { name: new RegExp(`^${share.split}`) });
+    const summary = toggle && document.getElementById(toggle.getAttribute('aria-describedby') ?? '');
+    if (!summary) return null;
+    return [...summary.querySelectorAll('.shared-summary__line')].map((line) => line.textContent);
+}
+
 function forChoice(name: string) {
     return screen.getByRole('radio', { name }) as HTMLInputElement;
 }
@@ -178,10 +189,10 @@ describe('the choice For', () => {
 
         fireEvent.click(forChoice(form.forShared));
 
-        expect(optionNames(share.with)).toEqual(['Trip', 'Dani']);
+        expect(optionNames(share.with)).toEqual([share.withNone, 'Trip', 'Dani']);
     });
 
-    it('starts With on the first group for another user of the device, who never shared with the last one', async () => {
+    it('chooses no group for another user of the device, who never shared with the last one, and opens the split', async () => {
         const dani = friend('Dani');
         rememberSharedWith(TEST_USER.id, dani.id);
         stubApi(createFakeApi({ groups: [trip(), dani] }).handler);
@@ -193,8 +204,66 @@ describe('the choice For', () => {
 
         fireEvent.click(forChoice(form.forShared));
 
-        expect(chosenOption(share.with)).toBe('Trip');
+        expect(splitToggle().getAttribute('aria-expanded')).toBe('true');
+        expect(chosenOption(share.with)).toBe(share.withNone);
+        expect(summaryLines()).toEqual([share.withNone]);
+        expect(screen.queryByRole('group', { name: share.people })).toBeNull();
         expect(localStorage.getItem(`tarja:shared-with:${other.id}`)).toBeNull();
+    });
+
+    it('marks With on Add while no group is chosen, opening the split', async () => {
+        await openHome([trip(), friend('Dani')]);
+        fireEvent.click(forChoice(form.forShared));
+        fireEvent.click(splitToggle());
+        fill({ amount: '10' });
+
+        await addIsRefused();
+
+        expect(splitToggle().getAttribute('aria-expanded')).toBe('true');
+        const withField = screen.getByRole('combobox', { name: share.with });
+        expect(withField.getAttribute('aria-invalid')).toBe('true');
+        expect(screen.getByText(share.withMissing)).toBeDefined();
+        expect(document.activeElement).toBe(withField);
+
+        pickOption(share.with, 'Dani');
+
+        expect(withField.getAttribute('aria-invalid')).toBe('false');
+        expect(optionNames(share.with)).toEqual(['Trip', 'Dani']);
+        expect(rows()).toEqual([`${you}${euros(500)}`, `Dani${euros(500)}`]);
+    });
+
+    it('puts For first, as tabs above the amount, and With first inside the split', async () => {
+        await openHome([trip(), friend('Dani')]);
+        const dialog = screen.getByRole('dialog', { name: form.title });
+        const follows = (first: Element, second: Element) =>
+            (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+
+        const tabs = within(dialog).getByRole('group', { name: form.for });
+        expect(
+            within(tabs)
+                .getAllByRole('radio')
+                .map((radio) => radio.closest('label')?.textContent)
+        ).toEqual([form.forMe, form.forShared]);
+        expect(follows(tabs, field(form.amount))).toBe(true);
+        fireEvent.click(forChoice(form.forShared));
+        pickOption(share.with, 'Trip');
+
+        expect(follows(splitToggle(), screen.getByRole('combobox', { name: share.with }))).toBe(true);
+        expect(
+            follows(
+                screen.getByRole('combobox', { name: share.with }),
+                screen.getByRole('combobox', { name: share.paidBy })
+            )
+        ).toBe(true);
+    });
+
+    it('lists the person first in Paid by and in Who is in, the others in the order of the group', async () => {
+        await openHome([trip({ members: [bea, ana, cris] })]);
+
+        fireEvent.click(forChoice(form.forShared));
+
+        expect(optionNames(share.paidBy)).toEqual([you, 'Bea', 'Cris']);
+        expect(rows()).toEqual([you, 'Bea', 'Cris']);
     });
 
     it('starts With on the group used last on this device', async () => {
@@ -484,7 +553,7 @@ describe("naming the person in Paid by and Who's in", () => {
         await openHome([trip({ members: [first, second, cris], me: second.id })]);
         fireEvent.click(forChoice(form.forShared));
 
-        expect(optionNames(share.paidBy)).toEqual(['Ana', 'Ana (2) (You)', 'Cris']);
+        expect(optionNames(share.paidBy)).toEqual(['Ana (2) (You)', 'Ana', 'Cris']);
         expect(chosenOption(share.paidBy)).toBe('Ana (2) (You)');
         expect(checkbox('Ana (2) (You)').checked).toBe(true);
     });
@@ -926,7 +995,7 @@ describe('making a friend from the form', () => {
         await openHome([trip(), friend('Dani')]);
         fireEvent.click(forChoice(form.forShared));
 
-        expect(optionNames(share.with)).toEqual(['Trip', 'Dani']);
+        expect(optionNames(share.with)).toEqual([share.withNone, 'Trip', 'Dani']);
         expect(screen.queryByLabelText(/their name/i)).toBeNull();
         expect(screen.queryByRole('button', { name: /add the friend/i })).toBeNull();
     });
@@ -1000,19 +1069,23 @@ describe('the sync of a shared expense added at home', () => {
 });
 
 describe('the split, folded', () => {
-    const splitToggle = () => screen.getByRole('button', { name: new RegExp(`^${share.split}`) });
-
-    it('says who paid and how it is split above the toggle, which opens them to change', async () => {
+    it('says who it is with, who paid and how it is split on three lines beside the tabs, describing the toggle', async () => {
         await openHome([trip()]);
+
+        expect(summaryLines()).toBeNull();
         fireEvent.click(forChoice(form.forShared));
 
         expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
         expect(splitToggle().textContent).toBe(share.split);
-        const line = t('groups.share.summary.line', {
-            payer: share.summary.youPaid,
-            split: t('groups.share.summary.equal', { count: 3 }),
-        });
-        expect(screen.getByText(line)).toBeDefined();
+        expect(summaryLines()).toEqual([
+            t('groups.share.summary.with', { name: 'Trip' }),
+            share.summary.youPaid,
+            t('groups.share.summary.equal', { count: 3 }),
+        ]);
+        const summary = document.getElementById(splitToggle().getAttribute('aria-describedby') ?? '');
+        expect(summary?.closest('.expense-form__top')?.contains(screen.getByRole('group', { name: form.for }))).toBe(
+            true
+        );
         expect(screen.queryByRole('group', { name: share.people })).toBeNull();
 
         fireEvent.click(splitToggle());
@@ -1021,14 +1094,11 @@ describe('the split, folded', () => {
         pickOption(share.paidBy, 'Bea');
         fireEvent.click(checkbox('Cris'));
         pickMode('percent');
-        expect(
-            screen.getByText(
-                t('groups.share.summary.line', {
-                    payer: t('groups.share.summary.paid', { name: 'Bea' }),
-                    split: t('groups.share.summary.percent', { count: 2 }),
-                })
-            )
-        ).toBeDefined();
+        expect(summaryLines()).toEqual([
+            t('groups.share.summary.with', { name: 'Trip' }),
+            t('groups.share.summary.paid', { name: 'Bea' }),
+            t('groups.share.summary.percent', { count: 2 }),
+        ]);
     });
 
     it('opens on Add when what is to fix is in it, with the focus on it', async () => {

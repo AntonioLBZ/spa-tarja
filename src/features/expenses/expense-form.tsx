@@ -9,7 +9,7 @@ import { useBudgetWarning } from '@/features/budgets/use-budget-warning';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords } from '@/features/groups/group-failure';
-import { SharedPayment, SharedTail, useSharedTail } from '@/features/groups/shared-tail';
+import { SharedPayment, SharedSummary, SharedTail, useSharedTail } from '@/features/groups/shared-tail';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
 import { useUser } from '@/lib/auth';
@@ -128,7 +128,7 @@ const entryFields = (group: SharedGroup, entry: SharedExpenseEntry, locale: stri
     };
 };
 
-// The head (amount, description, category, day) is common; under it, For chooses the tail. Each tail keeps what was
+// For comes first and chooses the tail; the head (amount, description, category, day) is common. Each tail keeps what was
 // typed in it while the form is open, so switching back and forth loses nothing.
 const ExpenseForm = (props: ExpenseFormProps) => {
     const {
@@ -190,6 +190,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const personal = usePersonalTail(start, totalCents, date, payment.payment);
     const shared = useSharedTail(group, totalCents, payment, entrySource, startGroup?.id);
     const isShared = forWhom === 'shared';
+    const showFor = !group && !editing;
 
     // A new expense's category follows the description until the user picks one (the keywords, else the person's own
     // history); an edited one keeps what was saved, even an id with no category behind it any more, which shows as the
@@ -231,6 +232,12 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     ]
         .filter(Boolean)
         .join(' · ');
+
+    // Shared with no group chosen yet opens the split, where With is, so the person picks one (ADR-0034)
+    const pickFor = (value: ForWhom) => {
+        setForWhom(value);
+        if (value === 'shared' && !shared.group && shared.choices.length > 0) shared.setSplitOpen(true);
+    };
 
     const resetForm = () => {
         setAmount('');
@@ -338,6 +345,26 @@ const ExpenseForm = (props: ExpenseFormProps) => {
             noValidate
             onSubmit={(event) => void handleSubmit(event)}
         >
+            {(showFor || isShared) && (
+                <div className="expense-form__top">
+                    {/* An edit keeps an expense of one person as it is */}
+                    {showFor && (
+                        <ChoiceGroup
+                            tabs
+                            legend={t('for')}
+                            name={`${id}-for`}
+                            options={[
+                                { value: 'me', label: t('forMe') },
+                                { value: 'shared', label: t('forShared') },
+                            ]}
+                            value={forWhom}
+                            onChange={pickFor}
+                        />
+                    )}
+                    {isShared && <SharedSummary tail={shared} />}
+                </div>
+            )}
+
             <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
                 {(control) => (
                     <input
@@ -375,20 +402,6 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                     <CategorySelect {...control} options={categories} value={shownCategory} onChange={setPicked} />
                 )}
             </Field>
-
-            {/* An edit keeps an expense of one person as it is */}
-            {!group && !editing && (
-                <ChoiceGroup
-                    legend={t('for')}
-                    name={`${id}-for`}
-                    options={[
-                        { value: 'me', label: t('forMe') },
-                        { value: 'shared', label: t('forShared') },
-                    ]}
-                    value={forWhom}
-                    onChange={setForWhom}
-                />
-            )}
 
             {isShared && <SharedTail tail={shared} fixed={group !== undefined} tried={tried} />}
 

@@ -340,3 +340,38 @@ describe('Dialog', () => {
         expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Row' }));
     });
 });
+
+describe('Dialog while what it holds changes size', () => {
+    it('is marked as overflowing only while what it holds is taller than it, so its shadows go once a panel folds', () => {
+        const observed: Array<() => void> = [];
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                constructor(callback: () => void) {
+                    observed.push(callback);
+                }
+                observe() {}
+                disconnect() {}
+            }
+        );
+        let contentHeight = 1200;
+        vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(() => contentHeight);
+        vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(800);
+
+        render(
+            <Dialog open variant="page" title="Add" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog.hasAttribute('data-overflow')).toBe(true);
+        contentHeight = 600;
+        observed.forEach((callback) => callback());
+        expect(dialog.hasAttribute('data-overflow')).toBe(false);
+        contentHeight = 900;
+        observed.forEach((callback) => callback());
+        expect(dialog.hasAttribute('data-overflow')).toBe(true);
+        vi.unstubAllGlobals();
+    });
+});

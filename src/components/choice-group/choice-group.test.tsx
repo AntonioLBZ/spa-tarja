@@ -84,3 +84,19 @@ describe('ChoiceGroup as swatches', () => {
         expect(screen.getByRole('radio', { name: 'Red' }).closest('label')?.textContent).toBe('Red');
     });
 });
+
+describe('ChoiceGroup as tabs', () => {
+    it('keeps its legend as the name of the group, hidden from sight, and sets no column width', () => {
+        render(
+            <ChoiceGroup legend="For" name="for" options={options} value="voucher" tabs onChange={() => undefined} />
+        );
+
+        const group = screen.getByRole('group', { name: 'For' });
+        expect(group.classList.contains('choice-group--tabs')).toBe(true);
+        expect(group.querySelector('legend')?.classList.contains('visually-hidden')).toBe(true);
+        expect(
+            group.querySelector<HTMLElement>('.choice-group__options')!.style.getPropertyValue('--choice-word')
+        ).toBe('');
+        expect((screen.getByRole('radio', { name: 'Restaurant card' }) as HTMLInputElement).checked).toBe(true);
+    });
+});

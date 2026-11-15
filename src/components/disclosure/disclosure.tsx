@@ -13,6 +13,8 @@ interface DisclosureProps {
     summary: ReactNode;
     // What the panel holds, said in the toggle after the summary while it is closed
     hint?: ReactNode;
+    // The id of what says, elsewhere on the page, what the panel holds
+    describedBy?: string;
     // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
     open?: boolean;
     defaultOpen?: boolean;
@@ -53,6 +55,7 @@ const Disclosure = (props: DisclosureProps) => {
         heading: Heading,
         summary,
         hint,
+        describedBy,
         open,
         defaultOpen = false,
         onOpenChange,
@@ -79,6 +82,7 @@ const Disclosure = (props: DisclosureProps) => {
             ref={toggleRef}
             className="disclosure__toggle"
             aria-controls={panelInPage ? panelId : undefined}
+            aria-describedby={describedBy}
             aria-expanded={isOpen}
             disabled={disabled}
             type="button"

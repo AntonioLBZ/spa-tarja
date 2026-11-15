@@ -19,21 +19,24 @@ interface ChoiceGroupProps<Value extends string> {
     value: Value;
     // Cells that hold what they are given, like an icon, instead of a word
     swatch?: boolean;
+    // Words in a row, the checked one underlined, with the legend hidden from sight (ADR-0034)
+    tabs?: boolean;
     onChange: (value: Value) => void;
 }
 
-// A radio group drawn as a row of boxes; the checked one is filled
+// A radio group drawn as a row of boxes, the checked one filled, or as tabs
 const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
-    const { legend, name, options, value, swatch, onChange } = props;
-    const groupClsx = clsx('choice-group', { 'choice-group--swatch': swatch });
+    const { legend, name, options, value, swatch, tabs, onChange } = props;
+    const groupClsx = clsx('choice-group', { 'choice-group--swatch': swatch, 'choice-group--tabs': tabs });
+    const legendClsx = clsx('choice-group__legend', { 'visually-hidden': tabs });
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
     // In characters, since the font is monospace: a column has to hold the widest word whole
     const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
-    const optionsStyle = swatch ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
+    const optionsStyle = swatch || tabs ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
 
     return (
         <fieldset className={groupClsx}>
-            <legend className="choice-group__legend">{legend}</legend>
+            <legend className={legendClsx}>{legend}</legend>
             <div className="choice-group__options" style={optionsStyle}>
                 {options.map((option) => (
                     <label

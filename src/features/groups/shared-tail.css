@@ -61,3 +61,20 @@
 .shared-people__input {
     width: calc(9ch + 2 * var(--size-3) + var(--size-1));
 }
+
+/* Beside the tabs of the form, at its end: a short line each, cut when it doesn't fit (ADR-0034) */
+.shared-summary {
+    color: var(--color-content-secondary);
+    flex: 1 1 8rem;
+    font-size: var(--font-size-s);
+    margin: 0;
+    min-inline-size: 0;
+    text-align: end;
+}
+
+.shared-summary__line {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -135,7 +135,7 @@
 }
 
 /* The shadow they cast on what is under them (ADR-0018): full until the sheet is scrolled to its end. Where
-   scroll-driven animations are missing it stays invisible */
+   scroll-driven animations are missing it stays invisible, and so it does while nothing overflows */
 .dialog--sheet .dialog__actions::after {
     box-shadow: 0 calc(-1 * var(--size-1)) var(--size-3) var(--color-shadow);
     content: '';
@@ -156,7 +156,7 @@
 }
 
 @supports (animation-timeline: scroll()) {
-    .dialog--sheet .dialog__actions::after {
+    .dialog--sheet[data-overflow] .dialog__actions::after {
         animation: dialog-actions-shadow linear both;
         animation-range: calc(100% - var(--size-6)) 100%;
         animation-timeline: scroll(nearest block);
@@ -215,7 +215,7 @@
 }
 
 /* The shadow the title row casts on what is scrolled under it (ADR-0018): nothing at the top, full after a short scroll.
-   Where scroll-driven animations are missing it stays invisible */
+   Where scroll-driven animations are missing it stays invisible, and so it does while nothing overflows */
 .dialog--page .dialog__head::after {
     box-shadow: var(--shadow-popup);
     content: '';
@@ -236,7 +236,7 @@
 }
 
 @supports (animation-timeline: scroll()) {
-    .dialog--page .dialog__head::after {
+    .dialog--page[data-overflow] .dialog__head::after {
         animation: dialog-head-shadow linear both;
         animation-range: 0 var(--size-6);
         animation-timeline: scroll(nearest block);

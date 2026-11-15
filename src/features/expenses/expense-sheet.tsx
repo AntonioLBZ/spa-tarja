@@ -90,7 +90,9 @@ const ExpenseSheet = () => {
             closeLabel={t('close')}
             // Closing drops what was typed, so a stray tap on the veil doesn't close it
             closeOnOutside={false}
-            initialFocus={() => (isEdit || isCopy ? null : (body.current?.querySelector('input') ?? null))}
+            initialFocus={() =>
+                isEdit || isCopy ? null : (body.current?.querySelector('input:not([type="radio"])') ?? null)
+            }
             onClose={() => {
                 if (open) close();
             }}
