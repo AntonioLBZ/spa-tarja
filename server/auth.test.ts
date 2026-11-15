@@ -201,7 +201,7 @@ describe('the Google sign-in', () => {
         });
     }
 
-    async function comeBackFromGoogle() {
+    async function comeBackFromGoogle(headers: Record<string, string> = {}) {
         const started = await post('/api/auth/sign-in/social', { provider: 'google', callbackURL: '/' });
         const { url } = (await started.json()) as { url: string };
         const state = new URL(url).searchParams.get('state');
@@ -209,7 +209,7 @@ describe('the Google sign-in', () => {
             .getSetCookie()
             .map((line) => line.split(';')[0])
             .join('; ');
-        return request(`/api/auth/callback/google?state=${state}&code=a-code`, { headers: { cookie } });
+        return request(`/api/auth/callback/google?state=${state}&code=a-code`, { headers: { ...headers, cookie } });
     }
 
     async function accountsOf(email: string) {
@@ -279,6 +279,23 @@ describe('the Google sign-in', () => {
         const [account, ...others] = await accountsOf('dani@example.com');
         expect(others).toEqual([]);
         expect(account).toMatchObject({ accessToken: null, refreshToken: null, idToken: null });
+    });
+    it('keeps the browser a session was opened from, but not its IP address', async () => {
+        googleAnswers('dani@example.com');
+
+        await comeBackFromGoogle({
+            'user-agent': 'Test browser',
+            'x-forwarded-for': '203.0.113.7',
+            'cf-connecting-ip': '203.0.113.7',
+        });
+
+        const row = await env.DB.prepare(
+            `SELECT s."ipAddress", s."userAgent" FROM "session" s JOIN "user" u ON u.id = s."userId" WHERE u.email = ?1`
+        )
+            .bind('dani@example.com')
+            .first<Record<string, unknown>>();
+        expect(row).toMatchObject({ userAgent: 'Test browser' });
+        expect(row?.ipAddress ?? '').toBe('');
     });
 });
 

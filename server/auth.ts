@@ -27,6 +27,8 @@ const authOptions = (env: Env, baseURL: string) => {
             cookieCache: { enabled: true, maxAge: SESSION_CACHE_SECONDS },
         },
         databaseHooks: { account: { create: { before: withoutTokens }, update: { before: withoutTokens } } },
+        // A session keeps the browser it was opened from, never the IP address
+        advanced: { ipAddress: { disableIpTracking: true } },
     } satisfies BetterAuthOptions;
 };
 
