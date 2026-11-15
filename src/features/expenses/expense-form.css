@@ -3,12 +3,12 @@
     gap: var(--size-4);
 }
 
-/* For at its start and, shared, the summary of the split at its end; the summary goes under the tabs when the row is
-   too narrow for both (ADR-0034) */
+/* For at its start and, shared, the summary of the split at its end, on one row as tall as the tabs at every width:
+   on a narrow phone the lines of the summary are cut rather than wrapped under the tabs (ADR-0034) */
 .expense-form__top {
     align-items: center;
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-2) var(--size-4);
+    gap: var(--size-4);
     justify-content: space-between;
+    min-block-size: var(--size-touch);
 }
