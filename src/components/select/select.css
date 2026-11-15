@@ -4,24 +4,23 @@
     position: relative;
 }
 
-/* The chevron, drawn over the field so it is the same whether the browser styles the select or not */
-.select::after {
-    block-size: 0.5rem;
-    border-bottom: var(--size-px) solid currentcolor;
-    border-right: var(--size-px) solid currentcolor;
-    content: '';
-    inline-size: 0.5rem;
+/* The chevron of a Disclosure: the same icon, at the same distance from the end, a half turn while the list is open */
+.select__chevron {
+    align-items: center;
+    display: flex;
     inset-block: var(--field-pad-top, 0) var(--field-pad-bottom, 0);
     inset-inline-end: var(--size-3);
-    margin-block: auto;
     pointer-events: none;
     position: absolute;
-    transform: rotate(45deg);
     transition: transform var(--duration-base) var(--ease-standard);
 }
 
-.select:has(.select__field:open)::after {
-    transform: rotate(225deg);
+.select:has(.select__field:open) .select__chevron {
+    transform: rotate(180deg);
+}
+
+.select:has(.select__field:disabled) .select__chevron {
+    color: var(--color-content-secondary);
 }
 
 /* The look of the other fields, given by the box of its Field, with room for the chevron and, if the options have them,
@@ -29,7 +28,7 @@
 .select__field {
     appearance: none;
     cursor: pointer;
-    padding-inline-end: calc(var(--size-3) + var(--size-2) + 0.75rem);
+    padding-inline-end: calc(var(--size-3) + var(--size-2) + 1.5rem);
 }
 
 .select--icons .select__field {

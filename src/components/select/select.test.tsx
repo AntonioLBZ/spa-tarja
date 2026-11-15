@@ -108,6 +108,16 @@ describe('the field', () => {
     });
 });
 
+describe('the chevron', () => {
+    it('is the chevron of a disclosure, hidden from assistive technology', () => {
+        const { container } = render(<Select id="category" options={OPTIONS} value="food" onChange={() => {}} />);
+
+        const chevron = container.querySelector('.select__chevron');
+        expect(chevron?.getAttribute('aria-hidden')).toBe('true');
+        expect(chevron?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('expand_more');
+    });
+});
+
 describe('the icon beside the field', () => {
     it('is the icon of the chosen option, hidden from assistive technology', () => {
         render(<Harness />);

@@ -1,5 +1,7 @@
 import clsx from 'clsx';
 
+import { Icon } from '@/components/icon/icon';
+
 import type { ReactNode, Ref } from 'react';
 
 import './select.css';
@@ -66,6 +68,10 @@ const Select = <Value extends string>(props: SelectProps<Value>) => {
                     </option>
                 ))}
             </select>
+            {/* The chevron of a Disclosure, drawn over the field so it is the same whether the browser styles it or not */}
+            <span className="select__chevron" aria-hidden="true">
+                <Icon name="expand_more" />
+            </span>
         </div>
     );
 };
