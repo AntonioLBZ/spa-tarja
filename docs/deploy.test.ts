@@ -29,7 +29,7 @@ const files = (folder: string) => {
     const path = fileURLToPath(new URL(`../${folder}`, import.meta.url));
     if (!existsSync(path)) return [];
     return readdirSync(path, { withFileTypes: true })
-        .filter((entry) => entry.isFile() && entry.name !== '_headers')
+        .filter((entry) => entry.isFile() && !['_headers', 'robots.txt'].includes(entry.name))
         .map((entry) => entry.name)
         .sort();
 };
