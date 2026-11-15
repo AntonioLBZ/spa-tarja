@@ -52,6 +52,32 @@ const prereleasePage = (): Plugin => {
     };
 };
 
+// Preloads the regular weight of the text font, which the first screen always shows, so it downloads alongside the
+// stylesheet instead of after it
+const fontPreload = (): Plugin => {
+    const font = /\/ibm-plex-mono-latin-400-normal-[\w-]+\.woff2$/;
+
+    return {
+        name: 'tarja-font-preload',
+        apply: 'build',
+        transformIndexHtml: {
+            order: 'post',
+            handler: (html, { bundle }) => {
+                if (!bundle) return html;
+                const file = Object.keys(bundle).find((name) => font.test(`/${name}`));
+                if (!file) throw new Error('the build no longer holds the regular weight of the text font');
+                return [
+                    {
+                        tag: 'link',
+                        attrs: { rel: 'preload', href: `/${file}`, as: 'font', type: 'font/woff2', crossorigin: '' },
+                        injectTo: 'head',
+                    },
+                ];
+            },
+        },
+    };
+};
+
 // Builds the script of push notifications next to the client's files
 const pushWorker = (): Plugin => {
     return {
@@ -70,6 +96,7 @@ export default defineConfig({
         react(),
         cloudflare(),
         prereleasePage(),
+        fontPreload(),
         pushWorker(),
         VitePWA({
             // The new version waits for the user, so an update never reloads the app halfway through an expense

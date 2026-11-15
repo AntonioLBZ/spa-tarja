@@ -141,7 +141,7 @@ The rules above live in shared components, in `src/components/<name>/`. A screen
 
 ### Typography
 
-- Everything is set in **IBM Plex Mono** (SIL OFL 1.1), amounts included: monospace lines the digits up and fits the ledger feeling. It comes from `@fontsource/ibm-plex-mono`, the latin subset (which covers the accents, ñ, ¿, ¡ and €) in weights 400 and 700, about 15 KB each. It is served by the app itself and precached, so it works offline; `font-display: swap` shows the fallback while it loads.
+- Everything is set in **IBM Plex Mono** (SIL OFL 1.1), amounts included: monospace lines the digits up and fits the ledger feeling. It comes from `@fontsource/ibm-plex-mono`, the latin subset (which covers the accents, ñ, ¿, ¡ and €) in weights 400 and 700, about 15 KB each. It is served by the app itself and precached, so it works offline; `font-display: swap` shows the fallback while it loads. The build preloads the 400 from the page (`<link rel="preload">`), so on a first visit it downloads alongside the stylesheet instead of after it; the 700 is not preloaded, since a screen may not use it.
 - Stack: `'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace`.
 - Form controls inherit the page font and its 16 px size.
 - **Type scale**: a standard modular scale, minor third (×1.2) from a 1 rem base. `--font-size-s` is 0.833 rem (secondary text, like the hint under a heading), `--font-size-m` 1 rem (body and form controls), `--font-size-l` 1.2 rem (page titles) and `--font-size-xl` 1.44 rem (the sign-in title). The logo is sized apart (`--font-size-logo`). Form controls never go below `--font-size-m`, so iOS doesn't zoom. Hierarchy also uses weight (700) and case, never a size outside the scale.
