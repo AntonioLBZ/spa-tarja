@@ -2,18 +2,20 @@ import clsx from 'clsx';
 import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useMoney } from '@/lib/amounts';
-import { yourPart, type SharedExpenseEntry } from '@core/shared-expense';
+import { useAmount, useMoney } from '@/lib/amounts';
 
+import { ledgerEffect } from './ledger-effect';
 import { namesSomeoneWhoLeft } from './names-someone-who-left';
 import { useEntryWords } from './use-entry-words';
 
 import type { LedgerEntry } from '@core/shared-entry';
+import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 import type { RefCallback } from 'react';
 
@@ -37,8 +39,10 @@ interface LedgerRowProps {
     focusRef?: RefCallback<HTMLElement>;
 }
 
-// An entry of the ledger as a line of the ticket: an expense by its name with its total, who paid and your part, or a
-// settlement in words, and who wrote it last when it wasn't the person. Pressing it opens what can be done to it.
+// An entry of the ledger as a line of the ticket, as an expense of the person's list is: its name, what it does to their
+// balance in the group with its cues, and under them who paid the whole, or that it is theirs alone or not theirs, and
+// who wrote it last when it wasn't the person. Pressing an expense opens who paid and each share, and what can be done
+// to it (ADR-0030).
 const LedgerRow = (props: LedgerRowProps) => {
     const { group, entry, pending, leaving, date, onEdit, onDuplicate, onDelete, focusRef } = props;
     const t = useTranslations('groups');
@@ -47,6 +51,7 @@ const LedgerRow = (props: LedgerRowProps) => {
     const words = useEntryWords(group);
     const reasonId = useId();
     const format = useMoney();
+    const amount = useAmount();
     const money = (cents: number) => format(cents, entry.currency);
 
     const writer = entry.updatedBy === null ? t('names.deleted') : words.nameOf(entry.updatedBy);
@@ -54,31 +59,50 @@ const LedgerRow = (props: LedgerRowProps) => {
         entry.updatedBy === group.me
             ? null
             : t(entry.updatedAt === entry.createdAt ? 'ledger.addedBy' : 'ledger.editedBy', { name: writer });
-    const part = yourPart(entry, group.me, group.members);
-    const details =
-        entry.kind === 'expense'
-            ? [
-                  words.isMe(entry.paidBy)
-                      ? t('ledger.youPaid')
-                      : t('ledger.paidBy', { name: words.nameOf(entry.paidBy) }),
-                  part > 0 ? t('ledger.yourPart', { amount: money(part) }) : t('ledger.notIn'),
-              ]
-            : [];
-
+    const { paidByMe, part, cents, touch } = ledgerEffect(entry, group);
+    const payer = words.nameOf(entry.paidBy);
+    const total = money(entry.amountCents);
     const name = words.entryName(entry);
+    // Paying a debt back is not earning: a settlement shows its amount neutral, with no color and no sign
+    const effect = {
+        ...amount(cents, entry.currency, { cues: true }),
+        ...(entry.kind === 'settlement' && { color: false, sign: false }),
+    };
+
+    // Who paid the whole, which a settlement of the person's own already says in its name
+    const paid =
+        entry.kind === 'settlement' && touch === 'moves'
+            ? null
+            : paidByMe
+              ? t('ledger.youPaidTotal', { total })
+              : t('ledger.paidTotal', { name: payer, total });
+    const quiet = touch === 'moves' ? null : t(`ledger.${touch}`);
+
+    const sentence = (() => {
+        if (entry.kind === 'settlement') return t('ledger.spoken.settlement', { name, total });
+        if (touch === 'notIn') return t('ledger.spoken.notIn', { name, payer, total });
+        if (touch === 'justYou') return t('ledger.spoken.justYou', { name, total });
+        if (paidByMe) return t('ledger.spoken.lent', { name, total, amount: money(cents) });
+        return t('ledger.spoken.borrowed', { name, payer, total, amount: money(part) });
+    })();
+
     const body = (
         <span className="expense-item__body">
-            <span className="expense-item__name">
+            <span className="visually-hidden">{sentence}</span>
+            <span className="expense-item__name" aria-hidden="true">
                 {entry.kind === 'expense' && <CategoryBadge style={styleOf(entry.categoryId)} />}
                 <span className="expense-item__text">{name}</span>
             </span>
-            <span className="expense-item__amount">{money(entry.amountCents)}</span>
-            {(date || details.length > 0 || wrote || pending) && (
+            {touch === 'moves' && (
+                <span className="expense-item__amount" aria-hidden="true">
+                    <Amount {...effect} />
+                </span>
+            )}
+            {(date || paid || quiet || wrote || pending) && (
                 <span className="expense-item__meta">
                     {date && <span>{date}</span>}
-                    {details.map((detail) => (
-                        <span key={detail}>{detail}</span>
-                    ))}
+                    {paid && <span aria-hidden="true">{paid}</span>}
+                    {quiet && <span aria-hidden="true">{quiet}</span>}
                     {wrote && <span>{wrote}</span>}
                     {pending && <span className="expense-item__pending">{tList('pending')}</span>}
                 </span>
@@ -88,9 +112,9 @@ const LedgerRow = (props: LedgerRowProps) => {
     const rowClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
     const blocked = namesSomeoneWhoLeft(entry, group);
 
-    if (!onDelete) {
+    if (!onDelete && entry.kind === 'settlement') {
         return (
-            <li ref={focusRef} className="expense-item ledger-row" tabIndex={-1}>
+            <li ref={focusRef} className="expense-item ledger-row ledger-row--still" tabIndex={-1}>
                 {body}
             </li>
         );
@@ -98,39 +122,57 @@ const LedgerRow = (props: LedgerRowProps) => {
 
     return (
         <Disclosure as="li" className={rowClsx} chevron toggleRef={focusRef} summary={body}>
-            <div className="expense-item__actions">
-                {onEdit && (
+            {entry.kind === 'expense' && (
+                <ul className="ledger-row__breakdown" aria-label={t('ledger.breakdown')}>
+                    <li className="ledger-row__share">
+                        <span className="ledger-row__who">
+                            {paidByMe ? t('ledger.youPaid') : t('ledger.paidBy', { name: payer })}
+                        </span>
+                        <span>{total}</span>
+                    </li>
+                    {entry.shares.map((share) => (
+                        <li className="ledger-row__share" key={share.memberId}>
+                            <span className="ledger-row__who">{words.nameInList(share.memberId)}</span>
+                            <span>{money(share.cents)}</span>
+                        </li>
+                    ))}
+                </ul>
+            )}
+            {onDelete && (
+                <div className="expense-item__actions">
+                    {onEdit && (
+                        <Button
+                            ghost
+                            aria-describedby={blocked ? reasonId : undefined}
+                            aria-label={tList('editItem', { name })}
+                            disabled={leaving || blocked}
+                            onClick={() => onEdit(entry)}
+                        >
+                            {tList('edit')}
+                        </Button>
+                    )}
+                    {entry.kind === 'expense' && onDuplicate && (
+                        <Button
+                            ghost
+                            aria-label={tList('duplicateItem', { name })}
+                            disabled={leaving}
+                            onClick={() => onDuplicate(entry)}
+                        >
+                            {tList('duplicate')}
+                        </Button>
+                    )}
                     <Button
                         ghost
-                        aria-describedby={blocked ? reasonId : undefined}
-                        aria-label={tList('editItem', { name })}
-                        disabled={leaving || blocked}
-                        onClick={() => onEdit(entry)}
-                    >
-                        {tList('edit')}
-                    </Button>
-                )}
-                {entry.kind === 'expense' && onDuplicate && (
-                    <Button
-                        ghost
-                        aria-label={tList('duplicateItem', { name })}
+                        variant="danger"
+                        aria-label={tList('deleteItem', { name })}
                         disabled={leaving}
-                        onClick={() => onDuplicate(entry)}
+                        onClick={() => onDelete(entry)}
                     >
-                        {tList('duplicate')}
+                        {tList('delete')}
                     </Button>
-                )}
-                <Button
-                    ghost
-                    variant="danger"
-                    aria-label={tList('deleteItem', { name })}
-                    disabled={leaving}
-                    onClick={() => onDelete(entry)}
-                >
-                    {tList('delete')}
-                </Button>
-            </div>
-            {blocked && (
+                </div>
+            )}
+            {onDelete && blocked && (
                 <Notice tone="quiet" id={reasonId}>
                     {t('ledger.leftCantEdit')}
                 </Notice>

@@ -15,6 +15,7 @@ import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { openAddSheet, openSplit } from '@/lib/test/sheet';
+import { spokenText } from '@/lib/test/spoken-text';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -65,7 +66,7 @@ async function openGroup(group: SharedGroup) {
 }
 
 function balance() {
-    return within(screen.getByRole('main')).getByRole('status').textContent;
+    return spokenText(within(screen.getByRole('main')).getByRole('status'));
 }
 
 function forChoice(name: string) {

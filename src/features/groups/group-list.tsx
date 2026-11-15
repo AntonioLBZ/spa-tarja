@@ -6,6 +6,8 @@ import { Button } from '@/components/button/button';
 import { Card, CardList } from '@/components/card/card';
 import { Icon } from '@/components/icon/icon';
 import { Sheet } from '@/components/sheet/sheet';
+import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
+import { useAmount } from '@/lib/amounts';
 
 import { myBalance } from './my-balance';
 import { useGroupWords } from './use-group-words';
@@ -100,12 +102,21 @@ const GroupRow = (props: GroupRowProps) => {
     const { group, entries, hasData } = ledger;
     const t = useTranslations('groups.row');
     const words = useGroupWords(group);
+    const amount = useAmount();
+    const balance = hasData ? myBalance(group, entries) : 0;
     const rowClsx = clsx('group-row', { 'group-row--card': card });
     const body = (
         <span className="group-row__body">
             <span className="group-row__name">{words.title}</span>
             {words.closed === null ? (
-                hasData && <span className="group-row__detail">{words.row(myBalance(group, entries))}</span>
+                hasData && (
+                    <span className="group-row__detail">
+                        <SentenceWithAmount
+                            sentence={(text) => words.row(balance, text)}
+                            amount={{ ...amount(balance, group.currency, { cues: true }), sign: false }}
+                        />
+                    </span>
+                )
             ) : (
                 <span className="group-row__detail">
                     <span>{t(words.closed)}</span>

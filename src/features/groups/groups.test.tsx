@@ -10,6 +10,7 @@ import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { spokenText } from '@/lib/test/spoken-text';
 import { INVITATION_DAYS } from '@core/invitation';
 import { formatAmount } from '@core/money';
 import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
@@ -49,7 +50,7 @@ function sheet(label: string) {
 function rows(label: string) {
     return within(sheet(label))
         .getAllByRole('link')
-        .map((row) => row.textContent);
+        .map((row) => spokenText(row));
 }
 
 function newGroupToggle() {
@@ -88,20 +89,29 @@ describe('the totals', () => {
         );
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(2800) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(2800) }), {
+                selector: '.notice > .visually-hidden',
+            })
         ).toBeDefined();
         expect(
-            screen.getByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.notice' })
+            screen.getByText(t('groups.balance.owe', { amount: euros(1250) }), {
+                selector: '.notice > .visually-hidden',
+            })
         ).toBeDefined();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
         expect(
             within(screen.getByRole('main'))
                 .getAllByRole('status')
-                .map((notice) => notice.textContent)
+                .map((notice) => spokenText(notice))
         ).toEqual([
             t('groups.balance.owed', { amount: euros(2800) }),
             t('groups.balance.owe', { amount: euros(1250) }),
         ]);
+        expect(
+            within(screen.getByRole('main'))
+                .getAllByRole('status')
+                .map((notice) => notice.querySelector('.amount')?.className)
+        ).toEqual(['amount amount--in', 'amount amount--out']);
     });
 
     it('say all is settled when nobody owes anything', async () => {
@@ -128,7 +138,9 @@ describe('the totals', () => {
             ])
         );
         expect(
-            screen.queryByText(t('groups.balance.owed', { amount: euros(900) }), { selector: '.notice' })
+            screen.queryByText(t('groups.balance.owed', { amount: euros(900) }), {
+                selector: '.notice > .visually-hidden',
+            })
         ).toBeNull();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
         expect((await screen.findByText(text.totalsWait)).getAttribute('role')).toBe('status');
@@ -146,7 +158,9 @@ describe('the totals', () => {
         open([lisbon], [owedToMe(lisbon, 500)]);
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(500) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(500) }), {
+                selector: '.notice > .visually-hidden',
+            })
         ).toBeDefined();
         expect(screen.queryByText(t('groups.balance.owe', { amount: euros(0) }))).toBeNull();
         expect(screen.queryByText(text.balance.allSettled)).toBeNull();
@@ -248,7 +262,9 @@ describe('the lists', () => {
         const porto = sampleGroup({ name: 'Porto' });
         const friend = sampleGroup({ kind: 'direct', name: null });
         open([lisbon, porto, friend], [owedByMe(lisbon, 1250), owedToMe(friend, 800)]);
-        await screen.findByText(t('groups.balance.owe', { amount: euros(1250) }), { selector: '.notice' });
+        await screen.findByText(t('groups.balance.owe', { amount: euros(1250) }), {
+            selector: '.notice > .visually-hidden',
+        });
 
         expect(rows(text.lists.groups)).toEqual([
             `Lisbon${t('groups.balance.owe', { amount: euros(1250) })}`,
@@ -352,7 +368,9 @@ describe('the lists', () => {
         renderApp({ path: '/groups', storage });
 
         expect(
-            await screen.findByText(t('groups.balance.owed', { amount: euros(700) }), { selector: '.notice' })
+            await screen.findByText(t('groups.balance.owed', { amount: euros(700) }), {
+                selector: '.notice > .visually-hidden',
+            })
         ).toBeDefined();
         expect(rows(text.lists.groups)).toEqual([`Lisbon${t('groups.balance.owed', { amount: euros(700) })}`]);
     });

@@ -103,6 +103,24 @@ describe('a group', () => {
         expect(await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }))).toBeDefined();
     });
 
+    it('colors the amount of what you are owed or owe, with no sign, the sentence read whole', async () => {
+        const group = groupOf([ana, bea], ana);
+        open(
+            [group],
+            [
+                expense(group, bea, [
+                    [ana, 1250],
+                    [bea, 1250],
+                ]),
+            ]
+        );
+
+        const notice = (await screen.findByText(t('groups.balance.owe', { amount: euros(1250) }))).closest('.notice')!;
+        const amount = notice.querySelector('.amount')!;
+        expect(amount.classList.contains('amount--out')).toBe(true);
+        expect(amount.textContent).toBe(euros(1250));
+    });
+
     it('says what you owe', async () => {
         const group = groupOf([ana, bea], ana);
         open(
@@ -175,7 +193,7 @@ describe('a group', () => {
         expect(toggles().map((toggle) => toggle.getAttribute('aria-expanded'))).toEqual(['true', 'false', 'false']);
     });
 
-    it('says each debt under a row from the side of its person, with one Settle up per debt', async () => {
+    it('says each debt under a row from the side of its person, with Settle up on both lines of a debt', async () => {
         const group = groupOf([bea, cris, ana], ana);
         open(
             [group],
@@ -202,7 +220,7 @@ describe('a group', () => {
             t('groups.debts.lineIn', { from: 'Cris', to: 'Bea' }),
             t('groups.debts.lineOwesYou', { name: 'Bea' }),
         ]);
-        expect(within(balancesSheet()).getAllByRole('button', { name: /^Settle up/ })).toHaveLength(2);
+        expect(within(balancesSheet()).getAllByRole('button', { name: /^Settle up/ })).toHaveLength(4);
     });
 
     it('marks which way each amount goes with the cues the person allows', async () => {
@@ -439,7 +457,7 @@ describe('a group with simplified debts', () => {
         [
             true,
             [t('groups.debts.youOwe', { name: 'Bea', amount: euros(1000) })],
-            1,
+            2,
             t('groups.balance.memberSettled', { name: t('groups.names.left', { name: 'Dani' }) }),
         ],
     ])(

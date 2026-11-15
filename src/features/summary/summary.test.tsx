@@ -66,6 +66,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    localStorage.removeItem('tarja:amounts');
     onlineManager.setOnline(true);
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -271,29 +272,44 @@ describe('what is left', () => {
         expect(screen.queryByText(text.leftHint)).toBeNull();
     });
 
-    it('is marked when it is below zero', async () => {
+    it('is signed and colored as going out when it is below zero, the sign read aloud', async () => {
         await open({
             expenses: [expense({ amountCents: 25_000 })],
             income: [{ month: '2026-10', amountCents: 10_000, currency: 'EUR' }],
         });
 
-        const value = within(row(text.left)).getByText('-€150.00');
-        expect(value.className).toContain('summary__value--negative');
+        const value = row(text.left).querySelector<HTMLElement>('.amount')!;
+        expect(value.textContent).toBe('−€150.00');
+        expect(value.classList.contains('amount--out')).toBe(true);
+        expect(within(value).getByText('−').hasAttribute('aria-hidden')).toBe(false);
     });
 
-    it('is not marked while there is something left', async () => {
+    it('is signed and colored as coming in while there is something left', async () => {
         await open({ income: [{ month: '2026-10', amountCents: 10_000, currency: 'EUR' }] });
 
-        expect(within(row(text.left)).getByText('€100.00').className).not.toContain('summary__value--negative');
+        const value = row(text.left).querySelector('.amount')!;
+        expect(value.textContent).toBe('+€100.00');
+        expect(value.classList.contains('amount--in')).toBe(true);
     });
 
-    it('is not marked when nothing is left', async () => {
+    it('has no cue when nothing is left', async () => {
         await open({
             expenses: [expense({ amountCents: 10_000 })],
             income: [{ month: '2026-10', amountCents: 10_000, currency: 'EUR' }],
         });
 
-        expect(within(row(text.left)).getByText('€0.00').className).not.toContain('summary__value--negative');
+        expect(row(text.left).querySelector('.amount')!.className).toBe('amount');
+        expect(within(row(text.left)).getByText('€0.00')).toBeDefined();
+    });
+
+    it('keeps the minus of what is below zero when the person turned the sign off', async () => {
+        localStorage.setItem('tarja:amounts', JSON.stringify({ sign: false, color: false }));
+        await open({
+            expenses: [expense({ amountCents: 25_000 })],
+            income: [{ month: '2026-10', amountCents: 10_000, currency: 'EUR' }],
+        });
+
+        expect(row(text.left).querySelector('.amount')!.textContent).toBe('-€150.00');
     });
 
     it('waits for the income of that month, with a hint', async () => {

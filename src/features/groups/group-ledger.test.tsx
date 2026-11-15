@@ -79,6 +79,14 @@ function details(name: string) {
     return [...rowOf(name).querySelectorAll('.expense-item__meta > span')].map((span) => span.textContent);
 }
 
+function amountOf(name: string) {
+    return rowOf(name).querySelector('.expense-item__amount')?.textContent ?? null;
+}
+
+function spoken(name: string) {
+    return rowOf(name).querySelector('.expense-item__body > .visually-hidden')?.textContent;
+}
+
 function longDay(isoDay: string, locale = 'en') {
     return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long' }).format(
         new Date(`${isoDay}T12:00:00`)
@@ -112,7 +120,7 @@ afterEach(() => {
 });
 
 describe('the ledger of a group', () => {
-    it('by date lists the newest day first and, within a day, the latest made first, with the total of its expenses', async () => {
+    it('by date lists the newest day first and, within a day, the latest made first, with what the day does to you', async () => {
         const group = trip();
         await open(group, [
             dinner(group, { text: 'Dinner', date: '2026-10-24', createdAt: 1 }),
@@ -131,10 +139,10 @@ describe('the ledger of a group', () => {
         expect(days()).toEqual([longDay('2026-10-25'), longDay('2026-10-24')]);
         expect(rowNames()).toEqual(['Museum', t('groups.ledger.paidYou', { name: 'Bea' }), 'Taxi', 'Dinner']);
         const today = screen.getByRole('heading', { level: 3, name: longDay('2026-10-25') }).closest('section')!;
-        expect(today.querySelector('.expense-list__subtotal')?.textContent).toBe(euros(4500));
+        expect(today.querySelector('.expense-list__subtotal')?.textContent).toBe(`+${euros(2000)}`);
     });
 
-    it('shows the total of an expense, who paid and your part', async () => {
+    it('shows who paid the whole and what each expense does to your balance, in one sentence aloud', async () => {
         const group = trip();
         await open(group, [
             dinner(group, { text: 'Dinner' }),
@@ -151,13 +159,69 @@ describe('the ledger of a group', () => {
         ]);
         chooseOrder(ledger.order.date);
 
-        expect(within(rowOf('Dinner')).getByText(euros(3000))).toBeDefined();
-        expect(details('Dinner')).toEqual([ledger.youPaid, t('groups.ledger.yourPart', { amount: euros(1000) })]);
-        expect(details('Taxi')).toEqual([
-            t('groups.ledger.paidBy', { name: 'Bea' }),
-            t('groups.ledger.yourPart', { amount: euros(1000) }),
+        expect(amountOf('Dinner')).toBe(`+${euros(2000)}`);
+        expect(details('Dinner')).toEqual([t('groups.ledger.youPaidTotal', { total: euros(3000) })]);
+        expect(amountOf('Taxi')).toBe(`−${euros(1000)}`);
+        expect(details('Taxi')).toEqual([t('groups.ledger.paidTotal', { name: 'Bea', total: euros(3000) })]);
+        expect(amountOf('Gift')).toBeNull();
+        expect(details('Gift')).toEqual([
+            t('groups.ledger.paidTotal', { name: 'Bea', total: euros(2000) }),
+            ledger.notIn,
         ]);
-        expect(details('Gift')).toEqual([t('groups.ledger.paidBy', { name: 'Bea' }), ledger.notIn]);
+        expect(spoken('Dinner')).toBe(
+            t('groups.ledger.spoken.lent', { name: 'Dinner', total: euros(3000), amount: euros(2000) })
+        );
+        expect(spoken('Taxi')).toBe(
+            t('groups.ledger.spoken.borrowed', { name: 'Taxi', payer: 'Bea', total: euros(3000), amount: euros(1000) })
+        );
+        expect(spoken('Gift')).toBe(
+            t('groups.ledger.spoken.notIn', { name: 'Gift', payer: 'Bea', total: euros(2000) })
+        );
+    });
+
+    it('says an expense of yours alone is just yours, with no amount', async () => {
+        const group = trip();
+        await open(group, [
+            dinner(group, { text: 'Book', amountCents: 1500, shares: [{ memberId: ana.id, cents: 1500 }] }),
+        ]);
+
+        expect(amountOf('Book')).toBeNull();
+        expect(details('Book').slice(1)).toEqual([
+            t('groups.ledger.youPaidTotal', { total: euros(1500) }),
+            ledger.justYou,
+        ]);
+    });
+
+    it('colors what an entry does to you as the person allows, with no arrow', async () => {
+        const group = trip();
+        await open(group, [dinner(group, { text: 'Dinner' })]);
+
+        const effect = rowOf('Dinner').querySelector('.amount')!;
+        expect(effect.classList.contains('amount--in')).toBe(true);
+        expect(effect.querySelector('svg')).toBeNull();
+    });
+
+    it('opens an expense to who paid and each share, before its actions', async () => {
+        const group = trip();
+        await open(group, [dinner(group, { text: 'Taxi', paidBy: bea.id })]);
+
+        fireEvent.click(within(rowOf('Taxi')).getAllByRole('button')[0]!);
+
+        const breakdown = within(rowOf('Taxi')).getByRole('list', { name: ledger.breakdown });
+        expect(
+            within(breakdown)
+                .getAllByRole('listitem')
+                .map((item) => item.textContent)
+        ).toEqual([
+            `${t('groups.ledger.paidBy', { name: 'Bea' })}${euros(3000)}`,
+            `${t('groups.names.you', { name: 'Ana' })}${euros(1000)}`,
+            `Bea${euros(1000)}`,
+            `Cris${euros(1000)}`,
+        ]);
+        expect(
+            breakdown.compareDocumentPosition(within(rowOf('Taxi')).getByRole('button', { name: /^Edit/ })) &
+                Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy();
     });
 
     it('names an expense with no text by its category, with its badge', async () => {
@@ -182,7 +246,16 @@ describe('the ledger of a group', () => {
             t('groups.ledger.paid', { from: 'Bea', to: 'Cris' }),
         ]);
         const first = rowOf(t('groups.ledger.youPaidTo', { name: 'Bea' }));
-        expect(within(first).getByText(euros(1200))).toBeDefined();
+        expect(amountOf(t('groups.ledger.youPaidTo', { name: 'Bea' }))).toBe(euros(1200));
+        expect(details(t('groups.ledger.youPaidTo', { name: 'Bea' })).slice(1)).toEqual([]);
+        expect(amountOf(t('groups.ledger.paidYou', { name: 'Bea' }))).toBe(euros(800));
+        expect(rowOf(t('groups.ledger.paidYou', { name: 'Bea' })).querySelector('.amount')!.className).toBe('amount');
+        const others = t('groups.ledger.paid', { from: 'Bea', to: 'Cris' });
+        expect(amountOf(others)).toBeNull();
+        expect(details(others).slice(1)).toEqual([
+            t('groups.ledger.paidTotal', { name: 'Bea', total: euros(400) }),
+            ledger.notIn,
+        ]);
         expect(first.querySelector('.category-badge')).toBeNull();
         expect(theLedger().querySelector('.expense-list__total')).toBeNull();
     });
@@ -240,13 +313,20 @@ describe('the ledger of a group', () => {
     });
 
     it.each(['deleted', 'left'] as const)(
-        'shows the entries of a group closed as %s, with nothing to open',
+        'shows the entries of a group closed as %s, an expense opening to its breakdown alone',
         async (closed) => {
             const group = trip({ closed });
-            await open(group, [dinner(group, { text: 'Dinner' })]);
+            await open(group, [
+                { ...dinner(group, { text: 'Dinner' }), createdAt: 2 },
+                { ...sampleSettlement(group, bea.id, ana.id, 500), createdAt: 1 },
+            ]);
 
-            expect(rowNames()).toEqual(['Dinner']);
-            expect(within(theLedger()).queryAllByRole('button')).toEqual([]);
+            expect(rowNames()).toEqual(['Dinner', t('groups.ledger.paidYou', { name: 'Bea' })]);
+            const toggles = within(theLedger()).getAllByRole('button');
+            expect(toggles).toHaveLength(1);
+            fireEvent.click(toggles[0]!);
+            expect(within(rowOf('Dinner')).getByRole('list', { name: ledger.breakdown })).toBeDefined();
+            expect(within(theLedger()).getAllByRole('button')).toHaveLength(1);
         }
     );
 
@@ -274,9 +354,9 @@ describe('the ledger of a group', () => {
 
         const amount = formatAmount(1000, 'EUR', 'es');
         expect(screen.getByRole('heading', { level: 2, name: es.groups.ledger.title })).toBeDefined();
+        expect(amountOf('Cena')).toBe(`−${amount}`);
         expect(details('Cena')).toEqual([
-            tEs('groups.ledger.paidBy', { name: 'Bea' }),
-            tEs('groups.ledger.yourPart', { amount }),
+            tEs('groups.ledger.paidTotal', { name: 'Bea', total: formatAmount(3000, 'EUR', 'es') }),
         ]);
         expect(days()).toEqual([longDay('2026-10-25', 'es')]);
     });
@@ -385,7 +465,7 @@ describe('the order of the ledger', () => {
         expect(details('Old')[0]).toBe(shortDay('2025-12-31', true));
         const settlement = t('groups.ledger.paidYou', { name: 'Bea' });
         expect(details(settlement)).toEqual([shortDay('2026-01-02', false)]);
-        expect(details('Recent')).toContain(ledger.youPaid);
+        expect(details('Recent')).toContain(t('groups.ledger.youPaidTotal', { total: euros(3000) }));
     });
 
     it('says the date in the language of the app', async () => {
@@ -407,7 +487,7 @@ describe('the order of the ledger', () => {
         expect(days()).toEqual([longDay('2026-11-05'), longDay('2026-08-01')]);
         expect(rowNames()).toEqual(['Yesterday', 'Months ago']);
         const yesterday = screen.getByRole('heading', { level: 3, name: longDay('2026-11-05') }).closest('section')!;
-        expect(yesterday.querySelector('.expense-list__subtotal')?.textContent).toBe(euros(3000));
+        expect(yesterday.querySelector('.expense-list__subtotal')?.textContent).toBe(`+${euros(2000)}`);
         expect(details('Yesterday')).not.toContain(shortDay('2026-11-05', false));
     });
 

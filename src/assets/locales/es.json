@@ -668,10 +668,8 @@
                 "added": "Últimos añadidos",
                 "date": "Por fecha"
             },
-            "youPaid": "Pagaste tú",
+            "youPaid": "Pagaste",
             "paidBy": "Pagó {name}",
-            "yourPart": "Tu parte: {amount}",
-            "notIn": "No participas",
             "addedBy": "Añadido por {name}",
             "editedBy": "Editado por {name}",
             "youPaidTo": "Pagaste a {name}",
@@ -679,7 +677,19 @@
             "paid": "{from} pagó a {to}",
             "deleted": "Se eliminó «{name}» de {group}",
             "deletedSettlement": "Eliminado de {group}: el pago «{name}»",
-            "leftCantEdit": "Alguien de este apunte ha salido del grupo, así que no se puede editar. Si hay que cambiarlo, elimínalo y añádelo de nuevo."
+            "leftCantEdit": "Alguien de este apunte ha salido del grupo, así que no se puede editar. Si hay que cambiarlo, elimínalo y añádelo de nuevo.",
+            "breakdown": "Quién pagó y la parte de cada uno",
+            "spoken": {
+                "lent": "{name}: pagaste {total} y prestaste {amount}.",
+                "justYou": "{name}: pagaste {total}, todo para ti.",
+                "borrowed": "{name}: pagó {payer} {total}; tu parte es {amount}.",
+                "notIn": "{name}: pagó {payer} {total}; no participas.",
+                "settlement": "{name}, {total}."
+            },
+            "youPaidTotal": "Pagaste {total}",
+            "paidTotal": "{name} pagó {total}",
+            "justYou": "Solo tú",
+            "notIn": "No participas"
         },
         "refused": {
             "change": "Se descartó un cambio en «{name}» de {group}.",

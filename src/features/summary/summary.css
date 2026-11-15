@@ -30,10 +30,6 @@
     font-weight: 700;
 }
 
-.summary__row--left .summary__value--negative {
-    color: var(--color-danger);
-}
-
 .summary__hint {
     color: var(--color-content-secondary);
     font-size: var(--font-size-s);

@@ -670,8 +670,6 @@
             },
             "youPaid": "You paid",
             "paidBy": "Paid by {name}",
-            "yourPart": "Your part {amount}",
-            "notIn": "Not in this one",
             "addedBy": "Added by {name}",
             "editedBy": "Edited by {name}",
             "youPaidTo": "You paid {name}",
@@ -679,7 +677,19 @@
             "paid": "{from} paid {to}",
             "deleted": "Deleted {name} from {group}",
             "deletedSettlement": "Deleted the settlement “{name}” from {group}",
-            "leftCantEdit": "Someone in this one has left the group, so it can't be edited. Delete it and add it again if it needs a change."
+            "leftCantEdit": "Someone in this one has left the group, so it can't be edited. Delete it and add it again if it needs a change.",
+            "breakdown": "Who paid and each share",
+            "spoken": {
+                "lent": "{name}: you paid {total} and lent {amount}.",
+                "justYou": "{name}: you paid {total}, all of it yours.",
+                "borrowed": "{name}: {payer} paid {total}; your part is {amount}.",
+                "notIn": "{name}: {payer} paid {total}; you're not in it.",
+                "settlement": "{name}, {total}."
+            },
+            "youPaidTotal": "You paid {total}",
+            "paidTotal": "{name} paid {total}",
+            "justYou": "Just you",
+            "notIn": "Not in it"
         },
         "refused": {
             "change": "A change to “{name}” in {group} was discarded.",

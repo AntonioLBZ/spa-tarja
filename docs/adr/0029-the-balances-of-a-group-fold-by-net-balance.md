@@ -11,7 +11,7 @@ The balances of a group were one sentence per debt ("Bruno owes Ana €5.00") wi
 
 - **One row per person** with a balance, as a `Disclosure`: their net balance in a short sentence ("You get back", "Bruno owes") and its `Amount` with the cues of [ADR-0028](0028-amounts-show-which-way-they-go.md), arrows included. The person's own row comes first and starts open; then who gets back the most, then who owes the most; the people with nothing to settle at the foot, in secondary text, with nothing to open.
 - **Under a row**, the debts that make up that balance, each a short sentence of its own from the side of the person of the row ("Bruno owes you", "You owe Diego", "Carla owes Bruno"), with its amount and its cues, so the lines add up to the row. A debt shows under both of its people.
-- **Settle up** is a ghost button with the `payments` icon alone, a square of `--size-touch` with its icon in the middle, named by the sentence of the debt for assistive technology. A debt has one: in the person's own row when it is theirs, otherwise under whoever pays it. A line naming somebody who left has none, and neither does a closed group.
+- **Settle up** is a ghost button with the `payments` icon alone, a square of `--size-touch` with its icon in the middle, named by the sentence of the debt for assistive technology. A debt has one on each of its lines, under whoever owes and under whoever is owed, and both open the same form with the debt filled in; their names differ by the sentence of the line. A line naming somebody who left has none, and neither does a closed group.
 - **"Everyone's balance" goes**: the rows are the balance of everyone.
 - Screen readers read each row as its sentence and amount, and each line as the full sentence of the debt.
 

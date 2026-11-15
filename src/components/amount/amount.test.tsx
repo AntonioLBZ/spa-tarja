@@ -21,6 +21,12 @@ describe('Amount', () => {
         expect(container.textContent).toBe('−€20.00');
     });
 
+    it('reads the sign aloud where no words say which way it goes', () => {
+        render(<Amount text="€20.00" direction="out" sign spokenSign />);
+
+        expect(screen.getByText('−').hasAttribute('aria-hidden')).toBe(false);
+    });
+
     it('colors the amount by its direction', () => {
         const { rerender, container } = render(<Amount text="€20.00" direction="in" color />);
         expect(container.firstElementChild?.classList.contains('amount--in')).toBe(true);

@@ -10,6 +10,7 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { spokenText } from '@/lib/test/spoken-text';
 import { toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
@@ -77,7 +78,7 @@ function lines() {
 }
 
 function lineButton(debt: string) {
-    return screen.getByRole('button', { name: t('groups.settle.lineItem', { debt }) });
+    return screen.getAllByRole('button', { name: t('groups.settle.lineItem', { debt }) })[0]!;
 }
 
 function toggle() {
@@ -180,7 +181,7 @@ describe('settling up from a line', () => {
         await waitFor(() =>
             expect(lines()).toEqual([t('groups.debts.owesYou', { name: 'Cris', amount: euros(1000) })])
         );
-        expect(within(screen.getByRole('main')).getByRole('status').textContent).toBe(
+        expect(spokenText(within(screen.getByRole('main')).getByRole('status'))).toBe(
             t('groups.balance.owed', { amount: euros(1000) })
         );
         expect(app.groupOutbox.getState().pending).toMatchObject([
@@ -389,7 +390,7 @@ describe('settling up in the simplified view', () => {
         fireEvent.click(save());
 
         await waitFor(() => expect(lines()).toEqual([crisOwesBea]));
-        expect(within(screen.getByRole('main')).getByRole('status').textContent).toBe(t('groups.balance.allSettled'));
+        expect(spokenText(within(screen.getByRole('main')).getByRole('status'))).toBe(t('groups.balance.allSettled'));
         expect(app.groupOutbox.getState().pending).toMatchObject([
             {
                 groupId: group.id,

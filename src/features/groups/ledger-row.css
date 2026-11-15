@@ -1,8 +1,45 @@
 /* A row with nothing to open: as tall as one that opens, with its amount where theirs ends, by the room of their
    chevron, so that it lines up with the total */
-.ledger-row {
+.ledger-row--still {
     align-items: center;
     display: flex;
     min-height: var(--size-touch);
     padding-inline-end: calc(1.5rem + var(--size-2));
+}
+
+/* Who paid and each share, under the row and above its actions */
+.ledger-row__breakdown {
+    display: grid;
+    font-size: var(--font-size-s);
+    grid-template-columns: minmax(0, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ledger-row__share {
+    display: flex;
+    gap: var(--size-2);
+}
+
+.ledger-row__share:first-child {
+    font-weight: 700;
+}
+
+.ledger-row__who {
+    display: flex;
+    flex: 1 1 0;
+    gap: var(--size-2);
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+}
+
+.ledger-row__who::after {
+    color: var(--color-content-secondary);
+    content: var(--leader-dots) / '';
+    flex: 1 1 0;
+    font-weight: 400;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }

@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import clsx from 'clsx';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Amount } from '@/components/amount/amount';
 import { Card, CardList } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
-import { useMoney } from '@/lib/amounts';
+import { useAmount, useMoney } from '@/lib/amounts';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -35,9 +35,9 @@ const Summary = () => {
     const set = income.data?.find((item) => item.month === month);
     const summary = summarizeMonth(month, expenses, set?.amountCents ?? null);
     const money = useMoney();
-    const leftClsx = clsx('summary__value', {
-        'summary__value--negative': summary.leftCents !== null && summary.leftCents < 0,
-    });
+    const amount = useAmount();
+    // What is left takes color and sign as the person allows (ADR-0028); without the sign, below zero keeps its minus
+    const left = summary.leftCents === null ? null : amount(summary.leftCents, undefined, { cues: true });
 
     return (
         <section className="summary">
@@ -71,10 +71,12 @@ const Summary = () => {
                     <dt>{t('spent')}</dt>
                     <dd className="summary__value">{money(summary.spentCents)}</dd>
                 </Card>
-                {summary.leftCents !== null && (
+                {summary.leftCents !== null && left && (
                     <Card className="summary__row summary__row--left">
                         <dt>{t('left')}</dt>
-                        <dd className={leftClsx}>{money(summary.leftCents)}</dd>
+                        <dd className="summary__value">
+                            <Amount {...left} text={left.sign ? left.text : money(summary.leftCents)} spokenSign />
+                        </dd>
                     </Card>
                 )}
             </CardList>

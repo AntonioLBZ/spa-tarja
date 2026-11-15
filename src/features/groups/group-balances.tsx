@@ -57,9 +57,6 @@ const GroupBalances = (props: GroupBalancesProps) => {
     // A settlement is only between two members who haven't left
     const present = (memberId: string) =>
         group.members.some((member) => member.id === memberId && member.leftAt === null);
-    // One Settle up per debt: in your row when it is yours, otherwise under whoever pays it
-    const settlesIn = (debt: Debt, person: string) =>
-        debt.from === me || debt.to === me ? person === me : person === debt.from;
 
     const head = (memberId: string, cents: number) => {
         const name = words.nameOf(memberId);
@@ -110,11 +107,8 @@ const GroupBalances = (props: GroupBalancesProps) => {
                                     {lines.map((debt) => {
                                         const sentence = words.debt(debt);
                                         const cents = debt.to === person ? debt.cents : -debt.cents;
-                                        const settles =
-                                            onSettle &&
-                                            settlesIn(debt, person) &&
-                                            present(debt.from) &&
-                                            present(debt.to);
+                                        // On both lines of a debt, under whoever owes and whoever is owed
+                                        const settles = onSettle && present(debt.from) && present(debt.to);
 
                                         return (
                                             <li className="group-balances__debt" key={`${debt.from} ${debt.to}`}>

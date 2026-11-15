@@ -13,13 +13,15 @@ interface AmountProps {
     color?: boolean;
     sign?: boolean;
     arrow?: boolean;
+    // Read the sign aloud, where no words around the amount say which way it goes
+    spokenSign?: boolean;
     className?: string;
 }
 
-// Money, with the cues of which way it goes (ADR-0028). The words around it always say it too, so the sign and the
-// arrow are hidden from assistive technology
+// Money, with the cues of which way it goes (ADR-0028). The words around it usually say it too, so the sign and the
+// arrow are hidden from assistive technology unless `spokenSign` says otherwise
 const Amount = (props: AmountProps) => {
-    const { text, direction, color, sign, arrow, className } = props;
+    const { text, direction, color, sign, arrow, spokenSign, className } = props;
     const amountClsx = clsx(
         'amount',
         {
@@ -36,7 +38,9 @@ const Amount = (props: AmountProps) => {
                     <Icon name={direction === 'in' ? 'north_east' : 'south_east'} />
                 </span>
             )}
-            {sign && direction && <span aria-hidden="true">{direction === 'in' ? '+' : '−'}</span>}
+            {sign && direction && (
+                <span aria-hidden={spokenSign ? undefined : 'true'}>{direction === 'in' ? '+' : '−'}</span>
+            )}
             {text}
         </span>
     );

@@ -40,10 +40,10 @@ const useGroupWords = (group: SharedGroup) => {
 
         const title = groupTitle(group, names);
 
-        // What the person is owed or owes in the group
-        const mine = (cents: number) => {
-            if (cents > 0) return t('balance.owed', { amount: amount(cents) });
-            if (cents < 0) return t('balance.owe', { amount: amount(cents) });
+        // What the person is owed or owes in the group; `text` writes the amount another way
+        const mine = (cents: number, text = amount(cents)) => {
+            if (cents > 0) return t('balance.owed', { amount: text });
+            if (cents < 0) return t('balance.owe', { amount: text });
             return t('balance.allSettled');
         };
 
@@ -57,9 +57,9 @@ const useGroupWords = (group: SharedGroup) => {
         };
 
         // The balance of a row of the list: a friend who owes the person is named
-        const row = (cents: number) => {
-            if (cents > 0 && group.kind === 'direct') return t('debts.owesYou', { name: title, amount: amount(cents) });
-            return cents === 0 ? t('row.settled') : mine(cents);
+        const row = (cents: number, text = amount(cents)) => {
+            if (cents > 0 && group.kind === 'direct') return t('debts.owesYou', { name: title, amount: text });
+            return cents === 0 ? t('row.settled') : mine(cents, text);
         };
 
         const debt = ({ from, to, cents }: Debt) => {

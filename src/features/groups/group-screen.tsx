@@ -3,8 +3,10 @@ import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
 import { Notice } from '@/components/notice/notice';
+import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
 import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
 import { PushSuggestion } from '@/features/notifications/push-suggestion';
+import { useAmount } from '@/lib/amounts';
 
 import { EntryRefusals } from './entry-refusals';
 import { GroupBalances } from './group-balances';
@@ -48,6 +50,8 @@ const GroupView = (props: GroupViewProps) => {
     const { debts, formEntries, formDebts } = useGroupDebts(group, entries, settle.editing?.id ?? null);
     const open = group.closed === null;
     const titleClsx = clsx('group-screen__title', { 'visually-hidden': inTab });
+    const amount = useAmount();
+    const balance = myBalance(group, entries);
 
     return (
         <section className="group-screen">
@@ -56,7 +60,12 @@ const GroupView = (props: GroupViewProps) => {
             <PushSuggestion group={group} />
             {hasData && (
                 <>
-                    <Notice role="status">{words.mine(myBalance(group, entries))}</Notice>
+                    <Notice role="status">
+                        <SentenceWithAmount
+                            sentence={(text) => words.mine(balance, text)}
+                            amount={{ ...amount(balance, group.currency, { cues: true }), sign: false }}
+                        />
+                    </Notice>
                     <GroupBalances
                         group={group}
                         entries={entries}

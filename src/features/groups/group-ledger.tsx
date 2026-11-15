@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
-import { useMoney } from '@/lib/amounts';
+import { useAmount } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useGroupOutbox } from '@/lib/offline';
 import { useFadeOut } from '@/lib/use-fade-out';
 import { fromDateString } from '@core/date';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
+import { ledgerEffect } from './ledger-effect';
 import { LedgerRow } from './ledger-row';
 import { useEntryActions } from './use-entry-actions';
 import { useEntryWords } from './use-entry-words';
@@ -22,6 +24,7 @@ import type { SettlementEntry } from './settle-up';
 import type { Ledger } from './use-ledgers';
 import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
 import type { SharedExpenseEntry } from '@core/shared-expense';
+import type { SharedGroup } from '@core/shared-group';
 
 import '@/features/expenses/expense-list.css';
 import './group-ledger.css';
@@ -40,12 +43,12 @@ interface GroupLedgerProps {
     onRefocused: () => void;
 }
 
-// The entries of one sheet: a day, with what its expenses add up to (settlements count for nobody), or all of them
-// when the ledger isn't by day
+// The entries of one sheet: a day, with what its expenses do to the person's balance in all (settlements count for
+// nobody, ADR-0030), or all of them when the ledger isn't by day
 interface LedgerSheet {
     day: string | null;
     entries: LedgerEntry[];
-    expenseCents: number;
+    yoursCents: number;
 }
 
 // Which entry comes first: the one made last, or the one of the latest day
@@ -68,25 +71,25 @@ const addedLastFirst = (a: LedgerEntry, b: LedgerEntry): number => {
 
 // The entries that aren't deleted: all on one sheet, the latest made first, or newest day first and the latest made
 // first within a day, a day at a time
-const ledgerSheets = (entries: readonly LedgerEntry[], order: LedgerOrder): LedgerSheet[] => {
+const ledgerSheets = (entries: readonly LedgerEntry[], order: LedgerOrder, group: SharedGroup): LedgerSheet[] => {
     const live = entries.filter((item) => item.deletedAt === null);
     if (order === 'added') {
-        return live.length === 0 ? [] : [{ day: null, entries: live.toSorted(addedLastFirst), expenseCents: 0 }];
+        return live.length === 0 ? [] : [{ day: null, entries: live.toSorted(addedLastFirst), yoursCents: 0 }];
     }
     const days: LedgerSheet[] = [];
     for (const entry of live.toSorted(newestFirst)) {
         let last = days.at(-1);
         if (last?.day !== entry.date) {
-            last = { day: entry.date, entries: [], expenseCents: 0 };
+            last = { day: entry.date, entries: [], yoursCents: 0 };
             days.push(last);
         }
         last.entries.push(entry);
-        if (entry.kind === 'expense') last.expenseCents += entry.amountCents;
+        if (entry.kind === 'expense') last.yoursCents += ledgerEffect(entry, group).cents;
     }
     return days;
 };
 
-// The first `max` rows of the sheets, in order; a day cut short keeps the total of all its expenses
+// The first `max` rows of the sheets, in order; a day cut short keeps the total of all its entries
 const firstRows = (sheets: readonly LedgerSheet[], max: number): LedgerSheet[] => {
     const limited: LedgerSheet[] = [];
     let left = max;
@@ -106,7 +109,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const t = useTranslations('groups.ledger');
     const tList = useTranslations('expenses.list');
     const { locale } = useLocale();
-    const money = useMoney();
+    const amount = useAmount();
     const toast = useToast();
     const words = useEntryWords(group);
     const failureWords = useFailureWords();
@@ -140,10 +143,14 @@ const GroupLedger = (props: GroupLedgerProps) => {
 
     // The rows fading out stay where they were until they are gone
     const sheets = useMemo(() => {
-        if (leaving.size === 0) return ledgerSheets(entries, order);
+        if (leaving.size === 0) return ledgerSheets(entries, order, group);
         const live = new Set(entries.filter((entry) => entry.deletedAt === null).map((entry) => entry.id));
-        return ledgerSheets([...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))], order);
-    }, [entries, leaving, order]);
+        return ledgerSheets(
+            [...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))],
+            order,
+            group
+        );
+    }, [entries, leaving, order, group]);
     useEffect(() => {
         if (restored === null) return;
         const target = targets.current.get(restored);
@@ -277,7 +284,9 @@ const GroupLedger = (props: GroupLedgerProps) => {
                     {sheet.day !== null && sheet.entries.some((entry) => entry.kind === 'expense') && (
                         <p className="expense-list__total">
                             <span className="expense-list__total-label">{tList('total')}</span>{' '}
-                            <span className="expense-list__subtotal">{money(sheet.expenseCents, group.currency)}</span>
+                            <span className="expense-list__subtotal">
+                                <Amount {...amount(sheet.yoursCents, group.currency, { cues: true })} spokenSign />
+                            </span>
                         </p>
                     )}
                 </Sheet>

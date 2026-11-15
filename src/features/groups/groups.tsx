@@ -4,7 +4,8 @@ import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
-import { useMoney } from '@/lib/amounts';
+import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
+import { useAmount } from '@/lib/amounts';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
 import { MAX_PINNED_GROUPS } from '@core/shared-group';
@@ -124,7 +125,7 @@ const ListSection = (props: ListSectionProps) => {
 const GroupTotals = (props: GroupTotalsProps) => {
     const { ledgers } = props;
     const t = useTranslations('groups');
-    const amount = useMoney();
+    const amount = useAmount();
 
     const missing = ledgers.filter((ledger) => !ledger.hasData);
     if (missing.some((ledger) => ledger.isError || ledger.isWaitingForNetwork)) {
@@ -144,8 +145,22 @@ const GroupTotals = (props: GroupTotalsProps) => {
 
     return (
         <div className="groups__totals">
-            {owed > 0 && <Notice role="status">{t('balance.owed', { amount: amount(owed) })}</Notice>}
-            {owe > 0 && <Notice role="status">{t('balance.owe', { amount: amount(owe) })}</Notice>}
+            {owed > 0 && (
+                <Notice role="status">
+                    <SentenceWithAmount
+                        sentence={(text) => t('balance.owed', { amount: text })}
+                        amount={{ ...amount(owed, undefined, { cues: true }), sign: false }}
+                    />
+                </Notice>
+            )}
+            {owe > 0 && (
+                <Notice role="status">
+                    <SentenceWithAmount
+                        sentence={(text) => t('balance.owe', { amount: text })}
+                        amount={{ ...amount(-owe, undefined, { cues: true }), sign: false }}
+                    />
+                </Notice>
+            )}
         </div>
     );
 };

@@ -136,4 +136,125 @@ export const LedgerRow = (args: LedgerRowStoryProps) => {
     );
 };
 
+const SIX: SharedGroup = {
+    ...GROUP,
+    id: 'cabin',
+    name: 'Cabin',
+    members: ['Marta', 'Agustín', 'Carla', 'Diego', 'Elena', 'Fran'].map((name, index) =>
+        member(name.toLowerCase(), name, index === 0 ? { role: 'owner' } : {})
+    ),
+};
+
+const share = (ids: string[], cents: number) => ids.map((memberId) => ({ memberId, cents }));
+
+// A ledger of each size: every kind of row a person reads in it
+const LEDGERS: [string, SharedGroup, LedgerEntry[]][] = [
+    [
+        '3 people',
+        { ...GROUP, members: GROUP.members.map((one) => ({ ...one, leftAt: null })) },
+        [
+            entry({ amountCents: 9675, shares: share(['marta', 'bruno', 'carla'], 3225) }),
+            ENTRIES.paidByBruno,
+            ENTRIES.notIn,
+            entry({ id: 'book', text: 'Book', amountCents: 1500, shares: share(['marta'], 1500) }),
+            ENTRIES.settlement,
+            {
+                ...ENTRIES.settlement,
+                id: 'back',
+                paidBy: 'marta',
+                shares: [{ memberId: 'bruno', cents: 1100 }],
+                amountCents: 1100,
+            },
+        ],
+    ],
+    [
+        '6 people',
+        SIX,
+        [
+            entry({
+                id: 'cabin',
+                text: 'Cabin',
+                categoryId: 'housing',
+                amountCents: 72012,
+                shares: share(['marta', 'agustín', 'carla', 'diego', 'elena', 'fran'], 12002),
+            }),
+            entry({
+                id: 'fuel',
+                text: 'Fuel',
+                categoryId: 'transport',
+                paidBy: 'agustín',
+                amountCents: 921,
+                shares: share(['marta', 'agustín', 'carla'], 307),
+                updatedBy: 'agustín',
+            }),
+            entry({
+                id: 'drinks',
+                text: 'Drinks',
+                paidBy: 'elena',
+                amountCents: 4500,
+                shares: share(['diego', 'elena', 'fran'], 1500),
+                updatedBy: 'elena',
+            }),
+            {
+                ...ENTRIES.settlement,
+                id: 'settle6',
+                paidBy: 'diego',
+                shares: [{ memberId: 'fran', cents: 2000 }],
+                amountCents: 2000,
+            },
+        ],
+    ],
+];
+
+// Both sizes, light beside dark; the toolbar's Amounts turns color off and on
+export const Ledgers = () => (
+    <AppData>
+        {() => (
+            <div
+                style={{
+                    display: 'grid',
+                    gap: 'var(--size-4)',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 22rem), 1fr))',
+                }}
+            >
+                {(['light', 'dark'] as const).map((scheme) => (
+                    <div
+                        key={scheme}
+                        style={{
+                            background: 'var(--color-bg-primary)',
+                            color: 'var(--color-content-primary)',
+                            colorScheme: scheme,
+                            display: 'grid',
+                            gap: 'var(--size-6)',
+                            padding: 'var(--size-4)',
+                        }}
+                    >
+                        {LEDGERS.map(([caption, group, entries]) => (
+                            <Sheet key={caption} label={`${caption} (${scheme})`} level="h3">
+                                <CardList flush>
+                                    {entries.map((one) => (
+                                        <LedgerRowComponent
+                                            key={one.id}
+                                            {...actions}
+                                            group={group}
+                                            entry={one}
+                                            pending={false}
+                                            leaving={false}
+                                        />
+                                    ))}
+                                </CardList>
+                            </Sheet>
+                        ))}
+                    </div>
+                ))}
+            </div>
+        )}
+    </AppData>
+);
+Ledgers.globals = { viewport: { value: 'desktop' } };
+
+export const LedgersOnAPhone = () => <Ledgers />;
+LedgersOnAPhone.globals = { viewport: { value: 'phone' } };
+LedgersOnAPhone.parameters = { layout: 'fullscreen' };
+
 export default Story;
