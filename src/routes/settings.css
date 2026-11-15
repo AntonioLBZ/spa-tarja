@@ -26,8 +26,8 @@
     margin: 0;
 }
 
-/* The cards of the pages, each with its hint under it: far enough apart to read as one group each */
-.settings__cards {
+/* The rows of the pages, each with its hint under it: far enough apart to read as one group each */
+.settings__rows {
     display: grid;
     gap: var(--size-4);
     list-style: none;
@@ -40,19 +40,10 @@
     gap: var(--size-1);
 }
 
-/* A card whose whole box is the link to a page of the settings, as tall as a row of the app */
-.settings__card {
-    padding-block: 0;
-    position: relative;
-}
-
-.settings__card:has(.settings__card-link:focus-visible) {
-    outline: var(--focus-width) solid var(--color-border-focus);
-    outline-offset: var(--focus-offset);
-}
-
-.settings__card-link {
+/* A row on paper, no box: the title and the chevron over a hairline, as tall as a row of the app */
+.settings__row {
     align-items: center;
+    border-bottom: var(--size-px) solid var(--color-border-subtle);
     color: var(--color-content-primary);
     display: flex;
     gap: var(--size-2);
@@ -60,18 +51,13 @@
     text-decoration: none;
 }
 
-.settings__card-link::after {
-    content: '';
-    inset: 0;
-    position: absolute;
+@media (hover: hover) {
+    .settings__row:hover {
+        border-bottom-color: var(--color-border);
+    }
 }
 
-/* The ring goes around the card the link covers, not around its text */
-.settings__card-link:focus-visible {
-    outline: none;
-}
-
-.settings__card-title {
+.settings__row-title {
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -79,7 +65,7 @@
     white-space: nowrap;
 }
 
-.settings__card-hint {
+.settings__row-hint {
     color: var(--color-content-secondary);
     font-size: var(--font-size-s);
     margin: 0;

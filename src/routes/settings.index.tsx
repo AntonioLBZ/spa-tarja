@@ -3,7 +3,6 @@ import { Link, createFileRoute } from '@tanstack/react-router';
 import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { Card } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Icon } from '@/components/icon/icon';
 import { About } from '@/features/about/about';
@@ -15,28 +14,26 @@ import { personName } from '@core/shared-group';
 
 import './settings.css';
 
-interface SettingsCardProps {
+interface SettingsRowProps {
     to: '/settings/appearance' | '/settings/categories' | '/settings/account';
     title: string;
-    // What the page holds, said under the card and outside it
+    // What the page holds, said under the row
     hint: string;
 }
 
-// A card that leads to a page of the settings: its title and a chevron on one line, the link covering it, and under
-// it the hint that describes the link
-const SettingsCard = (props: SettingsCardProps) => {
+// A row that leads to a page of the settings: its title and a chevron on one line over a hairline, the link covering
+// it, and under the hairline the hint that describes the link
+const SettingsRow = (props: SettingsRowProps) => {
     const { to, title, hint } = props;
     const hintId = useId();
 
     return (
         <li className="settings__item">
-            <Card className="settings__card">
-                <Link className="settings__card-link" to={to} aria-describedby={hintId}>
-                    <span className="settings__card-title">{title}</span>
-                    <Icon name="chevron_right" />
-                </Link>
-            </Card>
-            <p className="settings__card-hint" id={hintId}>
+            <Link className="settings__row" to={to} aria-describedby={hintId}>
+                <span className="settings__row-title">{title}</span>
+                <Icon name="chevron_right" />
+            </Link>
+            <p className="settings__row-hint" id={hintId}>
                 {hint}
             </p>
         </li>
@@ -44,14 +41,14 @@ const SettingsCard = (props: SettingsCardProps) => {
 };
 
 // The name the person's friends see, and the email of the account
-const AccountCard = () => {
+const AccountRow = () => {
     const t = useTranslations('settings');
     const user = useUser();
     const { data: profile } = useQuery(profileQuery());
     const name = personName({ nickname: profile?.nickname ?? null, name: profile?.name ?? user.name });
 
     return (
-        <SettingsCard
+        <SettingsRow
             to="/settings/account"
             title={t('account.title')}
             hint={t('account.hint', { name, email: user.email })}
@@ -74,10 +71,10 @@ const Settings = () => {
                 value={locale}
                 onChange={setLocale}
             />
-            <ul className="settings__cards">
-                <SettingsCard to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
-                <SettingsCard to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />
-                <AccountCard />
+            <ul className="settings__rows">
+                <SettingsRow to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
+                <SettingsRow to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />
+                <AccountRow />
             </ul>
             <NotificationsSection />
             <About />
