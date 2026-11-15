@@ -263,7 +263,7 @@ describe('the ledger of a group', () => {
         expect(theLedger().querySelector('.expense-list__total')).toBeNull();
     });
 
-    it('says who added or last edited an entry when it was not you', async () => {
+    it('says who added or last edited an entry when it was not you, only once its row is open', async () => {
         const group = trip();
         await open(group, [
             dinner(group, { text: 'Dinner', createdBy: bea.id, updatedBy: bea.id }),
@@ -272,10 +272,16 @@ describe('the ledger of a group', () => {
             dinner(group, { text: 'Bus', createdBy: null, updatedBy: null }),
         ]);
 
-        expect(details('Dinner')).toContain(t('groups.ledger.addedBy', { name: 'Bea' }));
-        expect(details('Taxi')).toContain(t('groups.ledger.editedBy', { name: 'Cris' }));
-        expect(details('Lunch').join(' ')).not.toMatch(/Added by|Edited by/);
-        expect(details('Bus')).toContain(t('groups.ledger.addedBy', { name: en.groups.names.deleted }));
+        const wrote = (name: string) => {
+            expect(details(name).join(' ')).not.toMatch(/Added by|Edited by/);
+            fireEvent.click(within(rowOf(name)).getAllByRole('button')[0]!);
+            return rowOf(name).querySelector('.ledger-row__wrote')?.textContent ?? null;
+        };
+
+        expect(wrote('Dinner')).toBe(t('groups.ledger.addedBy', { name: 'Bea' }));
+        expect(wrote('Taxi')).toBe(t('groups.ledger.editedBy', { name: 'Cris' }));
+        expect(wrote('Lunch')).toBeNull();
+        expect(wrote('Bus')).toBe(t('groups.ledger.addedBy', { name: en.groups.names.deleted }));
     });
 
     it('marks what is not synced yet, and drops what is deleted', async () => {

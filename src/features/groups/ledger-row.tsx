@@ -42,7 +42,7 @@ interface LedgerRowProps {
 
 // An entry of the ledger as a line of the ticket, as an expense of the person's list is: its name, what it does to their
 // balance in the group with its cues, and under them who paid the whole, or that it is theirs alone or not theirs, and
-// who wrote it last when it wasn't the person. Pressing an expense opens who paid and each share, and what can be done
+// pressing it opens who paid and each share, who wrote it last when it wasn't the person, and what can be done
 // to it (ADR-0030).
 const LedgerRow = (props: LedgerRowProps) => {
     const { group, entry, pending, leaving, date, onEdit, onDuplicate, onDelete, focusRef } = props;
@@ -105,12 +105,11 @@ const LedgerRow = (props: LedgerRowProps) => {
                     <Amount {...effect} />
                 </span>
             )}
-            {(date || paid || quiet || (wrote && !settlement) || pending) && (
+            {(date || paid || quiet || pending) && (
                 <span className="expense-item__meta">
                     {date && <span>{date}</span>}
                     {paid && <span aria-hidden="true">{paid}</span>}
                     {quiet && <span aria-hidden="true">{quiet}</span>}
-                    {wrote && !settlement && <span>{wrote}</span>}
                     {pending && <span className="expense-item__pending">{tList('pending')}</span>}
                 </span>
             )}
@@ -145,6 +144,7 @@ const LedgerRow = (props: LedgerRowProps) => {
                     ))}
                 </ul>
             )}
+            {wrote && <p className="ledger-row__wrote">{wrote}</p>}
             {onDelete && (
                 <div className="expense-item__actions">
                     {onEdit && (
