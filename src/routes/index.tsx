@@ -1,4 +1,5 @@
-import { Navigate, createFileRoute } from '@tanstack/react-router';
+import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useLayoutEffect } from 'react';
 
 import { ExpenseList } from '@/features/expenses/expense-list';
 import { SyncStatus } from '@/features/expenses/sync-status';
@@ -7,6 +8,7 @@ import { GroupScreen } from '@/features/groups/group-screen';
 import { usePinnedGroups } from '@/features/groups/pinned-groups';
 import { PinnedTabs } from '@/features/groups/pinned-tabs';
 import { useGroups } from '@/features/groups/use-ledgers';
+import { useUserData } from '@/lib/offline';
 
 import './index.css';
 
@@ -20,6 +22,15 @@ const Home = () => {
     const { hasData } = useGroups();
     const pinned = usePinnedGroups();
     const shown = asked ? pinned.find((group) => group.id === asked.toLowerCase()) : undefined;
+    const shownId = shown?.id ?? null;
+    const { homeTab } = useUserData();
+    const navigate = useNavigate();
+
+    // The app opens on the tab shown last on this device
+    useLayoutEffect(() => {
+        const to = homeTab.follow(asked, shownId);
+        if (to !== null) void navigate({ to: '/', search: { group: to }, replace: true, viewTransition: false });
+    }, [homeTab, asked, shownId, navigate]);
 
     // A tab that went away, or an address with a group that isn't pinned, falls back to Expenses
     if (asked && !shown && hasData) return <Navigate to="/" replace />;

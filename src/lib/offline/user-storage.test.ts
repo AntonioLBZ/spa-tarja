@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
+import { readHomeTab, rememberHomeTab } from './home-tab';
 import { readSharedWith, rememberSharedWith } from './shared-with';
 import { createUserStorage } from './user-storage';
 
@@ -62,6 +63,16 @@ describe('user storage', () => {
 
             expect(readSharedWith('ana')).toBeNull();
             expect(readSharedWith('bea')).toBe('group-of-bea');
+        });
+
+        it('forgets the tab shown last of that user, and of nobody else', async () => {
+            rememberHomeTab('ana', 'group-of-ana');
+            rememberHomeTab('bea', 'group-of-bea');
+
+            await createUserStorage(createMemoryStorage(), 'ana').discard();
+
+            expect(readHomeTab('ana')).toBeNull();
+            expect(readHomeTab('bea')).toBe('group-of-bea');
         });
 
         it('forgets it even when the storage cannot delete', async () => {

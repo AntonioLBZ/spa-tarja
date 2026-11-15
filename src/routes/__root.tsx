@@ -17,6 +17,7 @@ import { NoticeBanner } from '@/features/notices/notice-banner';
 import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
+import { useLastHomeTab } from '@/lib/offline';
 import { isPrerelease } from '@/lib/prerelease';
 import { backTarget, navSection, type BackTarget, type NavSection } from '@/lib/route-transition';
 import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
@@ -87,10 +88,18 @@ const RootBanner = (props: RootBannerProps) => {
     );
 };
 
+// Home is the tab of the Expenses screen shown last
+const useHomeSearch = () => {
+    const last = useLastHomeTab();
+    return last === null ? {} : { group: last };
+};
+
 // The logo leads home. It is never underlined.
 const RootBrand = () => {
+    const homeSearch = useHomeSearch();
+
     return (
-        <Link className="root__brand" to="/" activeOptions={{ exact: true }}>
+        <Link className="root__brand" to="/" search={homeSearch} activeOptions={{ exact: true }}>
             <Brand prerelease={isPrerelease()} />
         </Link>
     );
@@ -151,6 +160,7 @@ const RootPhoneHeader = () => {
 const RootHeader = () => {
     const t = useTranslations('nav');
     const section = useSection();
+    const homeSearch = useHomeSearch();
 
     // The router marks only the link of its own path; a deeper screen marks the section it is reached from
     const current = (target: NavSection) => {
@@ -165,7 +175,13 @@ const RootHeader = () => {
         <RootBanner>
             <nav aria-label={t('label')} className="root__nav">
                 <div className="root__start">
-                    <Link className="root__link" to="/" activeOptions={{ exact: true }} aria-current={current('/')}>
+                    <Link
+                        className="root__link"
+                        to="/"
+                        search={homeSearch}
+                        activeOptions={{ exact: true }}
+                        aria-current={current('/')}
+                    >
                         {t('expenses')}
                         {underline('/')}
                     </Link>
@@ -208,10 +224,12 @@ const RootTabs = () => {
     const t = useTranslations('nav');
     const openAdd = useOpenAdd();
     const section = useSection();
+    const homeSearch = useHomeSearch();
 
     const items = TABS.map((tab): BottomNavItem => {
         return {
             to: tab.to,
+            search: tab.to === '/' ? homeSearch : undefined,
             label: t(tab.word),
             icon: tab.icon,
             current: section === tab.to,

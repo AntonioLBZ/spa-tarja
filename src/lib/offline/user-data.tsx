@@ -1,11 +1,12 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createContext, use, useLayoutEffect, useState, type ReactNode } from 'react';
+import { createContext, use, useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 
 import { bindApiUser } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { forgetPushInBrowser } from '@/lib/push';
 import { createQueryClient } from '@/lib/query-client';
 
+import { createHomeTab, type HomeTab } from './home-tab';
 import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
 import { OutboxProvider } from './outbox-context';
 import { createPersistOptions } from './persister';
@@ -17,6 +18,8 @@ import type { Expense } from '@core/expense';
 interface UserData {
     // Deletes what the signed-in user keeps on this device
     discard: () => Promise<void>;
+    // The tab the Expenses screen opens on, followed from the load of the page
+    homeTab: HomeTab;
 }
 
 const UserDataContext = createContext<UserData | null>(null);
@@ -52,7 +55,7 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             groupOutbox,
             queryClient: createQueryClient({ onUnauthorized: check }),
             persistOptions: createPersistOptions(mine.storage),
-            userData: { discard: mine.discard },
+            userData: { discard: mine.discard, homeTab: createHomeTab(user.id) },
             discardWhenIdle,
         };
     });
@@ -90,4 +93,10 @@ const useUserData = (): UserData => {
     return userData;
 };
 
-export { UserDataProvider, useUserData, type UserDataProviderProps };
+// The group of the tab of the Expenses screen shown last, null for Expenses
+const useLastHomeTab = (): string | null => {
+    const { homeTab } = useUserData();
+    return useSyncExternalStore(homeTab.subscribe, homeTab.last);
+};
+
+export { UserDataProvider, useLastHomeTab, useUserData, type UserDataProviderProps };

@@ -1,11 +1,12 @@
 import { onlineManager } from '@tanstack/react-query';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { createTranslator } from 'use-intl';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
+import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { chosenOption } from '@/lib/test/select';
@@ -39,6 +40,10 @@ const tab = (name: string) => within(tabs()).getByRole('link', { name });
 const pinButton = (name: string) => screen.getByRole('button', { name: t('groups.row.pin', { name }) });
 
 const pinFull = t('groups.edit.pinFull', { max: MAX_PINNED_GROUPS });
+
+beforeEach(() => {
+    localStorage.clear();
+});
 
 afterEach(() => {
     onlineManager.setOnline(true);
@@ -85,6 +90,75 @@ describe('the tabs of the Expenses screen', () => {
 
         await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
         expect(screen.queryByRole('link', { name: en.groups.edit.link })).toBeNull();
+    });
+});
+
+describe('the tab the Expenses screen opens on', () => {
+    it('is the one shown last on this device', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        const { app } = await open('/', [trip]);
+        fireEvent.click(await waitFor(() => tab('Trip')));
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+        app.unmount();
+
+        const again = await open('/', [trip]);
+
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+        expect(again.app.router.state.location.search).toEqual({ group: trip.id });
+    });
+
+    it('leaves the Expenses tab leading to Expenses once opened', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        localStorage.setItem(`tarja:home-tab:${TEST_USER.id}`, trip.id);
+        await open('/', [trip]);
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+
+        fireEvent.click(tab(en.expenses.list.title));
+
+        await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
+        expect(localStorage.getItem(`tarja:home-tab:${TEST_USER.id}`)).toBeNull();
+    });
+
+    it('is where the logo and Expenses in the bar lead back to', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        const { app } = await open('/', [trip]);
+        fireEvent.click(await waitFor(() => tab('Trip')));
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+
+        fireEvent.click(screen.getByRole('link', { name: en.nav.groups }));
+        await waitFor(() => expect(app.router.state.location.pathname).toBe('/groups'));
+        fireEvent.click(screen.getByRole('link', { name: en.nav.expenses }));
+
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+
+        fireEvent.click(screen.getByRole('link', { name: en.nav.groups }));
+        await waitFor(() => expect(app.router.state.location.pathname).toBe('/groups'));
+        fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
+
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+    });
+
+    it('is Expenses from the logo once the Expenses tab was shown', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        const { app } = await open(`/?group=${trip.id}`, [trip]);
+        await waitFor(() => expect(tab('Trip').getAttribute('aria-current')).toBe('page'));
+        fireEvent.click(tab(en.expenses.list.title));
+        await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
+
+        fireEvent.click(screen.getByRole('link', { name: en.nav.groups }));
+        await waitFor(() => expect(app.router.state.location.pathname).toBe('/groups'));
+        fireEvent.click(screen.getByRole('link', { name: 'Tarja' }));
+
+        await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
+        expect(app.router.state.location.search).toEqual({});
+    });
+
+    it('is Expenses when the group shown last is no longer pinned', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        localStorage.setItem(`tarja:home-tab:${TEST_USER.id}`, named('Other').id);
+        await open('/', [trip]);
+
+        await waitFor(() => expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBe('page'));
     });
 });
 

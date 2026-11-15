@@ -10,6 +10,7 @@ import './bottom-nav.css';
 
 interface BottomNavItem {
     to: LinkProps['to'];
+    search?: LinkProps['search'];
     label: string;
     icon: IconName;
     current: boolean;
@@ -47,6 +48,7 @@ const BottomNav = (props: BottomNavProps) => {
                 <Link
                     className={linkClsx}
                     to={item.to}
+                    search={item.search}
                     activeOptions={{ exact: true }}
                     aria-current={item.current ? 'page' : undefined}
                     onClick={item.onClick}
