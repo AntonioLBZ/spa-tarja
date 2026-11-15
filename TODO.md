@@ -5,10 +5,8 @@ Items build on each other in the order they appear below. Delete an item when it
 ## Needs the owner
 
 - **Before the merge, in the dashboards and on production:**
-    1. What one Workers Logs entry holds (the `cookie` header, the IP, `x-tarja-user`, the location): open one of `PUT /api/expenses/<id>` and one of `GET /api/auth/callback/google`. If the cookie shows, turn the invocation logs off (`"observability": { "enabled": true, "logs": { "invocation_logs": false } }`).
-    2. An account deletion from start to end in production with a second Google account: make a group with a dummy, add that account as a friend in the dummy's place, delete it, then look for its email and the old dummy name in `user`, `session`, `account`, `profile`, `expenses` and `shared_members`.
-    3. The Google consent screen (Google Cloud console): publishing status, app name and support email.
-- On a real phone, in production, the notifications ([notifications](docs/specs/notifications.md)): a push with Tarja closed (Android Chrome, and iOS with the app on the Home Screen), a tap on it opening the group, the banner with the app open and its swipe, and the switch of the settings turned off and on again. And in Workers Logs, that the outgoing requests to the push services don't log their address.
+    1. An account deletion from start to end in production with a second Google account: make a group with a dummy, add that account as a friend in the dummy's place, delete it, then look for its email and the old dummy name in `user`, `session`, `account`, `profile`, `expenses` and `shared_members`.
+- On a real phone, in production, the notifications ([notifications](docs/specs/notifications.md)): a push with Tarja closed (Android Chrome, and iOS with the app on the Home Screen), a tap on it opening the group, the banner with the app open and its swipe, and the switch of the settings turned off and on again.
 - Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.
 
 ## 17. Revisar junto al owner los componentes, a11y y diseño

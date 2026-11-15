@@ -17,7 +17,11 @@
             "migrations_dir": "db/migrations",
         },
     ],
-    "observability": { "enabled": true },
+    // Workers Logs keep what the code logs, not an entry per request (no invocation logs); no traces
+    "observability": {
+        "logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": false, "persist": true },
+        "traces": { "enabled": false, "head_sampling_rate": 1, "persist": true },
+    },
     "env": {
         "prerelease": {
             "workers_dev": false,
