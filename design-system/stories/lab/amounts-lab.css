@@ -1,0 +1,68 @@
+/* The Lab of where amounts show which way they go: temporary, it goes once the owner chooses */
+
+.amounts-lab {
+    display: grid;
+    gap: var(--size-8);
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: auto;
+    max-inline-size: 40rem;
+}
+
+.amounts-lab__option {
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.amounts-lab__caption {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+
+.amounts-lab__list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* A row of a list: the words, a leader of dots and the amount */
+.amounts-lab__row {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    min-block-size: var(--size-touch);
+}
+
+.amounts-lab__row--total {
+    border-block-start: var(--size-px) dashed var(--color-border);
+    font-weight: 700;
+}
+
+.amounts-lab__words {
+    display: flex;
+    flex: 1 1 0;
+    gap: var(--size-2);
+    min-inline-size: 0;
+}
+
+.amounts-lab__words::after {
+    color: var(--color-content-secondary);
+    content: var(--leader-dots) / '';
+    flex: 1 1 0;
+    font-weight: 400;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.amounts-lab__secondary {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+}
+
+.amounts-lab__danger {
+    color: var(--color-danger);
+}

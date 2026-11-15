@@ -6,10 +6,9 @@ import { useTranslations } from 'use-intl';
 import { useBanner } from '@/components/banner/banner';
 import { groupTitle, memberNames } from '@/features/groups/member-names';
 import { useScreenGroup } from '@/features/groups/use-screen-group';
+import { useMoney } from '@/lib/amounts';
 import { GROUPS_KEY } from '@/lib/api';
-import { useLocale } from '@/lib/i18n';
 import { subscribeNotices, useGroupWatcher } from '@/lib/offline';
-import { formatAmount } from '@core/money';
 import { canonicalMember } from '@core/shared-member';
 
 import { wordNotices, type NoticeContext } from './notice-words';
@@ -26,7 +25,7 @@ const NoticeBanner = () => {
     const banner = useBanner();
     const t = useTranslations('notices');
     const tGroups = useTranslations('groups');
-    const { locale } = useLocale();
+    const money = useMoney();
     const screenGroup = useScreenGroup()?.id ?? null;
     const onScreen = useRef(screenGroup);
     // What the banner showing holds, which a new notice adds to
@@ -53,7 +52,7 @@ const NoticeBanner = () => {
                     notice,
                     groupTitle: groupTitle(group, names),
                     actor: nameOf(isExpense ? notice.authorId : notice.counterpartId),
-                    amount: formatAmount(cents, notice.currency, locale),
+                    amount: money(cents, notice.currency),
                 },
             ];
         };
@@ -79,7 +78,7 @@ const NoticeBanner = () => {
                 },
             });
         });
-    }, [client, router, banner, t, tGroups, locale]);
+    }, [client, router, banner, t, tGroups, money]);
 
     return null;
 };

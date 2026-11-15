@@ -5,7 +5,7 @@ interface Token {
     value: string;
 }
 
-// The first `:root` block is where the tokens are defined; the accent presets after it only override one of them
+// The first `:root` block is where the tokens are defined; the blocks after it only override some of them
 const ROOT_BLOCK = tokensCss.slice(0, tokensCss.indexOf('\n}'));
 
 const TOKENS: readonly Token[] = Array.from(ROOT_BLOCK.matchAll(/^\s*(--[\w-]+):\s*(.+);$/gm), (match) => {

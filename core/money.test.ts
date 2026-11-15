@@ -51,6 +51,11 @@ describe('parseAmount', () => {
 });
 
 describe('formatAmount', () => {
+    it('draws another symbol in the place of the currency, where the locale puts it', () => {
+        expect(formatAmount(123456, DEFAULT_CURRENCY, 'en', '$')).toBe('$1,234.56');
+        expect(formatAmount(-2150, DEFAULT_CURRENCY, 'es', '£')).toBe('-21,50\u00a0£');
+    });
+
     it('formats cents with the currency and the locale conventions', () => {
         expect(formatAmount(123456, DEFAULT_CURRENCY, 'en')).toBe('€1,234.56');
         expect(formatAmount(123456, DEFAULT_CURRENCY, 'es')).toBe('1234,56 €');

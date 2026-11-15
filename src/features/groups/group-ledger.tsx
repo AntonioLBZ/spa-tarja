@@ -7,11 +7,11 @@ import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useGroupOutbox } from '@/lib/offline';
 import { useFadeOut } from '@/lib/use-fade-out';
 import { fromDateString } from '@core/date';
-import { formatAmount } from '@core/money';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { LedgerRow } from './ledger-row';
@@ -106,6 +106,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const t = useTranslations('groups.ledger');
     const tList = useTranslations('expenses.list');
     const { locale } = useLocale();
+    const money = useMoney();
     const toast = useToast();
     const words = useEntryWords(group);
     const failureWords = useFailureWords();
@@ -276,9 +277,7 @@ const GroupLedger = (props: GroupLedgerProps) => {
                     {sheet.day !== null && sheet.entries.some((entry) => entry.kind === 'expense') && (
                         <p className="expense-list__total">
                             <span className="expense-list__total-label">{tList('total')}</span>{' '}
-                            <span className="expense-list__subtotal">
-                                {formatAmount(sheet.expenseCents, group.currency, locale)}
-                            </span>
+                            <span className="expense-list__subtotal">{money(sheet.expenseCents, group.currency)}</span>
                         </p>
                     )}
                 </Sheet>

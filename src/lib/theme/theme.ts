@@ -29,6 +29,15 @@ const storeTheme = (theme: Theme): void => {
     }
 };
 
+// The app color was a choice once (ADR-0027); what an older version stored is removed
+const forgetStoredAccent = (): void => {
+    try {
+        localStorage.removeItem('tarja:accent');
+    } catch {
+        // Storage can be blocked; there is nothing to remove then
+    }
+};
+
 // The look a theme gives: "system" is whichever the device prefers
 const resolveTheme = (theme: Theme): 'light' | 'dark' => {
     if (theme !== 'system') {
@@ -160,6 +169,7 @@ export {
     DEFAULT_THEME,
     THEMES,
     applyTheme,
+    forgetStoredAccent,
     isTheme,
     readStoredTheme,
     resolveTheme,

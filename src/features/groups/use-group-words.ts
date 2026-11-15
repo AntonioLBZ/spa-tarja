@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import { useLocale } from '@/lib/i18n';
-import { formatAmount } from '@core/money';
+import { useMoney } from '@/lib/amounts';
 import { canonicalMember } from '@core/shared-member';
 
 import { groupTitle, memberNames } from './member-names';
@@ -12,17 +11,17 @@ import type { SharedGroup } from '@core/shared-group';
 
 type ClosedReason = 'deleted' | 'deletedFriend' | 'left';
 
-// How the screens name a group, its people and their debts, in words: owing isn't an error, so it has no color
+// How the screens name a group, its people and their debts, in words: owing isn't an error, never in the danger color
 const useGroupWords = (group: SharedGroup) => {
     const t = useTranslations('groups');
-    const { locale } = useLocale();
+    const money = useMoney();
 
     return useMemo(() => {
         const names = memberNames(group.members, {
             deleted: t('names.deleted'),
             numbered: (name, number) => t('names.numbered', { name, number }),
         });
-        const amount = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
+        const amount = (cents: number) => money(Math.abs(cents), group.currency);
 
         // The member an id is read as, with "(left)" when they left the group
         const nameOf = (memberId: string) => {
@@ -80,7 +79,7 @@ const useGroupWords = (group: SharedGroup) => {
                     : 'deleted';
 
         return { title, closed, nameOf, nameInList, mine, row, sentence, debt };
-    }, [group, locale, t]);
+    }, [group, money, t]);
 };
 
 export { useGroupWords };

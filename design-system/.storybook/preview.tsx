@@ -1,5 +1,4 @@
-import { ACCENTS, AccentProvider, type Accent } from '@/lib/accent';
-import { storeAccent } from '@/lib/accent/accent';
+import { AmountsProvider } from '@/lib/amounts';
 import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18n';
 import { storeLocale } from '@/lib/i18n/locale';
 import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
@@ -35,21 +34,19 @@ const preview: Preview = {
     decorators: [
         (Story, context) => {
             const theme = context.globals.theme as Theme;
-            const accent = context.globals.accent as Accent;
             const locale = context.globals.locale as AppLocale;
             // The providers start from the stored choice, so a change in the toolbar is stored and they start again
             storeTheme(theme);
-            storeAccent(accent);
             storeLocale(locale);
 
             return (
-                <LocaleProvider key={`${theme}-${accent}-${locale}`}>
+                <LocaleProvider key={`${theme}-${locale}`}>
                     <ThemeProvider>
-                        <AccentProvider>
+                        <AmountsProvider>
                             <FocusSource>
                                 <Story />
                             </FocusSource>
-                        </AccentProvider>
+                        </AmountsProvider>
                     </ThemeProvider>
                 </LocaleProvider>
             );
@@ -59,10 +56,6 @@ const preview: Preview = {
         theme: {
             description: 'Theme',
             toolbar: { title: 'Theme', icon: 'contrast', items: [...THEMES], dynamicTitle: true },
-        },
-        accent: {
-            description: 'Accent',
-            toolbar: { title: 'Accent', icon: 'paintbrush', items: [...ACCENTS], dynamicTitle: true },
         },
         locale: {
             description: 'Language',
@@ -74,7 +67,7 @@ const preview: Preview = {
             },
         },
     },
-    initialGlobals: { theme: 'light', accent: 'gray', locale: 'en' },
+    initialGlobals: { theme: 'light', locale: 'en' },
     parameters: {
         backgrounds: { disabled: true },
         viewport: { options: VIEWPORTS },

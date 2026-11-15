@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     DEFAULT_THEME,
     applyTheme,
+    forgetStoredAccent,
     isTheme,
     readStoredTheme,
     storeTheme,
@@ -33,6 +34,26 @@ describe('isTheme', () => {
         expect(['system', 'light', 'dark'].every(isTheme)).toBe(true);
         expect(isTheme('sepia')).toBe(false);
         expect(isTheme(null)).toBe(false);
+    });
+});
+
+describe('forgetStoredAccent', () => {
+    it('removes the app color an older version stored and leaves the root gray', () => {
+        localStorage.setItem('tarja:accent', 'violet');
+
+        forgetStoredAccent();
+
+        expect(localStorage.getItem('tarja:accent')).toBeNull();
+        expect(root.hasAttribute('data-accent')).toBe(false);
+    });
+
+    it('does nothing when storage is blocked', () => {
+        vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+
+        expect(() => forgetStoredAccent()).not.toThrow();
+        vi.restoreAllMocks();
     });
 });
 

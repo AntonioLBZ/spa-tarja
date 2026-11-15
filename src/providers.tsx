@@ -1,5 +1,5 @@
 import { AuthGate } from './features/auth/auth-gate';
-import { AccentProvider } from './lib/accent';
+import { AmountsProvider } from './lib/amounts';
 import { AuthProvider, type Auth } from './lib/auth';
 import { LocaleProvider } from './lib/i18n';
 import { UserDataProvider, type KeyValueStorage } from './lib/offline';
@@ -15,7 +15,7 @@ interface AppProvidersProps {
     children: ReactNode;
 }
 
-// Everything the app needs around its pages: language, theme, how the focus last moved, and the signed-in user with their data. Without a
+// Everything the app needs around its pages: language, theme, how amounts show, how the focus last moved, and the signed-in user with their data. Without a
 // signed-in user, the children are not rendered.
 const AppProviders = (props: AppProvidersProps) => {
     const { auth, storage, children } = props;
@@ -25,13 +25,13 @@ const AppProviders = (props: AppProvidersProps) => {
     return (
         <LocaleProvider>
             <ThemeProvider>
-                <AccentProvider>
+                <AmountsProvider>
                     <AuthProvider auth={auth}>
                         <AuthGate>
                             <UserDataProvider storage={storage}>{children}</UserDataProvider>
                         </AuthGate>
                     </AuthProvider>
-                </AccentProvider>
+                </AmountsProvider>
             </ThemeProvider>
         </LocaleProvider>
     );

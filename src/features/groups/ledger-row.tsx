@@ -7,8 +7,7 @@ import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useLocale } from '@/lib/i18n';
-import { formatAmount } from '@core/money';
+import { useMoney } from '@/lib/amounts';
 import { yourPart, type SharedExpenseEntry } from '@core/shared-expense';
 
 import { namesSomeoneWhoLeft } from './names-someone-who-left';
@@ -44,11 +43,11 @@ const LedgerRow = (props: LedgerRowProps) => {
     const { group, entry, pending, leaving, date, onEdit, onDuplicate, onDelete, focusRef } = props;
     const t = useTranslations('groups');
     const tList = useTranslations('expenses.list');
-    const { locale } = useLocale();
     const { styleOf } = useCategoryOptions();
     const words = useEntryWords(group);
     const reasonId = useId();
-    const money = (cents: number) => formatAmount(cents, entry.currency, locale);
+    const format = useMoney();
+    const money = (cents: number) => format(cents, entry.currency);
 
     const writer = entry.updatedBy === null ? t('names.deleted') : words.nameOf(entry.updatedBy);
     const wrote =

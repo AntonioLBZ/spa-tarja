@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Card } from '@/components/card/card';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { endOfMonth, fromDateString } from '@core/date';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import type { Range } from '@core/charts';
 
@@ -38,6 +38,7 @@ const SpendingStats = (props: SpendingStatsProps) => {
     const { totalCents, compared, partial, today } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
+    const money = useMoney();
 
     const formats = useMemo(
         () => ({
@@ -85,7 +86,7 @@ const SpendingStats = (props: SpendingStatsProps) => {
         <Card className="spending-stats">
             <p className="spending-stats__total">
                 <span>{t('total')}</span>
-                <strong>{formatAmount(totalCents, DEFAULT_CURRENCY, locale)}</strong>
+                <strong>{money(totalCents)}</strong>
             </p>
             {line && (
                 <p className="spending-stats__change">

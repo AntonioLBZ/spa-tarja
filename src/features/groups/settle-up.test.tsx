@@ -67,10 +67,13 @@ function sheet() {
 }
 
 function lines() {
-    return within(sheet())
-        .queryAllByRole('listitem')
-        .filter((line) => line.closest('.disclosure') === null)
-        .map((line) => line.firstChild?.textContent);
+    for (const toggle of within(sheet()).queryAllByRole('button')) {
+        if (toggle.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+    }
+    const sentences = [...sheet().querySelectorAll('.group-balances__debt > .visually-hidden')].map(
+        (sentence) => sentence.textContent
+    );
+    return [...new Set(sentences)];
 }
 
 function lineButton(debt: string) {

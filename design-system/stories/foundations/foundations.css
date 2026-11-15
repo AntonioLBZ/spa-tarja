@@ -28,29 +28,6 @@
     overflow-wrap: anywhere;
 }
 
-/* The tokens made from the accent are resolved on the root, so an accent set on a box has to make them again */
-.accent-sample {
-    --color-bg-accent: var(--color-accent);
-    --color-border-focus: var(--color-accent);
-
-    align-items: center;
-    background: var(--color-bg-secondary);
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-4);
-    padding: var(--size-4);
-}
-
-.accent-sample__chip {
-    background: var(--color-accent);
-    block-size: var(--size-8);
-    inline-size: var(--size-8);
-}
-
-.accent-sample__name {
-    inline-size: 5rem;
-}
-
 .spacing-row {
     align-items: center;
     display: grid;

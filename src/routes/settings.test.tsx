@@ -23,7 +23,6 @@ async function radio(name: string) {
 afterEach(() => {
     localStorage.clear();
     root.removeAttribute('data-theme');
-    root.removeAttribute('data-accent');
     root.removeAttribute('data-color-transition');
     root.style.removeProperty('--duration-slow');
     document.head.innerHTML = '';
@@ -148,67 +147,79 @@ describe('settings', () => {
         });
     });
 
-    describe('accent', () => {
-        it('starts on gray, with no attribute on the root', async () => {
-            renderApp({ path: '/settings' });
-
-            expect((await radio(en.settings.accent.gray)).checked).toBe(true);
-            expect(root.hasAttribute('data-accent')).toBe(false);
-        });
-
-        it('is called the app color, which says more than accent', async () => {
-            renderApp({ path: '/settings' });
-
-            expect(await screen.findByRole('group', { name: en.settings.accent.title })).toBeDefined();
-            expect(en.settings.accent.title).not.toMatch(/accent/i);
-            expect(es.settings.accent.title).not.toMatch(/acento/i);
-        });
-
-        it('offers the fixed list, by name', async () => {
-            renderApp({ path: '/settings' });
-
-            await radio(en.settings.accent.gray);
-
-            const names = screen
-                .getAllByRole('radio')
-                .filter((input) => (input as HTMLInputElement).name === 'accent')
-                .map((input) => (input as HTMLInputElement).value);
-            expect(names).toEqual(['gray', 'amber', 'blue', 'green', 'violet', 'pink']);
-        });
-
-        it('applies a choice and remembers it', async () => {
-            renderApp({ path: '/settings' });
-
-            fireEvent.click(await radio(en.settings.accent.violet));
-
-            expect(root.dataset.accent).toBe('violet');
-            expect(localStorage.getItem('tarja:accent')).toBe('violet');
-            expect((await radio(en.settings.accent.violet)).checked).toBe(true);
-
-            fireEvent.click(await radio(en.settings.accent.amber));
-            expect(root.dataset.accent).toBe('amber');
-
-            fireEvent.click(await radio(en.settings.accent.gray));
-            expect(root.hasAttribute('data-accent')).toBe(false);
-        });
-
-        it('comes back with the stored accent', async () => {
+    describe('app color', () => {
+        it('is gone: no choice of it, and the root is gray whatever an older version stored', async () => {
             localStorage.setItem('tarja:accent', 'pink');
 
             renderApp({ path: '/settings' });
 
-            expect((await radio(en.settings.accent.pink)).checked).toBe(true);
-            await waitFor(() => expect(root.dataset.accent).toBe('pink'));
+            await radio(en.settings.theme.dark);
+            expect(screen.queryAllByRole('radio').some((input) => (input as HTMLInputElement).name === 'accent')).toBe(
+                false
+            );
+            expect(root.hasAttribute('data-accent')).toBe(false);
+        });
+    });
+
+    describe('amounts', () => {
+        const box = async (name: string) => (await screen.findByRole('checkbox', { name })) as HTMLInputElement;
+        const stored = () => JSON.parse(localStorage.getItem('tarja:amounts') ?? '{}') as Record<string, unknown>;
+
+        afterEach(() => {
+            root.removeAttribute('data-money-palette');
         });
 
-        it('fades the colors while it changes', async () => {
-            root.style.setProperty('--duration-slow', '50ms');
+        it('comes after the theme, with every cue on, the usual palette and the euro', async () => {
             renderApp({ path: '/settings' });
 
-            fireEvent.click(await radio(en.settings.accent.blue));
+            const heading = await screen.findByRole('heading', { name: en.settings.amounts.title });
+            const theme = screen.getByRole('group', { name: en.settings.theme.title });
+            expect(theme.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect((await box(en.settings.amounts.color.label)).checked).toBe(true);
+            expect((await box(en.settings.amounts.sign.label)).checked).toBe(true);
+            expect((await box(en.settings.amounts.arrows.label)).checked).toBe(true);
+            expect((await box(en.settings.amounts.colorBlind.label)).checked).toBe(false);
+            expect((await radio('€')).checked).toBe(true);
+        });
 
-            expect(root.hasAttribute('data-color-transition')).toBe(true);
-            await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));
+        it('turns each cue off and remembers it', async () => {
+            renderApp({ path: '/settings' });
+
+            fireEvent.click(await box(en.settings.amounts.sign.label));
+            fireEvent.click(await box(en.settings.amounts.arrows.label));
+
+            expect((await box(en.settings.amounts.sign.label)).checked).toBe(false);
+            expect(stored()).toMatchObject({ color: true, sign: false, arrows: false });
+        });
+
+        it('switches to the palette for color blindness, only while color is on', async () => {
+            renderApp({ path: '/settings' });
+
+            fireEvent.click(await box(en.settings.amounts.colorBlind.label));
+            expect(root.dataset.moneyPalette).toBe('color-blind');
+            expect(stored()).toMatchObject({ colorBlind: true });
+
+            fireEvent.click(await box(en.settings.amounts.color.label));
+            expect((await box(en.settings.amounts.colorBlind.label)).disabled).toBe(true);
+        });
+
+        it('draws the symbol chosen, without converting anything', async () => {
+            renderApp({ path: '/settings' });
+
+            fireEvent.click(await radio('$'));
+
+            expect(stored()).toMatchObject({ symbol: '$' });
+            expect(screen.getByText('$20.00')).toBeDefined();
+        });
+
+        it('comes back as it was stored', async () => {
+            localStorage.setItem('tarja:amounts', JSON.stringify({ sign: false, colorBlind: true, symbol: '£' }));
+
+            renderApp({ path: '/settings' });
+
+            expect((await box(en.settings.amounts.sign.label)).checked).toBe(false);
+            expect((await radio('£')).checked).toBe(true);
+            await waitFor(() => expect(root.dataset.moneyPalette).toBe('color-blind'));
         });
     });
 

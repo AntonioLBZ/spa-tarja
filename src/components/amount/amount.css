@@ -1,0 +1,25 @@
+/* Digits in columns, never wrapped; the arrow at the size of the text */
+.amount {
+    align-items: center;
+    display: inline-flex;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.amount--in {
+    color: var(--color-money-in);
+}
+
+.amount--out {
+    color: var(--color-money-out);
+}
+
+.amount__arrow {
+    display: inline-flex;
+    margin-inline-end: var(--size-1);
+}
+
+.amount__arrow .icon {
+    block-size: 1.1em;
+    inline-size: 1.1em;
+}

@@ -2,6 +2,7 @@ export {
     DEFAULT_THEME,
     THEMES,
     applyTheme,
+    forgetStoredAccent,
     isTheme,
     readStoredTheme,
     revealTheme,

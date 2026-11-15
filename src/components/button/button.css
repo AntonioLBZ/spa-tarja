@@ -72,6 +72,14 @@ a.button {
     padding-inline: var(--size-4);
 }
 
+/* The symbol in the middle of the box both ways: a button lays out its text from the start, on a line box whose
+   baseline would lift an icon. Zero specificity, so a screen can still push it to one end */
+:where(.button--glyph) {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+}
+
 /* No box, only the text underlined: for an action inside another edge or on paper */
 .button--ghost {
     border-width: 0;

@@ -11,10 +11,10 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/group-failure';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { isSharedRow } from '@core/shared-expense';
 
 import { restoreExpenses } from './create-expenses';
@@ -41,6 +41,7 @@ const ExpenseList = (props: ExpenseListProps) => {
     const t = useTranslations('expenses.list');
     const tLedger = useTranslations('groups.ledger');
     const { locale } = useLocale();
+    const money = useMoney();
     const save = useSaveExpense();
     const entryActions = useEntryActions();
     const failureWords = useFailureWords();
@@ -253,9 +254,7 @@ const ExpenseList = (props: ExpenseListProps) => {
                     </CardList>
                     <p className="expense-list__total">
                         <span className="expense-list__total-label">{t('total')}</span>{' '}
-                        <span className="expense-list__subtotal">
-                            {formatAmount(group.totalCents, DEFAULT_CURRENCY, locale)}
-                        </span>
+                        <span className="expense-list__subtotal">{money(group.totalCents)}</span>
                     </p>
                 </Sheet>
             ))}

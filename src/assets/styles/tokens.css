@@ -64,6 +64,10 @@
     --color-content-on-accent: light-dark(#fff, #000);
     --color-danger: light-dark(#c81e1e, #f87171);
     --color-shadow: light-dark(rgb(0 0 0 / 18%), rgb(255 255 255 / 14%));
+
+    /* Which way an amount goes (ADR-0028): what adds to a balance and what takes from it */
+    --color-money-in: light-dark(#166534, #4ade80);
+    --color-money-out: light-dark(#c81e1e, #f87171);
     --shadow-popup: 0 var(--size-1) var(--size-3) var(--color-shadow);
 
     /* Category colors: they paint the icon of a category and nothing else */
@@ -87,25 +91,10 @@
     color-scheme: dark;
 }
 
-/* Accent presets: gray is the default, defined above. The tones are checked on both surfaces */
-[data-accent='amber'] {
-    --color-accent: light-dark(#9a5b00, #f0a830);
-}
-
-[data-accent='blue'] {
-    --color-accent: light-dark(#1d4ed8, #8aa4ff);
-}
-
-[data-accent='green'] {
-    --color-accent: light-dark(#15803d, #4ade80);
-}
-
-[data-accent='violet'] {
-    --color-accent: light-dark(#6d28d9, #c4b5fd);
-}
-
-[data-accent='pink'] {
-    --color-accent: light-dark(#be185d, #f9a8d4);
+/* The amount colors for color blindness: a blue and an orange the common deficiencies keep apart */
+[data-money-palette='color-blind'] {
+    --color-money-in: light-dark(#1d4ed8, #8aa4ff);
+    --color-money-out: light-dark(#9a4a00, #fb923c);
 }
 
 @media (prefers-reduced-motion: reduce) {

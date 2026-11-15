@@ -42,10 +42,10 @@ afterEach(() => {
 });
 
 describe('the profile section', () => {
-    it('comes after the app color and before the categories', async () => {
+    it('comes after the amounts and before the categories', async () => {
         await open();
 
-        const accent = screen.getByRole('group', { name: en.settings.accent.title });
+        const accent = screen.getByRole('heading', { name: en.settings.amounts.title });
         const profile = screen.getByRole('heading', { name: text.title });
         const categories = screen.getByRole('heading', { name: en.settings.categories.title });
 

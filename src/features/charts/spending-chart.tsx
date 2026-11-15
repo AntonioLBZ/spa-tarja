@@ -12,9 +12,10 @@ import {
 import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { useAmountPreferences, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { bucketStart, niceScale } from '@core/charts';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
+import { DEFAULT_CURRENCY } from '@core/money';
 
 import { useBucketNames } from './use-bucket-names';
 
@@ -74,7 +75,8 @@ const SpendingChart = (props: SpendingChartProps) => {
     // The first and the last row, named under the plot
     const ends = count > 1 ? [buckets[0]!, buckets[count - 1]!] : buckets;
 
-    const money = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
+    const money = useMoney();
+    const { symbol } = useAmountPreferences().preferences;
     const wholeEuros = scale.step % 100 === 0;
     const tickFormat = useMemo(
         () =>
@@ -148,7 +150,10 @@ const SpendingChart = (props: SpendingChartProps) => {
                             key={tick}
                             style={{ '--at': tick / scale.max } as CSSProperties}
                         >
-                            {tickFormat.format(tick / 100)}
+                            {tickFormat
+                                .formatToParts(tick / 100)
+                                .map((part) => (part.type === 'currency' ? symbol : part.value))
+                                .join('')}
                         </span>
                     ))}
                 </div>

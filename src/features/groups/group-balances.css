@@ -1,19 +1,81 @@
-/* A debt on paper, in words: no color, no notch, as tall as a row that opens. Its Settle up stays at the end, and the
-   words wrap beside it */
+/* A row per person on the paper of the sheet, a hairline between them */
+.group-balances,
+.group-balances__debts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.group-balances__none {
+    margin: 0;
+}
+
+.group-balances__person + .group-balances__person,
+.group-balances__settled {
+    border-block-start: var(--size-px) solid var(--color-border-subtle);
+}
+
+/* The chevron takes the width of a touch, as the Settle up of a line does, so the totals line up with the amounts */
+.group-balances .disclosure__toggle {
+    gap: 0;
+}
+
+.group-balances .disclosure__chevron {
+    justify-content: center;
+    min-inline-size: var(--size-touch);
+}
+
+.group-balances__head,
 .group-balances__line {
     align-items: center;
     display: flex;
-    gap: var(--size-4);
-    margin: 0;
-    min-height: var(--size-touch);
+    flex: 1 1 0;
+    gap: var(--size-2);
+    min-inline-size: 0;
+}
+
+.group-balances__head {
+    font-weight: 700;
+}
+
+/* The words, then a leader of dots to the amount, which gives way when the words wrap */
+.group-balances__text {
+    display: flex;
+    flex: 1 1 0;
+    gap: var(--size-2);
+    min-inline-size: 0;
     overflow-wrap: anywhere;
 }
 
-.group-balances__text {
-    flex: 1;
-    min-width: 0;
+.group-balances__text::after {
+    color: var(--color-content-secondary);
+    content: var(--leader-dots) / '';
+    flex: 1 1 0;
+    font-weight: 400;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
-.group-balances__settle {
-    flex: none;
+/* Indented under the row; no gap before Settle up, whose box of a touch around its icon is the room */
+.group-balances__debt {
+    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--size-touch);
+    min-block-size: var(--size-touch);
+    padding-inline-start: var(--size-4);
+}
+
+.group-balances__line {
+    grid-column: 1;
+}
+
+/* Settled, at the foot and quiet: nothing to open */
+.group-balances__settled {
+    align-items: center;
+    color: var(--color-content-secondary);
+    display: flex;
+    min-block-size: var(--size-touch);
 }

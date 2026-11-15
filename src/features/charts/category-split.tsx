@@ -4,8 +4,8 @@ import { useTranslations } from 'use-intl';
 
 import { Card, CardList } from '@/components/card/card';
 import { CategoryBadge } from '@/features/categories/category-badge';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import type { CategoryStyle } from '@core/category-style';
 import type { CategoryTotal } from '@core/charts';
@@ -25,6 +25,7 @@ const CategorySplit = (props: CategorySplitProps) => {
     const { totals, labelOf, styleOf } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
+    const money = useMoney();
 
     const percent = useMemo(
         () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }),
@@ -76,9 +77,7 @@ const CategorySplit = (props: CategorySplitProps) => {
                             <CategoryBadge style={styleOf(segment.categoryId)} />
                             <span>{labelOf(segment.categoryId)}</span>
                         </span>
-                        <span className="category-split__amount">
-                            {formatAmount(segment.totalCents, DEFAULT_CURRENCY, locale)}
-                        </span>
+                        <span className="category-split__amount">{money(segment.totalCents)}</span>
                         <span className="category-split__share">{percent.format(segment.share)}</span>
                     </Card>
                 ))}

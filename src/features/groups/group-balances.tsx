@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
-import { CardList } from '@/components/card/card';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
-import { memberBalances, type Debt } from '@core/balance';
+import { useAmount } from '@/lib/amounts';
+import { memberBalances, type Debt, type MemberBalance } from '@core/balance';
 
 import { useGroupWords } from './use-group-words';
 
@@ -25,60 +27,128 @@ interface GroupBalancesProps {
     onSettle?: (debt: Debt) => void;
 }
 
-// The debts the person is in come first, the rest in the group's order
-const yoursFirst = (debts: readonly Debt[], me: string): Debt[] => {
-    const yours = (debt: Debt) => debt.from === me || debt.to === me;
-    return [...debts.filter(yours), ...debts.filter((debt) => !yours(debt))];
+// You first, then who gets back the most, then who owes the most, then who is even but still in a debt (pair by pair,
+// owing one and owed as much by another); who is in none apart
+const rowsInOrder = (balances: readonly MemberBalance[], debts: readonly Debt[], me: string) => {
+    const inDebts = (memberId: string) => debts.some((debt) => debt.from === memberId || debt.to === memberId);
+    const moves = (balance: MemberBalance) => balance.cents !== 0 || inDebts(balance.memberId);
+    const others = balances.filter((balance) => balance.memberId !== me && moves(balance));
+    return {
+        moving: [
+            ...balances.filter((balance) => balance.memberId === me && moves(balance)),
+            ...others.filter((balance) => balance.cents > 0).sort((a, b) => b.cents - a.cents),
+            ...others.filter((balance) => balance.cents < 0).sort((a, b) => a.cents - b.cents),
+            ...others.filter((balance) => balance.cents === 0),
+        ],
+        settled: balances.filter((balance) => !moves(balance)),
+    };
 };
 
-// The debts of a group, each with the way to settle it, and under them what each member is owed or owes
+// The balances of a group, a folded row per person after their net balance, and under it the debts that make it up,
+// from their side (ADR-0029)
 const GroupBalances = (props: GroupBalancesProps) => {
     const { group, entries, debts, onSettle } = props;
     const t = useTranslations('groups');
     const words = useGroupWords(group);
-    const lines = useMemo(() => yoursFirst(debts, group.me), [debts, group.me]);
+    const amount = useAmount();
+    const me = group.me;
     const balances = useMemo(() => memberBalances(entries, group.members), [entries, group.members]);
+    const { moving, settled } = useMemo(() => rowsInOrder(balances, debts, me), [balances, debts, me]);
     // A settlement is only between two members who haven't left
     const present = (memberId: string) =>
         group.members.some((member) => member.id === memberId && member.leftAt === null);
+    // One Settle up per debt: in your row when it is yours, otherwise under whoever pays it
+    const settlesIn = (debt: Debt, person: string) =>
+        debt.from === me || debt.to === me ? person === me : person === debt.from;
+
+    const head = (memberId: string, cents: number) => {
+        const name = words.nameOf(memberId);
+        if (memberId === me) {
+            if (cents === 0) return t('debts.youEven');
+            return cents > 0 ? t('debts.youGetBack') : t('debts.youOweAll');
+        }
+        if (cents === 0) return t('debts.even', { name });
+        return cents > 0 ? t('debts.getsBack', { name }) : t('debts.owesAll', { name });
+    };
+
+    // A debt as a short sentence of its own from the side of the person of the row
+    const line = (debt: Debt, person: string) => {
+        const from = words.nameOf(debt.from);
+        const to = words.nameOf(debt.to);
+        if (debt.to === me) return t('debts.lineOwesYou', { name: from });
+        if (debt.from === me) return t('debts.lineYouOwe', { name: to });
+        return debt.to === person ? t('debts.lineIn', { from, to }) : t('debts.lineOut', { from, to });
+    };
 
     return (
         <Sheet label={t('debts.label')}>
             {group.simplifyDebts && <Notice tone="quiet">{t('debts.simplified')}</Notice>}
-            {lines.length === 0 ? (
-                <p className="group-balances__line">{t('debts.none')}</p>
-            ) : (
-                <CardList flush>
-                    {lines.map((debt) => {
-                        const sentence = words.debt(debt);
+            {moving.length === 0 && <p className="group-balances__none">{t('debts.none')}</p>}
+            {moving.length > 0 && (
+                <ul className="group-balances">
+                    {moving.map((balance) => {
+                        const person = balance.memberId;
+                        const lines = debts.filter((debt) => debt.from === person || debt.to === person);
 
                         return (
-                            <li className="group-balances__line" key={`${debt.from} ${debt.to}`}>
-                                <span className="group-balances__text">{sentence}</span>
-                                {onSettle && present(debt.from) && present(debt.to) && (
-                                    <Button
-                                        ghost
-                                        className="group-balances__settle"
-                                        aria-label={t('settle.lineItem', { debt: sentence })}
-                                        onClick={() => onSettle(debt)}
-                                    >
-                                        {t('settle.title')}
-                                    </Button>
-                                )}
-                            </li>
+                            <Disclosure
+                                as="li"
+                                className="group-balances__person"
+                                key={person}
+                                chevron
+                                defaultOpen={person === me}
+                                summary={
+                                    <span className="group-balances__head">
+                                        <span className="group-balances__text">{head(person, balance.cents)}</span>{' '}
+                                        <Amount
+                                            {...amount(balance.cents, group.currency, { cues: true, arrow: true })}
+                                        />
+                                    </span>
+                                }
+                            >
+                                <ul className="group-balances__debts">
+                                    {lines.map((debt) => {
+                                        const sentence = words.debt(debt);
+                                        const cents = debt.to === person ? debt.cents : -debt.cents;
+                                        const settles =
+                                            onSettle &&
+                                            settlesIn(debt, person) &&
+                                            present(debt.from) &&
+                                            present(debt.to);
+
+                                        return (
+                                            <li className="group-balances__debt" key={`${debt.from} ${debt.to}`}>
+                                                <span className="visually-hidden">{sentence}</span>
+                                                <span className="group-balances__line" aria-hidden="true">
+                                                    <span className="group-balances__text">{line(debt, person)}</span>
+                                                    <Amount
+                                                        {...amount(cents, group.currency, { cues: true, arrow: true })}
+                                                    />
+                                                </span>
+                                                {settles && (
+                                                    <Button
+                                                        ghost
+                                                        glyph
+                                                        aria-label={t('settle.lineItem', { debt: sentence })}
+                                                        onClick={() => onSettle(debt)}
+                                                    >
+                                                        <Icon name="payments" />
+                                                    </Button>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </Disclosure>
                         );
                     })}
-                </CardList>
-            )}
-            <Disclosure summary={t('debts.everyone')} chevron>
-                <CardList flush label={t('debts.everyone')}>
-                    {balances.map((balance) => (
-                        <li className="group-balances__line" key={balance.memberId}>
-                            {words.sentence(balance.memberId, balance.cents)}
+                    {settled.map((balance) => (
+                        <li className="group-balances__settled" key={balance.memberId}>
+                            {words.sentence(balance.memberId, 0)}
                         </li>
                     ))}
-                </CardList>
-            </Disclosure>
+                </ul>
+            )}
         </Sheet>
     );
 };

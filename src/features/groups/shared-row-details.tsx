@@ -1,8 +1,7 @@
 import { useTranslations } from 'use-intl';
 
-import { useLocale } from '@/lib/i18n';
+import { useMoney } from '@/lib/amounts';
 import { countedCents } from '@core/counting';
-import { formatAmount } from '@core/money';
 
 import { useGroupWords } from './use-group-words';
 
@@ -19,11 +18,11 @@ interface SharedRowDetailsProps {
 const SharedRowDetails = (props: SharedRowDetailsProps) => {
     const { row, group } = props;
     const t = useTranslations('expenses.list');
-    const { locale } = useLocale();
+    const money = useMoney();
     const words = useGroupWords(group);
     const { paidBy, totalCents } = row.shared;
 
-    const total = totalCents === countedCents(row) ? null : formatAmount(totalCents, row.currency, locale);
+    const total = totalCents === countedCents(row) ? null : money(totalCents, row.currency);
     const name = words.nameOf(paidBy);
     const paid =
         paidBy === group.me

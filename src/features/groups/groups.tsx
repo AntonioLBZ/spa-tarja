@@ -4,10 +4,9 @@ import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
+import { useMoney } from '@/lib/amounts';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
-import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { MAX_PINNED_GROUPS } from '@core/shared-group';
 
 import { EntryRefusals } from './entry-refusals';
@@ -125,7 +124,7 @@ const ListSection = (props: ListSectionProps) => {
 const GroupTotals = (props: GroupTotalsProps) => {
     const { ledgers } = props;
     const t = useTranslations('groups');
-    const { locale } = useLocale();
+    const amount = useMoney();
 
     const missing = ledgers.filter((ledger) => !ledger.hasData);
     if (missing.some((ledger) => ledger.isError || ledger.isWaitingForNetwork)) {
@@ -140,7 +139,6 @@ const GroupTotals = (props: GroupTotalsProps) => {
     const balances = ledgers.map(({ group, entries }) => myBalance(group, entries));
     const owed = balances.filter((cents) => cents > 0).reduce((sum, cents) => sum + cents, 0);
     const owe = balances.filter((cents) => cents < 0).reduce((sum, cents) => sum - cents, 0);
-    const amount = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
 
     if (owed === 0 && owe === 0) return <Notice role="status">{t('balance.allSettled')}</Notice>;
 

@@ -4,19 +4,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { appUpdate } from './features/pwa/app-update-state';
-import { applyAccent, readStoredAccent } from './lib/accent';
 import { createAuth, createAuthService } from './lib/auth';
 import { idbStorage } from './lib/offline';
-import { applyTheme, readStoredTheme } from './lib/theme';
+import { applyTheme, forgetStoredAccent, readStoredTheme } from './lib/theme';
 import { endTransitionsOnTap } from './lib/view-transition-tap';
 import { AppProviders } from './providers';
 import { createAppRouter } from './router';
 
 import './assets/styles/main.css';
 
-// Before the first render, so a stored theme and accent paint from the start
+// Before the first render, so a stored theme paints from the start
 applyTheme(readStoredTheme());
-applyAccent(readStoredAccent());
+forgetStoredAccent();
 
 // Query assumes it is online until an event says otherwise, which never comes when the app opens offline
 onlineManager.setOnline(navigator.onLine);

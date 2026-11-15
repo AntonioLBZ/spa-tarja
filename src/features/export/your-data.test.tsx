@@ -127,6 +127,7 @@ describe('your data in the settings', () => {
 
         const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent);
         expect(headings).toEqual([
+            en.settings.amounts.title,
             en.settings.profile.title,
             en.settings.notifications.title,
             en.settings.categories.title,

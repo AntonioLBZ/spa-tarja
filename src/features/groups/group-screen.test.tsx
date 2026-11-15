@@ -44,17 +44,36 @@ function balancesSheet() {
     return screen.getByRole('heading', { name: text.debts.label }).closest('section')!;
 }
 
-function debtLines() {
-    return within(balancesSheet())
-        .getAllByRole('listitem')
-        .map((line) => line.firstChild?.textContent);
+function readable(element: Element) {
+    const copy = element.cloneNode(true) as Element;
+    copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove());
+    return copy.textContent?.replace(/\s+/g, ' ').trim();
 }
 
-function everyone() {
-    fireEvent.click(screen.getByRole('button', { name: text.debts.everyone }));
-    return within(screen.getByRole('list', { name: text.debts.everyone }))
-        .getAllByRole('listitem')
-        .map((line) => line.textContent);
+function toggles() {
+    return within(balancesSheet())
+        .queryAllByRole('button')
+        .filter((button) => button.hasAttribute('aria-expanded'));
+}
+
+function debtLines() {
+    for (const toggle of toggles()) {
+        if (toggle.getAttribute('aria-expanded') === 'false') fireEvent.click(toggle);
+    }
+    const sentences = [...balancesSheet().querySelectorAll('.group-balances__debt > .visually-hidden')].map(
+        (sentence) => sentence.textContent
+    );
+    return [...new Set(sentences)];
+}
+
+function rows() {
+    return [...balancesSheet().querySelectorAll('.group-balances > li')].map((row) =>
+        readable(row.querySelector('[aria-expanded]') ?? row)
+    );
+}
+
+function row(sentence: string, cents: number) {
+    return `${sentence} ${euros(cents)}`;
 }
 
 const ana = person('Ana', { role: 'owner' });
@@ -131,7 +150,7 @@ describe('a group', () => {
         ]);
     });
 
-    it('lists what each member is owed or owes under the debts, closed until asked', async () => {
+    it('lists a row per person after their balance, yours first and open, the others closed', async () => {
         const group = groupOf([bea, cris, ana], ana);
         open(
             [group],
@@ -148,15 +167,82 @@ describe('a group', () => {
         );
         await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
 
-        expect(screen.getByRole('button', { name: text.debts.everyone }).getAttribute('aria-expanded')).toBe('false');
-        expect(everyone()).toEqual([
-            t('groups.balance.memberOwes', { name: 'Bea', amount: euros(500) }),
-            t('groups.balance.memberOwes', { name: 'Cris', amount: euros(1500) }),
-            t('groups.balance.owed', { amount: euros(2000) }),
+        expect(rows()).toEqual([
+            row(text.debts.youGetBack, 2000),
+            row(t('groups.debts.owesAll', { name: 'Cris' }), 1500),
+            row(t('groups.debts.owesAll', { name: 'Bea' }), 500),
         ]);
+        expect(toggles().map((toggle) => toggle.getAttribute('aria-expanded'))).toEqual(['true', 'false', 'false']);
     });
 
-    it('says you are settled in your own line of everyone', async () => {
+    it('says each debt under a row from the side of its person, with one Settle up per debt', async () => {
+        const group = groupOf([bea, cris, ana], ana);
+        open(
+            [group],
+            [
+                expense(group, bea, [
+                    [bea, 1500],
+                    [cris, 1500],
+                ]),
+                expense(group, ana, [
+                    [ana, 2000],
+                    [bea, 2000],
+                ]),
+            ]
+        );
+        await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
+
+        debtLines();
+        const words = [...balancesSheet().querySelectorAll('.group-balances__debt .group-balances__text')].map(
+            (line) => line.textContent
+        );
+        expect(words).toEqual([
+            t('groups.debts.lineOwesYou', { name: 'Bea' }),
+            t('groups.debts.lineOut', { from: 'Cris', to: 'Bea' }),
+            t('groups.debts.lineIn', { from: 'Cris', to: 'Bea' }),
+            t('groups.debts.lineOwesYou', { name: 'Bea' }),
+        ]);
+        expect(within(balancesSheet()).getAllByRole('button', { name: /^Settle up/ })).toHaveLength(2);
+    });
+
+    it('marks which way each amount goes with the cues the person allows', async () => {
+        const group = groupOf([ana, bea], ana);
+        const entries = [
+            expense(group, ana, [
+                [ana, 2000],
+                [bea, 2000],
+            ]),
+        ];
+        open([group], entries);
+        await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
+
+        const mine = toggles()[0]!.querySelector('.amount')!;
+        expect(mine.classList.contains('amount--in')).toBe(true);
+        expect(mine.textContent).toBe(`+${euros(2000)}`);
+        expect(mine.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('north_east');
+    });
+
+    it('marks nothing but the words when the person turned the cues off', async () => {
+        localStorage.setItem('tarja:amounts', JSON.stringify({ color: false, sign: false, arrows: false }));
+        const group = groupOf([ana, bea], ana);
+        open(
+            [group],
+            [
+                expense(group, ana, [
+                    [ana, 2000],
+                    [bea, 2000],
+                ]),
+            ]
+        );
+        await screen.findByText(t('groups.balance.owed', { amount: euros(2000) }));
+
+        const mine = toggles()[0]!.querySelector('.amount')!;
+        expect(mine.className).toBe('amount');
+        expect(mine.textContent).toBe(euros(2000));
+        expect(mine.querySelector('svg')).toBeNull();
+    });
+
+    it('puts who has nothing to settle at the foot, with nothing to open', async () => {
         const group = groupOf([ana, bea, cris], ana);
         open(
             [group],
@@ -167,13 +253,14 @@ describe('a group', () => {
                 ]),
             ]
         );
-        await screen.findByText(text.balance.allSettled);
+        await screen.findAllByText(text.balance.allSettled);
 
-        expect(everyone()).toEqual([
+        expect(rows()).toEqual([
+            row(t('groups.debts.getsBack', { name: 'Bea' }), 1000),
+            row(t('groups.debts.owesAll', { name: 'Cris' }), 1000),
             text.balance.youSettled,
-            t('groups.balance.memberOwed', { name: 'Bea', amount: euros(1000) }),
-            t('groups.balance.memberOwes', { name: 'Cris', amount: euros(1000) }),
         ]);
+        expect(toggles()).toHaveLength(2);
     });
 
     it('names who left and who deleted their account', async () => {
@@ -197,10 +284,10 @@ describe('a group', () => {
             t('groups.debts.owesYou', { name: left, amount: euros(1000) }),
             t('groups.debts.owesYou', { name: text.names.deleted, amount: euros(1000) }),
         ]);
-        expect(everyone()).toEqual([
-            t('groups.balance.owed', { amount: euros(2000) }),
-            t('groups.balance.memberOwes', { name: left, amount: euros(1000) }),
-            t('groups.balance.memberOwes', { name: text.names.deleted, amount: euros(1000) }),
+        expect(rows()).toEqual([
+            row(text.debts.youGetBack, 2000),
+            row(t('groups.debts.owesAll', { name: left }), 1000),
+            row(t('groups.debts.owesAll', { name: text.names.deleted }), 1000),
             t('groups.balance.memberSettled', { name: 'Cris' }),
         ]);
     });
@@ -293,10 +380,10 @@ describe('a group with simplified debts', () => {
 
             expect(await screen.findByText(t('groups.balance.owe', { amount: euros(500) }))).toBeDefined();
             expect(debtLines()).toEqual(lines);
-            expect(everyone()).toEqual([
-                t('groups.balance.owe', { amount: euros(500) }),
-                t('groups.balance.memberOwed', { name: 'Bea', amount: euros(1500) }),
-                t('groups.balance.memberOwes', { name: 'Cris', amount: euros(1000) }),
+            expect(rows()).toEqual([
+                row(text.debts.youOweAll, 500),
+                row(t('groups.debts.getsBack', { name: 'Bea' }), 1500),
+                row(t('groups.debts.owesAll', { name: 'Cris' }), 1000),
             ]);
         }
     );
@@ -347,11 +434,17 @@ describe('a group with simplified debts', () => {
                 }),
             ],
             0,
+            row(t('groups.debts.even', { name: t('groups.names.left', { name: 'Dani' }) }), 0),
         ],
-        [true, [t('groups.debts.youOwe', { name: 'Bea', amount: euros(1000) })], 1],
+        [
+            true,
+            [t('groups.debts.youOwe', { name: 'Bea', amount: euros(1000) })],
+            1,
+            t('groups.balance.memberSettled', { name: t('groups.names.left', { name: 'Dani' }) }),
+        ],
     ])(
         'routes the payments around a member who left with nothing to pay or to receive (%s)',
-        async (simplifyDebts, lines, buttons) => {
+        async (simplifyDebts, lines, buttons, daniRow) => {
             const dani = person('Dani', { leftAt: 1 });
             const group = groupOf([ana, bea, dani], ana, { simplifyDebts });
             open(
@@ -372,9 +465,7 @@ describe('a group with simplified debts', () => {
 
             expect(debtLines()).toEqual(lines);
             expect(settleButtons()).toHaveLength(buttons);
-            expect(everyone()).toContain(
-                t('groups.balance.memberSettled', { name: t('groups.names.left', { name: 'Dani' }) })
-            );
+            expect(rows()).toContain(daniRow);
         }
     );
 
@@ -419,7 +510,8 @@ describe('a group with simplified debts', () => {
     it('shows the pairs again when the owner turns it off, without any entry having changed', async () => {
         const group = groupOf([ana, bea, cris], ana, { simplifyDebts: true });
         const { api, app } = open([group], ledger(group));
-        await screen.findByText(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(1000) }));
+        await screen.findByText(t('groups.balance.owe', { amount: euros(500) }));
+        expect(debtLines()).toContain(t('groups.debts.owes', { from: 'Cris', to: 'Bea', amount: euros(1000) }));
 
         api.groups[0]!.simplifyDebts = false;
         await act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));

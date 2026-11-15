@@ -42,17 +42,16 @@ describe('the script that runs before the first paint', () => {
         expect(root.dataset.theme).toBe(theme);
     });
 
-    it('puts a saved accent on the root', () => {
+    it('paints gray whatever app color an older version stored', () => {
         localStorage.setItem('tarja:accent', 'violet');
 
         runFirstPaint();
 
-        expect(root.dataset.accent).toBe('violet');
+        expect(root.hasAttribute('data-accent')).toBe(false);
     });
 
-    it('does not let a value that is not a theme or an accent through', () => {
+    it('does not let a value that is not a theme through', () => {
         localStorage.setItem('tarja:theme', 'sepia');
-        localStorage.setItem('tarja:accent', 'red');
 
         runFirstPaint();
 

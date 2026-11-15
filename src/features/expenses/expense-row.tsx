@@ -9,10 +9,9 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { namesSomeoneWhoLeft } from '@/features/groups/names-someone-who-left';
 import { SharedRowDetails } from '@/features/groups/shared-row-details';
-import { useLocale } from '@/lib/i18n';
+import { useMoney } from '@/lib/amounts';
 import { countedCents, paymentOf } from '@core/counting';
 import { planTotal } from '@core/installments';
-import { formatAmount } from '@core/money';
 import { isSharedRow } from '@core/shared-expense';
 
 import { canEdit } from './create-expenses';
@@ -49,7 +48,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     const t = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const tLedger = useTranslations('groups.ledger');
-    const { locale } = useLocale();
+    const money = useMoney();
     const shortDate = useShortDate();
     const { labelOf, styleOf } = useCategoryOptions();
     const reasonId = useId();
@@ -74,7 +73,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
     const amountCents = isPlan ? planTotal(expenses) : countedCents(expense);
     const paid =
         !isPlan && !shared && amountCents !== expense.amountCents
-            ? t('paid', { total: formatAmount(expense.amountCents, expense.currency, locale) })
+            ? t('paid', { total: money(expense.amountCents, expense.currency) })
             : null;
 
     const expenseClsx = clsx('expense-item', { 'expense-item--leaving': leaving });
@@ -84,7 +83,7 @@ const ExpenseRow = (props: ExpenseRowProps) => {
                 <CategoryBadge style={styleOf(expense.categoryId)} />
                 <span className="expense-item__text">{name}</span>
             </span>
-            <span className="expense-item__amount">{formatAmount(amountCents, expense.currency, locale)}</span>
+            <span className="expense-item__amount">{money(amountCents, expense.currency)}</span>
             {(showDate || expense.text || shared || pending || charged || paid) && (
                 <span className="expense-item__meta">
                     {showDate && <span>{shortDate(expense.date)}</span>}

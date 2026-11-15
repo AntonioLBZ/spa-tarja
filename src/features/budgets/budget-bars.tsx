@@ -6,9 +6,8 @@ import { Card, CardList } from '@/components/card/card';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
-import { useLocale } from '@/lib/i18n';
+import { useMoney } from '@/lib/amounts';
 import { TOTAL_SCOPE, budgetUses } from '@core/budget';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 
 import { useBudgets } from './use-budgets';
 
@@ -23,7 +22,6 @@ interface BudgetBarsProps {
 const BudgetBars = (props: BudgetBarsProps) => {
     const { month } = props;
     const t = useTranslations('budgets');
-    const { locale } = useLocale();
     const { expenses } = useYourExpenses();
     const { budgets, scopes, categoryOf } = useBudgets();
     const { labelOf, styleOf } = useCategoryOptions();
@@ -32,9 +30,8 @@ const BudgetBars = (props: BudgetBarsProps) => {
         () => budgetUses({ month, expenses, budgets, scopes, categoryOf }),
         [month, expenses, budgets, scopes, categoryOf]
     );
+    const money = useMoney();
     if (uses.length === 0) return null;
-
-    const money = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
 
     return (
         <CardList label={t('title')}>

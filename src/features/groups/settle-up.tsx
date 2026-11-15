@@ -6,10 +6,11 @@ import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { isCalendarDate, toDateString } from '@core/date';
 import { groupDebts } from '@core/group-debts';
-import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
+import { formatAmountInput, parseAmount } from '@core/money';
 import { canonicalMember } from '@core/shared-member';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
@@ -142,6 +143,7 @@ const SettleUp = (props: SettleUpProps) => {
     const { group, entries, debts, form, onEditDone } = props;
     const t = useTranslations('groups.settle');
     const { locale } = useLocale();
+    const money = useMoney();
     const words = useGroupWords(group);
     const failureWords = useFailureWords();
     const { save } = useEntryActions();
@@ -180,7 +182,7 @@ const SettleUp = (props: SettleUpProps) => {
 
     // A debt in words, as one of "After this…"
     const afterDebt = (debtor: string, creditor: string, owed: number) => {
-        const amount = formatAmount(owed, group.currency, locale);
+        const amount = money(owed, group.currency);
         if (debtor === group.me) return t('after.youOwe', { name: words.nameOf(creditor), amount });
         if (creditor === group.me) return t('after.owesYou', { name: words.nameOf(debtor), amount });
         return t('after.owes', { from: words.nameOf(debtor), to: words.nameOf(creditor), amount });

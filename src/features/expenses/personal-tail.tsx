@@ -4,9 +4,10 @@ import { useTranslations } from 'use-intl';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
+import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { installmentDates, planBalance, splitEvenly } from '@core/installments';
-import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from '@core/money';
+import { formatAmountInput, parseAmount } from '@core/money';
 
 import { PaymentFields, type PaymentState } from './payment-fields';
 import { useShortDate } from './use-short-date';
@@ -138,7 +139,7 @@ const usePersonalTail = (start: PersonalStart, totalCents: number | null, date: 
 const PersonalTail = (props: PersonalTailProps) => {
     const { tail, payment, tried = false } = props;
     const t = useTranslations('expenses.form');
-    const { locale } = useLocale();
+    const money = useMoney();
     const shortDate = useShortDate();
     const id = useId();
     const { parts, partsProblem, balance } = tail;
@@ -158,11 +159,7 @@ const PersonalTail = (props: PersonalTailProps) => {
             {payment.payment === 'voucher' && (
                 <Field
                     label={t('personal')}
-                    hint={
-                        tail.paidBack > 0
-                            ? t('paidBack', { amount: formatAmount(tail.paidBack, DEFAULT_CURRENCY, locale) })
-                            : undefined
-                    }
+                    hint={tail.paidBack > 0 ? t('paidBack', { amount: money(tail.paidBack) }) : undefined}
                     error={tail.personalOver ? t('personalOver') : tail.personalInvalid ? t('personalInvalid') : null}
                 >
                     {(control) => (
@@ -224,17 +221,17 @@ const PersonalTail = (props: PersonalTailProps) => {
             )}
             {partsProblem === 'over' && (
                 <Notice tone="danger" role="alert" id={sumBad ? `${id}-parts-error` : undefined}>
-                    {t('over', { amount: formatAmount(-balance, DEFAULT_CURRENCY, locale) })}
+                    {t('over', { amount: money(-balance) })}
                 </Notice>
             )}
             {partsProblem === 'remaining' && tried && (
                 <Notice tone="danger" role="alert" id={`${id}-parts-error`}>
-                    {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
+                    {t('remaining', { amount: money(balance) })}
                 </Notice>
             )}
             {partsProblem === 'remaining' && !tried && (
                 <p className="field__hint" role="status">
-                    {t('remaining', { amount: formatAmount(balance, DEFAULT_CURRENCY, locale) })}
+                    {t('remaining', { amount: money(balance) })}
                 </p>
             )}
         </>

@@ -44,8 +44,14 @@ const parseAmount = (input: string, locale: string): number | null => {
     return Number(integerDigits) * 100 + Number(fraction.padEnd(2, '0'));
 };
 
-const formatAmount = (cents: number, currency: string, locale: string): string => {
-    return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(cents / 100);
+// Money as the locale writes it. `symbol` draws another symbol in the place of the currency's own, for display only
+const formatAmount = (cents: number, currency: string, locale: string, symbol?: string): string => {
+    const format = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    if (symbol === undefined) return format.format(cents / 100);
+    return format
+        .formatToParts(cents / 100)
+        .map((part) => (part.type === 'currency' ? symbol : part.value))
+        .join('');
 };
 
 // Cents as text for an amount field: what parseAmount reads back, so no grouping and no currency

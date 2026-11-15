@@ -9,11 +9,11 @@ import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { BudgetBars } from '@/features/budgets/budget-bars';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
+import { useMoney } from '@/lib/amounts';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { fromDateString, toDateString } from '@core/date';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
 import { monthOf, shiftMonth } from '@core/month';
 import { summarizeMonth } from '@core/summary';
 
@@ -34,7 +34,7 @@ const Summary = () => {
     const monthName = monthFormat.format(fromDateString(`${month}-01`));
     const set = income.data?.find((item) => item.month === month);
     const summary = summarizeMonth(month, expenses, set?.amountCents ?? null);
-    const money = (cents: number) => formatAmount(cents, DEFAULT_CURRENCY, locale);
+    const money = useMoney();
     const leftClsx = clsx('summary__value', {
         'summary__value--negative': summary.leftCents !== null && summary.leftCents < 0,
     });

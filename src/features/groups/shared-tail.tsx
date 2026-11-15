@@ -8,11 +8,12 @@ import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
+import { useMoney } from '@/lib/amounts';
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { readSharedWith } from '@/lib/offline';
 import { randomSeed } from '@/lib/random-seed';
-import { formatAmount, formatAmountInput, parseAmount } from '@core/money';
+import { formatAmountInput, parseAmount } from '@core/money';
 import { SPLIT_MODES } from '@core/shared-entry';
 import { canonicalMember } from '@core/shared-member';
 import {
@@ -423,11 +424,14 @@ const SharedPeople = (props: SharedPeopleProps) => {
     // Once Add was pressed, shares that don't add up are each marked, as what is left is an error then
     const sumBad = tried && problem?.kind === 'left';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
-    const money = (cents: number) => formatAmount(Math.abs(cents), group.currency, locale);
+    const format = useMoney();
+    const money = (cents: number) => format(Math.abs(cents), group.currency);
+    // The symbol the amounts are drawn with, the one the person chose for the app's currency
     const currencySign =
-        new Intl.NumberFormat(locale, { style: 'currency', currency: group.currency })
-            .formatToParts(0)
-            .find((part) => part.type === 'currency')?.value ?? group.currency;
+        format(0, group.currency)
+            .split('')
+            .filter((char) => !/[\d\s.,\u00a0\u202f-]/.test(char))
+            .join('') || group.currency;
     const percent = (basisPoints: number) =>
         new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
             Math.abs(basisPoints) / HUNDRED_PERCENT

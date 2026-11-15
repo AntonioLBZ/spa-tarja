@@ -4,11 +4,11 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button-link';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { About } from '@/features/about/about';
+import { AmountSettings } from '@/features/amounts/amount-settings';
 import { Account } from '@/features/auth/account';
 import { YourData } from '@/features/export/your-data';
 import { NotificationsSection } from '@/features/notifications/notifications-section';
 import { Profile } from '@/features/profile/profile';
-import { ACCENTS, useAccent } from '@/lib/accent';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { THEMES, useTheme } from '@/lib/theme';
 
@@ -18,7 +18,6 @@ const Settings = () => {
     const t = useTranslations('settings');
     const { locale, setLocale } = useLocale();
     const { theme, setTheme } = useTheme();
-    const { accent, setAccent } = useAccent();
 
     return (
         <section className="settings">
@@ -37,13 +36,7 @@ const Settings = () => {
                 value={theme}
                 onChange={setTheme}
             />
-            <ChoiceGroup
-                legend={t('accent.title')}
-                name="accent"
-                options={ACCENTS.map((value) => ({ value, label: t(`accent.${value}`) }))}
-                value={accent}
-                onChange={setAccent}
-            />
+            <AmountSettings />
             <Profile />
             <NotificationsSection />
             <section className="settings__section">

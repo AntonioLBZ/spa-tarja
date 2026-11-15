@@ -1,6 +1,3 @@
-import { Button } from '@/components/button/button';
-import { ACCENTS, DEFAULT_ACCENT } from '@/lib/accent';
-
 import { splitLightDark, tokensWith, type Token } from './tokens';
 
 import type { Meta } from '@storybook/react-vite';
@@ -45,22 +42,16 @@ export const Category = () => {
     return <Swatches tokens={tokensWith('--color-category-')} />;
 };
 
-export const Accents = () => {
+// The amount colors of the palette for color blindness, which a mark on the root swaps in (ADR-0028)
+export const AmountColorBlind = () => {
     return (
-        <div>
-            {ACCENTS.map((accent) => (
-                <div
-                    className="accent-sample"
-                    data-accent={accent === DEFAULT_ACCENT ? undefined : accent}
-                    key={accent}
-                >
-                    <span className="accent-sample__chip" />
-                    <span className="accent-sample__name">{accent}</span>
-                    <Button variant="primary">Save</Button>
-                    <Button pressed>Pressed</Button>
-                    <a href="#accent">A link</a>
-                </div>
-            ))}
+        <div data-money-palette="color-blind">
+            <Swatches
+                tokens={[
+                    { name: '--color-money-in', value: 'light-dark(#1d4ed8, #8aa4ff)' },
+                    { name: '--color-money-out', value: 'light-dark(#9a4a00, #fb923c)' },
+                ]}
+            />
         </div>
     );
 };
