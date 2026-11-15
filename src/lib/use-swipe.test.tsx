@@ -175,6 +175,20 @@ describe('useSwipe', () => {
         expect(follow).not.toHaveBeenCalled();
     });
 
+    it('swallows the click at the end of a swipe that came back to where it started', () => {
+        show();
+        const onClick = vi.fn();
+        const link = document.querySelector('a')!;
+        link.addEventListener('click', onClick);
+
+        press('pointerdown', link, 500, 300);
+        press('pointermove', link, 300, 300);
+        press('pointerup', link, 500, 300);
+        link.click();
+
+        expect(onClick).not.toHaveBeenCalled();
+    });
+
     it('does nothing while off', () => {
         const { onSwipe } = show(false);
 

@@ -38,6 +38,8 @@ interface Stroke {
     samples: Sample[];
     direction: SwipeDirection | null;
     drag: SwipeDrag | null;
+    // It went further than a tap at some point, wherever it ends
+    moved: boolean;
 }
 
 // Something between the start of the touch and the area that scrolls sideways keeps the drag for itself
@@ -104,7 +106,7 @@ const useSwipe = (
             if (!event.isPrimary || event.pointerType !== 'touch' || !startsHere(event.target)) return;
             if (event.clientX < EDGE_PX || event.clientX > window.innerWidth - EDGE_PX) return;
             const { pointerId, clientX: x, clientY: y, timeStamp: at } = event;
-            stroke = { pointerId, x, y, at, samples: [{ x, at }], direction: null, drag: null };
+            stroke = { pointerId, x, y, at, samples: [{ x, at }], direction: null, drag: null, moved: false };
         };
 
         const onMove = (event: PointerEvent) => {
@@ -112,6 +114,7 @@ const useSwipe = (
             const dx = event.clientX - stroke.x;
             const dy = event.clientY - stroke.y;
             stroke.samples.push({ x: event.clientX, at: event.timeStamp });
+            stroke.moved ||= Math.hypot(dx, dy) > SLOP_PX;
             if (stroke.direction === null) {
                 if (Math.abs(dy) > SLOP_PX && Math.abs(dy) > Math.abs(dx)) {
                     stroke = null;
@@ -135,7 +138,7 @@ const useSwipe = (
             const dx = event.clientX - ended.x;
             const dy = event.clientY - ended.y;
             ended.samples.push({ x: event.clientX, at: event.timeStamp });
-            if (Math.abs(dx) > SLOP_PX) guardUntil = event.timeStamp + CLICK_GUARD_MS;
+            if (ended.moved || Math.abs(dx) > SLOP_PX) guardUntil = event.timeStamp + CLICK_GUARD_MS;
             if (ended.direction !== null) {
                 ended.drag?.release(goesOn(dx, ended, ended.direction));
                 return;
