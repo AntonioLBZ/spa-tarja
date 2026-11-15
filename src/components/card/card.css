@@ -1,8 +1,7 @@
+/* Its bottom edge alone, always (ADR-0033): no left edge to clear, so nothing at the sides */
 .card {
-    border-color: var(--color-border);
-    border-style: solid;
-    border-width: 0 0 var(--size-1) var(--size-1);
-    padding: var(--size-2) var(--size-3);
+    border-bottom: var(--size-1) solid var(--color-border);
+    padding: var(--size-2) 0;
 }
 
 .card-list {

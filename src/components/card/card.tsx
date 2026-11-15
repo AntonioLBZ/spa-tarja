@@ -20,7 +20,8 @@ interface CardListProps {
     children: ReactNode;
 }
 
-// A box with the notch and the padding of a row. What goes inside it, and how, is up to the call site.
+// A row drawn as its bottom edge alone, with the padding of a row above and below. What goes inside it, and how, is
+// up to the call site.
 const Card = (props: CardProps) => {
     const { as: Tag = 'div', className, children } = props;
     const cardClsx = clsx('card', className);
