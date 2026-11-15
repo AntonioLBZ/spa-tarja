@@ -1,6 +1,6 @@
 # ADR-0031: The disclosure toggle draws its notch as it is used
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context
