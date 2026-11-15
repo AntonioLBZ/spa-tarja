@@ -1,6 +1,6 @@
 # ADR-0032: Settings split into pages
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-15
 
 ## Context
