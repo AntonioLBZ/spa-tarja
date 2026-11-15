@@ -66,14 +66,15 @@
     transition: transform var(--duration-base) var(--ease-standard);
 }
 
-/* The chevron on the first line of a row that grows under it; a row whose first line is shorter moves it with
+/* The chevron on the first line of a row that grows under it, moved down by a margin, outside the box that turns, so
+   it stays on that line when open; a row whose first line is shorter moves it with
    --disclosure-chevron-offset */
 .disclosure--top .disclosure__toggle {
     align-items: flex-start;
 }
 
 .disclosure--top .disclosure__chevron {
-    padding-block-start: var(--disclosure-chevron-offset, var(--size-2));
+    margin-block-start: var(--disclosure-chevron-offset, var(--size-2));
 }
 
 /* The chevron in a column as wide as a touch target, so the end of the summary lines up with the icon buttons under it */
