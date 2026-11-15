@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 
 import { appUpdate } from './features/pwa/app-update-state';
 import { createAuth, createAuthService } from './lib/auth';
+import { leaveSlidesToTheBrowser } from './lib/browser-slide';
 import { idbStorage } from './lib/offline';
 import { applyTheme, forgetStoredAccent, readStoredTheme } from './lib/theme';
 import { endTransitionsOnTap } from './lib/view-transition-tap';
@@ -25,6 +26,9 @@ appUpdate.start();
 
 // A tap never waits for a screen to finish sliding
 endTransitionsOnTap();
+
+// Before the router, so its own listener finds the slide already skipped
+leaveSlidesToTheBrowser();
 
 const auth = createAuth(createAuthService());
 const router = createAppRouter();
