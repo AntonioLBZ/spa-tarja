@@ -9,17 +9,43 @@
     margin: 0;
 }
 
-/* The notch comes from the button; the toggle only lays out what is inside it. Brought into view (the add form's
-   heading on Edit, a row taking the focus back), it keeps room for its focus ring */
+/* Closed it is its bottom edge. The left edge is drawn by ::before and grows as in a Button (ADR-0031): half the height
+   on hover, the whole height while pressed and while open. The padding makes up for the edge it no longer has. Brought
+   into view (the add form's heading on Edit, a row taking the focus back), it keeps room for its focus ring */
 .disclosure__toggle {
     align-items: center;
+    border-inline-start-width: 0;
     display: flex;
     gap: var(--size-2);
     justify-content: flex-start;
-    padding-inline: var(--size-3);
+    padding-inline: calc(var(--size-3) + var(--size-1)) var(--size-3);
+    position: relative;
     scroll-margin-block: var(--size-2);
     text-align: start;
     width: 100%;
+}
+
+.disclosure__toggle::before {
+    background: var(--color-border);
+    block-size: 100%;
+    content: '';
+    inline-size: var(--size-1);
+    inset: auto auto 0 0;
+    position: absolute;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+
+@media (hover: hover) {
+    .disclosure__toggle:not(:disabled):hover::before {
+        transform: scaleY(0.5);
+    }
+}
+
+.disclosure__toggle:not(:disabled):active::before,
+.disclosure__toggle[aria-expanded='true']:not(:disabled)::before {
+    transform: scaleY(1);
 }
 
 /* The summary and, while closed, what the panel holds, which goes under it when it doesn't fit */

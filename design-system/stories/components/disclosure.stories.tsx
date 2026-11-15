@@ -24,11 +24,18 @@ const Story: Meta<DisclosureProps> = {
     },
 };
 
-// The state is kept in the args, so the `open` control follows what is clicked
+// The first is the one the controls drive; the others show the closed, the open and the disabled toggle at once
 export const Disclosure = (args: DisclosureProps) => {
     const [, updateArgs] = useArgs();
 
-    return <DisclosureComponent {...args} onOpenChange={(open) => updateArgs({ open })} />;
+    return (
+        <div style={{ display: 'grid', gap: '1rem' }}>
+            <DisclosureComponent {...args} onOpenChange={(open) => updateArgs({ open })} />
+            <DisclosureComponent {...args} open={false} summary="Closed" onOpenChange={undefined} />
+            <DisclosureComponent {...args} open summary="Open" onOpenChange={undefined} />
+            <DisclosureComponent {...args} open={false} disabled summary="Disabled" onOpenChange={undefined} />
+        </div>
+    );
 };
 
 export default Story;
