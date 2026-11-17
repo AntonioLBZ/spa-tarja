@@ -1,6 +1,9 @@
 .expense-form {
     display: grid;
     gap: var(--size-4);
+
+    /* One column no wider than the sheet: a line that never wraps (the summary of the split) is cut, never widens it */
+    grid-template-columns: minmax(0, 1fr);
 }
 
 /* For at its start and, shared, the summary of the split at its end, on one row as tall as the tabs at every width:

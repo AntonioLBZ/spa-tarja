@@ -1,4 +1,5 @@
-/* One line: Expenses keeps its width, the groups share what is left and cut their names. No notch and no rule: the
+/* One line: Expenses keeps its width, the groups share what is left in equal parts, a short name giving what it
+   doesn't use to the other, and cut their names. No notch and no rule: the
    current word carries the ink bar of the header. */
 .pinned-tabs {
     align-items: stretch;
@@ -20,4 +21,9 @@
 
 .pinned-tabs__home {
     flex-shrink: 0;
+}
+
+.pinned-tabs__group {
+    flex: 1 1 0;
+    max-inline-size: max-content;
 }

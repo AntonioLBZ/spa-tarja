@@ -57,7 +57,14 @@ const PinnedTab = (props: PinnedTabProps) => {
     const { title } = useGroupWords(group);
 
     return (
-        <TabLink to="/" search={{ group: group.id }} activeOptions={ACTIVE} title={title} viewTransition={slide}>
+        <TabLink
+            className="pinned-tabs__group"
+            to="/"
+            search={{ group: group.id }}
+            activeOptions={ACTIVE}
+            title={title}
+            viewTransition={slide}
+        >
             {title}
         </TabLink>
     );
