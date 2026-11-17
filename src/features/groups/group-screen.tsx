@@ -52,20 +52,24 @@ const GroupView = (props: GroupViewProps) => {
     const titleClsx = clsx('group-screen__title', { 'visually-hidden': inTab });
     const amount = useAmount();
     const balance = myBalance(group, entries);
+    const editClsx = clsx('group-screen__edit', { 'group-screen__edit--foot': inTab });
+    const editLink = (
+        <ButtonLink ghost className={editClsx} to="/groups/$groupId/edit" params={{ groupId: group.id }}>
+            {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
+        </ButtonLink>
+    );
 
     return (
         <section className="group-screen">
-            <div className="group-screen__head">
-                {inTab ? <h2 className={titleClsx}>{words.title}</h2> : <h1 className={titleClsx}>{words.title}</h1>}
-                <ButtonLink
-                    ghost
-                    className="group-screen__edit"
-                    to="/groups/$groupId/edit"
-                    params={{ groupId: group.id }}
-                >
-                    {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
-                </ButtonLink>
-            </div>
+            {/* Under a tab the tabs are the title, so the link goes to the foot instead of a row of its own */}
+            {inTab ? (
+                <h2 className={titleClsx}>{words.title}</h2>
+            ) : (
+                <div className="group-screen__head">
+                    <h1 className={titleClsx}>{words.title}</h1>
+                    {editLink}
+                </div>
+            )}
             <EntryRefusals groupId={group.id} />
             <PushSuggestion group={group} />
             {hasData && (
@@ -113,6 +117,7 @@ const GroupView = (props: GroupViewProps) => {
                     onRefocused={sheet.clearRefocus}
                 />
             )}
+            {inTab && editLink}
         </section>
     );
 };

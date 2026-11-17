@@ -22,3 +22,9 @@
     flex-shrink: 0;
     margin-inline-start: auto;
 }
+
+/* At the foot a ghost lines up with the text, so it doesn't stretch across the column */
+.group-screen__edit--foot {
+    justify-self: start;
+    margin-inline-start: 0;
+}

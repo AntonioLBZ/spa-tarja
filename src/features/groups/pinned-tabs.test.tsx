@@ -77,7 +77,9 @@ describe('the tabs of the Expenses screen', () => {
 
         fireEvent.click(await waitFor(() => tab('Trip')));
 
-        await screen.findByRole('link', { name: en.groups.edit.link });
+        const edit = await screen.findByRole('link', { name: en.groups.edit.link });
+        expect(edit.parentElement?.classList.contains('group-screen')).toBe(true);
+        expect(edit.parentElement?.lastElementChild).toBe(edit);
         expect(tab('Trip').getAttribute('aria-current')).toBe('page');
         expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBeNull();
         await openAddSheet();
