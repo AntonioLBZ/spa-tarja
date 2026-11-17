@@ -55,7 +55,17 @@ const GroupView = (props: GroupViewProps) => {
 
     return (
         <section className="group-screen">
-            {inTab ? <h2 className={titleClsx}>{words.title}</h2> : <h1 className={titleClsx}>{words.title}</h1>}
+            <div className="group-screen__head">
+                {inTab ? <h2 className={titleClsx}>{words.title}</h2> : <h1 className={titleClsx}>{words.title}</h1>}
+                <ButtonLink
+                    ghost
+                    className="group-screen__edit"
+                    to="/groups/$groupId/edit"
+                    params={{ groupId: group.id }}
+                >
+                    {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
+                </ButtonLink>
+            </div>
             <EntryRefusals groupId={group.id} />
             <PushSuggestion group={group} />
             {hasData && (
@@ -103,9 +113,6 @@ const GroupView = (props: GroupViewProps) => {
                     onRefocused={sheet.clearRefocus}
                 />
             )}
-            <ButtonLink ghost className="group-screen__edit" to="/groups/$groupId/edit" params={{ groupId: group.id }}>
-                {group.kind === 'direct' ? t('edit.linkFriend') : t('edit.link')}
-            </ButtonLink>
         </section>
     );
 };

@@ -5,10 +5,20 @@
 }
 
 .group-screen__title {
+    min-width: 0;
     overflow-wrap: anywhere;
 }
 
-/* A ghost lines up with the text, so it doesn't stretch across the column */
+/* The title and, at its end, the way to the settings */
+.group-screen__head {
+    align-items: center;
+    display: flex;
+    gap: var(--size-4);
+    justify-content: space-between;
+    min-block-size: var(--size-touch);
+}
+
 .group-screen__edit {
-    justify-self: start;
+    flex-shrink: 0;
+    margin-inline-start: auto;
 }

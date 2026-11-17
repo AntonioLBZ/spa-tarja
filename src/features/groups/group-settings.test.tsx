@@ -46,7 +46,7 @@ afterEach(() => {
 });
 
 describe('the way to the settings', () => {
-    it('is a link at the end of a group, Edit group', async () => {
+    it('is a link at the end of the title of a group, Edit group', async () => {
         const group = sampleGroup({ name: 'Lisbon' });
         stubApi(createFakeApi({ groups: [group] }).handler);
         renderApp({ path: `/groups/${group.id}` });

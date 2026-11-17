@@ -601,7 +601,7 @@
             "showHint": "Tu parte cuenta en tu lista, resumen, gráficos y presupuestos.",
             "archive": "Archivar",
             "unarchive": "Recuperar",
-            "name": "Nombre",
+            "name": "Nombre del grupo",
             "simplify": "Simplificar deudas",
             "simplifyHint": "Menos pagos para quedar en paz. Los gastos no cambian.",
             "save": "Guardar",

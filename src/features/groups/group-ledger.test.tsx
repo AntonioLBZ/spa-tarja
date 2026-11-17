@@ -339,12 +339,12 @@ describe('the ledger of a group', () => {
         }
     );
 
-    it('is over the link to the settings of the group', async () => {
+    it('is under the link to the settings of the group', async () => {
         const group = trip();
         await open(group, [dinner(group, { text: 'Dinner' })]);
 
         const edit = screen.getByRole('link', { name: en.groups.edit.link });
-        expect(theLedger().compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(theLedger().compareDocumentPosition(edit) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     });
 
     it('speaks Spanish', async () => {

@@ -601,7 +601,7 @@
             "showHint": "Your share counts in your list, summary, charts and budgets.",
             "archive": "Archive",
             "unarchive": "Bring back",
-            "name": "Name",
+            "name": "Group name",
             "simplify": "Simplify debts",
             "simplifyHint": "Fewer payments to settle up. Expenses stay the same.",
             "save": "Save",
