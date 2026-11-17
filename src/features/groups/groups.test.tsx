@@ -634,6 +634,27 @@ describe('making a group with friends', () => {
         ]);
     });
 
+    it('marks a friend with a filled person and somebody added by name with one in outline', async () => {
+        await start();
+
+        addPerson('Fran');
+        search('');
+        chooseFriend('Eva');
+        closeSearch();
+
+        expect(
+            within(screen.getByRole('list', { name: text.new.people }))
+                .getAllByRole('listitem')
+                .map((item) => [
+                    item.textContent?.replace(text.new.remove, ''),
+                    item.querySelector('svg')?.dataset.icon,
+                ])
+        ).toEqual([
+            ['Fran', 'person'],
+            ['Eva', 'person_filled'],
+        ]);
+    });
+
     it('takes no friend past what a group holds', async () => {
         await start();
 

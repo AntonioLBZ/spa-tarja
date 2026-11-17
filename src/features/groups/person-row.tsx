@@ -6,6 +6,7 @@ import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type SharedGroup } from '@core/shared-group';
@@ -127,13 +128,16 @@ const PersonRow = (props: PersonRowProps) => {
     );
 
     const summary = (
-        <span className="person-row__body">
-            <span className="person-row__name">{name}</span>
-            <span className="person-row__detail">
-                {tags.map((tag) => (
-                    <span key={String(tag)}>{tag}</span>
-                ))}
-                {cents !== null && <span>{words.sentence(member.id, cents)}</span>}
+        <span className="person-row__summary">
+            <Icon name={member.claimed ? 'person_filled' : 'person'} />
+            <span className="person-row__body">
+                <span className="person-row__name">{name}</span>
+                <span className="person-row__detail">
+                    {tags.map((tag) => (
+                        <span key={String(tag)}>{tag}</span>
+                    ))}
+                    {cents !== null && <span>{words.sentence(member.id, cents)}</span>}
+                </span>
             </span>
         </span>
     );

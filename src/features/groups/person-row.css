@@ -1,3 +1,12 @@
+/* Who they are at a glance, a user filled and a dummy in outline, then the name and the rest */
+.person-row__summary {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: var(--size-2);
+    min-width: 0;
+}
+
 /* What the toggle shows: the name, and under it who they are and their balance */
 .person-row__body {
     display: grid;

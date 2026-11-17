@@ -138,6 +138,16 @@ describe('the people of a group', () => {
         expect(screen.queryByRole('heading', { name: text.title })).toBeNull();
         expect(screen.queryByLabelText(text.add)).toBeNull();
     });
+    it('mark who uses the app with a filled person and a dummy with one in outline', async () => {
+        await edit(trip());
+
+        expect(
+            within(sheet())
+                .getAllByRole('listitem')
+                .map((item) => item.querySelector('svg[data-icon^="person"]')?.getAttribute('data-icon'))
+        ).toEqual(['person_filled', 'person_filled', 'person']);
+    });
+
     it('show no balance, and leave Remove to ask, while the expenses are not on the device', async () => {
         const group = trip();
         const api = createFakeApi({ groups: [group] });

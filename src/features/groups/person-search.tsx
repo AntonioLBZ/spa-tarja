@@ -128,7 +128,7 @@ const PersonSearch = (props: PersonSearchProps) => {
                                     type="button"
                                     onClick={() => pick({ friend })}
                                 >
-                                    <Icon name="person" />
+                                    <Icon name="person_filled" />
                                     <span className="person-search__name">{friend.name}</span>
                                 </button>
                             </li>

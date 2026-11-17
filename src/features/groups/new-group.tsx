@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { Button } from '@/components/button/button';
 import { Card, CardList } from '@/components/card/card';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { useOnline } from '@/lib/offline';
 import { MAX_GROUP_MEMBERS, SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
@@ -133,7 +134,10 @@ const NewGroup = () => {
                     <CardList label={t('new.people')}>
                         {people.map((added) => (
                             <Card as="li" className="new-group__person" key={added.id}>
-                                <span className="new-group__name">{added.name}</span>
+                                <span className="new-group__who">
+                                    <Icon name={added.friend === undefined ? 'person' : 'person_filled'} />
+                                    <span className="new-group__name">{added.name}</span>
+                                </span>
                                 <Button
                                     ghost
                                     aria-label={t('new.removeItem', { name: added.name })}
