@@ -6,4 +6,11 @@ export {
     type AmountPreferences,
     type CurrencySymbol,
 } from './amounts';
-export { AmountsProvider, useAmount, useAmountPreferences, useMoney, type AmountCues } from './amounts-provider';
+export {
+    AmountsProvider,
+    useAmount,
+    useAmountPlaceholder,
+    useAmountPreferences,
+    useMoney,
+    type AmountCues,
+} from './amounts-provider';

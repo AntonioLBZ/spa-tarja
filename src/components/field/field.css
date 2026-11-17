@@ -155,6 +155,16 @@
     transform: translateY(calc((var(--field-height) - 1.5rem) / 2));
 }
 
+/* An example of what goes in, quiet, and only once the label is up: while it is down the two would overlap */
+.field__box :is(input)::placeholder {
+    color: var(--color-content-secondary);
+    opacity: 1;
+}
+
+.field__box--labelled:not(:focus-within) :is(input)::placeholder {
+    color: transparent;
+}
+
 .field__hint {
     color: var(--color-content-secondary);
     margin: 0;

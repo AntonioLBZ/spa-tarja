@@ -8,7 +8,8 @@ import './field.css';
 // What the control must spread on its element to be wired to the label, the hint and the error
 interface FieldControl {
     id: string;
-    // Blank, so the box can tell an empty field from a filled one and keep the label in the middle while it is empty
+    // Never empty, so the box can tell an empty field from a filled one and keep the label in the middle while it is
+    // empty: blank, or the example the field was given
     placeholder: string;
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
@@ -61,6 +62,8 @@ interface FieldProps {
     describedBy?: string;
     icon?: ReactNode;
     suffix?: ReactNode;
+    // An example of what goes in, shown only while the field is empty and the label is up
+    placeholder?: string;
     // Buttons beside the box, such as the Save of a field that is a form of its own
     actions?: ReactNode;
     className?: string;
@@ -70,7 +73,7 @@ interface FieldProps {
 
 // A box with the label and the control, and under it a hint and an error, tied together for assistive technology
 const Field = (props: FieldProps) => {
-    const { label, hint, error, describedBy, icon, suffix, actions, className, children } = props;
+    const { label, hint, error, describedBy, icon, suffix, placeholder, actions, className, children } = props;
     const id = useId();
     const hintId = `${id}-hint`;
     const errorId = `${id}-error`;
@@ -90,7 +93,7 @@ const Field = (props: FieldProps) => {
         >
             {children({
                 id,
-                placeholder: ' ',
+                placeholder: placeholder || ' ',
                 'aria-describedby': ids || undefined,
                 'aria-invalid': error === undefined ? undefined : Boolean(error),
             })}

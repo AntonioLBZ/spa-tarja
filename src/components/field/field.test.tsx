@@ -39,6 +39,16 @@ describe('Field', () => {
         expect(screen.getByLabelText('Amount').getAttribute('placeholder')).toBe(' ');
     });
 
+    it('gives the control the example it was given as its placeholder', () => {
+        render(
+            <Field label="Amount" placeholder="0.00">
+                {input}
+            </Field>
+        );
+
+        expect(screen.getByLabelText('Amount').getAttribute('placeholder')).toBe('0.00');
+    });
+
     it('draws an icon inside the box, before the control, hidden from assistive technology', () => {
         const { container } = render(
             <Field label="Search" icon={<svg data-testid="glass" />}>

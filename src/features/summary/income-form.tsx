@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { useAmountPlaceholder } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
 import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/money';
@@ -26,6 +27,7 @@ const IncomeForm = (props: IncomeFormProps) => {
     const { month, monthName, income } = props;
     const t = useTranslations('summary.form');
     const { locale } = useLocale();
+    const amountPlaceholder = useAmountPlaceholder();
     const online = useOnline();
     const { save, remove } = useIncomeActions();
 
@@ -81,6 +83,7 @@ const IncomeForm = (props: IncomeFormProps) => {
         <form className="income-form" onSubmit={(event) => void handleSubmit(event)}>
             <Field
                 label={t('label', { month: monthName })}
+                placeholder={amountPlaceholder}
                 error={invalid ? t('invalid') : null}
                 actions={
                     <>

@@ -12,6 +12,7 @@ import { failureOf, useFailureWords } from '@/features/groups/group-failure';
 import { SharedPayment, SharedSummary, SharedTail, useSharedTail } from '@/features/groups/shared-tail';
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
+import { useAmountPlaceholder } from '@/lib/amounts';
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { rememberSharedWith } from '@/lib/offline';
@@ -146,6 +147,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
     const t = useTranslations('expenses.form');
     const tPayment = useTranslations('expenses.payment');
     const { locale } = useLocale();
+    const amountPlaceholder = useAmountPlaceholder();
     const shortDate = useShortDate();
     const user = useUser();
     const save = useSaveExpense();
@@ -365,7 +367,11 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 </div>
             )}
 
-            <Field label={t('amount')} error={amountInvalid ? t('amountInvalid') : null}>
+            <Field
+                label={t('amount')}
+                placeholder={amountPlaceholder}
+                error={amountInvalid ? t('amountInvalid') : null}
+            >
                 {(control) => (
                     <input
                         {...control}
@@ -381,7 +387,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                 )}
             </Field>
 
-            <Field label={t('text')}>
+            <Field label={t('text')} placeholder={t('textPlaceholder')}>
                 {(control) => (
                     <input
                         {...control}

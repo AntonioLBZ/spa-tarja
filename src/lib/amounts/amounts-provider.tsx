@@ -1,7 +1,7 @@
 import { createContext, use, useCallback, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useLocale } from '@/lib/i18n';
-import { DEFAULT_CURRENCY, formatAmount } from '@core/money';
+import { DEFAULT_CURRENCY, formatAmount, formatAmountInput } from '@core/money';
 
 import { applyMoneyPalette, readStoredAmounts, storeAmounts, type AmountPreferences } from './amounts';
 
@@ -56,6 +56,12 @@ const useMoney = () => {
     );
 };
 
+// What an empty amount field shows as an example, zero the way the locale types it: "0.00", "0,00"
+const useAmountPlaceholder = () => {
+    const { locale } = useLocale();
+    return formatAmountInput(0, locale);
+};
+
 interface AmountCues {
     // Whether the screen wants color and sign on this amount; the person's settings still decide
     cues?: boolean;
@@ -81,4 +87,12 @@ const useAmount = () => {
     );
 };
 
-export { AmountsProvider, useAmount, useAmountPreferences, useMoney, type AmountCues, type AmountsProviderProps };
+export {
+    AmountsProvider,
+    useAmount,
+    useAmountPlaceholder,
+    useAmountPreferences,
+    useMoney,
+    type AmountCues,
+    type AmountsProviderProps,
+};

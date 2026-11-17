@@ -8,7 +8,7 @@ import { Field, FieldBox } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
-import { useMoney } from '@/lib/amounts';
+import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { readSharedWith } from '@/lib/offline';
@@ -490,6 +490,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
     const sumBad = tried && problem?.kind === 'left';
     const nobodyYet = tail.payer === null ? [{ value: '', label: t('paidByNone') }] : [];
     const format = useMoney();
+    const amountPlaceholder = useAmountPlaceholder();
     const money = (cents: number) => format(Math.abs(cents), group.currency);
     // The symbol the amounts are drawn with, the one the person chose for the app's currency
     const currencySign =
@@ -564,6 +565,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                                         })}
                                         autoComplete="off"
                                         inputMode="decimal"
+                                        placeholder={byPercent ? '0' : amountPlaceholder}
                                         type="text"
                                         value={row.text}
                                         onChange={(event) => tail.type(row.id, event.target.value)}

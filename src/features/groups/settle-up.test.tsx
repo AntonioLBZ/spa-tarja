@@ -136,7 +136,7 @@ describe('the sheet of Settle up', () => {
         expect(within(dialog).getByLabelText(text.amount)).toBeDefined();
     });
 
-    it('has a button to close it, which keeps what was typed', async () => {
+    it('has a button to close it, which drops what was typed', async () => {
         const group = trip();
         await open(group, debts(group));
         fireEvent.click(toggle());
@@ -146,7 +146,7 @@ describe('the sheet of Settle up', () => {
         expect(screen.queryByRole('dialog')).toBeNull();
         fireEvent.click(toggle());
 
-        expect(amount().value).toBe('7');
+        expect(amount().value).toBe('');
     });
 
     it('is not in the page of a closed group', async () => {
@@ -540,7 +540,7 @@ describe('the form', () => {
         expect(amount().value).toBe('3');
     });
 
-    it('lists the people who have not left, and keeps what was typed when it is closed and opened again', async () => {
+    it('lists the people who have not left, and starts again when it is closed and opened again', async () => {
         const dani = person('Dani', { leftAt: 1 });
         const group = trip({ members: [ana, bea, cris, dani] });
         await open(group, debts(group));
@@ -553,8 +553,8 @@ describe('the form', () => {
         expect(screen.queryByRole('dialog')).toBeNull();
         fireEvent.click(toggle());
 
-        expect(chosenOption(text.to)).toBe('Cris');
-        expect(amount().value).toBe('3');
+        expect(chosenOption(text.to)).toBe('Bea');
+        expect(amount().value).toBe('');
     });
 
     it('keeps Save off until the amount is at least a cent, and while From is To, which it says', async () => {

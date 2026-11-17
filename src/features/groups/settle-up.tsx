@@ -6,7 +6,7 @@ import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
-import { useMoney } from '@/lib/amounts';
+import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { isCalendarDate, toDateString } from '@core/date';
 import { groupDebts } from '@core/group-debts';
@@ -144,6 +144,7 @@ const SettleUp = (props: SettleUpProps) => {
     const t = useTranslations('groups.settle');
     const { locale } = useLocale();
     const money = useMoney();
+    const amountPlaceholder = useAmountPlaceholder();
     const words = useGroupWords(group);
     const failureWords = useFailureWords();
     const { save } = useEntryActions();
@@ -250,14 +251,17 @@ const SettleUp = (props: SettleUpProps) => {
         }
     };
 
-    // Closing the sheet keeps what was typed for a new settlement, and ends the edit of one, as Cancel does
+    // Closing the sheet drops what was typed for a new settlement, so it always opens from the start, and ends the
+    // edit of one, as Cancel does
     const handleClose = () => {
         if (!form.open) return;
+        setFailure(null);
         if (editing) {
             form.stopEditing();
             onEditDone(editing.id);
             return;
         }
+        form.setDraft(null);
         form.setOpen(false);
         returnFocus.current = true;
     };
@@ -297,7 +301,7 @@ const SettleUp = (props: SettleUpProps) => {
                             />
                         )}
                     </Field>
-                    <Field label={t('amount')} hint={hint || undefined}>
+                    <Field label={t('amount')} placeholder={amountPlaceholder} hint={hint || undefined}>
                         {(control) => (
                             <input
                                 {...control}

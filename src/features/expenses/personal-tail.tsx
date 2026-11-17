@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
-import { useMoney } from '@/lib/amounts';
+import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { installmentDates, planBalance, splitEvenly } from '@core/installments';
 import { formatAmountInput, parseAmount } from '@core/money';
@@ -140,6 +140,7 @@ const PersonalTail = (props: PersonalTailProps) => {
     const { tail, payment, tried = false } = props;
     const t = useTranslations('expenses.form');
     const money = useMoney();
+    const amountPlaceholder = useAmountPlaceholder();
     const shortDate = useShortDate();
     const id = useId();
     const { parts, partsProblem, balance } = tail;
@@ -159,6 +160,7 @@ const PersonalTail = (props: PersonalTailProps) => {
             {payment.payment === 'voucher' && (
                 <Field
                     label={t('personal')}
+                    placeholder={amountPlaceholder}
                     hint={tail.paidBack > 0 ? t('paidBack', { amount: money(tail.paidBack) }) : undefined}
                     error={tail.personalOver ? t('personalOver') : tail.personalInvalid ? t('personalInvalid') : null}
                 >
@@ -196,6 +198,7 @@ const PersonalTail = (props: PersonalTailProps) => {
                     <Field
                         key={tail.planDates[index]}
                         label={t('part', { part: index + 1, parts, date: shortDate(tail.planDates[index]!) })}
+                        placeholder={amountPlaceholder}
                         describedBy={partsProblem === 'invalid' || sumBad ? `${id}-parts-error` : undefined}
                     >
                         {(control) => (

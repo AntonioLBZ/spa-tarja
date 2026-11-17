@@ -8,6 +8,7 @@ import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { useAmountPlaceholder } from '@/lib/amounts';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
@@ -25,6 +26,7 @@ const Budgets = () => {
     const t = useTranslations('budgets');
     const tMonthSwitch = useTranslations('monthSwitch');
     const { locale } = useLocale();
+    const amountPlaceholder = useAmountPlaceholder();
     const online = useOnline();
     const { budgets, scopes, isError } = useBudgets();
     const { labelOf, styleOf } = useCategoryOptions();
@@ -132,6 +134,7 @@ const Budgets = () => {
                     return (
                         <Field
                             key={scope}
+                            placeholder={amountPlaceholder}
                             label={
                                 scope === TOTAL_SCOPE ? (
                                     t('total')

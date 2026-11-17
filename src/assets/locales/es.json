@@ -18,6 +18,7 @@
             "close": "Cerrar",
             "amount": "Importe",
             "text": "Descripción",
+            "textPlaceholder": "Café, cena, alquiler…",
             "category": "Categoría",
             "suggested": "Sugerida según la descripción",
             "customShared": "Las categorías propias no están disponibles en los gastos compartidos.",

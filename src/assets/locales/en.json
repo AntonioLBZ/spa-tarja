@@ -18,6 +18,7 @@
             "close": "Close",
             "amount": "Amount",
             "text": "Description",
+            "textPlaceholder": "Coffee, dinner, rent…",
             "category": "Category",
             "suggested": "Suggested from the description",
             "customShared": "Custom categories aren't available in shared expenses.",
