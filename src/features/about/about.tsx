@@ -5,11 +5,12 @@ import { useTranslations } from 'use-intl';
 import { CardList, CardTerm } from '@/components/card/card';
 import { PrivacyNotice } from '@/features/auth/privacy-notice';
 import { healthQuery } from '@/lib/api';
+import { REPOSITORY_URL } from '@/lib/repository';
 import { appVersion } from '@/lib/version';
 
 import './about.css';
 
-// The version of the build, whether the API and its database answer, and the privacy notice
+// The version of the build, whether the API and its database answer, the privacy notice and the code of the app
 const About = () => {
     const t = useTranslations('settings.about');
     const health = useQuery(healthQuery());
@@ -25,6 +26,11 @@ const About = () => {
                     <span className={statusClsx} role="status">
                         {t(`status.${state}`)}
                     </span>
+                </CardTerm>
+                <CardTerm term={t('source.label')} className="card--linked">
+                    <a href={REPOSITORY_URL} rel="noopener noreferrer" target="_blank">
+                        {t('source.value')}
+                    </a>
                 </CardTerm>
             </CardList>
             <PrivacyNotice />

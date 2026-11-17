@@ -3,7 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
-import { CONTACT_EMAIL, CONTACT_MAILTO, PORTFOLIO_URL } from '@/lib/contact';
+import { CONTACT_EMAIL, CONTACT_MAILTO } from '@/lib/contact';
 
 import './privacy-notice.css';
 
@@ -42,14 +42,6 @@ const PrivacyNotice = () => {
                     <div className="privacy-notice__links">
                         <a className="button button--ghost" href={CONTACT_MAILTO}>
                             {CONTACT_EMAIL}
-                        </a>
-                        <a
-                            className="button button--ghost"
-                            href={PORTFOLIO_URL}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                        >
-                            {t('who.portfolio')}
                         </a>
                     </div>
                 </section>

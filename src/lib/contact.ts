@@ -2,6 +2,5 @@
 // app can be told apart; the tag never shows.
 const CONTACT_EMAIL = 'antoniolozbez@gmail.com';
 const CONTACT_MAILTO = 'mailto:antoniolozbez+tarja@gmail.com';
-const PORTFOLIO_URL = 'https://albz.app';
 
-export { CONTACT_EMAIL, CONTACT_MAILTO, PORTFOLIO_URL };
+export { CONTACT_EMAIL, CONTACT_MAILTO };

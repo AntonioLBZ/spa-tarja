@@ -122,4 +122,16 @@ describe('About', () => {
             expect.stringContaining('/api/health')
         );
     });
+
+    it('links to the code of the app from a row of its own', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/settings' });
+
+        const about = await openAbout();
+
+        const link = row(about, en.settings.about.source.label).querySelector('a')!;
+        expect(link.textContent).toBe(en.settings.about.source.value);
+        expect(link.getAttribute('href')).toBe('https://github.com/AntonioLBZ/spa-tarja');
+        expect(link.getAttribute('target')).toBe('_blank');
+    });
 });

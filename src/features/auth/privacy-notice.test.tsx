@@ -87,16 +87,6 @@ describe('privacy notice in the settings', () => {
         expect(dialog.textContent).toContain('La Coruña');
     });
 
-    it('links to the portfolio', async () => {
-        stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
-        const dialog = await openNotice();
-
-        const link = within(dialog).getByRole('link', { name: en.privacy.who.portfolio });
-
-        expect(link.getAttribute('href')).toBe('https://albz.app');
-    });
-
     it('points at the controls of the settings by the names they have there', async () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });

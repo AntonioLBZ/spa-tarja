@@ -165,8 +165,7 @@
         "age": "Tarja es para personas de 14 años o más.",
         "who": {
             "title": "Quién es responsable",
-            "text": "Tarja la lleva Antonio López Benítez, a título personal, en La Coruña (España), y es quien decide qué se hace con tus datos. Para cualquier asunto sobre ellos, escribe a:",
-            "portfolio": "Portfolio"
+            "text": "Tarja la lleva Antonio López Benítez, a título personal, en La Coruña (España), y es quien decide qué se hace con tus datos. Para cualquier asunto sobre ellos, escribe a:"
         },
         "stored": {
             "title": "Qué se guarda y para qué",
@@ -209,7 +208,7 @@
             "write": "Preguntar lo que quieras sobre tus datos, u oponerte a un uso de ellos o pedir que se limite, escribiendo al contacto de arriba. La respuesta llega en un mes como máximo.",
             "complaint": "También puedes reclamar ante la autoridad española de protección de datos, la Agencia Española de Protección de Datos (aepd.es), o ante la del país de la UE en el que vivas."
         },
-        "updated": "Última actualización: 15 de noviembre de 2026."
+        "updated": "Última actualización: 17 de noviembre de 2026."
     },
     "settings": {
         "title": "Ajustes",
@@ -311,6 +310,10 @@
         },
         "about": {
             "title": "Acerca de Tarja",
+            "source": {
+                "label": "Código fuente",
+                "value": "GitHub"
+            },
             "version": "Versión",
             "status": {
                 "label": "Estado",

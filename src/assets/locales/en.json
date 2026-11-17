@@ -165,8 +165,7 @@
         "age": "Tarja is for people aged 14 or over.",
         "who": {
             "title": "Who is responsible",
-            "text": "Tarja is run by Antonio López Benítez, a private individual in La Coruña, Spain, who decides what is done with your data. For anything about it, write to:",
-            "portfolio": "Portfolio"
+            "text": "Tarja is run by Antonio López Benítez, a private individual in La Coruña, Spain, who decides what is done with your data. For anything about it, write to:"
         },
         "stored": {
             "title": "What is stored, and why",
@@ -209,7 +208,7 @@
             "write": "Ask anything about your data, or object to a use of it or ask to limit it, by writing to the contact above. You'll get an answer within a month.",
             "complaint": "You can also complain to the Spanish data protection authority, the Agencia Española de Protección de Datos (aepd.es), or to the one of the EU country where you live."
         },
-        "updated": "Last updated: 15 November 2026."
+        "updated": "Last updated: 17 November 2026."
     },
     "settings": {
         "title": "Settings",
@@ -311,6 +310,10 @@
         },
         "about": {
             "title": "About Tarja",
+            "source": {
+                "label": "Source code",
+                "value": "GitHub"
+            },
             "version": "Version",
             "status": {
                 "label": "Status",
