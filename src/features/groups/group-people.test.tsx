@@ -78,6 +78,30 @@ function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement;
 }
 
+function openSearch() {
+    fireEvent.click(button(text.add));
+}
+
+function search(query: string) {
+    fireEvent.change(field(en.groups.search.field), { target: { value: query } });
+}
+
+function byName(name: string) {
+    return screen.getByText(t('groups.search.byName', { name })).closest('button')!;
+}
+
+function addByName(name: string) {
+    openSearch();
+    search(name);
+    fireEvent.click(byName(name.trim()));
+}
+
+function offered() {
+    return within(screen.getByRole('list', { name: en.groups.search.results }))
+        .queryAllByRole('button')
+        .map((item) => item.textContent);
+}
+
 function descriptionOf(control: HTMLElement) {
     return control
         .getAttribute('aria-describedby')
@@ -259,53 +283,60 @@ describe('removing', () => {
 });
 
 describe('adding a person', () => {
-    it('adds a dummy by name, who shows as not joined', async () => {
+    it('adds a dummy by name from the search, who shows as not joined, and stays in the search', async () => {
         const { api } = await edit(trip());
 
-        fireEvent.change(field(text.add), { target: { value: ' Eva ' } });
-        fireEvent.click(button(text.addSubmit));
+        addByName(' Eva ');
 
         await waitFor(() => expect(rows()).toHaveLength(4));
         expect(rows()[3]).toBe(`Eva${text.notJoined}${t('groups.balance.memberSettled', { name: 'Eva' })}`);
         expect(api.groups[0]!.members.at(-1)).toMatchObject({ name: 'Eva', claimed: false });
-        expect(field(text.add).value).toBe('');
+        await waitFor(() => expect(field(en.groups.search.field).value).toBe(''));
+        expect(screen.getByText(t('groups.search.added', { name: 'Eva' }))).toBeDefined();
+        expect(document.activeElement).toBe(field(en.groups.search.field));
     });
 
     it('sends the same person again after a failure, so a dummy that landed is not added twice', async () => {
         const { api } = await edit(trip());
         api.state.groupRefusal = { status: 503 };
-        fireEvent.change(field(text.add), { target: { value: 'Eva' } });
-        fireEvent.click(button(text.addSubmit));
+        addByName('Eva');
         expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.failed);
         api.state.groupRefusal = null;
 
-        fireEvent.click(button(text.addSubmit));
+        fireEvent.click(byName('Eva'));
 
         await waitFor(() => expect(rows()).toHaveLength(4));
         const [first, second] = api.groupRequests;
         expect(second).toBe(first);
     });
 
-    it('refuses a name with nothing that shows, without sending it', async () => {
-        const { api } = await edit(trip());
+    it('offers nobody by name for a name with nothing that shows', async () => {
+        await edit(trip());
 
-        fireEvent.change(field(text.add), { target: { value: '​' } });
-        fireEvent.click(button(text.addSubmit));
+        openSearch();
+        search('​');
 
-        expect((await screen.findByRole('alert')).textContent).toBe(en.groups.nameInvalid);
-        expect(api.groupRequests).toEqual([]);
+        expect(screen.queryByText(t('groups.search.byName', { name: '​' }))).toBeNull();
     });
 
     it('says so when the group is full', async () => {
         const { api } = await edit(trip());
         api.state.groupRefusal = { status: 409, error: 'too-many-members' };
 
-        fireEvent.change(field(text.add), { target: { value: 'Eva' } });
-        fireEvent.click(button(text.addSubmit));
+        addByName('Eva');
 
         expect((await screen.findByRole('alert')).textContent).toBe(
             t('groups.failure.tooManyMembers', { max: MAX_GROUP_MEMBERS })
         );
+    });
+
+    it('gives the focus back to Add a person once the search is closed', async () => {
+        await edit(trip());
+
+        openSearch();
+        fireEvent.click(button(en.groups.search.close));
+
+        expect(document.activeElement).toBe(button(text.add));
     });
 });
 
@@ -493,48 +524,65 @@ describe('adding a friend', () => {
         stubApi(api.handler);
         const app = renderApp({ path: `/groups/${group.id}/edit` });
         await screen.findByRole('heading', { level: 2, name: text.title });
+        openSearch();
         const sync = () => act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY }));
         return { api, members: () => api.groups[0]!.members, sync };
     }
 
     function choose(name: string) {
-        pickOption(text.friend, name);
+        fireEvent.click(
+            within(screen.getByRole('list', { name: en.groups.search.results })).getByRole('button', { name })
+        );
+    }
+
+    function place() {
+        return screen.queryByRole('group', { name: t('groups.people.placeOf', { name: 'Eva' }) });
     }
 
     it('lists the open friends and adds one as a new member, who has joined', async () => {
-        const { members } = await editWith(trip());
+        const { members } = await editWith(sampleGroup({ members: [ana, bea], me: ana.id }));
 
-        expect(optionNames(text.friend)).toEqual([text.friendNone, 'Eva']);
+        expect(offered()).toEqual(['Eva']);
         choose('Eva');
-        fireEvent.click(button(text.addFriend));
 
-        await waitFor(() => expect(rows()).toHaveLength(4));
-        expect(rows()[3]).toBe(`Eva${t('groups.balance.memberSettled', { name: 'Eva' })}`);
+        await waitFor(() => expect(rows()).toHaveLength(3));
+        expect(rows()[2]).toBe(`Eva${t('groups.balance.memberSettled', { name: 'Eva' })}`);
         expect(members().at(-1)).toMatchObject({ name: 'Eva', claimed: true });
-        expect(members().find((member) => member.id === cris.id)?.mergedInto).toBeNull();
-        expect(chosenOption(text.friend)).toBe(text.friendNone);
+        expect(screen.getByText(t('groups.search.added', { name: 'Eva' }))).toBeDefined();
     });
 
-    it('lets the owner put the friend in place of a dummy, who leaves the list', async () => {
+    it('asks the owner whether the friend comes in as a new member or in place of a dummy', async () => {
         const { members } = await editWith(trip());
 
         choose('Eva');
-        const place = screen.getByRole('group', { name: text.place });
         expect(
-            within(place)
+            within(place()!)
                 .getAllByRole('radio')
                 .map((radio) => [radio.closest('label')!.textContent, (radio as HTMLInputElement).checked])
         ).toEqual([
             [text.asNew, true],
             [t('groups.people.inPlaceOf', { name: 'Cris' }), false],
         ]);
-        fireEvent.click(within(place).getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+        fireEvent.click(within(place()!).getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
         fireEvent.click(button(text.addFriend));
 
         await waitFor(() => expect(rows()).toHaveLength(3));
         expect(rows()[2]).toMatch(/^Eva/);
         const added = members().at(-1)!;
         expect(members().find((member) => member.id === cris.id)?.mergedInto).toBe(added.id);
+        await waitFor(() => expect(place()).toBeNull());
+        expect(document.activeElement).toBe(field(en.groups.search.field));
+    });
+
+    it('goes back to the search on Back, with nothing sent', async () => {
+        const { api } = await editWith(trip());
+
+        choose('Eva');
+        fireEvent.click(button(text.back));
+
+        await waitFor(() => expect(place()).toBeNull());
+        expect(offered()).toEqual(['Eva']);
+        expect(api.groupRequests).toEqual([]);
     });
 
     describe('who is a member already', () => {
@@ -546,17 +594,17 @@ describe('adding a friend', () => {
             [friendBea.members[1]!.id]: 'bea',
             [bea.id]: 'bea',
         };
+        const noDummies = () => sampleGroup({ name: 'Lisbon', members: [ana, bea, dani], me: ana.id });
 
         it('offers a friend who left like the rest, and brings them back into the row they had', async () => {
-            const { members } = await editWith(trip(), [friendDani, friendBea], users);
+            const { members } = await editWith(noDummies(), [friendDani, friendBea], users);
 
-            expect(optionNames(text.friend)).toEqual([text.friendNone, 'Dani', 'Bea']);
-            pickOption(text.friend, 'Dani');
-            fireEvent.click(button(text.addFriend));
+            expect(offered()).toEqual(['Dani', 'Bea']);
+            choose('Dani');
 
-            await waitFor(() => expect(rows()).toHaveLength(4));
-            expect(rows()[3]).toBe(`Dani${t('groups.balance.memberSettled', { name: 'Dani' })}`);
-            expect(members()).toHaveLength(4);
+            await waitFor(() => expect(rows()).toHaveLength(3));
+            expect(rows()[2]).toBe(`Dani${t('groups.balance.memberSettled', { name: 'Dani' })}`);
+            expect(members()).toHaveLength(3);
             expect(members().find((member) => member.id === dani.id)?.leftAt).toBeNull();
         });
 
@@ -574,27 +622,23 @@ describe('adding a friend', () => {
         });
 
         it('says in words that a friend who has not left is in the group already', async () => {
-            const { members } = await editWith(trip(), [friendDani, friendBea], users);
+            const { members } = await editWith(noDummies(), [friendDani, friendBea], users);
 
             choose('Bea');
-            fireEvent.click(button(text.addFriend));
 
             expect((await screen.findByRole('alert')).textContent).toBe(en.groups.failure.alreadyMember);
-            expect(rows()).toHaveLength(3);
-            expect(members()).toHaveLength(4);
+            expect(rows()).toHaveLength(2);
+            expect(members()).toHaveLength(3);
         });
     });
 
-    it('chooses no friend again when the friend chosen is gone after a sync', async () => {
+    it('drops a friend who is gone after a sync', async () => {
         const { api, sync } = await editWith(trip(), [eva, friendOf('Gil')]);
-        choose('Eva');
 
         api.groups.find((group) => group.id === eva.id)!.closed = 'deleted';
         await sync();
 
-        await waitFor(() => expect(chosenOption(text.friend)).toBe(text.friendNone));
-        expect(button(text.addFriend).disabled).toBe(true);
-        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
+        await waitFor(() => expect(offered()).toEqual(['Gil']));
     });
 
     it('goes back to a new member when the dummy chosen is gone after a sync', async () => {
@@ -613,19 +657,12 @@ describe('adding a friend', () => {
     });
 
     it('asks nothing of a member who is not the owner', async () => {
-        await editWith(trip(bea));
+        const { members } = await editWith(trip(bea));
 
         choose('Eva');
 
-        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
-    });
-
-    it('asks nothing when the group has no dummies', async () => {
-        await editWith(sampleGroup({ members: [ana, bea], me: ana.id }));
-
-        choose('Eva');
-
-        expect(screen.queryByRole('group', { name: text.place })).toBeNull();
+        expect(place()).toBeNull();
+        await waitFor(() => expect(members().at(-1)).toMatchObject({ name: 'Eva' }));
     });
 
     it.each([
@@ -648,24 +685,17 @@ describe('adding a friend', () => {
     it('does not offer a friend who is no longer one', async () => {
         await editWith(trip(), [eva, friendOf('', 'deleted')]);
 
-        expect(optionNames(text.friend)).toEqual([text.friendNone, 'Eva']);
+        expect(offered()).toEqual(['Eva']);
+        search('E');
+        expect(offered()).toEqual(['Eva', t('groups.search.byName', { name: 'E' }) + en.groups.search.byNameHint]);
     });
 
-    it('is not there when no friend is open', async () => {
-        await editWith(trip(), [friendOf('Fran', 'deleted')]);
-
-        expect(screen.queryByRole('combobox', { name: text.friend })).toBeNull();
-    });
-
-    it('is off without a connection', async () => {
+    it('turns the rows off without a connection', async () => {
         await editWith(trip());
-        choose('Eva');
 
         onlineManager.setOnline(false);
 
-        await screen.findByText(en.groups.offline);
-        expect(screen.getByRole('combobox', { name: text.friend })).toHaveProperty('disabled', true);
-        expect(button(text.addFriend).disabled).toBe(true);
+        await waitFor(() => expect(button('Eva').disabled).toBe(true));
     });
 });
 
@@ -676,8 +706,7 @@ describe('without a connection', () => {
         onlineManager.setOnline(false);
 
         await screen.findByText(en.groups.offline);
-        expect(field(text.add).disabled).toBe(true);
-        expect(button(text.addSubmit).disabled).toBe(true);
+        expect(button(text.add).disabled).toBe(true);
         fireEvent.click(row('Bea'));
         expect(button(t('groups.people.renameItem', { name: 'Bea' })).disabled).toBe(true);
         expect(button(t('groups.people.makeOwnerItem', { name: 'Bea' })).disabled).toBe(true);

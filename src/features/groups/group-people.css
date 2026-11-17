@@ -4,12 +4,7 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.group-people__add {
-    display: grid;
-    gap: var(--size-1);
-}
-
-.group-people__friend {
+.group-people__place {
     display: grid;
     gap: var(--size-4);
 }

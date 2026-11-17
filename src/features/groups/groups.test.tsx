@@ -9,7 +9,6 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
 import { spokenText } from '@/lib/test/spoken-text';
 import { INVITATION_DAYS } from '@core/invitation';
 import { formatAmount } from '@core/money';
@@ -50,20 +49,50 @@ function sheet(label: string) {
 function rows(label: string) {
     return within(sheet(label))
         .getAllByRole('link')
+        .filter((row) => row.getAttribute('href') !== '/groups/new')
         .map((row) => spokenText(row));
-}
-
-function newGroupToggle() {
-    return screen.getByRole('button', { name: text.new.title });
 }
 
 function field(label: string) {
     return screen.getByLabelText(label) as HTMLInputElement;
 }
 
+function startNew(groups: SharedGroup[] = [], wrap?: (handler: Handler) => Handler) {
+    const api = createFakeApi({ groups });
+    stubApi(wrap ? wrap(api.handler) : api.handler);
+    const app = renderApp({ path: '/groups/new' });
+    return { api, app };
+}
+
+async function ready() {
+    return screen.findByRole('heading', { level: 1, name: text.new.title });
+}
+
+function openSearch() {
+    fireEvent.click(screen.getByRole('button', { name: text.new.addPeople }));
+}
+
+function search(query: string) {
+    fireEvent.change(field(text.search.field), { target: { value: query } });
+}
+
+function byName(name: string) {
+    return screen.getByText(t('groups.search.byName', { name })).closest('button')!;
+}
+
 function addPerson(name: string) {
-    fireEvent.change(field(text.new.person), { target: { value: name } });
-    fireEvent.click(screen.getByRole('button', { name: text.new.add }));
+    search(name);
+    fireEvent.click(byName(name.trim()));
+}
+
+function closeSearch() {
+    fireEvent.click(screen.getByRole('button', { name: text.search.close }));
+}
+
+function listed() {
+    return within(screen.getByRole('list', { name: text.new.people }))
+        .getAllByRole('listitem')
+        .map((item) => item.firstChild?.textContent);
 }
 
 function makeGroup(name: string) {
@@ -183,37 +212,47 @@ describe('the sections', () => {
         const groups = section(text.lists.groups);
         const friends = section(text.lists.friends);
         expect(before(groups, friends)).toBe(true);
-        expect(within(groups).queryAllByRole('link')).toEqual([]);
+        expect(rows(text.lists.groups)).toEqual([]);
         expect(within(friends).queryAllByRole('link')).toEqual([]);
     });
 
-    it('hold New group under Groups and Invite a friend with its hint under Friends', async () => {
+    it('end the row of each heading with its action, New under Groups and Invite under Friends', async () => {
         open([sampleGroup({ name: 'Lisbon' })]);
         await screen.findByText(text.balance.allSettled);
 
         const groups = section(text.lists.groups);
         const friends = section(text.lists.friends);
-        expect(within(groups).getByRole('button', { name: text.new.title })).toBeDefined();
+        const make = within(groups).getByRole('link', { name: text.new.title });
+        expect(make.textContent).toBe(text.lists.new);
+        expect(make.getAttribute('href')).toBe('/groups/new');
         expect(within(groups).queryByRole('button', { name: text.links.make })).toBeNull();
-        expect(within(friends).getByRole('button', { name: text.links.make })).toBeDefined();
+        const invite = within(friends).getByRole('button', { name: text.links.make });
+        expect(invite.textContent).toBe(text.links.makeShort);
         expect(within(friends).getByText(t('groups.links.hint', { days: INVITATION_DAYS }))).toBeDefined();
-        expect(within(friends).queryByRole('button', { name: text.new.title })).toBeNull();
+        expect(within(friends).queryByRole('link', { name: text.new.title })).toBeNull();
+        for (const [label, action] of [
+            [text.lists.groups, make],
+            [text.lists.friends, invite],
+        ] as const) {
+            expect(screen.getByRole('heading', { level: 2, name: label }).parentElement).toBe(action.parentElement);
+        }
     });
 
-    it('put the heading first, then the control, then the list', async () => {
+    it('put the heading and its action first, then the list', async () => {
         const friend = sampleGroup({ kind: 'direct', name: null });
         open([sampleGroup({ name: 'Lisbon' }), friend]);
         await screen.findByText(text.balance.allSettled);
 
-        const order = (label: string, control: string) => {
+        const order = (label: string, action: HTMLElement) => {
             const container = section(label);
             const heading = within(container).getByRole('heading', { level: 2, name: label });
-            const toggle = within(container).getByRole('button', { name: control });
-            const row = within(container).getAllByRole('link')[0]!;
-            return before(heading, toggle) && before(toggle, row);
+            const row = within(container)
+                .getAllByRole('link')
+                .find((link) => link !== action)!;
+            return before(heading, action) && before(action, row);
         };
-        expect(order(text.lists.groups, text.new.title)).toBe(true);
-        expect(order(text.lists.friends, text.links.make)).toBe(true);
+        expect(order(text.lists.groups, screen.getByRole('link', { name: text.new.title }))).toBe(true);
+        expect(order(text.lists.friends, screen.getByRole('button', { name: text.links.make }))).toBe(true);
     });
 
     it('leave that line out when the notice of an empty tab already says there is nothing', async () => {
@@ -250,7 +289,7 @@ describe('the sections', () => {
         renderApp({ path: '/groups' });
 
         expect((await screen.findByText(text.group.loadFailed)).getAttribute('role')).toBe('status');
-        expect(within(section(text.lists.groups)).getByRole('button', { name: text.new.title })).toBeDefined();
+        expect(within(section(text.lists.groups)).getByRole('link', { name: text.new.title })).toBeDefined();
         expect(within(section(text.lists.friends)).getByRole('button', { name: text.links.make })).toBeDefined();
         expect(screen.queryByText(text.lists.friendsNone)).toBeNull();
     });
@@ -300,7 +339,7 @@ describe('the lists', () => {
         open([lisbon]);
         await screen.findByText(text.balance.allSettled);
 
-        const row = within(sheet(text.lists.groups)).getByRole('link');
+        const row = within(sheet(text.lists.groups)).getByRole('link', { name: /^Lisbon/ });
         expect(row.getAttribute('href')).toBe(`/groups/${lisbon.id}`);
 
         fireEvent.click(row);
@@ -377,22 +416,29 @@ describe('the lists', () => {
 });
 
 describe('making a group', () => {
-    it('makes it with the people added by name, one at a time, and opens it', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(newGroupToggle());
+    it('opens its own screen from New', async () => {
+        open([sampleGroup({ name: 'Lisbon' })]);
+        await screen.findByText(text.balance.allSettled);
+
+        fireEvent.click(screen.getByRole('link', { name: text.new.title }));
+
+        expect(await ready()).toBeDefined();
+    });
+
+    it('makes it with the people added by name in the search, and opens it', async () => {
+        const { api } = startNew();
+        await ready();
+        openSearch();
 
         addPerson('Cris');
-        fireEvent.change(field(text.new.person), { target: { value: ' Dani ' } });
-        fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
+        expect(field(text.search.field).value).toBe('');
+        expect(document.activeElement).toBe(field(text.search.field));
+        expect(screen.getByText(t('groups.search.added', { name: 'Cris' })).getAttribute('role')).toBe('status');
+        addPerson(' Dani ');
         addPerson('Eva');
+        closeSearch();
         fireEvent.click(screen.getByRole('button', { name: t('groups.new.removeItem', { name: 'Cris' }) }));
-        expect(
-            within(screen.getByRole('list', { name: text.new.people }))
-                .getAllByRole('listitem')
-                .map((item) => item.firstChild?.textContent)
-        ).toEqual(['Dani', 'Eva']);
-        expect(field(text.new.person).value).toBe('');
+        expect(listed()).toEqual(['Dani', 'Eva']);
         makeGroup(' Lisbon ');
 
         expect(await screen.findByRole('heading', { level: 1, name: 'Lisbon' })).toBeDefined();
@@ -405,47 +451,39 @@ describe('making a group', () => {
         ]);
     });
 
-    it('adds the person still in the field when it is made', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(newGroupToggle());
+    it('offers no one by name until what is typed is a name a group takes, and Enter adds nobody', async () => {
+        startNew();
+        await ready();
+        openSearch();
 
-        addPerson('Cris');
-        fireEvent.change(field(text.new.person), { target: { value: ' Dani ' } });
-        makeGroup('Lisbon');
+        expect(screen.getByText(text.search.empty)).toBeDefined();
+        search('​  ');
+        expect(screen.queryByText(t('groups.search.byName', { name: '​' }))).toBeNull();
+        search('Cris');
+        fireEvent.keyDown(field(text.search.field), { key: 'Enter' });
+        closeSearch();
 
-        await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
-        expect(api.groups[0]!.members.map((member) => member.name)).toEqual(['Ana', 'Cris', 'Dani']);
+        expect(screen.queryByRole('list', { name: text.new.people })).toBeNull();
     });
 
     it('takes no more people than a group holds, and says so', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(newGroupToggle());
-        const full = t('groups.new.full', { max: MAX_GROUP_MEMBERS });
+        const { api } = startNew();
+        await ready();
+        openSearch();
 
-        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) {
-            fireEvent.change(field(text.new.person), { target: { value: `Person ${index}` } });
-            fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
-        }
-        fireEvent.change(field(text.new.person), { target: { value: 'One more' } });
-        fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
+        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) addPerson(`Person ${index}`);
+        search('One more');
 
-        expect((await screen.findByRole('alert')).textContent).toBe(full);
-        fireEvent.click(screen.getByRole('button', { name: text.new.add }));
-        makeGroup('Lisbon');
-
-        expect(screen.getByRole('alert').textContent).toBe(full);
-        const added = within(screen.getByRole('list', { name: text.new.people })).getAllByRole('listitem');
-        expect(added).toHaveLength(MAX_GROUP_MEMBERS - 1);
-        expect(field(text.new.person).value).toBe('One more');
+        expect(screen.getByRole('alert').textContent).toBe(t('groups.new.full', { max: MAX_GROUP_MEMBERS }));
+        expect(byName('One more').disabled).toBe(true);
+        closeSearch();
+        expect(listed()).toHaveLength(MAX_GROUP_MEMBERS - 1);
         expect(api.groupRequests).toEqual([]);
     });
 
     it('refuses a name with nothing that shows, without sending it', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
-        fireEvent.click(newGroupToggle());
+        const { api } = startNew();
+        await ready();
 
         makeGroup('​  ');
 
@@ -454,22 +492,10 @@ describe('making a group', () => {
         expect(api.groupRequests).toEqual([]);
     });
 
-    it('refuses a person with nothing that shows, and keeps the field as it was', async () => {
-        open();
-        await screen.findByText(text.empty);
-        fireEvent.click(newGroupToggle());
-
-        addPerson('   ');
-
-        expect((await screen.findByRole('alert')).textContent).toBe(text.nameInvalid);
-        expect(screen.queryByRole('list', { name: text.new.people })).toBeNull();
-    });
-
     it('says in words that the closed groups are the most there can be, and keeps what was typed', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
+        const { api } = startNew();
+        await ready();
         api.state.groupRefusal = { status: 409, error: 'too-many-closed-groups' };
-        fireEvent.click(newGroupToggle());
 
         makeGroup('Lisbon');
 
@@ -480,10 +506,9 @@ describe('making a group', () => {
     });
 
     it('says in words why the server refused it, and keeps what was typed', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
+        const { api } = startNew();
+        await ready();
         api.state.groupRefusal = { status: 409, error: 'too-many-groups' };
-        fireEvent.click(newGroupToggle());
 
         makeGroup('Lisbon');
 
@@ -494,10 +519,9 @@ describe('making a group', () => {
     });
 
     it('sends the same group again after a failure, so a make that landed is not made twice', async () => {
-        const { api } = open();
-        await screen.findByText(text.empty);
+        const { api } = startNew();
+        await ready();
         api.state.groupRefusal = { status: 503 };
-        fireEvent.click(newGroupToggle());
         makeGroup('Lisbon');
         expect((await screen.findByRole('alert')).textContent).toBe(text.failure.failed);
         api.state.groupRefusal = null;
@@ -510,18 +534,16 @@ describe('making a group', () => {
         expect(second).toBe(first);
     });
 
-    it('is off without a connection, which a notice says, while the lists stay', async () => {
-        open([sampleGroup({ name: 'Lisbon' })]);
-        await screen.findByText(text.balance.allSettled);
+    it('is off without a connection, which a notice says', async () => {
+        startNew();
+        await ready();
 
         onlineManager.setOnline(false);
 
         expect(await screen.findByText(text.offline)).toBeDefined();
-        fireEvent.click(newGroupToggle());
         expect(field(text.new.name).disabled).toBe(true);
-        expect(field(text.new.person).disabled).toBe(true);
+        expect((screen.getByRole('button', { name: text.new.addPeople }) as HTMLButtonElement).disabled).toBe(true);
         expect((screen.getByRole('button', { name: text.new.submit }) as HTMLButtonElement).disabled).toBe(true);
-        expect(rows(text.lists.groups)).toEqual([`Lisbon${text.row.settled}`]);
     });
 });
 
@@ -535,21 +557,16 @@ describe('making a group with friends', () => {
         return sampleGroup({ kind: 'direct', name: null, members: [me, person(name, overrides)], me: me.id, closed });
     }
 
-    const friends = [friendOf('Bea'), friendOf('Dani', {}, 'deleted'), friendOf('Eva')];
+    const friends = [friendOf('Bea'), friendOf('Dani', {}, 'deleted'), friendOf('Agustín'), friendOf('Eva')];
 
-    function friendField() {
-        return screen.getByRole('combobox', { name: text.new.friend });
+    function offered() {
+        return within(screen.getByRole('list', { name: text.search.results }))
+            .queryAllByRole('button')
+            .map((row) => row.textContent);
     }
 
     function chooseFriend(name: string) {
-        pickOption(text.new.friend, name);
-        fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
-    }
-
-    function listed() {
-        return within(screen.getByRole('list', { name: text.new.people }))
-            .getAllByRole('listitem')
-            .map((item) => item.firstChild?.textContent);
+        fireEvent.click(screen.getByRole('button', { name }));
     }
 
     function made(api: ReturnType<typeof createFakeApi>) {
@@ -557,37 +574,43 @@ describe('making a group with friends', () => {
     }
 
     async function start(wrap?: (handler: Handler) => Handler) {
-        const api = createFakeApi({ groups: friends });
-        stubApi(wrap ? wrap(api.handler) : api.handler);
-        const app = renderApp({ path: '/groups' });
-        await screen.findByText(text.balance.allSettled);
-        fireEvent.click(newGroupToggle());
+        const { api, app } = startNew(friends, wrap);
+        await ready();
+        openSearch();
+        await waitFor(() => expect(offered().length).toBeGreaterThan(0));
         return Object.assign(api, {
             sync: () => act(() => app.queryClient.invalidateQueries({ queryKey: GROUPS_KEY })),
         });
     }
 
-    it('lists only the open friends, each added once', async () => {
+    it('lists every open friend while nothing is typed, and each friend once', async () => {
         await start();
 
-        expect(optionNames(text.new.friend)).toEqual([text.new.friendNone, 'Bea', 'Eva']);
-        pickOption(text.new.friend, 'Bea');
-        fireEvent.click(screen.getByRole('button', { name: text.new.addFriend }));
+        expect(offered()).toEqual(['Bea', 'Agustín', 'Eva']);
+        chooseFriend('Bea');
 
+        expect(offered()).toEqual(['Agustín', 'Eva']);
+        closeSearch();
         expect(listed()).toEqual(['Bea']);
-        expect(chosenOption(text.new.friend)).toBe(text.new.friendNone);
-        expect(optionNames(text.new.friend)).toEqual([text.new.friendNone, 'Eva']);
     });
 
-    it('chooses no friend again when the friend chosen is gone after a sync', async () => {
+    it('finds the friends whose name holds what is typed, ignoring case and accents, before adding by name', async () => {
+        await start();
+
+        search('agus');
+
+        expect(offered()).toEqual(['Agustín', t('groups.search.byName', { name: 'agus' }) + text.search.byNameHint]);
+        search('Zoe');
+        expect(offered()).toEqual([t('groups.search.byName', { name: 'Zoe' }) + text.search.byNameHint]);
+    });
+
+    it('drops a friend who is gone after a sync', async () => {
         const api = await start();
-        pickOption(text.new.friend, 'Bea');
 
         api.groups.find((group) => group.id === friends[0]!.id)!.closed = 'deleted';
         await api.sync();
 
-        await waitFor(() => expect(chosenOption(text.new.friend)).toBe(text.new.friendNone));
-        expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
+        await waitFor(() => expect(offered()).toEqual(['Agustín', 'Eva']));
     });
 
     it('adds each friend once the group is made with its dummies, and opens it', async () => {
@@ -595,6 +618,7 @@ describe('making a group with friends', () => {
 
         addPerson('Fran');
         chooseFriend('Eva');
+        closeSearch();
         expect(listed()).toEqual(['Fran', 'Eva']);
         makeGroup('Lisbon');
 
@@ -613,14 +637,11 @@ describe('making a group with friends', () => {
     it('takes no friend past what a group holds', async () => {
         await start();
 
-        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) {
-            fireEvent.change(field(text.new.person), { target: { value: `Person ${index}` } });
-            fireEvent.keyDown(field(text.new.person), { key: 'Enter' });
-        }
-        chooseFriend('Bea');
+        for (let index = 1; index < MAX_GROUP_MEMBERS; index++) addPerson(`Person ${index}`);
+        search('');
 
-        expect((await screen.findByRole('alert')).textContent).toBe(t('groups.new.full', { max: MAX_GROUP_MEMBERS }));
-        expect(listed()).not.toContain('Bea');
+        expect(screen.getByRole('alert').textContent).toBe(t('groups.new.full', { max: MAX_GROUP_MEMBERS }));
+        expect((screen.getByRole('button', { name: 'Bea' }) as HTMLButtonElement).disabled).toBe(true);
     });
 
     it.each([
@@ -637,6 +658,7 @@ describe('making a group with friends', () => {
                 return handler(url, init);
             });
             chooseFriend('Bea');
+            closeSearch();
             makeGroup('Lisbon');
             expect((await screen.findByRole('alert')).textContent).toBe(words);
             refuse = false;
@@ -661,12 +683,16 @@ describe('making a group with friends', () => {
         });
         addPerson('Fran');
         addPerson('Gus');
+        closeSearch();
         makeGroup('Lisbon');
         expect((await screen.findByRole('alert')).textContent).toBe(text.failure.failed);
 
         fireEvent.click(screen.getByRole('button', { name: t('groups.new.removeItem', { name: 'Fran' }) }));
+        openSearch();
         addPerson('Hana');
+        search('');
         chooseFriend('Bea');
+        closeSearch();
         makeGroup('Lisbon');
 
         await screen.findByRole('heading', { level: 1, name: 'Lisbon' });
@@ -678,23 +704,14 @@ describe('making a group with friends', () => {
         ).toEqual(['Ana', 'Gus', 'Hana', 'Bea']);
     });
 
-    it('leaves the friends out when none of them is open', async () => {
-        stubApi(createFakeApi({ groups: [friendOf('Dani', {}, 'deleted')] }).handler);
-        renderApp({ path: '/groups' });
-        await screen.findByRole('button', { name: text.lists.closed });
-        fireEvent.click(newGroupToggle());
-
-        expect(screen.queryByRole('combobox', { name: text.new.friend })).toBeNull();
-    });
-
-    it('turns the friends off without a connection', async () => {
+    it('turns the rows off without a connection', async () => {
         await start();
 
         onlineManager.setOnline(false);
 
-        await screen.findByText(text.offline);
-        expect(friendField()).toHaveProperty('disabled', true);
-        expect((screen.getByRole('button', { name: text.new.addFriend }) as HTMLButtonElement).disabled).toBe(true);
+        await waitFor(() =>
+            expect((screen.getByRole('button', { name: 'Bea' }) as HTMLButtonElement).disabled).toBe(true)
+        );
     });
 });
 

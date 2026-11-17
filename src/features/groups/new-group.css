@@ -1,6 +1,17 @@
 .new-group {
     display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.new-group__form {
+    display: grid;
     gap: var(--size-4);
+}
+
+.new-group__people {
+    display: grid;
+    gap: var(--size-2);
 }
 
 /* A person to add, with the ghost that takes them away again */

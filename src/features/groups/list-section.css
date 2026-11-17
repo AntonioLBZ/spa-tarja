@@ -1,0 +1,26 @@
+.list-section {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.list-section__head {
+    align-items: center;
+    display: flex;
+    gap: var(--size-4);
+    justify-content: space-between;
+    min-block-size: var(--size-touch);
+}
+
+.list-section__head > h2 {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* The icon and the word of the action */
+.list-section__action {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: var(--size-1);
+}

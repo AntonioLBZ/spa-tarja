@@ -1,0 +1,51 @@
+.person-search {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.person-search__rows {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* A person to press: the whole row is the target */
+.person-search__row {
+    align-items: center;
+    background: none;
+    border: 0;
+    color: inherit;
+    display: flex;
+    font: inherit;
+    gap: var(--size-4);
+    inline-size: 100%;
+    min-block-size: var(--size-touch);
+    padding-block: var(--size-2);
+    padding-inline: 0;
+    text-align: start;
+}
+
+.person-search__row:disabled {
+    color: var(--color-content-secondary);
+}
+
+@media (hover: hover) {
+    .person-search__row:not(:disabled):hover .person-search__name {
+        text-decoration: underline;
+        text-decoration-thickness: var(--size-px);
+        text-underline-offset: 0.25em;
+    }
+}
+
+.person-search__name {
+    display: grid;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.person-search__detail {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+}

@@ -537,7 +537,8 @@
             "friends": "Friends",
             "friendsNone": "A friend appears here when somebody accepts your link.",
             "closed": "Closed groups",
-            "archived": "Archived"
+            "archived": "Archived",
+            "new": "New"
         },
         "row": {
             "settled": "Nothing to settle",
@@ -551,12 +552,8 @@
         "new": {
             "title": "New group",
             "name": "Name",
-            "person": "Add a person",
-            "personHint": "By name, one at a time. They don't need the app.",
-            "add": "Add",
-            "friend": "From your friends",
-            "friendNone": "Choose a friend",
-            "addFriend": "Add friend",
+            "addPeople": "Add people",
+            "addPeopleHint": "Your friends, or anybody else by their name.",
             "people": "People to add",
             "remove": "Remove",
             "removeItem": "Remove {name}",
@@ -567,7 +564,8 @@
             "make": "Invite a friend",
             "hint": "Each invitation works once and expires after {days} days.",
             "title": "Invitation links",
-            "loadFailed": "Couldn't load your invitation links."
+            "loadFailed": "Couldn't load your invitation links.",
+            "makeShort": "Invite"
         },
         "nameInvalid": "A name needs at least one visible character and no text-direction controls.",
         "failure": {
@@ -636,14 +634,20 @@
             "removeConfirm": "Remove {name} from the group? They stay in the expenses already shared.",
             "unsettled": "{name}'s balance isn't zero. Settle up first.",
             "add": "Add a person",
-            "addHint": "By name. They don't need the app.",
-            "addSubmit": "Add",
-            "friend": "From your friends",
-            "friendNone": "Choose a friend",
-            "place": "How they join",
+            "placeOf": "How does {name} join?",
             "asNew": "Add as a new member",
             "inPlaceOf": "In place of {name}",
-            "addFriend": "Add friend"
+            "addFriend": "Add friend",
+            "back": "Back"
+        },
+        "search": {
+            "field": "Search or type a name",
+            "results": "Results",
+            "byName": "Add “{name}” by name",
+            "byNameHint": "They don't need the app.",
+            "empty": "Type the name of somebody to add.",
+            "added": "{name} added.",
+            "close": "Close"
         },
         "close": {
             "leave": {

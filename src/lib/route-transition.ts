@@ -6,6 +6,7 @@ const DEPTHS: Record<string, number> = {
     '/settings': 1,
     '/summary': 1,
     '/groups': 1,
+    '/groups/new': 2,
     '/settings/appearance': 2,
     '/settings/categories': 2,
     '/settings/account': 2,

@@ -1,26 +1,21 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
 import { Card, CardList } from '@/components/card/card';
-import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
-import { Select } from '@/components/select/select';
+import { useOnline } from '@/lib/offline';
 import { MAX_GROUP_MEMBERS, SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
+import { PersonSearch, type PersonChoice } from './person-search';
 import { useFriends } from './use-friends';
 import { useGroupActions } from './use-group-actions';
 
 import './new-group.css';
-
-interface NewGroupProps {
-    // Making a group needs a connection
-    disabled: boolean;
-}
 
 // Somebody to add: a dummy by name, or one of the person's friends, named by the id of that friend. `id` is the member
 // they will be, made when they are listed and kept while the screen is open.
@@ -30,68 +25,38 @@ interface Person {
     friend?: string;
 }
 
-// The name of a group and its people, added one at a time: dummies by name and friends. The ids are made
-// once and kept while the screen is open, so a group sent again after an answer that never came is the same group.
-const NewGroup = (props: NewGroupProps) => {
-    const { disabled } = props;
+// The screen of a new group (ADR-0038): its name and its people, found by the search of people. The ids are made once
+// and kept while the screen is open, so a group sent again after an answer that never came is the same group.
+const NewGroup = () => {
     const t = useTranslations('groups');
     const failureWords = useFailureWords();
     const navigate = useNavigate();
+    const online = useOnline();
+    const disabled = !online;
     const { createGroup, savePerson, addFriend, removeMember } = useGroupActions();
     const friends = useFriends();
     const [ids] = useState(() => ({ group: crypto.randomUUID(), me: crypto.randomUUID() }));
+    const addButton = useRef<HTMLButtonElement>(null);
 
     const [name, setName] = useState('');
-    const [person, setPerson] = useState('');
-    // The friend chosen in the list, or '' for none
-    const [friend, setFriend] = useState('');
     const [people, setPeople] = useState<Person[]>([]);
+    const [searching, setSearching] = useState(false);
     const [nameInvalid, setNameInvalid] = useState(false);
-    // Why the person typed can't be added: a name with nothing that shows, or a group with no room left
-    const [personError, setPersonError] = useState<'invalid' | 'full' | null>(null);
-    const [friendFull, setFriendFull] = useState(false);
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
 
     // The person makes the group, so the rest are one fewer than the most a group takes
     const full = people.length >= MAX_GROUP_MEMBERS - 1;
     const choices = friends.filter((item) => !people.some((listed) => listed.friend === item.id));
-    // A friend gone since they were chosen is chosen no more
-    const chosen = choices.some((item) => item.id === friend) ? friend : '';
 
-    // The people with the one in the field added, or null when it can't be, and the field then says why
-    const withTyped = (): Person[] | null => {
-        const parsed = v.safeParse(sharedNameSchema, person);
-        if (!parsed.success) {
-            setPersonError('invalid');
-            return null;
-        }
-        if (full) {
-            setPersonError('full');
-            return null;
-        }
-        const added = [...people, { id: crypto.randomUUID(), name: parsed.output }];
-        setPeople(added);
-        setPerson('');
-        return added;
-    };
-
-    const addChosen = () => {
-        const added = choices.find((item) => item.id === chosen);
-        if (!added) return;
-        if (full) {
-            setFriendFull(true);
-            return;
-        }
-        setPeople([...people, { id: crypto.randomUUID(), name: added.name, friend: added.id }]);
-        setFriend('');
-    };
-
-    // Enter adds the person instead of making the group
-    const handlePersonKey = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key !== 'Enter') return;
-        event.preventDefault();
-        withTyped();
+    const pick = (choice: PersonChoice) => {
+        if (full) return null;
+        const added =
+            'friend' in choice
+                ? { id: crypto.randomUUID(), name: choice.friend.name, friend: choice.friend.id }
+                : { id: crypto.randomUUID(), name: choice.name };
+        setPeople((current) => [...current, added]);
+        return added.name;
     };
 
     // The group the server answered, put right against the list: the friends go in only now, and a make sent again after
@@ -118,9 +83,6 @@ const NewGroup = (props: NewGroupProps) => {
             setNameInvalid(true);
             return;
         }
-        // A person typed and never added goes in with the rest
-        const others = person.trim() ? withTyped() : people;
-        if (!others) return;
 
         setFailure(null);
         setBusy(true);
@@ -128,21 +90,23 @@ const NewGroup = (props: NewGroupProps) => {
             setFailure(reason);
             setBusy(false);
         };
-        const dummies = others.flatMap((item) => (item.friend === undefined ? [{ id: item.id, name: item.name }] : []));
+        const dummies = people.flatMap((item) => (item.friend === undefined ? [{ id: item.id, name: item.name }] : []));
         const group = await createGroup({ id: ids.group, name: parsed.output, me: ids.me, others: dummies }).catch(
             (error: unknown) => failed(failureOf(error))
         );
         if (!group) return;
         // Once the group is made, a limit of groups is a friend's
-        await putRight(group, others).then(
+        await putRight(group, people).then(
             () => navigate({ to: '/groups/$groupId', params: { groupId: group.id } }),
             (error: unknown) => failed(failureOfFriend(error))
         );
     };
 
     return (
-        <Disclosure summary={t('new.title')} chevron keepMounted>
-            <form className="new-group" onSubmit={(event) => void handleSubmit(event)}>
+        <section className="new-group">
+            <h1>{t('new.title')}</h1>
+            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <form className="new-group__form" onSubmit={(event) => void handleSubmit(event)}>
                 <Field label={t('new.name')} error={nameInvalid ? t('nameInvalid') : null}>
                     {(control) => (
                         <input
@@ -159,67 +123,12 @@ const NewGroup = (props: NewGroupProps) => {
                         />
                     )}
                 </Field>
-                <Field
-                    label={t('new.person')}
-                    hint={t('new.personHint')}
-                    error={
-                        personError === 'invalid'
-                            ? t('nameInvalid')
-                            : personError === 'full' && t('new.full', { max: MAX_GROUP_MEMBERS })
-                    }
-                    actions={
-                        <>
-                            <Button disabled={disabled} onClick={() => withTyped()}>
-                                {t('new.add')}
-                            </Button>
-                        </>
-                    }
-                >
-                    {(control) => (
-                        <input
-                            {...control}
-                            autoComplete="off"
-                            disabled={disabled}
-                            maxLength={SHARED_NAME_MAX_LENGTH}
-                            type="text"
-                            value={person}
-                            onChange={(event) => {
-                                setPerson(event.target.value);
-                                setPersonError(null);
-                            }}
-                            onKeyDown={handlePersonKey}
-                        />
-                    )}
-                </Field>
-                {friends.length > 0 && (
-                    <Field
-                        label={t('new.friend')}
-                        error={friendFull ? t('new.full', { max: MAX_GROUP_MEMBERS }) : null}
-                        actions={
-                            <>
-                                <Button disabled={disabled || chosen === ''} onClick={addChosen}>
-                                    {t('new.addFriend')}
-                                </Button>
-                            </>
-                        }
-                    >
-                        {(control) => (
-                            <Select
-                                {...control}
-                                disabled={disabled}
-                                options={[
-                                    { value: '', label: t('new.friendNone') },
-                                    ...choices.map((item) => ({ value: item.id, label: item.name })),
-                                ]}
-                                value={chosen}
-                                onChange={(next) => {
-                                    setFriend(next);
-                                    setFriendFull(false);
-                                }}
-                            />
-                        )}
-                    </Field>
-                )}
+                <div className="new-group__people">
+                    <Button ref={addButton} block disabled={disabled} onClick={() => setSearching(true)}>
+                        {t('new.addPeople')}
+                    </Button>
+                    <p className="hint">{t('new.addPeopleHint')}</p>
+                </div>
                 {people.length > 0 && (
                     <CardList label={t('new.people')}>
                         {people.map((added) => (
@@ -231,8 +140,7 @@ const NewGroup = (props: NewGroupProps) => {
                                     disabled={disabled}
                                     onClick={() => {
                                         setPeople((current) => current.filter((item) => item !== added));
-                                        setPersonError(null);
-                                        setFriendFull(false);
+                                        addButton.current?.focus();
                                     }}
                                 >
                                     {t('new.remove')}
@@ -250,8 +158,20 @@ const NewGroup = (props: NewGroupProps) => {
                     </Notice>
                 )}
             </form>
-        </Disclosure>
+            <PersonSearch
+                open={searching}
+                title={t('new.addPeople')}
+                friends={choices}
+                disabled={disabled}
+                full={full ? t('new.full', { max: MAX_GROUP_MEMBERS }) : undefined}
+                onPick={pick}
+                onClose={() => {
+                    setSearching(false);
+                    addButton.current?.focus();
+                }}
+            />
+        </section>
     );
 };
 
-export { NewGroup, type NewGroupProps };
+export { NewGroup };

@@ -420,6 +420,7 @@ describe('the way back on a phone', () => {
         ['/charts', en.nav.summary, '/summary'],
         ['/budgets', en.nav.summary, '/summary'],
         [`/groups/${group.id}`, en.nav.groups, '/groups'],
+        ['/groups/new', en.nav.groups, '/groups'],
         [`/groups/${group.id}/edit`, en.nav.group, `/groups/${group.id}`],
     ])('leads from %s back to %s', async (path, place, href) => {
         const { header } = await phone(path);

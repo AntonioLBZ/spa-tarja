@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { pendingInvitationsQuery } from '@/lib/api';
@@ -10,22 +11,27 @@ import { INVITATION_DAYS } from '@core/invitation';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { InvitationLink } from './invitation-link';
+import { ListSection } from './list-section';
 import { useGroupActions } from './use-group-actions';
 
 import './invite-friend.css';
 
 interface InviteFriendProps {
+    title: string;
     // Making and revoking a link needs a connection
     disabled: boolean;
+    // The friends, under the links
+    children: ReactNode;
 }
 
 // What takes the focus once a change of the links is done
 type Focus = { on: 'invite' } | { on: 'link'; id: string };
 
-// A friend who uses the app is invited with a link made at once, with nobody behind it (ADR-0014), and the links of the
-// person that are still open are listed under it, to send or revoke
+// The section of the friends: a friend who uses the app is invited with a link made at once, with nobody behind it
+// (ADR-0014), from the heading (ADR-0038), and the links of the person that are still open are listed under it, to send
+// or revoke, before the friends
 const InviteFriend = (props: InviteFriendProps) => {
-    const { disabled } = props;
+    const { title, disabled, children } = props;
     const t = useTranslations('groups');
     const failureWords = useFailureWords();
     const { inviteFriend, revokeLink } = useGroupActions();
@@ -65,19 +71,23 @@ const InviteFriend = (props: InviteFriendProps) => {
         });
 
     return (
-        <div className="invite-friend">
-            <div className="invite-friend__start">
+        <ListSection
+            title={title}
+            action={
                 <Button
                     ref={inviteButton}
-                    block
-                    variant="primary"
+                    ghost
+                    className="list-section__action"
+                    aria-label={t('links.make')}
                     disabled={disabled || busy}
                     onClick={() => void make()}
                 >
-                    {t('links.make')}
+                    <Icon name="add" />
+                    {t('links.makeShort')}
                 </Button>
-                <p className="hint invite-friend__hint">{t('links.hint', { days: INVITATION_DAYS })}</p>
-            </div>
+            }
+        >
+            <p className="hint invite-friend__hint">{t('links.hint', { days: INVITATION_DAYS })}</p>
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}
@@ -99,7 +109,8 @@ const InviteFriend = (props: InviteFriendProps) => {
                 </Sheet>
             )}
             {links.isError && <Notice role="status">{t('links.loadFailed')}</Notice>}
-        </div>
+            {children}
+        </ListSection>
     );
 };
 

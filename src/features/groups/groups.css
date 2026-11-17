@@ -8,12 +8,6 @@
     display: block;
 }
 
-.groups__section {
-    display: grid;
-    gap: var(--size-4);
-    grid-template-columns: minmax(0, 1fr);
-}
-
 .groups__totals {
     display: grid;
     gap: var(--size-2);

@@ -77,6 +77,7 @@ describe('backTarget', () => {
         expect(backTarget('/charts')).toEqual({ to: '/summary' });
         expect(backTarget('/budgets')).toEqual({ to: '/summary' });
         expect(backTarget(`/groups/${group}`)).toEqual({ to: '/groups' });
+        expect(backTarget('/groups/new')).toEqual({ to: '/groups' });
     });
 
     it('leads the settings of a group to the group of the address', () => {

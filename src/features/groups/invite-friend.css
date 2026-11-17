@@ -1,13 +1,3 @@
-.invite-friend {
-    display: grid;
-    gap: var(--size-4);
-}
-
-.invite-friend__start {
-    display: grid;
-    gap: var(--size-2);
-}
-
 .invite-friend__hint {
     overflow-wrap: anywhere;
 }

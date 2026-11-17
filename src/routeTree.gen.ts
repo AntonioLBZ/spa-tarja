@@ -15,6 +15,7 @@ import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as SummaryRouteImport } from './routes/summary'
 import { Route as GroupsIndexRouteImport } from './routes/groups.index'
+import { Route as GroupsNewRouteImport } from './routes/groups.new'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
@@ -51,6 +52,11 @@ const SummaryRoute = SummaryRouteImport.update({
 const GroupsIndexRoute = GroupsIndexRouteImport.update({
   id: '/groups/',
   path: '/groups/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GroupsNewRoute = GroupsNewRouteImport.update({
+  id: '/groups/new',
+  path: '/groups/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinTokenRoute = JoinTokenRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/summary': typeof SummaryRoute
+  '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/summary': typeof SummaryRoute
+  '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRoute
   '/charts': typeof ChartsRoute
   '/summary': typeof SummaryRoute
+  '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/charts'
     | '/summary'
+    | '/groups/new'
     | '/join/$token'
     | '/settings/account'
     | '/settings/appearance'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/charts'
     | '/summary'
+    | '/groups/new'
     | '/join/$token'
     | '/settings/account'
     | '/settings/appearance'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/charts'
     | '/summary'
+    | '/groups/new'
     | '/join/$token'
     | '/settings/account'
     | '/settings/appearance'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRoute
   ChartsRoute: typeof ChartsRoute
   SummaryRoute: typeof SummaryRoute
+  GroupsNewRoute: typeof GroupsNewRoute
   JoinTokenRoute: typeof JoinTokenRoute
   SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/groups'
       fullPath: '/groups/'
       preLoaderRoute: typeof GroupsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/groups/new': {
+      id: '/groups/new'
+      path: '/groups/new'
+      fullPath: '/groups/new'
+      preLoaderRoute: typeof GroupsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$token': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRoute,
   ChartsRoute: ChartsRoute,
   SummaryRoute: SummaryRoute,
+  GroupsNewRoute: GroupsNewRoute,
   JoinTokenRoute: JoinTokenRoute,
   SettingsAccountRoute: SettingsAccountRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,

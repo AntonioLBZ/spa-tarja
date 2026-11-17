@@ -537,7 +537,8 @@
             "friends": "Amigos",
             "friendsNone": "Un amigo aparecerá aquí cuando alguien acepte tu enlace.",
             "closed": "Grupos cerrados",
-            "archived": "Archivados"
+            "archived": "Archivados",
+            "new": "Nuevo"
         },
         "row": {
             "settled": "Sin cuentas pendientes",
@@ -551,12 +552,8 @@
         "new": {
             "title": "Nuevo grupo",
             "name": "Nombre",
-            "person": "Añadir a una persona",
-            "personHint": "Por su nombre, de una en una. No necesita la app.",
-            "add": "Añadir",
-            "friend": "De tus amigos",
-            "friendNone": "Elige a un amigo",
-            "addFriend": "Añadir amigo",
+            "addPeople": "Añadir personas",
+            "addPeopleHint": "Tus amigos, o cualquier otra persona por su nombre.",
             "people": "Personas que añadir",
             "remove": "Quitar",
             "removeItem": "Quitar a {name}",
@@ -567,7 +564,8 @@
             "make": "Invitar a un amigo",
             "hint": "Cada invitación se puede usar una vez y caduca a los {days} días.",
             "title": "Enlaces de invitación",
-            "loadFailed": "No se pudieron cargar tus enlaces de invitación."
+            "loadFailed": "No se pudieron cargar tus enlaces de invitación.",
+            "makeShort": "Invitar"
         },
         "nameInvalid": "Un nombre necesita al menos un carácter visible y ningún control de dirección del texto.",
         "failure": {
@@ -636,14 +634,20 @@
             "removeConfirm": "¿Quitar a {name} del grupo? Sigue en los gastos que ya se repartieron.",
             "unsettled": "El saldo de {name} no está a cero. Primero hay que saldar cuentas.",
             "add": "Añadir a una persona",
-            "addHint": "Por su nombre. No necesita la app.",
-            "addSubmit": "Añadir",
-            "friend": "De tus amigos",
-            "friendNone": "Elige a un amigo",
-            "place": "Cómo entra",
+            "placeOf": "¿Cómo entra {name}?",
             "asNew": "Como persona nueva",
             "inPlaceOf": "En lugar de {name}",
-            "addFriend": "Añadir amigo"
+            "addFriend": "Añadir amigo",
+            "back": "Volver"
+        },
+        "search": {
+            "field": "Busca o escribe un nombre",
+            "results": "Resultados",
+            "byName": "Añadir a «{name}» por su nombre",
+            "byNameHint": "No necesita la app.",
+            "empty": "Escribe el nombre de alguien para añadirlo.",
+            "added": "Se ha añadido a {name}.",
+            "close": "Cerrar"
         },
         "close": {
             "leave": {

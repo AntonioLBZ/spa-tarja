@@ -1,25 +1,24 @@
 import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
-import * as v from 'valibot';
 
+import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
-import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
-import { Select } from '@/components/select/select';
 import { Sheet } from '@/components/sheet/sheet';
 import { memberBalances } from '@core/balance';
-import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
 import { isOwner } from './is-owner';
 import { PersonRow } from './person-row';
-import { useFriends } from './use-friends';
+import { PersonSearch, type PersonChoice } from './person-search';
+import { useFriends, type Friend } from './use-friends';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 
 import type { Ledger } from './use-ledgers';
+import type { SharedGroup } from '@core/shared-group';
 
 import './group-people.css';
 
@@ -34,7 +33,7 @@ interface AddPersonProps {
     disabled: boolean;
 }
 
-// The members of a group who haven't left, each with what can be done to them, and adding a dummy or a friend
+// The members of a group who haven't left, each with what can be done to them, and adding somebody
 const GroupPeople = (props: GroupPeopleProps) => {
     const { ledger, disabled } = props;
     const { group, entries, hasData } = ledger;
@@ -63,175 +62,153 @@ const GroupPeople = (props: GroupPeopleProps) => {
                     ))}
                 </CardList>
             </Sheet>
-            <AddPerson group={group} disabled={disabled} />
-            <AddFriendMember group={group} disabled={disabled} />
+            <AddPeople group={group} disabled={disabled} />
         </section>
     );
 };
 
-// A dummy by name. Its id is kept until it is added, so one sent again after an answer that never came is the same.
-const AddPerson = (props: AddPersonProps) => {
-    const { group, disabled } = props;
-    const t = useTranslations('groups');
-    const failureWords = useFailureWords();
-    const { savePerson } = useGroupActions();
-    const [id, setId] = useState(() => crypto.randomUUID());
-    const [name, setName] = useState('');
-    const [invalid, setInvalid] = useState(false);
-    const [failure, setFailure] = useState<GroupFailure | null>(null);
-    const [busy, setBusy] = useState(false);
+// A friend pressed in the search, waiting for the owner to say how they come in
+interface Placing {
+    friend: Friend;
+    done: (name: string | null) => void;
+}
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const parsed = v.safeParse(sharedNameSchema, name);
-        if (!parsed.success) {
-            setInvalid(true);
-            return;
-        }
-
-        setFailure(null);
-        setBusy(true);
-        try {
-            await savePerson(group.id, id, parsed.output);
-            setId(crypto.randomUUID());
-            setName('');
-        } catch (error) {
-            setFailure(failureOf(error));
-        } finally {
-            setBusy(false);
-        }
-    };
-
-    return (
-        <form className="group-people__add" onSubmit={(event) => void handleSubmit(event)}>
-            <Field
-                label={t('people.add')}
-                hint={t('people.addHint')}
-                error={invalid ? t('nameInvalid') : null}
-                actions={
-                    <>
-                        <Button disabled={disabled || busy} type="submit">
-                            {t('people.addSubmit')}
-                        </Button>
-                    </>
-                }
-            >
-                {(control) => (
-                    <input
-                        {...control}
-                        autoComplete="off"
-                        disabled={disabled}
-                        maxLength={SHARED_NAME_MAX_LENGTH}
-                        type="text"
-                        value={name}
-                        onChange={(event) => {
-                            setName(event.target.value);
-                            setInvalid(false);
-                        }}
-                    />
-                )}
-            </Field>
-            {failure && (
-                <Notice tone="danger" role="alert">
-                    {failureWords(failure)}
-                </Notice>
-            )}
-        </form>
-    );
-};
-
-// One of the person's friends, at once: as a new member or, for the owner, in place of a dummy, who is
-// merged into them. The member id is kept until the friend is added, so one sent again is the same; choosing another
-// friend makes a new one.
-const AddFriendMember = (props: AddPersonProps) => {
+// Adding people by the search (ADR-0038), at once: a dummy by name, or one of the person's friends as a new member or,
+// for the owner, in place of a dummy, who is merged into them. A member id is kept until somebody is added, so one sent
+// again after an answer that never came is the same; another press makes a new one.
+const AddPeople = (props: AddPersonProps) => {
     const { group, disabled } = props;
     const t = useTranslations('groups');
     const failureWords = useFailureWords();
     const words = useGroupWords(group);
-    const { addFriend } = useGroupActions();
+    const { savePerson, addFriend } = useGroupActions();
     const friends = useFriends();
     const placeName = useId();
-    const field = useRef<HTMLSelectElement>(null);
+    const opener = useRef<HTMLButtonElement>(null);
+    const [open, setOpen] = useState(false);
     const [id, setId] = useState(() => crypto.randomUUID());
-    // The friend chosen, or '' for none
-    const [friend, setFriend] = useState('');
+    // What the last press was, so a press of the same one sent again keeps the id
+    const [last, setLast] = useState('');
+    const [placing, setPlacing] = useState<Placing | null>(null);
     // As a new member, or in place of the dummy with this id
     const [place, setPlace] = useState('new');
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
 
-    if (friends.length === 0) return null;
-
     const dummies = isOwner(group) ? group.members.filter((member) => !member.claimed && member.leftAt === null) : [];
-    // A friend or a dummy gone since they were chosen is chosen no more
-    const chosen = friends.some((item) => item.id === friend) ? friend : '';
+    // A dummy gone since it was chosen is chosen no more
     const placed = dummies.some((dummy) => dummy.id === place) ? place : 'new';
 
-    const choose = (next: string) => {
-        setFriend(next);
-        setPlace('new');
-        setId(crypto.randomUUID());
-        setFailure(null);
-    };
-
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (chosen === '') return;
-
+    const send = async (key: string, run: (memberId: string) => Promise<unknown>, failed: typeof failureOf) => {
+        const memberId = key === last ? id : crypto.randomUUID();
+        setId(memberId);
+        setLast(key);
         setFailure(null);
         setBusy(true);
         try {
-            await addFriend(group.id, id, placed === 'new' ? { friend: chosen } : { friend: chosen, replaces: placed });
-            choose('');
-            field.current?.focus();
+            await run(memberId);
+            setId(crypto.randomUUID());
+            setLast('');
+            return true;
         } catch (error) {
-            setFailure(failureOfFriend(error));
+            setFailure(failed(error));
+            return false;
         } finally {
             setBusy(false);
         }
     };
 
-    return (
-        <form className="group-people__friend" onSubmit={(event) => void handleSubmit(event)}>
-            <Field label={t('people.friend')}>
-                {(control) => (
-                    <Select
-                        {...control}
-                        ref={field}
-                        disabled={disabled}
-                        options={[
-                            { value: '', label: t('people.friendNone') },
-                            ...friends.map((item) => ({ value: item.id, label: item.name })),
-                        ]}
-                        value={chosen}
-                        onChange={choose}
-                    />
-                )}
-            </Field>
-            {chosen !== '' && dummies.length > 0 && (
-                <ChoiceGroup
-                    legend={t('people.place')}
-                    name={placeName}
-                    options={[
-                        { value: 'new', label: t('people.asNew') },
-                        ...dummies.map((dummy) => ({
-                            value: dummy.id,
-                            label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
-                        })),
-                    ]}
-                    value={placed}
-                    onChange={setPlace}
-                />
-            )}
-            <Button block disabled={disabled || busy || chosen === ''} type="submit">
-                {t('people.addFriend')}
-            </Button>
+    const addAs = (friend: Friend, replaces: string) =>
+        send(
+            `friend:${friend.id}:${replaces}`,
+            (memberId) =>
+                addFriend(
+                    group.id,
+                    memberId,
+                    replaces === 'new' ? { friend: friend.id } : { friend: friend.id, replaces }
+                ),
+            failureOfFriend
+        );
+
+    const pick = async (choice: PersonChoice): Promise<string | null> => {
+        if ('name' in choice) {
+            const added = await send(
+                `name:${choice.name}`,
+                (memberId) => savePerson(group.id, memberId, choice.name),
+                failureOf
+            );
+            return added ? choice.name : null;
+        }
+        const { friend } = choice;
+        if (dummies.length === 0) return (await addAs(friend, 'new')) ? friend.name : null;
+        setFailure(null);
+        setPlace('new');
+        return new Promise((done) => setPlacing({ friend, done }));
+    };
+
+    const endPlacing = (name: string | null) => {
+        placing?.done(name);
+        setPlacing(null);
+    };
+
+    const handlePlace = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!placing) return;
+        if (await addAs(placing.friend, placed)) endPlacing(placing.friend.name);
+    };
+
+    const step = placing && (
+        <form className="group-people__place" onSubmit={(event) => void handlePlace(event)}>
+            <ChoiceGroup
+                legend={t('people.placeOf', { name: placing.friend.name })}
+                name={placeName}
+                options={[
+                    { value: 'new', label: t('people.asNew') },
+                    ...dummies.map((dummy) => ({
+                        value: dummy.id,
+                        label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
+                    })),
+                ]}
+                value={placed}
+                onChange={setPlace}
+            />
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}
                 </Notice>
             )}
+            <Actions>
+                <Button disabled={disabled || busy} type="submit">
+                    {t('people.addFriend')}
+                </Button>
+                <Button ghost onClick={() => endPlacing(null)}>
+                    {t('people.back')}
+                </Button>
+            </Actions>
         </form>
+    );
+
+    return (
+        <>
+            <Button ref={opener} block disabled={disabled} onClick={() => setOpen(true)}>
+                {t('people.add')}
+            </Button>
+            <PersonSearch
+                open={open}
+                title={t('people.add')}
+                friends={friends}
+                disabled={disabled || busy}
+                failure={failure && !placing ? failureWords(failure) : undefined}
+                step={step ?? undefined}
+                onPick={pick}
+                onClose={() => {
+                    endPlacing(null);
+                    setFailure(null);
+                    setOpen(false);
+                    opener.current?.focus();
+                }}
+            />
+        </>
     );
 };
 

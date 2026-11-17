@@ -1,8 +1,10 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useId, type ReactNode } from 'react';
+import { useEffect } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { ButtonLink } from '@/components/button/button-link';
 import { Disclosure } from '@/components/disclosure/disclosure';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
 import { useAmount } from '@/lib/amounts';
@@ -14,8 +16,8 @@ import { EntryRefusals } from './entry-refusals';
 import { useFailureWords } from './group-failure';
 import { GroupList, GroupSheet } from './group-list';
 import { InviteFriend } from './invite-friend';
+import { ListSection } from './list-section';
 import { myBalance } from './my-balance';
-import { NewGroup } from './new-group';
 import { useGroups, useLedgers, type Ledger } from './use-ledgers';
 import { usePins } from './use-pins';
 
@@ -25,13 +27,8 @@ interface GroupTotalsProps {
     ledgers: readonly Ledger[];
 }
 
-interface ListSectionProps {
-    title: string;
-    children: ReactNode;
-}
-
-// The Groups tab: what the person is owed and owes across their open groups and friends; the groups, with making one,
-// and the friends, with inviting one by a link; and at the end the closed and the archived ones
+// The Groups tab: what the person is owed and owes across their open groups and friends; the groups, with the way to
+// make one, and the friends, with inviting one by a link; and at the end the closed and the archived ones
 const Groups = () => {
     const t = useTranslations('groups');
     const online = useOnline();
@@ -79,17 +76,23 @@ const Groups = () => {
                     {failureWords(pins.failure)}
                 </Notice>
             )}
-            <ListSection title={t('lists.groups')}>
-                <NewGroup disabled={!online} />
+            <ListSection
+                title={t('lists.groups')}
+                action={
+                    <ButtonLink ghost className="list-section__action" to="/groups/new" aria-label={t('new.title')}>
+                        <Icon name="add" />
+                        {t('lists.new')}
+                    </ButtonLink>
+                }
+            >
                 {groups.length > 0 && <GroupList ledgers={groups} pins={pins} />}
             </ListSection>
-            <ListSection title={t('lists.friends')}>
-                <InviteFriend disabled={!online} />
+            <InviteFriend title={t('lists.friends')} disabled={!online}>
                 {friends.length > 0 && <GroupList ledgers={friends} pins={pins} />}
                 {hasData && open.length > 0 && friends.length === 0 && (
                     <Notice tone="quiet">{t('lists.friendsNone')}</Notice>
                 )}
-            </ListSection>
+            </InviteFriend>
             {closed.length > 0 && (
                 <Disclosure summary={t('lists.closed')} chevron>
                     <GroupSheet label={t('lists.closed')} ledgers={closed} />
@@ -100,19 +103,6 @@ const Groups = () => {
                     <GroupSheet label={t('lists.archived')} ledgers={archived} />
                 </Disclosure>
             )}
-        </section>
-    );
-};
-
-// A list with its own heading, its control first and then the rows
-const ListSection = (props: ListSectionProps) => {
-    const { title, children } = props;
-    const headingId = useId();
-
-    return (
-        <section className="groups__section" aria-labelledby={headingId}>
-            <h2 id={headingId}>{title}</h2>
-            {children}
         </section>
     );
 };
