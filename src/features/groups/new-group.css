@@ -13,24 +13,3 @@
     display: grid;
     gap: var(--size-2);
 }
-
-/* A person to add, with the ghost that takes them away again */
-.new-group__person {
-    align-items: center;
-    display: flex;
-    gap: var(--size-4);
-    justify-content: space-between;
-}
-
-/* A friend is a filled person, a dummy one in outline */
-.new-group__who {
-    align-items: center;
-    display: flex;
-    gap: var(--size-2);
-    min-width: 0;
-}
-
-.new-group__name {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}

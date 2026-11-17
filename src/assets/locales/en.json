@@ -554,7 +554,6 @@
             "name": "Group name",
             "addPeople": "Add people",
             "addPeopleHint": "Your friends, or anybody else by their name.",
-            "people": "People to add",
             "remove": "Remove",
             "removeItem": "Remove {name}",
             "submit": "Make the group",

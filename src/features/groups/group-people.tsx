@@ -3,14 +3,13 @@ import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
-import { CardList } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
-import { Sheet } from '@/components/sheet/sheet';
 import { memberBalances } from '@core/balance';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
 import { isOwner } from './is-owner';
+import { PeopleSheet } from './people-sheet';
 import { PersonRow } from './person-row';
 import { PersonSearch, type PersonChoice } from './person-search';
 import { useFriends, type Friend } from './use-friends';
@@ -37,7 +36,6 @@ interface AddPersonProps {
 const GroupPeople = (props: GroupPeopleProps) => {
     const { ledger, disabled } = props;
     const { group, entries, hasData } = ledger;
-    const t = useTranslations('groups.people');
     const balances = useMemo(
         () => new Map(memberBalances(entries, group.members).map((balance) => [balance.memberId, balance.cents])),
         [entries, group.members]
@@ -48,20 +46,18 @@ const GroupPeople = (props: GroupPeopleProps) => {
 
     return (
         <section className="group-people">
-            <Sheet label={t('title')} labelRef={heading}>
-                <CardList flush>
-                    {people.map((member) => (
-                        <PersonRow
-                            key={member.id}
-                            group={group}
-                            member={member}
-                            cents={hasData ? (balances.get(member.id) ?? 0) : null}
-                            disabled={disabled}
-                            onGone={() => heading.current?.focus()}
-                        />
-                    ))}
-                </CardList>
-            </Sheet>
+            <PeopleSheet labelRef={heading}>
+                {people.map((member) => (
+                    <PersonRow
+                        key={member.id}
+                        group={group}
+                        member={member}
+                        cents={hasData ? (balances.get(member.id) ?? 0) : null}
+                        disabled={disabled}
+                        onGone={() => heading.current?.focus()}
+                    />
+                ))}
+            </PeopleSheet>
             <AddPeople group={group} disabled={disabled} />
         </section>
     );

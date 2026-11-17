@@ -1,17 +1,26 @@
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
-import { Card, CardList } from '@/components/card/card';
 import { Field } from '@/components/field/field';
-import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
+import { profileQuery } from '@/lib/api';
+import { useUser } from '@/lib/auth';
 import { useOnline } from '@/lib/offline';
-import { MAX_GROUP_MEMBERS, SHARED_NAME_MAX_LENGTH, sharedNameSchema, type SharedGroup } from '@core/shared-group';
+import {
+    MAX_GROUP_MEMBERS,
+    SHARED_NAME_MAX_LENGTH,
+    personName,
+    sharedNameSchema,
+    type SharedGroup,
+} from '@core/shared-group';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
+import { PeopleRow, PeopleSheet } from './people-sheet';
+import { PersonLine } from './person-line';
 import { PersonSearch, type PersonChoice } from './person-search';
 import { useFriends } from './use-friends';
 import { useGroupActions } from './use-group-actions';
@@ -38,6 +47,10 @@ const NewGroup = () => {
     const friends = useFriends();
     const [ids] = useState(() => ({ group: crypto.randomUUID(), me: crypto.randomUUID() }));
     const addButton = useRef<HTMLButtonElement>(null);
+    const user = useUser();
+    const { data: profile } = useQuery(profileQuery());
+    // The name the person will have in the group, as the server gives it: the nickname, else the first name
+    const me = personName({ nickname: profile?.nickname ?? null, name: user.name });
 
     const [name, setName] = useState('');
     const [people, setPeople] = useState<Person[]>([]);
@@ -130,29 +143,31 @@ const NewGroup = () => {
                     </Button>
                     <p className="hint">{t('new.addPeopleHint')}</p>
                 </div>
-                {people.length > 0 && (
-                    <CardList label={t('new.people')}>
-                        {people.map((added) => (
-                            <Card as="li" className="new-group__person" key={added.id}>
-                                <span className="new-group__who">
-                                    <Icon name={added.friend === undefined ? 'person' : 'person_filled'} />
-                                    <span className="new-group__name">{added.name}</span>
-                                </span>
-                                <Button
-                                    ghost
-                                    aria-label={t('new.removeItem', { name: added.name })}
-                                    disabled={disabled}
-                                    onClick={() => {
-                                        setPeople((current) => current.filter((item) => item !== added));
-                                        addButton.current?.focus();
-                                    }}
-                                >
-                                    {t('new.remove')}
-                                </Button>
-                            </Card>
-                        ))}
-                    </CardList>
-                )}
+                <PeopleSheet>
+                    <PeopleRow>
+                        <PersonLine user name={me} details={[t('people.you'), t('people.owner')]} />
+                    </PeopleRow>
+                    {people.map((added) => (
+                        <PeopleRow key={added.id}>
+                            <PersonLine
+                                user={added.friend !== undefined}
+                                name={added.name}
+                                details={added.friend === undefined ? [t('people.notJoined')] : []}
+                            />
+                            <Button
+                                ghost
+                                aria-label={t('new.removeItem', { name: added.name })}
+                                disabled={disabled}
+                                onClick={() => {
+                                    setPeople((current) => current.filter((item) => item !== added));
+                                    addButton.current?.focus();
+                                }}
+                            >
+                                {t('new.remove')}
+                            </Button>
+                        </PeopleRow>
+                    ))}
+                </PeopleSheet>
                 <Button block variant="primary" disabled={disabled || busy} type="submit">
                     {t('new.submit')}
                 </Button>

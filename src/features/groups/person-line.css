@@ -1,0 +1,29 @@
+.person-line {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: var(--size-2);
+    min-width: 0;
+}
+
+.person-line__body {
+    display: grid;
+    flex: 1;
+    gap: var(--size-1);
+    min-width: 0;
+    padding-block: var(--size-2);
+}
+
+.person-line__name {
+    overflow-wrap: anywhere;
+}
+
+.person-line__detail {
+    color: var(--color-content-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: var(--font-size-s);
+    gap: 0 var(--size-3);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

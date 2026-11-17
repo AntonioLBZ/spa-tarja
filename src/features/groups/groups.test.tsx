@@ -89,10 +89,23 @@ function closeSearch() {
     fireEvent.click(screen.getByRole('button', { name: text.search.close }));
 }
 
+function peopleRows() {
+    const label = screen.getByRole('heading', { level: 2, name: text.people.title });
+    return within(label.parentElement!).getAllByRole('listitem');
+}
+
+function rowSays(row: HTMLElement) {
+    return [
+        row.querySelector('.person-line__name')?.textContent,
+        row.querySelector('.person-line__detail')?.textContent ?? '',
+        row.querySelector('svg')?.dataset.icon,
+    ];
+}
+
 function listed() {
-    return within(screen.getByRole('list', { name: text.new.people }))
-        .getAllByRole('listitem')
-        .map((item) => item.firstChild?.textContent);
+    return peopleRows()
+        .slice(1)
+        .map((row) => row.querySelector('.person-line__name')?.textContent);
 }
 
 function makeGroup(name: string) {
@@ -425,6 +438,16 @@ describe('making a group', () => {
         expect(await ready()).toBeDefined();
     });
 
+    it('lists you first on the sheet of its people, as the owner, with nothing to remove', async () => {
+        startNew();
+        await ready();
+
+        await waitFor(() =>
+            expect(peopleRows().map(rowSays)).toEqual([['Ana', text.people.you + text.people.owner, 'person_filled']])
+        );
+        expect(within(peopleRows()[0]!).queryByRole('button')).toBeNull();
+    });
+
     it('makes it with the people added by name in the search, and opens it', async () => {
         const { api } = startNew();
         await ready();
@@ -463,7 +486,7 @@ describe('making a group', () => {
         fireEvent.keyDown(field(text.search.field), { key: 'Enter' });
         closeSearch();
 
-        expect(screen.queryByRole('list', { name: text.new.people })).toBeNull();
+        expect(listed()).toEqual([]);
     });
 
     it('takes no more people than a group holds, and says so', async () => {
@@ -642,16 +665,10 @@ describe('making a group with friends', () => {
         chooseFriend('Eva');
         closeSearch();
 
-        expect(
-            within(screen.getByRole('list', { name: text.new.people }))
-                .getAllByRole('listitem')
-                .map((item) => [
-                    item.textContent?.replace(text.new.remove, ''),
-                    item.querySelector('svg')?.dataset.icon,
-                ])
-        ).toEqual([
-            ['Fran', 'person'],
-            ['Eva', 'person_filled'],
+        expect(peopleRows().map(rowSays)).toEqual([
+            ['Ana', text.people.you + text.people.owner, 'person_filled'],
+            ['Fran', text.people.notJoined, 'person'],
+            ['Eva', '', 'person_filled'],
         ]);
     });
 

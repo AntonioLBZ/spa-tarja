@@ -6,7 +6,6 @@ import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
-import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type SharedGroup } from '@core/shared-group';
@@ -14,6 +13,8 @@ import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type Shared
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { isOwner } from './is-owner';
 import { isUser } from './is-user';
+import { PeopleRow } from './people-sheet';
+import { PersonLine } from './person-line';
 import { useGroupActions } from './use-group-actions';
 import { useGroupWords } from './use-group-words';
 import { useStepFocus } from './use-step-focus';
@@ -72,7 +73,7 @@ const PersonRow = (props: PersonRowProps) => {
         isMe && t('people.you'),
         member.role === 'owner' && t('people.owner'),
         !member.claimed && t('people.notJoined'),
-    ].filter(Boolean);
+    ].filter((tag) => tag !== false);
 
     const goTo = (next: Step) => {
         setStep(next);
@@ -128,21 +129,14 @@ const PersonRow = (props: PersonRowProps) => {
     );
 
     const summary = (
-        <span className="person-row__summary">
-            <Icon name={member.claimed ? 'person_filled' : 'person'} />
-            <span className="person-row__body">
-                <span className="person-row__name">{name}</span>
-                <span className="person-row__detail">
-                    {tags.map((tag) => (
-                        <span key={String(tag)}>{tag}</span>
-                    ))}
-                    {cents !== null && <span>{words.sentence(member.id, cents)}</span>}
-                </span>
-            </span>
-        </span>
+        <PersonLine
+            user={member.claimed}
+            name={name}
+            details={cents === null ? tags : [...tags, words.sentence(member.id, cents)]}
+        />
     );
 
-    if (!canRename && !canRemove) return <li className="person-row">{summary}</li>;
+    if (!canRename && !canRemove) return <PeopleRow>{summary}</PeopleRow>;
 
     return (
         <Disclosure as="li" chevron summary={summary} open={expanded} onOpenChange={handleOpenChange}>

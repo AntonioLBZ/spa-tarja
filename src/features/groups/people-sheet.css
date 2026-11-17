@@ -1,0 +1,7 @@
+/* As tall as a row that opens */
+.people-sheet__row {
+    align-items: center;
+    display: flex;
+    gap: var(--size-4);
+    min-height: var(--size-touch);
+}
