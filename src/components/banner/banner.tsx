@@ -7,23 +7,22 @@ import {
     useMemo,
     useRef,
     useState,
-    type CSSProperties,
     type KeyboardEvent,
-    type PointerEvent,
     type ReactNode,
 } from 'react';
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { readDuration } from '@/lib/motion';
+import { useSwipeAway, type SwipeSide } from '@/lib/use-swipe-away';
 
 import './banner.css';
 
 // How long a banner stays, not counting the time the pointer or the focus holds it
 const SHOW_FOR_MS = 8_000;
 
-// A move shorter than this is a tap, not a swipe
-const SWIPE_SLOP_PX = 8;
+// Back toward the edge it came from, or to a side (ADR-0037)
+const SWIPED_TO: readonly SwipeSide[] = ['left', 'right', 'up'];
 
 interface BannerOptions {
     title: string;
@@ -44,14 +43,14 @@ interface ShownBanner extends BannerOptions {
     id: number;
     // Counts the times it was shown again, which starts its count again
     round: number;
-    // Leaving to that side after a swipe, or up when it goes otherwise
-    leaving: 'up' | 'left' | 'right' | null;
+    // Fading out, about to go
+    leaving: boolean;
 }
 
 interface BannerBoxProps {
     banner: ShownBanner;
     dismissLabel: string;
-    onDismiss: (to?: 'left' | 'right') => void;
+    onDismiss: (swiped?: boolean) => void;
 }
 
 interface BannerProviderProps {
@@ -63,21 +62,18 @@ interface BannerProviderProps {
 const BannerContext = createContext<BannerApi | null>(null);
 
 // The banner: one button that opens what it is about and one that clears it away. It goes by itself after 8 s, held while
-// the pointer is over it or the focus inside, and a swipe to the side of more than a third of its width clears it.
+// the pointer is over it or the focus inside, or while it is dragged, and a swipe to a side or up clears it.
 const BannerBox = (props: BannerBoxProps) => {
     const { banner, dismissLabel, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
     const [focused, setFocused] = useState(false);
-    const [shift, setShift] = useState<number | null>(null);
     const remaining = useRef(SHOW_FOR_MS);
-    const start = useRef<number | null>(null);
-    const swiped = useRef(false);
-    const counting = !hovered && !focused && shift === null && banner.leaving === null;
+    const swipe = useSwipeAway({ sides: SWIPED_TO, onAway: () => onDismiss(true), on: !banner.leaving });
+    const counting = !hovered && !focused && !swipe.dragged && !banner.leaving;
     const bannerClsx = clsx('banner', {
-        'banner--dragged': shift !== null,
-        [`banner--leaving-${banner.leaving}`]: banner.leaving !== null,
+        'banner--dragged': swipe.dragged,
+        'banner--leaving': banner.leaving,
     });
-    const style = shift === null ? undefined : ({ '--banner-shift': `${shift}px` } as CSSProperties);
 
     useEffect(() => {
         remaining.current = SHOW_FOR_MS;
@@ -93,29 +89,6 @@ const BannerBox = (props: BannerBoxProps) => {
         };
     }, [counting, onDismiss, banner.round]);
 
-    const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-        start.current = event.clientX;
-        swiped.current = false;
-    };
-
-    const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-        if (start.current === null) return;
-        const dx = event.clientX - start.current;
-        if (Math.abs(dx) < SWIPE_SLOP_PX && !swiped.current) return;
-        swiped.current = true;
-        setShift(dx);
-    };
-
-    const onPointerEnd = (event: PointerEvent<HTMLDivElement>) => {
-        if (start.current === null) return;
-        const dx = event.clientX - start.current;
-        start.current = null;
-        setShift(null);
-        if (!swiped.current) return;
-        const width = event.currentTarget.getBoundingClientRect().width;
-        if (Math.abs(dx) > width / 3) onDismiss(dx < 0 ? 'left' : 'right');
-    };
-
     const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
         if (event.key !== 'Escape' || event.defaultPrevented) return;
         event.preventDefault();
@@ -125,23 +98,19 @@ const BannerBox = (props: BannerBoxProps) => {
     return (
         <div
             className={bannerClsx}
-            style={style}
+            style={swipe.style}
             onBlur={() => setFocused(false)}
             onFocus={() => setFocused(true)}
             onKeyDown={onKeyDown}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
-            onPointerCancel={onPointerEnd}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
+            {...swipe.handlers}
         >
             <button
                 className="banner__open"
-                disabled={banner.leaving !== null}
+                disabled={banner.leaving}
                 type="button"
                 onClick={() => {
-                    if (swiped.current) return;
                     banner.onOpen();
                     onDismiss();
                 }}
@@ -153,7 +122,7 @@ const BannerBox = (props: BannerBoxProps) => {
                 ghost
                 glyph
                 className="banner__dismiss"
-                disabled={banner.leaving !== null}
+                disabled={banner.leaving}
                 aria-label={dismissLabel}
                 onClick={() => onDismiss()}
             >
@@ -179,23 +148,24 @@ const BannerProvider = (props: BannerProviderProps) => {
         clearTimeout(leaveTimer.current);
         onGone.current = options.onGone ?? (() => undefined);
         setBanner((current) =>
-            current && current.leaving === null
+            current && !current.leaving
                 ? { ...current, ...options, round: current.round + 1 }
-                : { ...options, id: ++lastId.current, round: 0, leaving: null }
+                : { ...options, id: ++lastId.current, round: 0, leaving: false }
         );
     }, []);
 
-    const dismiss = useCallback((to?: 'left' | 'right') => {
+    const dismiss = useCallback((swiped?: boolean) => {
         clearTimeout(leaveTimer.current);
         const gone = onGone.current;
         onGone.current = null;
         gone?.();
         const duration = readDuration('--duration-base');
-        if (duration === 0) {
+        // Swiped away, the finger already took it out: it goes where it was let go
+        if (duration === 0 || swiped) {
             setBanner(null);
             return;
         }
-        setBanner((current) => current && { ...current, leaving: to ?? 'up' });
+        setBanner((current) => current && { ...current, leaving: true });
         leaveTimer.current = setTimeout(() => setBanner(null), duration);
     }, []);
 

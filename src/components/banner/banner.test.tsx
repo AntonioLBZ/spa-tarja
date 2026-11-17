@@ -50,12 +50,12 @@ function box() {
     return document.querySelector<HTMLElement>('.banner');
 }
 
-function swipe(dx: number) {
+function swipe(dx: number, dy = 2) {
     const target = box()!;
-    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({ width: 300 } as DOMRect);
-    fireEvent.pointerDown(target, { clientX: 100, clientY: 10, pointerId: 1 });
-    fireEvent.pointerMove(target, { clientX: 100 + dx, clientY: 12, pointerId: 1 });
-    fireEvent.pointerUp(target, { clientX: 100 + dx, clientY: 12, pointerId: 1 });
+    vi.spyOn(target, 'getBoundingClientRect').mockReturnValue({ width: 300, height: 60 } as DOMRect);
+    fireEvent.pointerDown(target, { clientX: 100, clientY: 100, pointerId: 1, isPrimary: true });
+    fireEvent.pointerMove(target, { clientX: 100 + dx, clientY: 100 + dy, pointerId: 1, isPrimary: true });
+    fireEvent.pointerUp(target, { clientX: 100 + dx, clientY: 100 + dy, pointerId: 1, isPrimary: true });
 }
 
 beforeEach(() => {
@@ -173,8 +173,51 @@ describe('Banner', () => {
         swipe(60);
 
         expect(box()).not.toBeNull();
-        expect(box()!.style.getPropertyValue('--banner-shift')).toBe('');
+        expect(box()!.style.getPropertyValue('--swipe-x')).toBe('');
         expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('goes when it is swiped up by more than half its height', () => {
+        setup();
+        show();
+
+        swipe(4, -40);
+
+        expect(box()).toBeNull();
+    });
+
+    it('goes at once where it was let go, with no fade', () => {
+        document.documentElement.style.setProperty('--duration-base', '200ms');
+        setup();
+        show();
+
+        swipe(4, -150);
+
+        expect(box()).toBeNull();
+    });
+
+    it('stays when it is swiped down, the way it never goes', () => {
+        const { onOpen } = setup();
+        show();
+
+        swipe(4, 80);
+
+        expect(box()).not.toBeNull();
+        fireEvent.click(screen.getByText('Ana added Dinner'));
+        expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('holds the count while it is dragged', () => {
+        setup();
+        show();
+        const target = box()!;
+
+        fireEvent.pointerDown(target, { clientX: 100, clientY: 100, pointerId: 1, isPrimary: true });
+        fireEvent.pointerMove(target, { clientX: 140, clientY: 100, pointerId: 1, isPrimary: true });
+        elapse(9_000);
+
+        expect(box()).not.toBeNull();
+        expect(target.style.getPropertyValue('--swipe-x')).toBe('40px');
     });
 
     it('says once that it is gone, however it goes, and not while a new text replaces the old one', () => {

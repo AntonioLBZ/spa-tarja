@@ -20,7 +20,8 @@
 
 /* Filled with ink, the one message that is, so it stands apart from the bar and the sheets and is noticed: its text is the
    color of the page, and so is its focus ring, which the accent would not show on. The time left is the fill itself:
-   the ink drains from the right, leaving a lighter tone of it. In with a fade and a short shift, and out the same way. */
+   the ink drains from the right, leaving a lighter tone of it. In with a fade and a short shift, and out the same way; a
+   swipe moves it with the finger and it goes where it is let go (ADR-0037). */
 .toast {
     --color-border-focus: var(--color-bg-primary);
     --toast-spent: color-mix(in oklab, var(--color-border) 75%, var(--color-bg-primary));
@@ -29,8 +30,7 @@
     background: var(--toast-spent);
     color: var(--color-bg-primary);
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-2) var(--size-4);
+    gap: var(--size-2);
     isolation: isolate;
     justify-content: space-between;
     max-width: 40rem;
@@ -38,6 +38,8 @@
     padding: var(--size-1) var(--size-2) var(--size-1) var(--size-3);
     pointer-events: auto;
     position: relative;
+    touch-action: none;
+    transform: translate(var(--swipe-x, 0), var(--swipe-y, 0));
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
@@ -86,6 +88,10 @@
     }
 }
 
+.toast--dragged {
+    transition: none;
+}
+
 .toast--leaving {
     opacity: 0;
     pointer-events: none;
@@ -101,7 +107,22 @@
 .toast__actions {
     align-items: center;
     display: flex;
-    gap: var(--size-4);
+    flex: none;
+    gap: var(--size-2);
+}
+
+@media (width >= 40rem) {
+    .toast {
+        gap: var(--size-4);
+    }
+
+    .toast__actions {
+        gap: var(--size-4);
+    }
+
+    .toast__mark {
+        margin-inline-end: calc(-1 * var(--size-2));
+    }
 }
 
 /* The icon in the middle of a box as tall as a touch target */
@@ -116,7 +137,6 @@
     align-items: center;
     display: inline-flex;
     flex: none;
-    margin-inline-end: calc(-1 * var(--size-2));
 }
 
 .toast__message {

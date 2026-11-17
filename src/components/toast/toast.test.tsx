@@ -58,6 +58,14 @@ function toast() {
     return screen.queryByText('Deleted Lunch')?.closest('.toast') ?? null;
 }
 
+function swipe(target: Element, dx: number, dy: number) {
+    const box = target.closest('.toast') ?? target;
+    vi.spyOn(box, 'getBoundingClientRect').mockReturnValue({ width: 300, height: 60 } as DOMRect);
+    fireEvent.pointerDown(target, { clientX: 100, clientY: 100, pointerId: 1, isPrimary: true });
+    fireEvent.pointerMove(target, { clientX: 100 + dx, clientY: 100 + dy, pointerId: 1, isPrimary: true });
+    fireEvent.pointerUp(target, { clientX: 100 + dx, clientY: 100 + dy, pointerId: 1, isPrimary: true });
+}
+
 beforeEach(() => {
     vi.useFakeTimers();
 });
@@ -444,6 +452,81 @@ describe('Toast', () => {
         });
     });
 
+    describe('swiped', () => {
+        it('goes when it is swiped to a side by more than a third of its width', () => {
+            setup();
+            show();
+
+            swipe(toast()!, -120, 3);
+
+            expect(toast()).toBeNull();
+        });
+
+        it('goes when it is swiped down by more than half its height', () => {
+            setup();
+            show();
+
+            swipe(toast()!, 2, 40);
+
+            expect(toast()).toBeNull();
+        });
+
+        it('goes at once where it was let go, with no fade', () => {
+            root.style.setProperty('--duration-base', '200ms');
+            setup();
+            show();
+
+            swipe(toast()!, 2, 150);
+
+            expect(toast()).toBeNull();
+        });
+
+        it('stays when it is swiped up, the way it never goes', () => {
+            setup();
+            show();
+
+            swipe(toast()!, 2, -80);
+
+            expect(toast()).not.toBeNull();
+        });
+
+        it('comes back when the swipe is shorter', () => {
+            setup();
+            show();
+
+            swipe(toast()!, 60, 2);
+
+            expect(toast()).not.toBeNull();
+            expect((toast() as HTMLElement).style.getPropertyValue('--swipe-x')).toBe('');
+        });
+
+        it('runs no action when the swipe started on it', () => {
+            const onAction = vi.fn();
+            setup(onAction);
+            show();
+            const undo = within(toast() as HTMLElement).getByRole('button', { name: 'Undo' });
+
+            swipe(undo, 40, 2);
+            fireEvent.click(undo);
+
+            expect(onAction).not.toHaveBeenCalled();
+            expect(toast()).not.toBeNull();
+        });
+
+        it('holds the count while it is dragged', () => {
+            setup();
+            show();
+            const box = toast()!;
+
+            fireEvent.pointerDown(box, { clientX: 100, clientY: 100, pointerId: 1, isPrimary: true });
+            fireEvent.pointerMove(box, { clientX: 100, clientY: 130, pointerId: 1, isPrimary: true });
+            elapse(9_000);
+
+            expect(toast()).not.toBeNull();
+            expect(box.className).toContain('toast--held');
+        });
+    });
+
     it('needs its provider', () => {
         const quiet = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
@@ -510,6 +593,15 @@ describe('a pinned Toast', () => {
 
         expect(screen.queryByRole('button', { name: 'Clear' })).toBeNull();
         expect(within(screen.getByRole('status')).getAllByRole('button')).toHaveLength(2);
+    });
+
+    it('is not swiped away: it stays until it is answered', () => {
+        setupPin();
+        show('Pin');
+
+        swipe(pinned()!, -200, 2);
+
+        expect(pinned()).not.toBeNull();
     });
 
     it('holds its message and one ghost action for each of its answers', () => {

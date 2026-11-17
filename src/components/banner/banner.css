@@ -14,7 +14,7 @@
 
 /* A box with the notch on the color of the header, like the banner of a system notification, with the shadow of what
    floats over the page. In from above with a fade and a short shift, and out the same way; a swipe moves it with the
-   finger and it leaves to that side. */
+   finger and it goes where it is let go (ADR-0037). */
 .banner {
     align-items: center;
     background: var(--color-bg-secondary);
@@ -27,8 +27,8 @@
     max-width: 40rem;
     padding-inline-end: var(--size-1);
     pointer-events: auto;
-    touch-action: pan-y;
-    transform: translateX(var(--banner-shift, 0));
+    touch-action: none;
+    transform: translate(var(--swipe-x, 0), var(--swipe-y, 0));
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
@@ -44,24 +44,11 @@
     transition: none;
 }
 
-.banner--leaving-up,
-.banner--leaving-left,
-.banner--leaving-right {
+.banner--leaving {
     opacity: 0;
     pointer-events: none;
-    transition-timing-function: var(--ease-exit);
-}
-
-.banner--leaving-up {
     transform: translateY(calc(-1 * var(--size-2)));
-}
-
-.banner--leaving-left {
-    transform: translateX(-100%);
-}
-
-.banner--leaving-right {
-    transform: translateX(100%);
+    transition-timing-function: var(--ease-exit);
 }
 
 /* The title and the message, one button as wide as the box */

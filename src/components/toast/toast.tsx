@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { readDuration } from '@/lib/motion';
+import { useSwipeAway, type SwipeSide } from '@/lib/use-swipe-away';
 
 import type { IconName } from '@/components/icon/icon-paths';
 
@@ -24,6 +25,9 @@ import './toast.css';
 
 // How long a toast stays, not counting the time the pointer or the focus holds it
 const SHOW_FOR_MS = 8_000;
+
+// Back toward the edge it came from, or to a side (ADR-0037)
+const SWIPED_TO: readonly SwipeSide[] = ['left', 'right', 'down'];
 
 interface ToastAction {
     label: string;
@@ -66,7 +70,7 @@ interface ToastBoxProps {
     toast: ShownToast;
     pinned?: boolean;
     dismissLabel: string;
-    onDismiss: () => void;
+    onDismiss: (swiped?: boolean) => void;
 }
 
 interface ToastProviderProps {
@@ -80,10 +84,11 @@ type Timer = RefObject<ReturnType<typeof setTimeout> | undefined>;
 const ToastContext = createContext<ToastApi | null>(null);
 
 // Fades a toast out over the length of the transitions, and takes it away
-const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer) => {
+const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer, swiped = false) => {
     clearTimeout(timer.current);
     const duration = readDuration('--duration-base');
-    if (duration === 0) {
+    // Swiped away, the finger already took it out: it goes where it was let go
+    if (duration === 0 || swiped) {
         set(null);
         return;
     }
@@ -92,20 +97,22 @@ const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer)
 };
 
 // A toast that goes away by itself keeps its count of the time left: hovering it or keeping the focus inside holds the
-// count, and it ends with a button that clears it away. A pinned one has no count and no such button: its answers close
-// it.
+// count, and it ends with a button that clears it away; it can be swiped away too, which holds the count while it is
+// dragged. A pinned one has no count, no such button and no swipe: its answers close it.
 const ToastBox = (props: ToastBoxProps) => {
     const { toast, pinned, dismissLabel, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
     const [focused, setFocused] = useState(false);
     const remaining = useRef(SHOW_FOR_MS);
-    const counting = !pinned && !hovered && !focused && !toast.leaving;
+    const swipe = useSwipeAway({ sides: SWIPED_TO, onAway: () => onDismiss(true), on: !pinned && !toast.leaving });
+    const counting = !pinned && !hovered && !focused && !swipe.dragged && !toast.leaving;
     const toastClsx = clsx('toast', {
         'toast--pinned': pinned,
-        'toast--held': !pinned && (hovered || focused),
+        'toast--held': !pinned && (hovered || focused || swipe.dragged),
+        'toast--dragged': swipe.dragged,
         'toast--leaving': toast.leaving,
     });
-    const style = pinned ? undefined : ({ '--toast-duration': `${SHOW_FOR_MS}ms` } as CSSProperties);
+    const style = pinned ? undefined : ({ '--toast-duration': `${SHOW_FOR_MS}ms`, ...swipe.style } as CSSProperties);
 
     useEffect(() => {
         if (!counting) return;
@@ -125,6 +132,7 @@ const ToastBox = (props: ToastBoxProps) => {
             onFocus={() => setFocused(true)}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
+            {...swipe.handlers}
         >
             {toast.icon && (
                 <span className="toast__mark">
@@ -154,7 +162,7 @@ const ToastBox = (props: ToastBoxProps) => {
                             className="toast__dismiss"
                             disabled={toast.leaving}
                             aria-label={dismissLabel}
-                            onClick={onDismiss}
+                            onClick={() => onDismiss()}
                         >
                             <Icon name="close" />
                         </Button>
@@ -194,7 +202,7 @@ const ToastProvider = (props: ToastProviderProps) => {
         });
     }, []);
 
-    const dismiss = useCallback(() => fadeOut(setToast, leaveTimer), []);
+    const dismiss = useCallback((swiped?: boolean) => fadeOut(setToast, leaveTimer, swiped), []);
 
     // Pinned again while it is there, it keeps its box instead of coming in a second time
     const pin = useCallback((options: PinnedToastOptions) => {
@@ -221,7 +229,7 @@ const ToastProvider = (props: ToastProviderProps) => {
         return () => document.removeEventListener('keydown', closeOnEscape);
     }, [open, dismiss]);
 
-    const api = useMemo(() => ({ show, dismiss, pin, unpin }), [show, dismiss, pin, unpin]);
+    const api = useMemo(() => ({ show, dismiss: () => dismiss(), pin, unpin }), [show, dismiss, pin, unpin]);
 
     return (
         <ToastContext value={api}>
