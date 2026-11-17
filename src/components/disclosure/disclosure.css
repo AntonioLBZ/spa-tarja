@@ -60,6 +60,27 @@
     color: var(--color-content-secondary);
 }
 
+/* On one line whatever the width: the summary whole, the hint cut */
+.disclosure--one-line .disclosure__summary {
+    flex-wrap: nowrap;
+}
+
+.disclosure--one-line .disclosure__summary > :first-child {
+    flex: none;
+}
+
+.disclosure--one-line .disclosure__hint {
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.disclosure__icon {
+    display: flex;
+    flex: none;
+}
+
 .disclosure__chevron {
     display: flex;
     margin-inline-start: auto;

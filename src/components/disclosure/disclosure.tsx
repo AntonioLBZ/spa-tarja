@@ -3,6 +3,8 @@ import { useId, useState, type ReactNode, type Ref } from 'react';
 
 import { Icon } from '@/components/icon/icon';
 
+import type { IconName } from '@/components/icon/icon-paths';
+
 import './disclosure.css';
 
 interface DisclosureProps {
@@ -11,8 +13,12 @@ interface DisclosureProps {
     heading?: 'h2' | 'h3';
     // What the toggle shows
     summary: ReactNode;
+    // Drawn at the start of the toggle, before the summary
+    icon?: IconName;
     // What the panel holds, said in the toggle after the summary while it is closed
     hint?: ReactNode;
+    // Keeps the summary and the hint on one line, the hint cut with an ellipsis, instead of putting it under
+    oneLine?: boolean;
     // The id of what says, elsewhere on the page, what the panel holds
     describedBy?: string;
     // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
@@ -58,7 +64,9 @@ const Disclosure = (props: DisclosureProps) => {
         as: Tag = 'div',
         heading: Heading,
         summary,
+        icon,
         hint,
+        oneLine,
         describedBy,
         open,
         defaultOpen = false,
@@ -94,6 +102,11 @@ const Disclosure = (props: DisclosureProps) => {
             type="button"
             onClick={handleToggle}
         >
+            {icon && (
+                <span className="disclosure__icon">
+                    <Icon name={icon} />
+                </span>
+            )}
             {hint && !isOpen ? (
                 <span className="disclosure__summary">
                     <span>{summary}</span>
@@ -111,7 +124,11 @@ const Disclosure = (props: DisclosureProps) => {
     );
     const disclosureClsx = clsx(
         'disclosure',
-        { 'disclosure--top': align === 'top', 'disclosure--wide-chevron': wideChevron },
+        {
+            'disclosure--top': align === 'top',
+            'disclosure--wide-chevron': wideChevron,
+            'disclosure--one-line': oneLine,
+        },
         className
     );
 

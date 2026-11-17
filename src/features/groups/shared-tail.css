@@ -62,13 +62,13 @@
     width: calc(9ch + 2 * var(--size-3) + var(--size-1));
 }
 
-/* Beside the tabs of the form, at its end: a short line each, cut when it doesn't fit (ADR-0034). The three lines
-   are exactly as tall as the tabs, so choosing Shared moves nothing under them */
+/* Beside the tabs of the form, at its end: a short line each, cut when it doesn't fit (ADR-0034). The two lines are
+   exactly as tall as the tabs, so choosing Shared moves nothing under them (ADR-0039) */
 .shared-summary {
     color: var(--color-content-secondary);
     flex: 1 1 0;
     font-size: var(--font-size-s);
-    line-height: calc(var(--size-touch) / 3);
+    line-height: calc(var(--size-touch) / 2);
     margin: 0;
     min-inline-size: 0;
     text-align: end;

@@ -404,8 +404,11 @@ const SharedSplit = (props: Required<SharedTailProps>) => {
             <Disclosure
                 chevron
                 keepMounted
+                oneLine
+                icon="call_split"
                 open={tail.splitOpen}
                 summary={t('split')}
+                hint={group ? <PaidBy group={group} tail={tail} /> : undefined}
                 describedBy={tail.summaryId}
                 onOpenChange={tail.setSplitOpen}
             >
@@ -429,7 +432,17 @@ const SharedSplit = (props: Required<SharedTailProps>) => {
     );
 };
 
-// Who it is with, who paid and how it is split, a short line each, which the form shows beside its tabs (ADR-0034)
+// Who paid, said in the toggle of Split while it is closed (ADR-0039)
+const PaidBy = (props: Omit<SharedPeopleProps, 'tried'>) => {
+    const { group, tail } = props;
+    const t = useTranslations('groups.share');
+    const words = useGroupWords(group);
+
+    if (tail.payer === null) return t('paidByNone');
+    return tail.payerIsMe ? t('summary.youPaid') : t('summary.paid', { name: words.nameOf(tail.payer) });
+};
+
+// Who it is with and how it is split, a short line each, which the form shows beside its tabs (ADR-0034, ADR-0039)
 const SharedSummary = (props: SharedSummaryProps) => {
     const { tail } = props;
     const t = useTranslations('groups.share');
@@ -447,17 +460,10 @@ const SummaryLines = (props: Omit<SharedPeopleProps, 'tried'>) => {
     const { group, tail } = props;
     const t = useTranslations('groups.share');
     const words = useGroupWords(group);
-    const payer =
-        tail.payer === null
-            ? t('paidByNone')
-            : tail.payerIsMe
-              ? t('summary.youPaid')
-              : t('summary.paid', { name: words.nameOf(tail.payer) });
 
     return (
         <>
             <Line>{t('summary.with', { name: words.title })}</Line>
-            <Line>{payer}</Line>
             <Line>{t(`summary.${tail.mode}`, { count: tail.inCount })}</Line>
         </>
     );

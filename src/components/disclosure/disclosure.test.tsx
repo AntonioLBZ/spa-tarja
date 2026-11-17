@@ -15,6 +15,29 @@ describe('Disclosure', () => {
         expect(screen.queryByText('Hidden')).toBeNull();
     });
 
+    it('draws an icon at the start of the toggle, hidden from assistive technology', () => {
+        render(
+            <Disclosure summary="Details" icon="call_split">
+                Hidden
+            </Disclosure>
+        );
+
+        const icon = toggle().firstElementChild!;
+        expect(icon.classList.contains('disclosure__icon')).toBe(true);
+        expect(icon.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('keeps the summary and the hint on one line when asked', () => {
+        const { container } = render(
+            <Disclosure oneLine summary="Split" hint="Paid by you">
+                Hidden
+            </Disclosure>
+        );
+
+        expect(container.firstElementChild!.classList.contains('disclosure--one-line')).toBe(true);
+        expect(screen.getByText('Paid by you').classList.contains('disclosure__hint')).toBe(true);
+    });
+
     it('opens the panel under the toggle and ties them together', () => {
         render(<Disclosure summary="Details">Shown</Disclosure>);
 

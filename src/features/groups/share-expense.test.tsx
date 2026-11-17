@@ -1069,17 +1069,17 @@ describe('the sync of a shared expense added at home', () => {
 });
 
 describe('the split, folded', () => {
-    it('says who it is with, who paid and how it is split on three lines beside the tabs, describing the toggle', async () => {
+    it('says who it is with and how it is split beside the tabs, describing the toggle, and who paid in the toggle', async () => {
         await openHome([trip()]);
 
         expect(summaryLines()).toBeNull();
         fireEvent.click(forChoice(form.forShared));
 
         expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
-        expect(splitToggle().textContent).toBe(share.split);
+        expect(splitToggle().textContent).toBe(share.split + share.summary.youPaid);
+        expect(splitToggle().querySelector('[data-icon="call_split"]')).not.toBeNull();
         expect(summaryLines()).toEqual([
             t('groups.share.summary.with', { name: 'Trip' }),
-            share.summary.youPaid,
             t('groups.share.summary.equal', { count: 3 }),
         ]);
         const summary = document.getElementById(splitToggle().getAttribute('aria-describedby') ?? '');
@@ -1096,9 +1096,10 @@ describe('the split, folded', () => {
         pickMode('percent');
         expect(summaryLines()).toEqual([
             t('groups.share.summary.with', { name: 'Trip' }),
-            t('groups.share.summary.paid', { name: 'Bea' }),
             t('groups.share.summary.percent', { count: 2 }),
         ]);
+        fireEvent.click(splitToggle());
+        expect(splitToggle().textContent).toBe(share.split + t('groups.share.summary.paid', { name: 'Bea' }));
     });
 
     it('opens on Add when what is to fix is in it, with the focus on it', async () => {

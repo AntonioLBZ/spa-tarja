@@ -133,9 +133,11 @@ describe('editing a shared expense', () => {
         expect(within(dialog).queryByRole('group', { name: form.for })).toBeNull();
         expect([...top!.querySelectorAll('.shared-summary__line')].map((line) => line.textContent)).toEqual([
             t('groups.share.summary.with', { name: 'Trip' }),
-            t('groups.share.summary.paid', { name: 'Bea' }),
             t('groups.share.summary.equal', { count: 3 }),
         ]);
+        expect(dialog.querySelector('.disclosure__hint')?.textContent).toBe(
+            t('groups.share.summary.paid', { name: 'Bea' })
+        );
         expect(within(dialog).queryByRole('combobox', { name: share.with })).toBeNull();
     });
 
