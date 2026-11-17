@@ -551,7 +551,7 @@
         },
         "new": {
             "title": "Nuevo grupo",
-            "name": "Nombre",
+            "name": "Nombre del grupo",
             "addPeople": "Añadir personas",
             "addPeopleHint": "Tus amigos, o cualquier otra persona por su nombre.",
             "people": "Personas que añadir",

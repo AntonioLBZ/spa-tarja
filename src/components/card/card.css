@@ -4,6 +4,12 @@
     padding: var(--size-2) 0;
 }
 
+/* A button in a card is as tall as a touch, so it sits into the padding: a row with an action is no taller than one
+   with a line of text and a touch target, whatever screen puts it there */
+.card :where(.button) {
+    margin-block: calc(-1 * var(--size-2));
+}
+
 /* Its one link stretches over it; a button in it, positioned and later, stays above the link. The ring goes around the
    card, not around the text of the link */
 .card--linked {

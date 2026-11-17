@@ -41,8 +41,7 @@
     min-width: 0;
 }
 
-/* Over the link that covers the card, and into the padding of the card so the row keeps its height */
+/* Over the link that covers the card */
 .group-card__pin {
-    margin-block: calc(-1 * var(--size-2));
     position: relative;
 }
