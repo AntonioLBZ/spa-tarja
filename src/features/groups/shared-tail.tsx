@@ -405,7 +405,6 @@ const SharedSplit = (props: Required<SharedTailProps>) => {
                 chevron
                 keepMounted
                 oneLine
-                icon="call_split"
                 open={tail.splitOpen}
                 summary={t('split')}
                 hint={group ? <PaidBy group={group} tail={tail} /> : undefined}
@@ -432,7 +431,7 @@ const SharedSplit = (props: Required<SharedTailProps>) => {
     );
 };
 
-// Who paid, said in the toggle of Split while it is closed (ADR-0039)
+// Who paid, said in the toggle of Split while it is closed (ADR-0034)
 const PaidBy = (props: Omit<SharedPeopleProps, 'tried'>) => {
     const { group, tail } = props;
     const t = useTranslations('groups.share');
@@ -442,7 +441,7 @@ const PaidBy = (props: Omit<SharedPeopleProps, 'tried'>) => {
     return tail.payerIsMe ? t('summary.youPaid') : t('summary.paid', { name: words.nameOf(tail.payer) });
 };
 
-// Who it is with and how it is split, a short line each, which the form shows beside its tabs (ADR-0034, ADR-0039)
+// Who it is with and how it is split, a short line each, which the form shows beside its tabs (ADR-0034)
 const SharedSummary = (props: SharedSummaryProps) => {
     const { tail } = props;
     const t = useTranslations('groups.share');

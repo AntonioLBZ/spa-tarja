@@ -25,7 +25,6 @@ const Story: Meta<DisclosureProps> = {
         heading: { control: 'inline-radio', options: [undefined, 'h2', 'h3'] },
         summary: { control: 'text' },
         hint: { control: 'text' },
-        icon: { control: 'select', options: [undefined, 'call_split', 'groups', 'filter_list'] },
     },
 };
 

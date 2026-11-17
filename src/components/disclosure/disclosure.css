@@ -76,11 +76,6 @@
     white-space: nowrap;
 }
 
-.disclosure__icon {
-    display: flex;
-    flex: none;
-}
-
 .disclosure__chevron {
     display: flex;
     margin-inline-start: auto;

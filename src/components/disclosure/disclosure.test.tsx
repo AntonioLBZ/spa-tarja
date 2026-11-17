@@ -15,18 +15,6 @@ describe('Disclosure', () => {
         expect(screen.queryByText('Hidden')).toBeNull();
     });
 
-    it('draws an icon at the start of the toggle, hidden from assistive technology', () => {
-        render(
-            <Disclosure summary="Details" icon="call_split">
-                Hidden
-            </Disclosure>
-        );
-
-        const icon = toggle().firstElementChild!;
-        expect(icon.classList.contains('disclosure__icon')).toBe(true);
-        expect(icon.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
-    });
-
     it('keeps the summary and the hint on one line when asked', () => {
         const { container } = render(
             <Disclosure oneLine summary="Split" hint="Paid by you">

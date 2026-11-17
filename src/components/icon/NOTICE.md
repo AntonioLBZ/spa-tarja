@@ -16,6 +16,4 @@ The shapes in `icon-paths.ts` come from Material Symbols (Sharp style, weight 40
 
 `filter_list`, the Filters button of the expense list, is an icon of the interface too: the `d` of `sharp/filter_list.svg` of the same package version.
 
-`call_split`, the start of the Split toggle of a shared expense, is an icon of the interface too: the `d` of `sharp/call_split.svg` of the same package version.
-
 `person` and `person_filled`, who is in a group: a friend, who uses the app, filled, and a dummy, a name only, in outline (and `person` for a friend in the list of groups to choose), are icons of the interface too: the `d` of `sharp/person.svg` and `sharp/person-fill.svg` of the same package version.

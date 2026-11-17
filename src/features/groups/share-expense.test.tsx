@@ -1077,7 +1077,6 @@ describe('the split, folded', () => {
 
         expect(splitToggle().getAttribute('aria-expanded')).toBe('false');
         expect(splitToggle().textContent).toBe(share.split + share.summary.youPaid);
-        expect(splitToggle().querySelector('[data-icon="call_split"]')).not.toBeNull();
         expect(summaryLines()).toEqual([
             t('groups.share.summary.with', { name: 'Trip' }),
             t('groups.share.summary.equal', { count: 3 }),

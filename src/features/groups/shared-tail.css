@@ -63,7 +63,7 @@
 }
 
 /* Beside the tabs of the form, at its end: a short line each, cut when it doesn't fit (ADR-0034). The two lines are
-   exactly as tall as the tabs, so choosing Shared moves nothing under them (ADR-0039) */
+   exactly as tall as the tabs, so choosing Shared moves nothing under them (ADR-0034) */
 .shared-summary {
     color: var(--color-content-secondary);
     flex: 1 1 0;
