@@ -212,6 +212,20 @@ describe('the page and the service worker', () => {
         expect(await screen.findByRole('heading', { name: 'Flat', level: 1 })).toBeDefined();
     });
 
+    it('asks the groups again when a notification is tapped, so what it tells is pulled at once', async () => {
+        push = installFakePush();
+        const flat = sampleGroup({ name: 'Flat' });
+        const { api, app } = await openSettings([flat]);
+        await waitFor(() => expect(app.queryClient.getQueryState(GROUPS_KEY)?.status).toBe('success'));
+        const before = api.requests.filter((request) => request === 'GET /api/groups').length;
+
+        act(() => push!.post({ type: 'open', path: `/groups/${flat.id}` }));
+
+        await waitFor(() =>
+            expect(api.requests.filter((request) => request === 'GET /api/groups').length).toBe(before + 1)
+        );
+    });
+
     it('opens no address of another site that a message names', async () => {
         push = installFakePush();
         const { app } = await openSettings();

@@ -9,12 +9,13 @@ import { useGroupOutbox } from './outbox-context';
 // How often the groups are asked for while the page is in sight, so a window left open hears what others add (ADR-0025)
 const WATCH_EVERY_MS = 60_000;
 
-// Asks for the groups once a minute while the page is visible (Query asks nothing in the background) and pulls every
-// open group whose cursor moved past the one the device holds, whatever screen is showing
+// Asks for the groups when the app loads, however fresh the kept copy, then once a minute while the page is visible
+// (Query asks nothing in the background), and pulls every open group whose cursor moved past the one the device holds,
+// whatever screen is showing
 const useGroupWatcher = () => {
     const client = useQueryClient();
     const outbox = useGroupOutbox();
-    const { data: groups } = useQuery({ ...groupsQuery(), refetchInterval: WATCH_EVERY_MS });
+    const { data: groups } = useQuery({ ...groupsQuery(), refetchInterval: WATCH_EVERY_MS, refetchOnMount: 'always' });
 
     useEffect(() => {
         for (const group of groups ?? []) {

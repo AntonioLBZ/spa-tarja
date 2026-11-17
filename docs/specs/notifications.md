@@ -15,7 +15,7 @@ How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/002
 ## The watcher
 
 - `GET /groups` answers each group's cursor as `seq`: `MAX(seq)` of its entries, 0 when it has none, and for a person who left, no more than their `left_seq` ([groups](groups.md)), so it never tells them a group moved after they left.
-- While the person is signed in, the page is visible and the device is online, the `groups` query refetches every 60 s (`WATCH_EVERY_MS`), besides the triggers it has (open, focus, reconnect); a hidden page asks nothing.
+- While the person is signed in, the page is visible and the device is online, the `groups` query refetches every 60 s (`WATCH_EVERY_MS`), besides the triggers it has (open, focus, reconnect); when the app loads (a reload, or a window a notification opens) it asks at once, however fresh the copy the device kept, and the minute counts from there; a hidden page asks nothing.
 - After each answer, the device pulls, with the same `syncGroup`, every open group whose `seq` is past the cursor it holds, whatever screen is showing, and only those. A group the device never pulled is pulled too, silently (first pull). A closed group is left to the rules it has ([offline sync](offline-sync.md)).
 - Every pull, whoever starts it (a screen, the watcher, a write, a push), hands its notices to `onNotices`, a listener of the user's data (`src/lib/offline`), so the banner hears of them wherever they come from and a pull is never run twice for them.
 
@@ -68,7 +68,7 @@ A tap opens the group (`/groups/$groupId`), or Groups (`/groups`) for several gr
 
 - A script of its own (`src/features/notices/push-worker.ts`), built with the app as a classic script, `push-worker.js` (a plugin of `vite.config.ts`), and imported by the generated service worker (`importScripts`), handles `push` and `notificationclick`. It words a message with the copy of the banner (`notices.*` only, so it doesn't carry the rest of the locales), in the language the message carries, through the same `wordNotices`.
 - **A push**: if a window of the app is visible, it posts it `{ type: 'sync' }`, and that window refetches the groups, so the watcher pulls and the banner tells it. Otherwise, and always in Safari, which takes away the subscription of a site that receives a push without showing a notification, it shows one: the title and the message of the banner, the app's icon, tagged with the group so a later one of the same group replaces it, summed up with the one it replaces ("3 new expenses"), and the path of the group in its data.
-- **A tap** posts `{ type: 'open', path }` to a window of the app, which moves its router there (only a path of the app: one that starts with `//` names another site and is ignored), and focuses it; with no window it opens one there. `PushSync` (`src/features/notifications`) is what listens in the page, to `sync` and `open` alike.
+- **A tap** posts `{ type: 'open', path }` to a window of the app, which moves its router there (only a path of the app: one that starts with `//` names another site and is ignored) and asks the groups again, as for a push in sight, so the watcher pulls at once what the notification tells instead of at its next minute, and focuses it; with no window it opens one there. `PushSync` (`src/features/notifications`) is what listens in the page, to `sync` and `open` alike.
 
 ## Privacy
 

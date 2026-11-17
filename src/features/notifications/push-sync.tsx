@@ -20,7 +20,7 @@ const isWorkerMessage = (data: unknown): data is WorkerMessage => {
 };
 
 // Keeps the push of this device in step with the page (ADR-0025): a push asks the groups again, so the watcher pulls
-// what moved and the banner tells it; a tap on a notification opens its group; and the subscription is sent again when
+// what moved and the banner tells it; a tap on a notification asks them too and opens its group; and the subscription is sent again when
 // the app opens and when the language changes
 const PushSync = () => {
     const client = useQueryClient();
@@ -36,8 +36,9 @@ const PushSync = () => {
         const worker = navigator.serviceWorker;
         const onMessage = (event: MessageEvent) => {
             if (!isWorkerMessage(event.data)) return;
-            if (event.data.type === 'sync') void client.invalidateQueries({ queryKey: GROUPS_KEY });
-            else void router.navigate({ href: event.data.path });
+            // Either way the groups are asked again, so the watcher pulls what the push tells without waiting its minute
+            void client.invalidateQueries({ queryKey: GROUPS_KEY });
+            if (event.data.type === 'open') void router.navigate({ href: event.data.path });
         };
         worker.addEventListener('message', onMessage);
         return () => worker.removeEventListener('message', onMessage);

@@ -3,7 +3,8 @@ import { act, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderAppHook, stubApi } from '@/lib/test/render-app';
 
 import { WATCH_EVERY_MS, useGroupWatcher } from './group-watcher';
@@ -43,6 +44,17 @@ describe('useGroupWatcher', () => {
         await act(() => vi.advanceTimersByTimeAsync(WATCH_EVERY_MS));
 
         await waitFor(() => expect(listed()).toBe(2));
+    });
+
+    it('asks for the groups when the app loads, however fresh the copy the device kept', async () => {
+        const storage = createMemoryStorage();
+        await leaveCopy(storage, [group], []);
+        const api = createFakeApi({ groups: [group] });
+        stubApi(api.handler);
+
+        renderAppHook(() => useGroupWatcher(), { storage });
+
+        await waitFor(() => expect(api.requests.filter((request) => request === 'GET /api/groups')).toHaveLength(1));
     });
 
     it('pulls the open groups whose cursor moved, and no other', async () => {
