@@ -1,6 +1,10 @@
 a.button {
     align-items: center;
     display: inline-flex;
+}
+
+/* A link drops the underline of a link, but a ghost keeps the one it draws as a ghost */
+a.button:not(.button--ghost) {
     text-decoration: none;
 }
 
