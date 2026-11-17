@@ -15,6 +15,16 @@ describe('Disclosure', () => {
         expect(screen.queryByText('Hidden')).toBeNull();
     });
 
+    it('takes the look of a row among the fields of a form when asked', () => {
+        const { container } = render(
+            <Disclosure inForm summary="Details">
+                Hidden
+            </Disclosure>
+        );
+
+        expect(container.firstElementChild!.classList.contains('disclosure--in-form')).toBe(true);
+    });
+
     it('keeps the summary and the hint on one line when asked', () => {
         const { container } = render(
             <Disclosure oneLine summary="Split" hint="Paid by you">

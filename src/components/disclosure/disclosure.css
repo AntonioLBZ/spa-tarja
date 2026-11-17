@@ -60,6 +60,17 @@
     color: var(--color-content-secondary);
 }
 
+/* Among the fields of a form: as tall as a field, its text where theirs starts, so every row keeps the same rhythm;
+   the bold summary tells it from a field */
+.disclosure--in-form .disclosure__toggle {
+    font-weight: 700;
+    min-block-size: 3.5rem;
+}
+
+.disclosure--in-form .disclosure__hint {
+    font-weight: 400;
+}
+
 /* On one line whatever the width: the summary whole, the hint cut */
 .disclosure--one-line .disclosure__summary {
     flex-wrap: nowrap;

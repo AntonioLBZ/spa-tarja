@@ -404,6 +404,7 @@ const SharedSplit = (props: Required<SharedTailProps>) => {
             <Disclosure
                 chevron
                 keepMounted
+                inForm
                 oneLine
                 open={tail.splitOpen}
                 summary={t('split')}

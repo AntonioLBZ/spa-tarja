@@ -16,6 +16,7 @@ const Story: Meta<DisclosureProps> = {
         disabled: false,
         keepMounted: false,
         oneLine: false,
+        inForm: false,
     },
     argTypes: {
         as: { control: false },

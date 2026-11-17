@@ -13,6 +13,8 @@ interface DisclosureProps {
     summary: ReactNode;
     // What the panel holds, said in the toggle after the summary while it is closed
     hint?: ReactNode;
+    // A row among the fields of a form: as tall as a field, its summary in bold
+    inForm?: boolean;
     // Keeps the summary and the hint on one line, the hint cut with an ellipsis, instead of putting it under
     oneLine?: boolean;
     // The id of what says, elsewhere on the page, what the panel holds
@@ -62,6 +64,7 @@ const Disclosure = (props: DisclosureProps) => {
         summary,
         hint,
         oneLine,
+        inForm,
         describedBy,
         open,
         defaultOpen = false,
@@ -118,6 +121,7 @@ const Disclosure = (props: DisclosureProps) => {
             'disclosure--top': align === 'top',
             'disclosure--wide-chevron': wideChevron,
             'disclosure--one-line': oneLine,
+            'disclosure--in-form': inForm,
         },
         className
     );

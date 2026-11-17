@@ -413,6 +413,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
 
             <Disclosure
                 chevron
+                inForm
                 keepMounted
                 open={optionsOpen}
                 summary={t('moreOptions')}
