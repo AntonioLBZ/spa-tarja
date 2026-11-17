@@ -1,9 +1,14 @@
+/* The icon sits on the line of the name, however many lines come under it */
 .person-line {
-    align-items: center;
+    align-items: start;
     display: flex;
     flex: 1;
     gap: var(--size-2);
     min-width: 0;
+}
+
+.person-line > .icon {
+    margin-block-start: var(--size-2);
 }
 
 .person-line__body {
