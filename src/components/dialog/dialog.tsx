@@ -24,6 +24,8 @@ interface DialogProps {
     closeOnOutside?: boolean;
     // The browser closed it, as Escape does
     onClose: () => void;
+    // While set, the close button, Escape and a tap outside go back a step instead of closing it
+    onBack?: () => void;
     // Ghost buttons or links, apart under what it holds
     actions?: ReactNode;
     // The main action of a page, which ends its title row
@@ -43,6 +45,7 @@ const Dialog = (props: DialogProps) => {
         dismissible = true,
         closeOnOutside = true,
         onClose,
+        onBack,
         actions,
         headAction,
         children,
@@ -86,8 +89,10 @@ const Dialog = (props: DialogProps) => {
         );
     };
 
+    const leave = () => (onBack ? onBack() : ref.current?.close());
+
     const closeButton = closeLabel && (
-        <Button ghost glyph className={closeClsx} aria-label={closeLabel} onClick={() => ref.current?.close()}>
+        <Button ghost glyph className={closeClsx} aria-label={closeLabel} onClick={leave}>
             <Icon name={isPage ? 'chevron_left' : 'close'} />
         </Button>
     );
@@ -99,12 +104,13 @@ const Dialog = (props: DialogProps) => {
             className={dialogClsx}
             tabIndex={-1}
             onCancel={(event) => {
-                if (!dismissible) event.preventDefault();
+                if (!dismissible || onBack) event.preventDefault();
+                if (dismissible && onBack) onBack();
             }}
             onClick={(event) => {
                 const outside = pressedOutside.current && isOutside(event);
                 pressedOutside.current = false;
-                if (outside && dismissible && closeOnOutside) ref.current?.close();
+                if (outside && dismissible && closeOnOutside) leave();
             }}
             onClose={onClose}
             onPointerDown={(event) => {

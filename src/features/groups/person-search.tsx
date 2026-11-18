@@ -31,6 +31,8 @@ interface PersonSearchProps {
     failure?: ReactNode;
     // Shown in place of the search while a press asks for more
     step?: ReactNode;
+    // Leaves the step for the search, by the way back of the sheet
+    onBack?: () => void;
     // The name of the person added, which the sheet then says, or null when nobody was added (yet)
     onPick: (choice: PersonChoice) => string | null | Promise<string | null>;
     onClose: () => void;
@@ -39,7 +41,7 @@ interface PersonSearchProps {
 // Adding people by one search (ADR-0038): the friends whose name holds what is typed, then a dummy by that name. Each
 // row is a button; the sheet stays open for the next one.
 const PersonSearch = (props: PersonSearchProps) => {
-    const { open, title, friends, disabled, full, failure, step, onPick, onClose } = props;
+    const { open, title, friends, disabled, full, failure, step, onBack, onPick, onClose } = props;
     const t = useTranslations('groups.search');
     const wide = useWide();
     const field = useRef<HTMLInputElement>(null);
@@ -89,6 +91,7 @@ const PersonSearch = (props: PersonSearchProps) => {
             closeLabel={t('close')}
             initialFocus={() => field.current}
             onClose={close}
+            onBack={step ? onBack : undefined}
         >
             {step ?? (
                 <div className="person-search">

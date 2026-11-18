@@ -1,10 +1,11 @@
-import { useId, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { Select } from '@/components/select/select';
 import { memberBalances } from '@core/balance';
 
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from './group-failure';
@@ -79,7 +80,6 @@ const AddPeople = (props: AddPersonProps) => {
     const words = useGroupWords(group);
     const { savePerson, addFriend } = useGroupActions();
     const friends = useFriends();
-    const placeName = useId();
     const opener = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
     const [id, setId] = useState(() => crypto.randomUUID());
@@ -155,19 +155,22 @@ const AddPeople = (props: AddPersonProps) => {
 
     const step = placing && (
         <form className="group-people__place" onSubmit={(event) => void handlePlace(event)}>
-            <ChoiceGroup
-                legend={t('people.placeOf', { name: placing.friend.name })}
-                name={placeName}
-                options={[
-                    { value: 'new', label: t('people.asNew') },
-                    ...dummies.map((dummy) => ({
-                        value: dummy.id,
-                        label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
-                    })),
-                ]}
-                value={placed}
-                onChange={setPlace}
-            />
+            <Field label={t('people.placeOf', { name: placing.friend.name })}>
+                {(control) => (
+                    <Select
+                        {...control}
+                        options={[
+                            { value: 'new', label: t('people.asNew') },
+                            ...dummies.map((dummy) => ({
+                                value: dummy.id,
+                                label: t('people.inPlaceOf', { name: words.nameOf(dummy.id) }),
+                            })),
+                        ]}
+                        value={placed}
+                        onChange={setPlace}
+                    />
+                )}
+            </Field>
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}
@@ -176,9 +179,6 @@ const AddPeople = (props: AddPersonProps) => {
             <Actions>
                 <Button disabled={disabled || busy} type="submit">
                     {t('people.addFriend')}
-                </Button>
-                <Button ghost onClick={() => endPlacing(null)}>
-                    {t('people.back')}
                 </Button>
             </Actions>
         </form>
@@ -196,6 +196,7 @@ const AddPeople = (props: AddPersonProps) => {
                 disabled={disabled || busy}
                 failure={failure && !placing ? failureWords(failure) : undefined}
                 step={step ?? undefined}
+                onBack={() => endPlacing(null)}
                 onPick={pick}
                 onClose={() => {
                     endPlacing(null);

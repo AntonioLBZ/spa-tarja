@@ -269,6 +269,28 @@ describe('Dialog', () => {
         expect(dialog.open).toBe(false);
     });
 
+    it('goes back a step instead of closing, from its close button, Escape and a tap outside', () => {
+        const onClose = vi.fn();
+        const onBack = vi.fn();
+        render(
+            <Dialog open variant="page" title="Moved" closeLabel="Back" onClose={onClose} onBack={onBack}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+        const cancel = new Event('cancel', { cancelable: true });
+
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+        dialog.dispatchEvent(cancel);
+        fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect(onBack).toHaveBeenCalledTimes(3);
+        expect(cancel.defaultPrevented).toBe(true);
+        expect(onClose).not.toHaveBeenCalled();
+        expect(dialog.open).toBe(true);
+    });
+
     it('puts the focus on what initialFocus returns', () => {
         render(
             <Dialog open title="Moved" onClose={vi.fn()} initialFocus={() => screen.getByLabelText('Amount')}>

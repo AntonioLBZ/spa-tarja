@@ -547,7 +547,7 @@ describe('adding a friend', () => {
     }
 
     function place() {
-        return screen.queryByRole('group', { name: t('groups.people.placeOf', { name: 'Eva' }) });
+        return screen.queryByRole('combobox', { name: t('groups.people.placeOf', { name: 'Eva' }) });
     }
 
     it('lists the open friends and adds one as a new member, who has joined', async () => {
@@ -566,15 +566,10 @@ describe('adding a friend', () => {
         const { members } = await editWith(trip());
 
         choose('Eva');
-        expect(
-            within(place()!)
-                .getAllByRole('radio')
-                .map((radio) => [radio.closest('label')!.textContent, (radio as HTMLInputElement).checked])
-        ).toEqual([
-            [text.asNew, true],
-            [t('groups.people.inPlaceOf', { name: 'Cris' }), false],
-        ]);
-        fireEvent.click(within(place()!).getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+        const label = t('groups.people.placeOf', { name: 'Eva' });
+        expect(optionNames(label)).toEqual([text.asNew, t('groups.people.inPlaceOf', { name: 'Cris' })]);
+        expect(chosenOption(label)).toBe(text.asNew);
+        pickOption(label, t('groups.people.inPlaceOf', { name: 'Cris' }));
         fireEvent.click(button(text.addFriend));
 
         await waitFor(() => expect(rows()).toHaveLength(3));
@@ -585,11 +580,11 @@ describe('adding a friend', () => {
         expect(document.activeElement).toBe(field(en.groups.search.field));
     });
 
-    it('goes back to the search on Back, with nothing sent', async () => {
+    it('goes back to the search by the way back of the sheet, with nothing sent', async () => {
         const { api } = await editWith(trip());
 
         choose('Eva');
-        fireEvent.click(button(text.back));
+        fireEvent.click(button(en.groups.search.close));
 
         await waitFor(() => expect(place()).toBeNull());
         expect(offered()).toEqual(['Eva']);
@@ -623,7 +618,7 @@ describe('adding a friend', () => {
             const { members } = await editWith(trip(), [friendDani], users);
 
             choose('Dani');
-            fireEvent.click(screen.getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+            pickOption(t('groups.people.placeOf', { name: 'Dani' }), t('groups.people.inPlaceOf', { name: 'Cris' }));
             fireEvent.click(button(text.addFriend));
 
             await waitFor(() => expect(rows()).toHaveLength(3));
@@ -655,7 +650,7 @@ describe('adding a friend', () => {
     it('goes back to a new member when the dummy chosen is gone after a sync', async () => {
         const { api, members, sync } = await editWith(trip());
         choose('Eva');
-        fireEvent.click(screen.getByLabelText(t('groups.people.inPlaceOf', { name: 'Cris' })));
+        pickOption(t('groups.people.placeOf', { name: 'Eva' }), t('groups.people.inPlaceOf', { name: 'Cris' }));
 
         api.groups[0]!.members.find((member) => member.id === cris.id)!.leftAt = 2;
         await sync();
