@@ -78,4 +78,21 @@ describe('AppUpdate', () => {
         expect(worker.update).not.toHaveBeenCalled();
         expect(screen.queryByText(en.pwa.update.message)).toBeNull();
     });
+
+    it('says the new version downloads and offers only Later until it waits', () => {
+        const events = new EventTarget();
+        const installing = Object.assign(new EventTarget(), { state: 'installing' });
+        const registration = Object.assign(events, { active: {}, installing: null as unknown, update: vi.fn() });
+        render(<Update />);
+        act(() => worker.options?.onRegisteredSW?.('/sw.js', registration as unknown as ServiceWorkerRegistration));
+
+        registration.installing = installing;
+        act(() => void events.dispatchEvent(new Event('updatefound')));
+
+        expect(screen.getByRole('status').textContent).toContain(en.pwa.update.downloading);
+        expect(screen.queryByRole('button', { name: en.pwa.update.apply })).toBeNull();
+        newVersionWaits();
+        expect(screen.getByRole('status').textContent).toContain(en.pwa.update.message);
+        expect(screen.getByRole('button', { name: en.pwa.update.apply })).toBeTruthy();
+    });
 });

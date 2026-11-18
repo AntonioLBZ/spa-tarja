@@ -4,6 +4,7 @@
     },
     "pwa": {
         "update": {
+            "downloading": "Downloading a new version…",
             "message": "A new version is ready",
             "apply": "Update",
             "dismiss": "Later"

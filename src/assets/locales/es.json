@@ -4,6 +4,7 @@
     },
     "pwa": {
         "update": {
+            "downloading": "Descargando una versión nueva…",
             "message": "Hay una versión nueva",
             "apply": "Actualizar",
             "dismiss": "Después"
