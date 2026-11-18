@@ -46,6 +46,8 @@ interface PinnedToastOptions {
     message: string;
     // The answers to it: it stays until one of them is chosen
     actions: readonly ToastAction[];
+    // The answer a swipe gives; without it the toast is not swiped away (ADR-0037)
+    onSwipeAway?: () => void;
 }
 
 interface ToastApi {
@@ -62,6 +64,7 @@ interface ShownToast {
     message: string;
     icon?: IconName;
     actions: readonly ToastAction[];
+    onSwipeAway?: () => void;
     // Fading out, about to go
     leaving: boolean;
 }
@@ -98,13 +101,19 @@ const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer,
 
 // A toast that goes away by itself keeps its count of the time left: hovering it or keeping the focus inside holds the
 // count, and it ends with a button that clears it away; it can be swiped away too, which holds the count while it is
-// dragged. A pinned one has no count, no such button and no swipe: its answers close it.
+// dragged. A pinned one has no count and no such button: its answers close it, and so does a swipe when it names what
+// a swipe answers.
 const ToastBox = (props: ToastBoxProps) => {
     const { toast, pinned, dismissLabel, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
     const [focused, setFocused] = useState(false);
     const remaining = useRef(SHOW_FOR_MS);
-    const swipe = useSwipeAway({ sides: SWIPED_TO, onAway: () => onDismiss(true), on: !pinned && !toast.leaving });
+    const swipeAway = () => {
+        if (pinned) toast.onSwipeAway?.();
+        onDismiss(true);
+    };
+    const swipes = !pinned || toast.onSwipeAway !== undefined;
+    const swipe = useSwipeAway({ sides: SWIPED_TO, onAway: swipeAway, on: swipes && !toast.leaving });
     const counting = !pinned && !hovered && !focused && !swipe.dragged && !toast.leaving;
     const toastClsx = clsx('toast', {
         'toast--pinned': pinned,
@@ -112,7 +121,7 @@ const ToastBox = (props: ToastBoxProps) => {
         'toast--dragged': swipe.dragged,
         'toast--leaving': toast.leaving,
     });
-    const style = pinned ? undefined : ({ '--toast-duration': `${SHOW_FOR_MS}ms`, ...swipe.style } as CSSProperties);
+    const style = (pinned ? swipe.style : { '--toast-duration': `${SHOW_FOR_MS}ms`, ...swipe.style }) as CSSProperties;
 
     useEffect(() => {
         if (!counting) return;
@@ -212,6 +221,7 @@ const ToastProvider = (props: ToastProviderProps) => {
             id: current && !current.leaving ? current.id : id,
             message: options.message,
             actions: options.actions,
+            onSwipeAway: options.onSwipeAway,
             leaving: false,
         }));
     }, []);

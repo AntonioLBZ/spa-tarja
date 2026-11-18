@@ -29,6 +29,7 @@ const ToastButtons = (props: ToastStoryProps) => {
                             { label: 'Update', onAction },
                             { label: 'Later', onAction },
                         ],
+                        onSwipeAway: onAction,
                     })
                 }
             >

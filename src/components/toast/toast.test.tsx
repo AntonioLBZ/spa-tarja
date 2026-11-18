@@ -535,8 +535,8 @@ describe('Toast', () => {
     });
 });
 
-function PinHarness(props: { onUpdate?: () => void; onLater?: () => void }) {
-    const { onUpdate = () => undefined, onLater = () => undefined } = props;
+function PinHarness(props: { onUpdate?: () => void; onLater?: () => void; onSwipeAway?: () => void }) {
+    const { onUpdate = () => undefined, onLater = () => undefined, onSwipeAway } = props;
     const toast = useToast();
 
     return (
@@ -550,6 +550,7 @@ function PinHarness(props: { onUpdate?: () => void; onLater?: () => void }) {
                             { label: 'Update', onAction: onUpdate },
                             { label: 'Later', onAction: onLater },
                         ],
+                        onSwipeAway,
                     })
                 }
             >
@@ -573,8 +574,8 @@ function PinHarness(props: { onUpdate?: () => void; onLater?: () => void }) {
     );
 }
 
-function setupPin(props: { onUpdate?: () => void; onLater?: () => void } = {}) {
-    render(
+function setupPin(props: { onUpdate?: () => void; onLater?: () => void; onSwipeAway?: () => void } = {}) {
+    return render(
         <ToastProvider dismissLabel="Clear">
             <PinHarness {...props} />
         </ToastProvider>
@@ -595,13 +596,43 @@ describe('a pinned Toast', () => {
         expect(within(screen.getByRole('status')).getAllByRole('button')).toHaveLength(2);
     });
 
-    it('is not swiped away: it stays until it is answered', () => {
+    it('is not swiped away when it names no answer for a swipe', () => {
         setupPin();
         show('Pin');
 
         swipe(pinned()!, -200, 2);
 
         expect(pinned()).not.toBeNull();
+    });
+
+    it('is swiped away to a side or down when it names the answer a swipe gives, which runs', () => {
+        for (const [dx, dy] of [
+            [-200, 2],
+            [200, 2],
+            [2, 40],
+        ]) {
+            const onSwipeAway = vi.fn();
+            const { unmount } = setupPin({ onSwipeAway });
+            show('Pin');
+
+            swipe(pinned()!, dx!, dy!);
+
+            expect(pinned()).toBeNull();
+            expect(onSwipeAway).toHaveBeenCalledTimes(1);
+            unmount();
+        }
+    });
+
+    it('stays when it is swiped up or not far enough, even when it names a swipe', () => {
+        const onSwipeAway = vi.fn();
+        setupPin({ onSwipeAway });
+        show('Pin');
+
+        swipe(pinned()!, 2, -80);
+        swipe(pinned()!, 60, 2);
+
+        expect(pinned()).not.toBeNull();
+        expect(onSwipeAway).not.toHaveBeenCalled();
     });
 
     it('holds its message and one ghost action for each of its answers', () => {

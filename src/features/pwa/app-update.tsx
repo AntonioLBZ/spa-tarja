@@ -6,7 +6,7 @@ import { useToast } from '@/components/toast/toast';
 import { appUpdate, useAppUpdateState } from './app-update-state';
 
 // Offers the new version of the app as soon as the service worker finds it: a pinned toast, which stays until the
-// person answers it, and offers Update once the new version has downloaded
+// person answers it or swipes it away, and offers Update once the new version has downloaded
 const AppUpdate = () => {
     const t = useTranslations('pwa.update');
     const toast = useToast();
@@ -23,10 +23,14 @@ const AppUpdate = () => {
         }
         const later = { label: dismiss, onAction: appUpdate.postpone };
         if (state === 'downloading') {
-            toast.pin({ message: downloading, actions: [later] });
+            toast.pin({ message: downloading, actions: [later], onSwipeAway: appUpdate.postpone });
             return;
         }
-        toast.pin({ message, actions: [{ label: apply, onAction: appUpdate.apply }, later] });
+        toast.pin({
+            message,
+            actions: [{ label: apply, onAction: appUpdate.apply }, later],
+            onSwipeAway: appUpdate.postpone,
+        });
     }, [state, toast, downloading, message, apply, dismiss]);
 
     // The offer is the app's, so it goes with it

@@ -95,4 +95,19 @@ describe('AppUpdate', () => {
         expect(screen.getByRole('status').textContent).toContain(en.pwa.update.message);
         expect(screen.getByRole('button', { name: en.pwa.update.apply })).toBeTruthy();
     });
+
+    it('postpones the offer when it is swiped away', () => {
+        render(<Update />);
+        newVersionWaits();
+        const box = screen.getByText(en.pwa.update.message).closest('.toast')!;
+        vi.spyOn(box, 'getBoundingClientRect').mockReturnValue({ width: 300, height: 60 } as DOMRect);
+
+        fireEvent.pointerDown(box, { clientX: 100, clientY: 100, pointerId: 1, isPrimary: true });
+        fireEvent.pointerMove(box, { clientX: 300, clientY: 102, pointerId: 1, isPrimary: true });
+        fireEvent.pointerUp(box, { clientX: 300, clientY: 102, pointerId: 1, isPrimary: true });
+
+        expect(appUpdate.getState()).toBe('none');
+        expect(worker.update).not.toHaveBeenCalled();
+        expect(screen.queryByText(en.pwa.update.message)).toBeNull();
+    });
 });
