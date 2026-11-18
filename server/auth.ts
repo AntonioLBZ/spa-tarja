@@ -27,8 +27,12 @@ const authOptions = (env: Env, baseURL: string) => {
             cookieCache: { enabled: true, maxAge: SESSION_CACHE_SECONDS },
         },
         databaseHooks: { account: { create: { before: withoutTokens }, update: { before: withoutTokens } } },
-        // A session keeps the browser it was opened from, never the IP address
-        advanced: { ipAddress: { disableIpTracking: true } },
+        advanced: {
+            // A session keeps the browser it was opened from, never the IP address
+            ipAddress: { disableIpTracking: true },
+            // The schema comes from our own migrations (ADR-0004), so it is not read back on every request
+            database: { validateSchema: false },
+        },
     } satisfies BetterAuthOptions;
 };
 

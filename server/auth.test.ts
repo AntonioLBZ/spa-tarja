@@ -535,6 +535,31 @@ describe('a window opened for another user', () => {
 });
 
 describe('the schema', () => {
+    const recording = (db: D1Database, queries: string[]) => {
+        return new Proxy(db, {
+            get: (target, property) => {
+                if (property === 'prepare') {
+                    return (query: string) => {
+                        queries.push(query);
+                        return target.prepare(query);
+                    };
+                }
+                const value: unknown = Reflect.get(target, property);
+                return typeof value === 'function' ? value.bind(target) : value;
+            },
+        });
+    };
+
+    it('is not read back on a request', async () => {
+        const queries: string[] = [];
+
+        const response = await app.request('/api/expenses', asSession(), { ...env, DB: recording(env.DB, queries) });
+
+        expect(response.status).toBe(200);
+        expect(queries.length).toBeGreaterThan(0);
+        expect(queries.filter((query) => /sqlite_master|sqlite_schema|pragma_table_info/i.test(query))).toEqual([]);
+    });
+
     it('has every table and column Better Auth needs', async () => {
         const { toBeCreated, toBeAdded } = await getMigrations(authOptions(env, ORIGIN));
 
