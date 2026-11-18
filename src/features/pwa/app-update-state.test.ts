@@ -16,8 +16,25 @@ const fakeRegister = () => {
 
 const fakeRegistration = (active = true) => {
     const update = vi.fn(async () => undefined);
-    const registration = { active: active ? {} : null, update } as unknown as ServiceWorkerRegistration;
-    return { registration, update };
+    const events = new EventTarget();
+    const fake = {
+        active: active ? {} : null,
+        installing: null as ServiceWorker | null,
+        update,
+        addEventListener: events.addEventListener.bind(events),
+    };
+    const registration = fake as unknown as ServiceWorkerRegistration;
+    const findVersion = () => {
+        const worker = Object.assign(new EventTarget(), { state: 'installing' }) as unknown as ServiceWorker;
+        fake.installing = worker;
+        events.dispatchEvent(new Event('updatefound'));
+        return (state: ServiceWorkerState) => {
+            Object.assign(worker, { state });
+            fake.installing = null;
+            worker.dispatchEvent(new Event('statechange'));
+        };
+    };
+    return { registration, update, findVersion };
 };
 
 const showApp = (state: DocumentVisibilityState) => {
@@ -49,10 +66,10 @@ describe('app update', () => {
         update.start();
 
         calls[0]?.onNeedRefresh?.();
-        expect(update.getState()).toBe(true);
+        expect(update.getState()).toBe('waiting');
         update.postpone();
 
-        expect(update.getState()).toBe(false);
+        expect(update.getState()).toBe('none');
         expect(listener).toHaveBeenCalledTimes(2);
     });
 
@@ -93,5 +110,73 @@ describe('app update', () => {
 
         expect(first.update).not.toHaveBeenCalled();
         expect(offline.update).not.toHaveBeenCalled();
+    });
+
+    it('says a new version downloads as soon as it is found, before it waits', () => {
+        const { register, calls } = fakeRegister();
+        const { registration, findVersion } = fakeRegistration();
+        const update = createAppUpdate(register);
+        update.start();
+        calls[0]?.onRegisteredSW?.('/sw.js', registration);
+
+        const settle = findVersion();
+        expect(update.getState()).toBe('downloading');
+        settle('installed');
+        calls[0]?.onNeedRefresh?.();
+
+        expect(update.getState()).toBe('waiting');
+    });
+
+    it('says nothing of the first install, with no version running yet', () => {
+        const { register, calls } = fakeRegister();
+        const { registration, findVersion } = fakeRegistration(false);
+        const update = createAppUpdate(register);
+        update.start();
+        calls[0]?.onRegisteredSW?.('/sw.js', registration);
+
+        findVersion();
+
+        expect(update.getState()).toBe('none');
+    });
+
+    it('takes the offer away when the download fails', () => {
+        const { register, calls } = fakeRegister();
+        const { registration, findVersion } = fakeRegistration();
+        const update = createAppUpdate(register);
+        update.start();
+        calls[0]?.onRegisteredSW?.('/sw.js', registration);
+
+        findVersion()('redundant');
+
+        expect(update.getState()).toBe('none');
+    });
+
+    it('keeps a version postponed while it downloads quiet until another one is found', () => {
+        const { register, calls } = fakeRegister();
+        const { registration, findVersion } = fakeRegistration();
+        const update = createAppUpdate(register);
+        update.start();
+        calls[0]?.onRegisteredSW?.('/sw.js', registration);
+
+        const settle = findVersion();
+        update.postpone();
+        settle('installed');
+        calls[0]?.onNeedRefresh?.();
+        expect(update.getState()).toBe('none');
+        findVersion();
+
+        expect(update.getState()).toBe('downloading');
+    });
+
+    it('says a version already downloading when the page starts downloads', () => {
+        const { register, calls } = fakeRegister();
+        const { registration, findVersion } = fakeRegistration();
+        const update = createAppUpdate(register);
+        update.start();
+        findVersion();
+
+        calls[0]?.onRegisteredSW?.('/sw.js', registration);
+
+        expect(update.getState()).toBe('downloading');
     });
 });
