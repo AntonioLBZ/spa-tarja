@@ -621,6 +621,7 @@
             "mergeQuestion": "¿Fusionar a {name} con alguien que usa la app? Lo repartido con {name} pasa a ser suyo. No se puede deshacer.",
             "mergeInto": "Con",
             "mergeNone": "Elige a alguien",
+            "mergeMissing": "¿No está en la lista? Solo salen quienes ya están en el grupo. Para traer a un amigo, usa Añadir a una persona y elige «En lugar de {name}».",
             "mergeConfirm": "Fusionar",
             "mergeConfirmItem": "Fusionar a {name}",
             "makeOwner": "Hacer admin",

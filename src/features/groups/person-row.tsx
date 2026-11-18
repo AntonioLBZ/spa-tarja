@@ -232,6 +232,7 @@ const PersonRow = (props: PersonRowProps) => {
                             />
                         )}
                     </Field>
+                    <p className="hint">{t('people.mergeMissing', { name })}</p>
                     <Actions>
                         <Button
                             ghost

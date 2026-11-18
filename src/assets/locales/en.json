@@ -621,6 +621,7 @@
             "mergeQuestion": "Merge {name} into someone who uses the app? What was split with {name} becomes theirs. This can't be undone.",
             "mergeInto": "Into",
             "mergeNone": "Choose someone",
+            "mergeMissing": "Not in the list? Only people in this group are. To bring in a friend, use Add a person and pick “In place of {name}”.",
             "mergeConfirm": "Merge",
             "mergeConfirmItem": "Merge {name}",
             "makeOwner": "Make owner",

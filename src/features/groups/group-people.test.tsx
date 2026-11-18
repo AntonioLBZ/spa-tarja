@@ -363,6 +363,7 @@ describe('merging', () => {
         expect(chosenOption(text.mergeInto)).toBe(text.mergeNone);
         expect(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })).disabled).toBe(true);
         expect(optionNames(text.mergeInto)).toEqual([text.mergeNone, you, 'Bea']);
+        expect(screen.getByText(t('groups.people.mergeMissing', { name: 'Cris' }))).toBeDefined();
         pickOption(text.mergeInto, 'Bea');
         fireEvent.click(button(t('groups.people.mergeConfirmItem', { name: 'Cris' })));
 
