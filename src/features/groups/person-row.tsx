@@ -139,7 +139,7 @@ const PersonRow = (props: PersonRowProps) => {
     if (!canRename && !canRemove) return <PeopleRow>{summary}</PeopleRow>;
 
     return (
-        <Disclosure as="li" chevron summary={summary} open={expanded} onOpenChange={handleOpenChange}>
+        <Disclosure as="li" chevron align="top" summary={summary} open={expanded} onOpenChange={handleOpenChange}>
             {step === 'actions' && (
                 <Actions>
                     {canRename && (
