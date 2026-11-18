@@ -621,7 +621,7 @@
             "mergeQuestion": "¿Fusionar a {name} con alguien del grupo? Lo de {name} pasa a esa persona. No se puede deshacer.",
             "mergeInto": "Con",
             "mergeNone": "Elige a alguien",
-            "mergeMissing": "¿Falta alguien? Usa Añadir a una persona › «En lugar de {name}».",
+            "mergeMissing": "¿Falta alguien? Usa «Añadir a una persona» › «En lugar de {name}».",
             "mergeConfirm": "Fusionar",
             "mergeConfirmItem": "Fusionar a {name}",
             "makeOwner": "Hacer admin",
@@ -636,7 +636,7 @@
             "unsettled": "El saldo de {name} no está a cero. Primero hay que saldar cuentas.",
             "add": "Añadir a una persona",
             "placeOf": "{name} entra",
-            "asNew": "Como persona nueva",
+            "asNew": "Como nuevo miembro",
             "inPlaceOf": "En lugar de {name}",
             "addFriend": "Añadir amigo"
         },

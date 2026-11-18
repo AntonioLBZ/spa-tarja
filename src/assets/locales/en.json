@@ -621,7 +621,7 @@
             "mergeQuestion": "Merge {name} into someone in the group? What {name} has moves to them. This can't be undone.",
             "mergeInto": "Into",
             "mergeNone": "Choose someone",
-            "mergeMissing": "Someone missing? Use Add a person › “In place of {name}”.",
+            "mergeMissing": "Someone missing? Use “Add a person” › “In place of {name}”.",
             "mergeConfirm": "Merge",
             "mergeConfirmItem": "Merge {name}",
             "makeOwner": "Make owner",
