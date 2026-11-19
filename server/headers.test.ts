@@ -8,7 +8,7 @@ import { send } from '@server/test/groups';
 import { ORIGIN, signIn, type TestSession } from '@server/test/session';
 
 const SECURITY = {
-    'content-security-policy': "frame-ancestors 'none'",
+    'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'",
     'x-frame-options': 'DENY',
     'referrer-policy': 'strict-origin',
     'x-content-type-options': 'nosniff',
@@ -66,6 +66,23 @@ describe('the security headers', () => {
 
         expect(response.status).toBe(404);
         expect(security(response)).toEqual(SECURITY);
+    });
+
+    it('are on the error page of Better Auth', async () => {
+        const response = await app.request('/api/auth/error?error=SOMETHING', {}, env);
+
+        expect(response.status).toBe(200);
+        expect(security(response)).toEqual(SECURITY);
+    });
+
+    it('leave the one page of Better Auth nothing to load but its own style', async () => {
+        const response = await app.request('/api/auth/error?error=SOMETHING', {}, env);
+        const page = await response.text();
+
+        expect(response.headers.get('content-type')).toContain('text/html');
+        expect(page).toContain('<style>');
+        expect(page).not.toMatch(/<(script|link|img|iframe|object|embed|form|base)\b/i);
+        expect(page).not.toMatch(/\son[a-z]+\s*=/i);
     });
 
     it('are on a session answer of Better Auth', async () => {

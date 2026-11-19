@@ -276,7 +276,7 @@ describe('making a link to be friends', () => {
         for (const answer of answers) {
             expect(answer.headers.get('cache-control')).toBe('no-store');
             expect(answer.headers.get('x-frame-options')).toBe('DENY');
-            expect(answer.headers.get('content-security-policy')).toBe("frame-ancestors 'none'");
+            expect(answer.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
         }
     });
 

@@ -14,5 +14,12 @@
         "skipLibCheck": true,
         "noEmit": true
     },
-    "include": ["vite.config.ts", "vitest.config.ts", "push-worker.config.ts", "docs", "design-system/vite.config.ts"]
+    "include": [
+        "vite.config.ts",
+        "vitest.config.ts",
+        "csp.config.ts",
+        "push-worker.config.ts",
+        "docs",
+        "design-system/vite.config.ts"
+    ]
 }

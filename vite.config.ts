@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { cloudflare } from '@cloudflare/vite-plugin';
@@ -8,6 +9,7 @@ import react from '@vitejs/plugin-react';
 import { build, defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { withScriptHashes } from './csp.config';
 import { PUSH_WORKER, pushWorkerBuild } from './push-worker.config';
 
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
@@ -78,6 +80,27 @@ const fontPreload = (): Plugin => {
     };
 };
 
+// Puts the hash of the inline scripts of the page it has just written in the policy of `_headers`, which the build
+// copied from `public/`, so the two can't fall out of step
+const contentSecurityPolicy = (): Plugin => {
+    return {
+        name: 'tarja-content-security-policy',
+        apply: 'build',
+        applyToEnvironment: (environment) => environment.name === 'client',
+        writeBundle: {
+            order: 'post',
+            handler: (options) => {
+                const dir = options.dir ?? 'dist/client';
+                const headers = join(dir, '_headers');
+                writeFileSync(
+                    headers,
+                    withScriptHashes(readFileSync(headers, 'utf8'), readFileSync(join(dir, 'index.html'), 'utf8'))
+                );
+            },
+        },
+    };
+};
+
 // Builds the script of push notifications next to the client's files
 const pushWorker = (): Plugin => {
     return {
@@ -97,6 +120,7 @@ export default defineConfig({
         cloudflare(),
         prereleasePage(),
         fontPreload(),
+        contentSecurityPolicy(),
         pushWorker(),
         VitePWA({
             // The new version waits for the user, so an update never reloads the app halfway through an expense

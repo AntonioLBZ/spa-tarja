@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' %INLINE_SCRIPT_HASHES%; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin
   X-Content-Type-Options: nosniff

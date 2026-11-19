@@ -53,7 +53,9 @@ describe('a write from another origin', () => {
         const response = await from(SIBLING)('POST', '/invitations');
 
         expect(response.status).toBe(403);
-        expect(response.headers.get('content-security-policy')).toBe("frame-ancestors 'none'");
+        expect(response.headers.get('content-security-policy')).toBe(
+            "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'"
+        );
         expect(response.headers.get('x-frame-options')).toBe('DENY');
         expect(response.headers.get('referrer-policy')).toBe('strict-origin');
         expect(response.headers.get('x-content-type-options')).toBe('nosniff');
