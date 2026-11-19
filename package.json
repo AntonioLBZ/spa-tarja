@@ -35,7 +35,7 @@
         "@tanstack/react-router": "1.170.46",
         "better-auth": "1.7.12",
         "clsx": "2.1.1",
-        "hono": "4.13.13",
+        "hono": "4.13.16",
         "idb-keyval": "6.3.0",
         "react": "19.3.1",
         "react-dom": "19.3.1",
