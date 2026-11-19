@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 
 const { SECURITY_HEADERS } = (await import(new URL('../server/headers.ts', import.meta.url).href)) as {
     SECURITY_HEADERS: readonly (readonly [string, string])[];
@@ -15,6 +17,21 @@ const { SCRIPT_HASHES_MARKER, inlineScriptHashes, withScriptHashes } = (await im
     inlineScriptHashes: (html: string) => string[];
     withScriptHashes: (headers: string, html: string) => string;
 };
+
+interface BuildPlugin {
+    name?: string;
+    writeBundle?: { handler: (options: { dir: string }) => void };
+}
+
+const { default: viteConfig } = (await import(new URL('../vite.config.ts', import.meta.url).href)) as {
+    default: { plugins: unknown[] };
+};
+
+const outDir = mkdtempSync(join(tmpdir(), 'headers-'));
+
+afterAll(() => {
+    rmSync(outDir, { recursive: true, force: true });
+});
 
 const read = (path: string) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
@@ -182,5 +199,28 @@ describe('the headers of a build', () => {
         expect(() =>
             withScriptHashes("/*\n  Content-Security-Policy: script-src 'self'\n", '<script>a()</script>')
         ).toThrow(SCRIPT_HASHES_MARKER);
+    });
+});
+
+describe('the build', () => {
+    const plugin = () => {
+        const plugins = viteConfig.plugins.flat(Infinity) as BuildPlugin[];
+        return plugins.find((candidate) => candidate?.name === 'tarja-content-security-policy');
+    };
+
+    it('registers the step that puts the hashes of the inline scripts in the policy', () => {
+        expect(plugin()).toBeDefined();
+    });
+
+    it('leaves no marker in the headers it writes', () => {
+        const html = read('index.html');
+        writeFileSync(join(outDir, 'index.html'), html);
+        writeFileSync(join(outDir, '_headers'), read('public/_headers'));
+
+        plugin()?.writeBundle?.handler({ dir: outDir });
+
+        const built = readFileSync(join(outDir, '_headers'), 'utf8');
+        expect(built).not.toContain(SCRIPT_HASHES_MARKER);
+        expect(built).toContain(`'${inlineScriptHashes(html)[0]}'`);
     });
 });

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 
-// Where the policy of `public/_headers` takes the hashes of the page's inline scripts
+// What stands, in the policy of the static files, for the hashes of the page's inline scripts until a build puts them in
 const SCRIPT_HASHES_MARKER = '%INLINE_SCRIPT_HASHES%';
 
 // A browser hashes the text between the tags once its parser has made every line break a line feed

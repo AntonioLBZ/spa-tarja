@@ -80,8 +80,8 @@ const fontPreload = (): Plugin => {
     };
 };
 
-// Puts the hash of the inline scripts of the page it has just written in the policy of `_headers`, which the build
-// copied from `public/`, so the two can't fall out of step
+// Replaces the marker of the static files' policy with the hash of each inline script of the page just built, so the
+// policy and the page can't fall out of step
 const contentSecurityPolicy = (): Plugin => {
     return {
         name: 'tarja-content-security-policy',

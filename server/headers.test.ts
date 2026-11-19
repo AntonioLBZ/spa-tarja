@@ -15,9 +15,9 @@ const SECURITY = {
     'cross-origin-opener-policy': 'same-origin-allow-popups',
 };
 
-function security(response: Response) {
+const security = (response: Response) => {
     return Object.fromEntries(Object.keys(SECURITY).map((name) => [name, response.headers.get(name)]));
-}
+};
 
 let ana: TestSession;
 
