@@ -2,3 +2,5 @@
   Content-Security-Policy: frame-ancestors 'none'
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin
+  X-Content-Type-Options: nosniff
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
