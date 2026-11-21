@@ -1054,12 +1054,13 @@ describe('installments', () => {
 describe('custom categories', () => {
     const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
 
-    it('are offered in the form after the built-in ones', async () => {
+    it('are offered in the form after the built-in ones, Other first', async () => {
         stubApi(createFakeApi({ categories: [gym] }).handler);
         const app = renderApp();
 
         await categoriesLoaded(app);
-        expect(categoryLabels()).toEqual([...Object.values(en.categories), 'Gym']);
+        const { other, ...rest } = en.categories;
+        expect(categoryLabels()).toEqual([other, ...Object.values(rest), 'Gym']);
     });
 
     it('can be picked for an expense, which is saved with the category id', async () => {

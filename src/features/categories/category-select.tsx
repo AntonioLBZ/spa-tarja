@@ -1,4 +1,5 @@
 import { Select } from '@/components/select/select';
+import { FALLBACK_CATEGORY_ID } from '@core/categories';
 
 import { CategoryBadge } from './category-badge';
 
@@ -20,10 +21,18 @@ interface CategorySelectProps {
     'aria-invalid'?: boolean;
 }
 
+// "All categories" stays on top and the fallback follows it: a new expense starts on the fallback, and a native list
+// opens scrolled to the option chosen
+const rank = (option: CategorySelectOption) => {
+    if (!option.style) return 0;
+    return option.id === FALLBACK_CATEGORY_ID ? 1 : 2;
+};
+
 // A `Select` of categories, each with its icon in its color
 const CategorySelect = (props: CategorySelectProps) => {
     const { options, ...rest } = props;
-    const selectOptions = options.map((option) => ({
+    const ordered = options.toSorted((a, b) => rank(a) - rank(b));
+    const selectOptions = ordered.map((option) => ({
         value: option.id,
         label: option.label,
         icon: option.style && <CategoryBadge style={option.style} />,

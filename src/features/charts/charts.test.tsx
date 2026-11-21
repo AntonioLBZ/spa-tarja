@@ -1061,7 +1061,8 @@ describe('the category filter', () => {
         expect(chosenOption(text.category)).toBe(text.allCategories);
         expect(optionNames(text.category)).toEqual([
             text.allCategories,
-            ...DEFAULT_CATEGORY_IDS.map((id) => en.categories[id]),
+            en.categories.other,
+            ...DEFAULT_CATEGORY_IDS.filter((id) => id !== 'other').map((id) => en.categories[id]),
             'Gym',
         ]);
     });
