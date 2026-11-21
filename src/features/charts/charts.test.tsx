@@ -7,6 +7,7 @@ import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, EXPENSES_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
+import { stubLanguages } from '@/lib/test/languages';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
@@ -133,11 +134,13 @@ function dates(from: string, to: string) {
 beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(2026, 9, 25, 12));
+    stubLanguages(['en-GB']);
 });
 
 afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
 });
 
 describe('spending by day', () => {
@@ -808,6 +811,17 @@ describe('spending by week', () => {
         expect(rowOf(weekOf('Oct 19')).textContent).toContain('€61.49');
         expect(rowOf(weekOf('Oct 5')).textContent).toContain('€20.00');
         expect(rowOf(weekOf('Sep 28')).textContent).toContain('€15.00');
+    });
+
+    it('starts the weeks where the browser does', async () => {
+        stubLanguages(['en-US']);
+        await open();
+
+        groupBy(text.group.week);
+
+        expect(rows()).toHaveLength(12);
+        expect(rows()[0]!.textContent).toContain(weekOf('Aug 9'));
+        expect(rows().at(-1)!.textContent).toContain(weekOf('Oct 25'));
     });
 });
 

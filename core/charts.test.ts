@@ -41,6 +41,11 @@ describe('bucketStart', () => {
         expect(bucketStart('2026-10-26', 'week')).toBe('2026-10-26');
     });
 
+    it('is the first day of the week given for weeks', () => {
+        expect(bucketStart('2026-10-25', 'week', 7)).toBe('2026-10-25');
+        expect(bucketStart('2026-10-24', 'week', 7)).toBe('2026-10-18');
+    });
+
     it('is the first of the month for months', () => {
         expect(bucketStart('2026-10-25', 'month')).toBe('2026-10-01');
         expect(bucketStart('2026-02-01', 'month')).toBe('2026-02-01');
@@ -126,6 +131,24 @@ describe('spendingBuckets', () => {
             { start: '2026-10-05', totalCents: 300 },
             { start: '2026-10-12', totalCents: 400 },
             { start: '2026-10-19', totalCents: 800 },
+        ]);
+    });
+
+    it('groups by week from the first day given', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ date: '2026-10-10', amountCents: 100 }),
+                expense({ date: '2026-10-11', amountCents: 200 }),
+                expense({ date: '2026-10-17', amountCents: 400 }),
+                expense({ date: '2026-10-18', amountCents: 800 }),
+            ],
+            { granularity: 'week', range: { from: '2026-10-10', to: '2026-10-18' }, categoryId: null, weekStart: 7 }
+        );
+
+        expect(buckets).toEqual([
+            { start: '2026-10-04', totalCents: 100 },
+            { start: '2026-10-11', totalCents: 600 },
+            { start: '2026-10-18', totalCents: 800 },
         ]);
     });
 
@@ -446,6 +469,10 @@ describe('defaultRange', () => {
         expect(defaultRange('week', '2026-10-21')).toEqual({ from: '2026-08-03', to: '2026-10-25' });
     });
 
+    it('is twelve weeks counting this one from the first day given', () => {
+        expect(defaultRange('week', today, 7)).toEqual({ from: '2026-08-09', to: '2026-10-31' });
+    });
+
     it('is twelve months counting this one, up to its end, for months', () => {
         expect(defaultRange('month', today)).toEqual({ from: '2025-11-01', to: '2026-10-31' });
     });
@@ -537,6 +564,10 @@ describe('previousRange', () => {
         expect(previousRange('week', { from: '2026-01-05', to: '2026-01-18' })).toEqual({
             from: '2025-12-22',
             to: '2026-01-04',
+        });
+        expect(previousRange('week', { from: '2026-01-04', to: '2026-01-17' }, 7)).toEqual({
+            from: '2025-12-21',
+            to: '2026-01-03',
         });
     });
 

@@ -113,6 +113,14 @@ describe('startOfWeek', () => {
         expect(startOfWeek('2026-11-01')).toBe('2026-10-26');
         expect(startOfWeek('2027-01-01')).toBe('2026-12-28');
     });
+
+    it('starts on the day given', () => {
+        expect(startOfWeek('2026-10-25', 7)).toBe('2026-10-25');
+        expect(startOfWeek('2026-10-31', 7)).toBe('2026-10-25');
+        expect(startOfWeek('2026-10-26', 7)).toBe('2026-10-25');
+        expect(startOfWeek('2026-10-30', 6)).toBe('2026-10-24');
+        expect(startOfWeek('2026-10-31', 6)).toBe('2026-10-31');
+    });
 });
 
 describe('addMonths in the years below one hundred', () => {

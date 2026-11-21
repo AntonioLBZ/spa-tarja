@@ -226,6 +226,16 @@ describe('buildList grouped by week or month', () => {
         ]);
     });
 
+    it('starts the week on the day the context gives', () => {
+        const groups = buildList(days, NO_FILTERS, 'week', { ...ctx, weekStart: 7 });
+
+        expect(groups.map((group) => [group.key, group.items.length])).toEqual([
+            ['2026-10-25', 1],
+            ['2026-10-18', 2],
+            ['2026-09-27', 1],
+        ]);
+    });
+
     it('names a week that crosses a New Year by its Monday, in the old year', () => {
         const groups = buildList(
             [

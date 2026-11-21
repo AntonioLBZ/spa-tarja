@@ -54,11 +54,16 @@ const addDays = (value: string, days: number): string => {
     return formatUtc(utcDate(year, month, day + days));
 };
 
-// The Monday of the week a day is in, which is where weeks start in the app
-const startOfWeek = (value: string): string => {
+// A day of the week as the week info of a locale numbers it: 1 is Monday, 7 is Sunday
+type WeekDay = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+const MONDAY: WeekDay = 1;
+
+// The first day of the week a day is in, the week starting on `firstDay` (ADR-0039)
+const startOfWeek = (value: string, firstDay: WeekDay = MONDAY): string => {
     const [year, month, day] = parseDay(value);
-    const sinceMonday = (utcDate(year, month, day).getUTCDay() + 6) % 7;
-    return addDays(value, -sinceMonday);
+    const weekDay = utcDate(year, month, day).getUTCDay() || 7;
+    return addDays(value, -((weekDay - firstDay + 7) % 7));
 };
 
 // The last day of the month a day is in
@@ -74,4 +79,15 @@ const daysBetween = (from: string, to: string): number => {
     return Math.round(difference / 86_400_000);
 };
 
-export { addDays, addMonths, daysBetween, endOfMonth, fromDateString, isCalendarDate, startOfWeek, toDateString };
+export {
+    addDays,
+    addMonths,
+    daysBetween,
+    endOfMonth,
+    fromDateString,
+    isCalendarDate,
+    MONDAY,
+    startOfWeek,
+    toDateString,
+    type WeekDay,
+};

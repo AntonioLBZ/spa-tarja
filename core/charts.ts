@@ -1,5 +1,5 @@
 import { countedCents, countedOn } from './counting';
-import { addDays, addMonths, daysBetween, endOfMonth, startOfWeek } from './date';
+import { addDays, addMonths, daysBetween, endOfMonth, MONDAY, startOfWeek, type WeekDay } from './date';
 import { monthOf, shiftMonth } from './month';
 
 import type { Expense } from './expense';
@@ -18,7 +18,7 @@ interface Range {
 }
 
 interface Bucket {
-    // The first day of the bucket: the day, the Monday of the week or the first of the month
+    // The first day of the bucket: the day, the first day of the week or the first of the month
     start: string;
     totalCents: number;
 }
@@ -28,9 +28,9 @@ interface CategoryTotal {
     totalCents: number;
 }
 
-const bucketStart = (day: string, granularity: Granularity): string => {
+const bucketStart = (day: string, granularity: Granularity, weekStart: WeekDay = MONDAY): string => {
     if (granularity === 'day') return day;
-    if (granularity === 'week') return startOfWeek(day);
+    if (granularity === 'week') return startOfWeek(day, weekStart);
     return `${monthOf(day)}-01`;
 };
 
@@ -42,10 +42,10 @@ const nextBucket = (start: string, granularity: Granularity, count = 1): string 
 };
 
 // How many rows a range makes: the days, the weeks it touches or the months it touches; none when it ends before it begins
-const bucketCount = (granularity: Granularity, range: Range): number => {
+const bucketCount = (granularity: Granularity, range: Range, weekStart: WeekDay = MONDAY): number => {
     if (range.from > range.to) return 0;
     if (granularity === 'day') return daysBetween(range.from, range.to) + 1;
-    if (granularity === 'week') return Math.floor(daysBetween(startOfWeek(range.from), range.to) / 7) + 1;
+    if (granularity === 'week') return Math.floor(daysBetween(startOfWeek(range.from, weekStart), range.to) / 7) + 1;
     const [fromYear = 0, fromMonth = 1] = range.from.split('-').map(Number);
     const [toYear = 0, toMonth = 1] = range.to.split('-').map(Number);
     return (toYear - fromYear) * 12 + (toMonth - fromMonth) + 1;
@@ -64,21 +64,25 @@ const inRange = (expenses: readonly Expense[], range: Range): Expense[] => {
 // one that ends before it begins, has none.
 const spendingBuckets = (
     expenses: readonly Expense[],
-    options: { granularity: Granularity; range: Range; categoryId: string | null }
+    options: { granularity: Granularity; range: Range; categoryId: string | null; weekStart?: WeekDay }
 ): Bucket[] => {
-    const { granularity, range, categoryId } = options;
-    const count = bucketCount(granularity, range);
+    const { granularity, range, categoryId, weekStart = MONDAY } = options;
+    const count = bucketCount(granularity, range, weekStart);
     if (count === 0 || count > MAX_BUCKETS) return [];
 
     const totals = new Map<string, number>();
     for (const expense of inRange(expenses, range)) {
         if (categoryId !== null && expense.categoryId !== categoryId) continue;
-        const start = bucketStart(countedOn(expense), granularity);
+        const start = bucketStart(countedOn(expense), granularity, weekStart);
         totals.set(start, (totals.get(start) ?? 0) + countedCents(expense));
     }
 
     const buckets: Bucket[] = [];
-    for (let start = bucketStart(range.from, granularity); start <= range.to; start = nextBucket(start, granularity)) {
+    for (
+        let start = bucketStart(range.from, granularity, weekStart);
+        start <= range.to;
+        start = nextBucket(start, granularity)
+    ) {
         buckets.push({ start, totalCents: totals.get(start) ?? 0 });
     }
     return buckets;
@@ -106,19 +110,19 @@ const categoryTotals = (expenses: readonly Expense[], range: Range): CategoryTot
 
 // What a chart shows before anyone picks dates: this month for days, twelve weeks or twelve months counting this one,
 // up to the end of the period so that what is still to be charged in it shows, as it does in the summary
-const defaultRange = (granularity: Granularity, today: string): Range => {
+const defaultRange = (granularity: Granularity, today: string, weekStart: WeekDay = MONDAY): Range => {
     if (granularity === 'day') return { from: `${monthOf(today)}-01`, to: endOfMonth(today) };
-    const monday = startOfWeek(today);
-    if (granularity === 'week') return { from: addDays(monday, -7 * 11), to: addDays(monday, 6) };
+    const thisWeek = startOfWeek(today, weekStart);
+    if (granularity === 'week') return { from: addDays(thisWeek, -7 * 11), to: addDays(thisWeek, 6) };
     return { from: `${shiftMonth(monthOf(today), -11)}-01`, to: endOfMonth(today) };
 };
 
 // What a range is compared with: as many buckets again, ending the day before its first bucket starts. Days give the
-// same number of days, weeks whole weeks from Monday and months whole months.
-const previousRange = (granularity: Granularity, range: Range): Range => {
-    const first = bucketStart(range.from, granularity);
+// same number of days, weeks whole weeks and months whole months.
+const previousRange = (granularity: Granularity, range: Range, weekStart: WeekDay = MONDAY): Range => {
+    const first = bucketStart(range.from, granularity, weekStart);
     return {
-        from: nextBucket(first, granularity, -bucketCount(granularity, range)),
+        from: nextBucket(first, granularity, -bucketCount(granularity, range, weekStart)),
         to: addDays(first, -1),
     };
 };
@@ -133,13 +137,18 @@ interface Comparison {
 // has ended compares with as many buckets before it; any other that has ended, with as many days before it. One still
 // running is compared from its start up to today, with as many days before its start; one that hasn't started, or
 // that ends before it begins, has nothing to compare.
-const comparison = (granularity: Granularity, range: Range, today: string): Comparison | null => {
+const comparison = (
+    granularity: Granularity,
+    range: Range,
+    today: string,
+    weekStart: WeekDay = MONDAY
+): Comparison | null => {
     if (range.from > range.to || range.from > today) return null;
     const ended = range.to <= today;
     const whole =
-        bucketStart(range.from, granularity) === range.from &&
-        addDays(nextBucket(bucketStart(range.to, granularity), granularity), -1) === range.to;
-    if (ended && whole) return { current: range, previous: previousRange(granularity, range) };
+        bucketStart(range.from, granularity, weekStart) === range.from &&
+        addDays(nextBucket(bucketStart(range.to, granularity, weekStart), granularity), -1) === range.to;
+    if (ended && whole) return { current: range, previous: previousRange(granularity, range, weekStart) };
 
     const current = ended ? range : { from: range.from, to: today };
     const days = daysBetween(current.from, current.to) + 1;

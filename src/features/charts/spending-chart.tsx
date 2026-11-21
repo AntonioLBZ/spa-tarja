@@ -13,7 +13,7 @@ import { useTranslations } from 'use-intl';
 
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { useAmountPreferences, useMoney } from '@/lib/amounts';
-import { useLocale } from '@/lib/i18n';
+import { useLocale, useWeekStart } from '@/lib/i18n';
 import { bucketStart, niceScale } from '@core/charts';
 import { DEFAULT_CURRENCY } from '@core/money';
 
@@ -48,6 +48,7 @@ const SpendingChart = (props: SpendingChartProps) => {
     const { buckets, granularity, today, category } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
+    const weekStart = useWeekStart();
     const readoutId = useId();
     const { nameOf, shortNameOf } = useBucketNames(buckets, granularity);
     const scroller = useRef<HTMLDivElement>(null);
@@ -70,7 +71,7 @@ const SpendingChart = (props: SpendingChartProps) => {
     );
     const biggest = buckets[peak]?.totalCents ?? 0;
     const scale = niceScale(biggest);
-    const todayAt = buckets.findIndex((bucket) => bucket.start === bucketStart(today, granularity));
+    const todayAt = buckets.findIndex((bucket) => bucket.start === bucketStart(today, granularity, weekStart));
     const gap = count <= GAPPED_UP_TO ? GAP : 0;
     // The first and the last row, named under the plot
     const ends = count > 1 ? [buckets[0]!, buckets[count - 1]!] : buckets;

@@ -11,6 +11,7 @@ import { createUserStorage } from '@/lib/offline';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { stubLanguages } from '@/lib/test/languages';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
@@ -93,6 +94,7 @@ afterEach(() => {
     onlineManager.setOnline(true);
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
 });
 
 describe('expense list', () => {
@@ -3565,6 +3567,7 @@ describe('searching, filtering and grouping the list', () => {
         });
 
         it('are weeks from Monday, called after that Monday', async () => {
+            stubLanguages(['en-GB']);
             await openAll(list);
 
             pickGrouping(f.group.week);
@@ -3575,6 +3578,17 @@ describe('searching, filtering and grouping the list', () => {
             ]);
             expect(subtotalOf(groupHeadings()[0]!)).toBe('€57.00');
             expect(subtotalOf(groupHeadings()[1]!)).toBe('€600.00');
+        });
+
+        it('start on the day the browser starts the week', async () => {
+            stubLanguages(['en-US']);
+            await openAll(list);
+
+            pickGrouping(f.group.week);
+
+            expect(groupHeadings()[0]).toBe(
+                t('expenses.list.weekOf', { date: format({ month: 'short', day: 'numeric' }, '2026-10-18') })
+            );
         });
 
         it('are months, called by their name', async () => {

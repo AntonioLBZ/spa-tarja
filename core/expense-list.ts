@@ -1,6 +1,6 @@
 import { bucketStart } from './charts';
 import { countedCents, paymentOf } from './counting';
-import { endOfMonth } from './date';
+import { endOfMonth, type WeekDay } from './date';
 import { collapsePlans, planTotal, type ListItem } from './installments';
 import { monthOf } from './month';
 import { isSharedRow } from './shared-expense';
@@ -60,10 +60,12 @@ interface ListContext {
     groupNameOf: (groupId: string) => string;
     // What a search read in each expense, kept between searches. Valid for as long as `labelOf` and `groupNameOf` are.
     searchTexts?: WeakMap<Expense, string>;
+    // The first day of a week group, Monday when not given (ADR-0039)
+    weekStart?: WeekDay;
 }
 
 interface ListGroup {
-    // The day, the Monday of the week or the first of the month; the category id when grouped by category
+    // The day, the first day of the week or the first of the month; the category id when grouped by category
     key: string;
     items: ListItem[];
     // What the rows add up to, a plan once at its full price
@@ -137,7 +139,7 @@ const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => b
 
 const keyOf = (expense: Expense, grouping: ListGrouping, ctx: ListContext): string => {
     if (grouping === 'category') return ctx.categoryOf(expense.categoryId);
-    return bucketStart(expense.date, grouping);
+    return bucketStart(expense.date, grouping, ctx.weekStart);
 };
 
 // The rows that pass the filters, in groups. Days, weeks and months come newest first, categories from the biggest

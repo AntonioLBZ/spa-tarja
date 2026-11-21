@@ -11,6 +11,7 @@ import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { categoriesQuery } from '@/lib/api';
+import { useWeekStart } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import {
     GRANULARITIES,
@@ -40,6 +41,7 @@ const Charts = () => {
     const { expenses } = useYourExpenses();
     const { options, labelOf, styleOf } = useCategoryOptions();
     const categories = useQuery(categoriesQuery());
+    const weekStart = useWeekStart();
 
     const [today] = useState(() => toDateString(new Date()));
     const [granularity, setGranularity] = useState<Granularity>('day');
@@ -47,9 +49,16 @@ const Charts = () => {
     // Null until the person picks dates: the range then follows the grouping
     const [picked, setPicked] = useState<Range | null>(null);
 
-    const range = useMemo(() => picked ?? defaultRange(granularity, today), [picked, granularity, today]);
+    const range = useMemo(
+        () => picked ?? defaultRange(granularity, today, weekStart),
+        [picked, granularity, today, weekStart]
+    );
     const problem: Problem | null =
-        range.from > range.to ? 'rangeInvalid' : bucketCount(granularity, range) > MAX_BUCKETS ? 'rangeTooLong' : null;
+        range.from > range.to
+            ? 'rangeInvalid'
+            : bucketCount(granularity, range, weekStart) > MAX_BUCKETS
+              ? 'rangeTooLong'
+              : null;
 
     // An expense whose category is gone counts under the fallback, as it reads in the list. Until the categories are
     // known any custom one would look gone, so nothing is folded then.
@@ -67,20 +76,20 @@ const Charts = () => {
     const filter = known.has(categoryId) ? categoryId : null;
 
     const buckets = useMemo(
-        () => spendingBuckets(filed, { granularity, range, categoryId: filter }),
-        [filed, granularity, range, filter]
+        () => spendingBuckets(filed, { granularity, range, categoryId: filter, weekStart }),
+        [filed, granularity, range, filter, weekStart]
     );
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
     // Two spans as long as each other, in the same category: the range, or its days up to today, and the span before
     const compared = useMemo(() => {
-        const spans = comparison(granularity, range, today);
+        const spans = comparison(granularity, range, today, weekStart);
         if (spans === null) return null;
         return {
             ...spans,
             currentCents: spendingTotal(filed, { range: spans.current, categoryId: filter }),
             previousCents: spendingTotal(filed, { range: spans.previous, categoryId: filter }),
         };
-    }, [filed, granularity, range, today, filter]);
+    }, [filed, granularity, range, today, filter, weekStart]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
     return (
