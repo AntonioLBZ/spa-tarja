@@ -80,7 +80,7 @@ function rowOf(label: string | RegExp) {
 }
 
 function chart() {
-    return document.querySelector<SVGSVGElement>('svg[role="img"]');
+    return document.querySelector<SVGSVGElement>('svg[role="group"]');
 }
 
 function plot() {
@@ -488,6 +488,13 @@ describe('the text alternative', () => {
                 label: 'Sun, Oct 25',
             })
         );
+    });
+
+    it('is a group described as a chart, not an image, since it takes the focus and the arrow keys', async () => {
+        await open();
+
+        expect(plot().getAttribute('aria-roledescription')).toBe(text.chartRole);
+        expect(document.querySelector('svg[role="img"]')).toBeNull();
     });
 
     it('counts weeks and months in the label', async () => {

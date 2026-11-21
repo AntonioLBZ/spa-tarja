@@ -835,6 +835,7 @@
         "readoutCategory": "{label}, {category}: {amount}",
         "readoutHint": "Tap a column, or use the arrow keys, to read its amount.",
         "chartSpan": "{granularity, select, day {{count, plural, one {# day} other {# days}}} week {{count, plural, one {# week} other {# weeks}}} other {{count, plural, one {# month} other {# months}}}}",
+        "chartRole": "chart",
         "chartSummary": "Spending over {span}: {total} in total. Highest: {biggest} ({label}).",
         "chartSummaryEmpty": "Spending over {span}: nothing spent.",
         "vsPrevious": "{change} vs. {period}",
