@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Amount } from '@/components/amount/amount';
@@ -25,6 +25,8 @@ interface GroupBalancesProps {
     debts: readonly Debt[];
     // Takes a debt to settle up; without it, as in a closed group, no line offers it
     onSettle?: (debt: Debt) => void;
+    // Settle up, at the end of the row of the label (ADR-0041)
+    action?: ReactNode;
 }
 
 // You first, then who gets back the most, then who owes the most, then who is even but still in a debt (pair by pair,
@@ -47,7 +49,7 @@ const rowsInOrder = (balances: readonly MemberBalance[], debts: readonly Debt[],
 // The balances of a group, a folded row per person after their net balance, and under it the debts that make it up,
 // from their side (ADR-0029)
 const GroupBalances = (props: GroupBalancesProps) => {
-    const { group, entries, debts, onSettle } = props;
+    const { group, entries, debts, onSettle, action } = props;
     const t = useTranslations('groups');
     const words = useGroupWords(group);
     const amount = useAmount();
@@ -78,7 +80,7 @@ const GroupBalances = (props: GroupBalancesProps) => {
     };
 
     return (
-        <Sheet label={t('debts.label')}>
+        <Sheet label={t('debts.label')} action={action}>
             {group.simplifyDebts && <Notice tone="quiet">{t('debts.simplified')}</Notice>}
             {moving.length === 0 && <p className="group-balances__none">{t('debts.none')}</p>}
             {moving.length > 0 && (
@@ -94,7 +96,6 @@ const GroupBalances = (props: GroupBalancesProps) => {
                                 key={person}
                                 chevron
                                 wideChevron
-                                defaultOpen={person === me}
                                 summary={
                                     <span className="group-balances__head">
                                         <span className="group-balances__text">{head(person, balance.cents)}</span>{' '}

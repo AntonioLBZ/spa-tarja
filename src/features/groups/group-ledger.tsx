@@ -236,24 +236,28 @@ const GroupLedger = (props: GroupLedgerProps) => {
 
     return (
         <section className="group-ledger">
-            <h2 ref={title} tabIndex={-1}>
-                {t('title')}
-            </h2>
+            {/* The order at the end of the row of the title, as tabs (ADR-0041) */}
+            <div className="group-ledger__head">
+                <h2 ref={title} tabIndex={-1}>
+                    {t('title')}
+                </h2>
+                {total > 0 && (
+                    <ChoiceGroup
+                        tabs
+                        legend={t('order.legend')}
+                        name="ledger-order"
+                        options={LEDGER_ORDERS.map((value) => ({ value, label: t(`order.${value}`) }))}
+                        value={order}
+                        onChange={setOrder}
+                    />
+                )}
+            </div>
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}
                 </Notice>
             )}
             {total === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
-            {total > 0 && (
-                <ChoiceGroup
-                    legend={t('order.legend')}
-                    name="ledger-order"
-                    options={LEDGER_ORDERS.map((value) => ({ value, label: t(`order.${value}`) }))}
-                    value={order}
-                    onChange={setOrder}
-                />
-            )}
             {drawn.map((sheet) => (
                 <Sheet
                     key={sheet.day ?? 'added'}

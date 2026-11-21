@@ -5,6 +5,19 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
+/* The title and, at its end, the order in smaller words; the order goes under the title when they don't fit */
+.group-ledger__head {
+    align-items: center;
+    column-gap: var(--size-4);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.group-ledger__head .tab {
+    font-size: var(--font-size-s);
+}
+
 .group-ledger__more {
     justify-self: start;
 }

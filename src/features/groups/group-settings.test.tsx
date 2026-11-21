@@ -249,7 +249,10 @@ describe('Simplify debts', () => {
         const api = createFakeApi({ groups: [group], entries: [sampleEntry(group)] });
         stubApi(api.handler);
         renderApp({ path: `/groups/${group.id}` });
-        expect(await screen.findByText(t('groups.debts.owesYou', { name: 'Bea', amount: '€20.00' }))).toBeDefined();
+        fireEvent.click(
+            await screen.findByRole('button', { expanded: false, name: new RegExp(text.debts.youGetBack) })
+        );
+        expect(screen.getByText(t('groups.debts.owesYou', { name: 'Bea', amount: '€20.00' }))).toBeDefined();
         expect(screen.queryByText(text.debts.simplified)).toBeNull();
 
         fireEvent.click(await screen.findByRole('link', { name: text.edit.link }));
@@ -259,6 +262,7 @@ describe('Simplify debts', () => {
         fireEvent.click(await screen.findByRole('link', { name: new RegExp('Lisbon') }));
 
         expect(await screen.findByText(text.debts.simplified)).toBeDefined();
+        fireEvent.click(screen.getByRole('button', { expanded: false, name: new RegExp(text.debts.youGetBack) }));
         expect(screen.getByText(t('groups.debts.owesYou', { name: 'Bea', amount: '€20.00' }))).toBeDefined();
     });
 

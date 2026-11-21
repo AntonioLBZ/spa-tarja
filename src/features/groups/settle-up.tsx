@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
@@ -268,8 +269,16 @@ const SettleUp = (props: SettleUpProps) => {
 
     return (
         <>
-            <Button block ref={toggle} aria-haspopup="dialog" onClick={() => form.setOpen(true)}>
-                {t('title')}
+            <Button
+                ghost
+                small
+                className="settle-up__open"
+                ref={toggle}
+                aria-haspopup="dialog"
+                onClick={() => form.setOpen(true)}
+            >
+                <Icon name="payments" />
+                {t('open')}
             </Button>
             <Dialog
                 open={form.open}

@@ -190,7 +190,7 @@ describe('a group', () => {
             row(t('groups.debts.owesAll', { name: 'Cris' }), 1500),
             row(t('groups.debts.owesAll', { name: 'Bea' }), 500),
         ]);
-        expect(toggles().map((toggle) => toggle.getAttribute('aria-expanded'))).toEqual(['true', 'false', 'false']);
+        expect(toggles().map((toggle) => toggle.getAttribute('aria-expanded'))).toEqual(['false', 'false', 'false']);
     });
 
     it('says each debt under a row from the side of its person, with Settle up on both lines of a debt', async () => {
@@ -220,7 +220,7 @@ describe('a group', () => {
             t('groups.debts.lineIn', { from: 'Cris', to: 'Bea' }),
             t('groups.debts.lineOwesYou', { name: 'Bea' }),
         ]);
-        expect(within(balancesSheet()).getAllByRole('button', { name: /^Settle up/ })).toHaveLength(4);
+        expect(within(balancesSheet()).getAllByRole('button', { name: /^Settle up: / })).toHaveLength(4);
     });
 
     it('marks which way each amount goes with the cues the person allows', async () => {
@@ -372,7 +372,7 @@ describe('a group with simplified debts', () => {
     ];
 
     function settleButtons() {
-        return within(balancesSheet()).queryAllByRole('button', { name: /^Settle up/ });
+        return within(balancesSheet()).queryAllByRole('button', { name: /^Settle up: / });
     }
 
     it.each([
@@ -435,7 +435,8 @@ describe('a group with simplified debts', () => {
         const group = groupOf([ana, bea, cris], ana, { simplifyDebts: true, closed: 'left' });
         open([group], ledger(group));
 
-        await screen.findByText(t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) }));
+        await screen.findByRole('heading', { name: text.debts.label });
+        expect(debtLines()).toContain(t('groups.debts.youOwe', { name: 'Bea', amount: euros(500) }));
         expect(within(balancesSheet()).getByText(text.debts.simplified)).toBeDefined();
         expect(settleButtons()).toEqual([]);
     });
@@ -684,6 +685,9 @@ describe('in Spanish', () => {
         const amount = formatAmount(2000, 'EUR', 'es').replace(/\s/g, ' ');
         const tEs = createTranslator({ locale: 'es', messages: es });
         expect(await screen.findByText(tEs('groups.balance.owed', { amount }))).toBeDefined();
+        fireEvent.click(
+            screen.getByRole('button', { expanded: false, name: new RegExp(tEs('groups.debts.youGetBack')) })
+        );
         expect(screen.getByText(tEs('groups.debts.owesYou', { name: 'Bea', amount }))).toBeDefined();
     });
 });

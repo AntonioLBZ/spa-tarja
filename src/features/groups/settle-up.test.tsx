@@ -82,7 +82,7 @@ function lineButton(debt: string) {
 }
 
 function toggle() {
-    return screen.getByRole('button', { name: text.title }) as HTMLButtonElement;
+    return screen.getByRole('button', { name: text.open }) as HTMLButtonElement;
 }
 
 function settleUp() {
@@ -613,7 +613,7 @@ describe('where there is no settling up', () => {
         await open(group, debts(group));
 
         expect(within(sheet()).queryAllByRole('button', { name: /^Settle up/ })).toEqual([]);
-        expect(screen.queryByRole('button', { name: text.title })).toBeNull();
+        expect(screen.queryByRole('button', { name: text.open })).toBeNull();
     });
 
     it('has none on a line that names someone who left', async () => {
@@ -680,7 +680,10 @@ describe('in Spanish', () => {
         stubApi(api.handler);
         renderApp({ path: `/groups/${group.id}` });
         const label = await screen.findByRole('heading', { name: es.groups.debts.label });
-        await waitFor(() => expect(within(label.closest('section')!).getAllByRole('button')).not.toHaveLength(1));
+        const mine = await waitFor(
+            () => within(label.closest('section')!).getAllByRole('button', { expanded: false })[0]!
+        );
+        fireEvent.click(mine);
 
         const buttons = within(label.closest('section')!)
             .getAllByRole('button')
@@ -700,7 +703,7 @@ describe('settling up in Spanish', () => {
         stubApi(api.handler);
         renderApp({ path: `/groups/${group.id}` });
 
-        fireEvent.click(await screen.findByRole('button', { name: es.groups.settle.title }));
+        fireEvent.click(await screen.findByRole('button', { name: es.groups.settle.open }));
 
         expect(chosenOption(es.groups.settle.from)).toBe('Ana (Tú)');
         expect(optionNames(es.groups.settle.to)).toEqual(['Ana (Tú)', 'Bea', 'Cris']);
@@ -715,6 +718,10 @@ describe('settling up in Spanish', () => {
         stubApi(api.handler);
         const app = renderApp({ path: `/groups/${group.id}` });
         const debt = tEs('groups.debts.youOwe', { name: 'Bea', amount: amountEs(1500) });
+        const label = await screen.findByRole('heading', { name: es.groups.debts.label });
+        fireEvent.click(
+            await waitFor(() => within(label.closest('section')!).getAllByRole('button', { expanded: false })[0]!)
+        );
         const button = await screen.findByRole('button', { name: tEs('groups.settle.lineItem', { debt }) });
 
         fireEvent.click(button);

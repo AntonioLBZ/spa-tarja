@@ -541,7 +541,7 @@ describe('editing a settlement', () => {
         fireEvent.click(screen.getByRole('button', { name: settle.cancel }));
 
         await waitFor(() => expect(document.activeElement).toBe(toggle(paidYou())));
-        fireEvent.click(screen.getByRole('button', { name: settle.title }));
+        fireEvent.click(screen.getByRole('button', { name: settle.open }));
         expect(settleField(settle.amount).value).toBe('');
         expect(api.entryAttempts).toEqual([]);
     });
@@ -652,7 +652,7 @@ describe('closing the sheet of a settlement being edited', () => {
 
         await waitFor(() => expect(document.activeElement).toBe(toggle(t('groups.ledger.paidYou', { name: 'Bea' }))));
         expect(screen.queryByRole('dialog')).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: en.groups.settle.title }));
+        fireEvent.click(screen.getByRole('button', { name: en.groups.settle.open }));
         expect(
             (within(screen.getByRole('dialog')).getByLabelText(en.groups.settle.amount) as HTMLInputElement).value
         ).toBe('');

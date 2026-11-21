@@ -85,16 +85,18 @@ const GroupView = (props: GroupViewProps) => {
                         entries={entries}
                         debts={debts}
                         onSettle={open ? settle.take : undefined}
+                        action={
+                            open && (
+                                <SettleUp
+                                    group={group}
+                                    entries={formEntries}
+                                    debts={formDebts}
+                                    form={settle}
+                                    onEditDone={sheet.requestRefocus}
+                                />
+                            )
+                        }
                     />
-                    {open && (
-                        <SettleUp
-                            group={group}
-                            entries={formEntries}
-                            debts={formDebts}
-                            form={settle}
-                            onEditDone={sheet.requestRefocus}
-                        />
-                    )}
                 </>
             )}
             {!hasData && (isError || isWaitingForNetwork) && (

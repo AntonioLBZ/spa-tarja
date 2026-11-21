@@ -462,6 +462,7 @@
         },
         "settle": {
             "title": "Settle up",
+            "open": "Settle up",
             "lineItem": "Settle up: {debt}",
             "from": "From",
             "to": "To",

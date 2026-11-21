@@ -24,6 +24,30 @@
     text-transform: uppercase;
 }
 
+/* The label in the middle and an action at the end, over the dashed rule of the label; an action wider than its side
+   pushes the label towards the start rather than covering it */
+.sheet__head {
+    align-items: center;
+    border-block-end: var(--size-px) dashed var(--color-border);
+    display: grid;
+    gap: var(--size-2);
+    grid-template-columns: 1fr auto 1fr;
+    margin-block-start: calc(-1 * var(--size-2));
+    padding-block-end: var(--size-1);
+}
+
+.sheet__head > .sheet__label {
+    border-block-end: 0;
+    grid-column: 2;
+    padding-block-end: 0;
+}
+
+.sheet__action {
+    display: flex;
+    grid-column: 3;
+    justify-content: end;
+}
+
 /* A row that opens, on paper: no notch on its toggle, and what it opens right under it, with the room left under that
    before the next row */
 .sheet .disclosure {

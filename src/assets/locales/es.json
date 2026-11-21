@@ -462,6 +462,7 @@
         },
         "settle": {
             "title": "Saldar cuentas",
+            "open": "Saldar",
             "lineItem": "Saldar cuentas: {debt}",
             "from": "Paga",
             "to": "Recibe",

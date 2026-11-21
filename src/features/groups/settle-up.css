@@ -1,3 +1,11 @@
+/* The action of the balances: the icon and a short word (ADR-0041) */
+.settle-up__open {
+    align-items: center;
+    display: inline-flex;
+    flex-shrink: 0;
+    gap: var(--size-1);
+}
+
 .settle-up {
     display: grid;
     gap: var(--size-4);
