@@ -4,6 +4,7 @@ import {
     use,
     useCallback,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -198,6 +199,7 @@ const ToastProvider = (props: ToastProviderProps) => {
     const { dismissLabel, children } = props;
     const [toast, setToast] = useState<ShownToast | null>(null);
     const [pinned, setPinned] = useState<ShownToast | null>(null);
+    const region = useRef<HTMLDivElement>(null);
     const leaveTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const unpinTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
     const lastId = useRef(0);
@@ -209,6 +211,24 @@ const ToastProvider = (props: ToastProviderProps) => {
         },
         []
     );
+
+    // While a toast is up, the room it takes goes into `--toast-height`, so what is brought into view by the focus stops
+    // above it instead of under it
+    useLayoutEffect(() => {
+        const element = region.current;
+        if (!element || typeof ResizeObserver === 'undefined') return;
+        const root = document.documentElement;
+        const measure = () => {
+            if (element.childElementCount === 0) root.style.removeProperty('--toast-height');
+            else root.style.setProperty('--toast-height', `${element.getBoundingClientRect().height}px`);
+        };
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+        return () => {
+            observer.disconnect();
+            root.style.removeProperty('--toast-height');
+        };
+    }, []);
 
     const show = useCallback((options: ToastOptions) => {
         clearTimeout(leaveTimer.current);
@@ -254,7 +274,7 @@ const ToastProvider = (props: ToastProviderProps) => {
     return (
         <ToastContext value={api}>
             {children}
-            <div className="toast-region" role="status">
+            <div ref={region} className="toast-region" role="status">
                 {pinned && (
                     <ToastBox key={pinned.id} pinned dismissLabel={dismissLabel} toast={pinned} onDismiss={unpin} />
                 )}

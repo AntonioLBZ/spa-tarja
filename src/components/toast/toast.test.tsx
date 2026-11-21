@@ -679,6 +679,50 @@ function pinned() {
     return screen.queryByText('A new version is ready')?.closest('.toast') ?? null;
 }
 
+describe('the room a Toast takes', () => {
+    const observed: Array<() => void> = [];
+
+    class FakeResizeObserver {
+        constructor(callback: () => void) {
+            observed.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+    }
+
+    afterEach(() => {
+        observed.length = 0;
+        vi.unstubAllGlobals();
+        vi.restoreAllMocks();
+        root.style.removeProperty('--toast-height');
+    });
+
+    it('is written into --toast-height while a toast shows, for what scrolls to keep clear of it', () => {
+        vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ height: 92 } as DOMRect);
+        setup();
+        expect(root.style.getPropertyValue('--toast-height')).toBe('');
+
+        show();
+        act(() => observed.forEach((callback) => callback()));
+
+        expect(root.style.getPropertyValue('--toast-height')).toBe('92px');
+    });
+
+    it('is taken away once the toast is gone', () => {
+        vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+        vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ height: 92 } as DOMRect);
+        setup();
+        show();
+        act(() => observed.forEach((callback) => callback()));
+
+        elapse(8_000);
+        act(() => observed.forEach((callback) => callback()));
+
+        expect(root.style.getPropertyValue('--toast-height')).toBe('');
+    });
+});
+
 describe('a pinned Toast', () => {
     it('has no dismiss button: its answers close it', () => {
         setupPin();

@@ -145,9 +145,18 @@ button:disabled {
         );
 }
 
-/* What is brought into view (Tab, scrollIntoView, a fragment) stops under the sticky header, not behind it */
+/* What is brought into view (Tab, scrollIntoView, a fragment) stops under the sticky header, not behind it, and above
+   what is fixed to the bottom: the toast, the room of which is written into --toast-height while one shows, and on a
+   phone the bar (--bottom-nav-height is the height it really has) */
 :root {
-    scroll-padding-top: calc(var(--header-height) + env(safe-area-inset-top));
+    scroll-padding-block: calc(var(--header-height) + env(safe-area-inset-top))
+        calc(var(--toast-height, 0px) + env(safe-area-inset-bottom) + var(--size-2));
+}
+
+:root:has(.bottom-nav) {
+    scroll-padding-bottom: calc(
+        var(--bottom-nav-height) + var(--toast-height, 0px) + env(safe-area-inset-bottom) + var(--size-2)
+    );
 }
 
 /* With a mouse the browser draws a classic scrollbar, which takes room from the page when it shows up and gives it back

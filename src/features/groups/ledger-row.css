@@ -31,7 +31,7 @@
     flex: 1 1 0;
     gap: var(--size-2);
     min-inline-size: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .ledger-row__who::after {

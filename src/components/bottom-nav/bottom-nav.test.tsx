@@ -5,8 +5,8 @@ import {
     createRoute,
     createRouter,
 } from '@tanstack/react-router';
-import { fireEvent, render, screen, within } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { BottomNav, type BottomNavAction, type BottomNavItem } from './bottom-nav';
 
@@ -30,6 +30,49 @@ async function renderNav(items: BottomNavItem[] = ITEMS, path = '/', action?: Bo
 }
 
 describe('BottomNav', () => {
+    describe('its height', () => {
+        const observed: Array<() => void> = [];
+
+        class FakeResizeObserver {
+            constructor(callback: () => void) {
+                observed.push(callback);
+            }
+            observe() {}
+            disconnect() {}
+        }
+
+        afterEach(() => {
+            observed.length = 0;
+            vi.unstubAllGlobals();
+            vi.restoreAllMocks();
+            document.documentElement.style.removeProperty('--bottom-nav-height');
+        });
+
+        it('is the one that the page and the toast keep clear of, as it is drawn', async () => {
+            vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+            const height = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect');
+            height.mockReturnValue({ height: 60 } as DOMRect);
+
+            await renderNav();
+            expect(document.documentElement.style.getPropertyValue('--bottom-nav-height')).toBe('60px');
+
+            height.mockReturnValue({ height: 104 } as DOMRect);
+            act(() => observed.forEach((callback) => callback()));
+
+            expect(document.documentElement.style.getPropertyValue('--bottom-nav-height')).toBe('104px');
+        });
+
+        it('goes back to the least once the bar leaves the page', async () => {
+            vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+            vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ height: 104 } as DOMRect);
+            await renderNav();
+
+            cleanup();
+
+            expect(document.documentElement.style.getPropertyValue('--bottom-nav-height')).toBe('');
+        });
+    });
+
     it('is one navigation named by its label, with a link for each item in order', async () => {
         const nav = await renderNav();
 

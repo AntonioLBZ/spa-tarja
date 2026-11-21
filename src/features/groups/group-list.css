@@ -12,11 +12,12 @@
     display: grid;
     flex: 1;
     gap: var(--size-1);
+    grid-template-columns: minmax(0, 1fr);
     min-width: 0;
 }
 
 .group-row__name {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .group-row__detail {
@@ -26,7 +27,7 @@
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 /* The link takes the row, and the pin sits after it, before the chevron */

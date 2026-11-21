@@ -15,12 +15,13 @@
     display: grid;
     flex: 1;
     gap: var(--size-1);
+    grid-template-columns: minmax(0, 1fr);
     min-width: 0;
     padding-block: var(--size-2);
 }
 
 .person-line__name {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .person-line__detail {
@@ -30,5 +31,5 @@
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
