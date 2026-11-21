@@ -151,6 +151,12 @@ const SettleUp = (props: SettleUpProps) => {
     const { save } = useEntryActions();
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const [busy, setBusy] = useState(false);
+    // Save was pressed with these to fix; each clears as it is corrected (the add form does the same, ADR-0026)
+    const [amountInvalid, setAmountInvalid] = useState(false);
+    const [dateInvalid, setDateInvalid] = useState(false);
+    // Asks the first marked field for the focus once the marks are drawn
+    const [focusAsk, setFocusAsk] = useState(0);
+    const formRef = useRef<HTMLFormElement>(null);
     const toggle = useRef<HTMLButtonElement>(null);
     // The sheet is closing and the button that opened it takes the focus, once the page is not inert any more
     const returnFocus = useRef(false);
@@ -161,6 +167,11 @@ const SettleUp = (props: SettleUpProps) => {
     }, [form.open]);
     const amountInput = useRef<HTMLInputElement>(null);
     const { editing } = form;
+
+    useEffect(() => {
+        if (focusAsk === 0) return;
+        formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    }, [focusAsk]);
 
     const people = group.members.filter((member) => member.leftAt === null);
     if (people.length < 2) return null;
@@ -180,7 +191,6 @@ const SettleUp = (props: SettleUpProps) => {
     // Nothing when it isn't an amount
     const cents = parseAmount(draft.amount, locale) ?? 0;
     const same = from === to;
-    const valid = cents >= 1 && !same && isCalendarDate(draft.date);
 
     // A debt in words, as one of "After this…"
     const afterDebt = (debtor: string, creditor: string, owed: number) => {
@@ -216,9 +226,21 @@ const SettleUp = (props: SettleUpProps) => {
         .map((text) => t('sentence', { text }))
         .join(' ');
 
+    // Every problem is marked at once, each on its own field, and the first takes the focus; a second press while the
+    // settlement is being kept does nothing
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (busy || !valid) return;
+        if (busy) return;
+
+        const amountBad = cents < 1;
+        const dateBad = !isCalendarDate(draft.date);
+        setAmountInvalid(amountBad);
+        setDateInvalid(dateBad);
+        if (amountBad || dateBad || same) {
+            setFailure(null);
+            setFocusAsk((ask) => ask + 1);
+            return;
+        }
 
         setFailure(null);
         setBusy(true);
@@ -257,6 +279,8 @@ const SettleUp = (props: SettleUpProps) => {
     const handleClose = () => {
         if (!form.open) return;
         setFailure(null);
+        setAmountInvalid(false);
+        setDateInvalid(false);
         if (editing) {
             form.stopEditing();
             onEditDone(editing.id);
@@ -289,7 +313,7 @@ const SettleUp = (props: SettleUpProps) => {
                 initialFocus={() => (editing ? null : amountInput.current)}
                 onClose={handleClose}
             >
-                <form className="settle-up" onSubmit={(event) => void handleSubmit(event)}>
+                <form ref={formRef} className="settle-up" noValidate onSubmit={(event) => void handleSubmit(event)}>
                     <Field label={t('from')}>
                         {(control) => (
                             <Select
@@ -310,7 +334,12 @@ const SettleUp = (props: SettleUpProps) => {
                             />
                         )}
                     </Field>
-                    <Field label={t('amount')} placeholder={amountPlaceholder} hint={hint || undefined}>
+                    <Field
+                        label={t('amount')}
+                        placeholder={amountPlaceholder}
+                        hint={hint || undefined}
+                        error={amountInvalid ? t('amountInvalid') : null}
+                    >
                         {(control) => (
                             <input
                                 {...control}
@@ -320,23 +349,29 @@ const SettleUp = (props: SettleUpProps) => {
                                 required
                                 type="text"
                                 value={draft.amount}
-                                onChange={(event) => change({ amount: event.target.value })}
+                                onChange={(event) => {
+                                    change({ amount: event.target.value });
+                                    setAmountInvalid(false);
+                                }}
                             />
                         )}
                     </Field>
-                    <Field label={t('date')}>
+                    <Field label={t('date')} error={dateInvalid ? t('dateInvalid') : null}>
                         {(control) => (
                             <input
                                 {...control}
                                 required
                                 type="date"
                                 value={draft.date}
-                                onChange={(event) => change({ date: event.target.value })}
+                                onChange={(event) => {
+                                    change({ date: event.target.value });
+                                    setDateInvalid(false);
+                                }}
                             />
                         )}
                     </Field>
                     <div className="settle-up__actions">
-                        <Button block variant="primary" disabled={!valid || busy} type="submit">
+                        <Button block variant="primary" type="submit">
                             {t('save')}
                         </Button>
                         {editing && (

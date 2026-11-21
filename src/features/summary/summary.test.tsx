@@ -406,6 +406,13 @@ describe('setting the income', () => {
         expect(screen.getByLabelText(t('summary.form.label', { month: 'October 2026' }))).toBeDefined();
     });
 
+    it('tells assistive technology that the amount is required, with no bubble of the browser', async () => {
+        await open();
+
+        expect(incomeField().required).toBe(true);
+        expect(incomeField().closest('form')!.noValidate).toBe(true);
+    });
+
     it.each(['', 'abc', '0', '-5', '12.345'])('refuses %j and sends nothing', async (amount) => {
         const { api } = await open();
 

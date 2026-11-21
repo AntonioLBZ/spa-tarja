@@ -110,6 +110,16 @@ describe('the sheet of the add form', () => {
         expect(amountIn(dialog).value).toBe('12');
     });
 
+    it('tells assistive technology that the amount is required, with no bubble of the browser', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        const dialog = await openAddSheet();
+
+        expect(amountIn(dialog).required).toBe(true);
+        expect(amountIn(dialog).closest('form')!.noValidate).toBe(true);
+    });
+
     it('closes after an expense is added, and the expense is in the list', async () => {
         stubApi(createFakeApi().handler);
         renderApp();

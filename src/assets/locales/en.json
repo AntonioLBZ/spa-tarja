@@ -470,6 +470,8 @@
             "date": "Date",
             "save": "Save",
             "same": "From and To have to be two different people.",
+            "amountInvalid": "Enter an amount of at least one cent.",
+            "dateInvalid": "Pick the day of the payment.",
             "sentence": "{text}.",
             "after": {
                 "youOwe": "After this, you owe {name} {amount}",

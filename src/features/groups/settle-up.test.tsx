@@ -116,6 +116,14 @@ function save() {
     return screen.getByRole('button', { name: text.save }) as HTMLButtonElement;
 }
 
+function problemOf(field: HTMLElement) {
+    return field
+        .getAttribute('aria-describedby')
+        ?.split(' ')
+        .map((id) => document.getElementById(id))
+        .find((element) => element?.getAttribute('role') === 'alert')?.textContent;
+}
+
 function sentences(...texts: string[]) {
     return texts.map((text) => `${text}.`).join(' ');
 }
@@ -270,17 +278,19 @@ describe('settling up from a line', () => {
         expect(app.groupOutbox.getState().pending).toHaveLength(1);
     });
 
-    it('keeps Save off while the settlement is being kept', async () => {
+    it('ignores a second press of Save while the settlement is being kept, which is never off', async () => {
         const group = trip();
         const { app } = await open(group, debts(group));
         let release: () => void = () => undefined;
         const held = new Promise<void>((resolve) => (release = resolve));
-        vi.spyOn(app.groupOutbox, 'put').mockReturnValueOnce(held);
+        const put = vi.spyOn(app.groupOutbox, 'put').mockReturnValueOnce(held);
 
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
         fireEvent.click(save());
+        fireEvent.click(save());
 
-        expect(save().disabled).toBe(true);
+        expect(save().disabled).toBe(false);
+        expect(put).toHaveBeenCalledTimes(1);
         release();
         await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     });
@@ -479,7 +489,7 @@ describe('the form', () => {
         expect(chosenOption(text.to)).toBe('Bea');
         expect(amount().value).toBe('');
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
-        expect(save().disabled).toBe(true);
+        expect(save().disabled).toBe(false);
     });
 
     it('starts on today', async () => {
@@ -510,15 +520,23 @@ describe('the form', () => {
         expect(hint()).toBe(sentences(t('groups.debts.youOwe', { name: 'Cris', amount: euros(1500) })));
     });
 
-    it('keeps Save off while the day is not a day', async () => {
+    it('marks the day when Save is pressed with a day that is not a day, and saves nothing', async () => {
         const group = trip();
-        await open(group, debts(group));
+        const { app } = await open(group, debts(group));
         fireEvent.click(lineButton(t('groups.debts.youOwe', { name: 'Bea', amount: euros(1500) })));
-        expect(save().disabled).toBe(false);
-
         fireEvent.change(date(), { target: { value: '' } });
 
-        expect(save().disabled).toBe(true);
+        expect(save().disabled).toBe(false);
+        fireEvent.click(save());
+
+        expect(date().getAttribute('aria-invalid')).toBe('true');
+        expect(problemOf(date())).toBe(text.dateInvalid);
+        expect(document.activeElement).toBe(date());
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+
+        fireEvent.change(date(), { target: { value: '2026-10-25' } });
+
+        expect(date().getAttribute('aria-invalid')).not.toBe('true');
     });
 
     it('keeps what was typed while the balances change under it', async () => {
@@ -561,22 +579,86 @@ describe('the form', () => {
         expect(amount().value).toBe('');
     });
 
-    it('keeps Save off until the amount is at least a cent, and while From is To, which it says', async () => {
-        const group = trip();
-        await open(group, debts(group));
-        fireEvent.click(toggle());
-
-        for (const value of ['0', '0,00', 'ten', '-5']) {
+    it.each(['', '0', '0,00', 'ten', '-5'])(
+        'marks the amount %j when Save is pressed, says why, saves nothing and puts the focus on it',
+        async (value) => {
+            const group = trip();
+            const { app } = await open(group, debts(group));
+            fireEvent.click(toggle());
             fireEvent.change(amount(), { target: { value } });
-            expect(save().disabled).toBe(true);
+
+            fireEvent.click(save());
+
+            expect(amount().getAttribute('aria-invalid')).toBe('true');
+            expect(problemOf(amount())).toBe(text.amountInvalid);
+            expect(document.activeElement).toBe(amount());
+            expect(app.groupOutbox.getState().pending).toEqual([]);
+            expect(screen.getByRole('dialog')).toBeDefined();
         }
+    );
+
+    it('clears the mark of the amount once it is corrected, and then saves', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        fireEvent.click(toggle());
+        fireEvent.click(save());
+        expect(amount().getAttribute('aria-invalid')).toBe('true');
+
         fireEvent.change(amount(), { target: { value: '0.01' } });
-        expect(save().disabled).toBe(false);
+
+        expect(amount().getAttribute('aria-invalid')).not.toBe('true');
+        fireEvent.click(save());
+        await waitFor(() => expect(app.groupOutbox.getState().pending).toHaveLength(1));
+    });
+
+    it('marks From being To, which it says as soon as it is so, and puts the focus on To when Save is pressed', async () => {
+        const group = trip();
+        const { app } = await open(group, debts(group));
+        fireEvent.click(toggle());
+        fireEvent.change(amount(), { target: { value: '5' } });
 
         choose(text.to, you);
 
         expect(screen.getByRole('alert').textContent).toBe(text.same);
-        expect(save().disabled).toBe(true);
+        fireEvent.click(save());
+        expect(document.activeElement).toBe(within(settleUp()).getByLabelText(text.to));
+        expect(app.groupOutbox.getState().pending).toEqual([]);
+    });
+
+    it('marks every problem at once and puts the focus on the first', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(toggle());
+        fireEvent.change(date(), { target: { value: '' } });
+
+        fireEvent.click(save());
+
+        expect(amount().getAttribute('aria-invalid')).toBe('true');
+        expect(date().getAttribute('aria-invalid')).toBe('true');
+        expect(document.activeElement).toBe(amount());
+    });
+
+    it('tells assistive technology that the amount and the day are required, with no bubble of the browser', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(toggle());
+
+        expect(amount().required).toBe(true);
+        expect(date().required).toBe(true);
+        expect(amount().closest('form')!.noValidate).toBe(true);
+    });
+
+    it('drops the marks when it is closed, so it opens clean', async () => {
+        const group = trip();
+        await open(group, debts(group));
+        fireEvent.click(toggle());
+        fireEvent.click(save());
+        expect(amount().getAttribute('aria-invalid')).toBe('true');
+
+        closeSheet();
+        fireEvent.click(toggle());
+
+        expect(amount().getAttribute('aria-invalid')).not.toBe('true');
     });
 
     it('says what follows from the amount typed', async () => {
