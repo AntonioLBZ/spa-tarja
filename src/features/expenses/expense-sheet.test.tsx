@@ -140,14 +140,38 @@ describe('the sheet of the add form', () => {
         expect(await screen.findByText(en.expenses.form.added)).toBeDefined();
     });
 
-    it('does not say so on the home screen, where the row shows in the list', async () => {
+    it('shows no toast on the home screen, where the row shows in the list', async () => {
         stubApi(createFakeApi().handler);
         renderApp();
 
         await add('12.50', 'Lunch');
         await screen.findByText('Lunch');
 
-        expect(screen.queryByText(en.expenses.form.added)).toBeNull();
+        expect(document.querySelector('.toast')).toBeNull();
+    });
+
+    it('says so on the home screen through a status that is hidden on screen, for assistive technology', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        await add('12.50', 'Lunch');
+        await screen.findByText('Lunch');
+
+        const status = await screen.findByText(en.expenses.form.added);
+        expect(status.getAttribute('role')).toBe('status');
+        expect(status.classList.contains('visually-hidden')).toBe(true);
+    });
+
+    it('says each expense that is added, also the second in a row', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp();
+
+        await add('12.50', 'Lunch');
+        await screen.findByText(en.expenses.form.added);
+        await add('3', 'Tea');
+        await screen.findByText('Tea');
+
+        expect(await screen.findByText(en.expenses.form.added)).toBeDefined();
     });
 
     it('opens and saves with no connection', async () => {

@@ -2,6 +2,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { useId, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { useAnnounce } from '@/components/announcer/announcer';
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { Icon } from '@/components/icon/icon';
@@ -19,6 +20,7 @@ import './expense-sheet.css';
 const ExpenseSheet = () => {
     const t = useTranslations('expenses.form');
     const toast = useToast();
+    const announce = useAnnounce();
     const away = useRouterState({ select: (state) => state.location.pathname !== '/' });
     const {
         open,
@@ -51,8 +53,6 @@ const ExpenseSheet = () => {
         editingEntry?.entry.id ??
         (copying ? `copy-${copying.serial}` : copyingEntry ? `copy-${copyingEntry.serial}` : `new-${addKey}`);
 
-    // The list shows a new expense on the home screen; anywhere else a toast says it was added. A budget warning that
-    // comes right after replaces the toast.
     const handleDone = () => {
         endEdit({ refocus: true });
         endCopy({ refocus: true });
@@ -76,9 +76,12 @@ const ExpenseSheet = () => {
         </Button>
     );
 
+    // The list shows a new expense on the home screen, so no toast is drawn there and the status says it for assistive
+    // technology; anywhere else a toast says it was added. A budget warning that comes right after replaces the toast.
     const handleAdded = (day: string) => {
         noteAdded(day);
         if (away) toast.show({ icon: 'check', message: t('added') });
+        else announce(t('added'));
         if (!isCopy) endAdd();
     };
 
