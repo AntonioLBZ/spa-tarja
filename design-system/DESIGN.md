@@ -100,6 +100,17 @@ Three settings: light (the default), dark and system, which follows the OS.
 - On Android the status bar of an installed app follows the meta tags, but the navigation bar at the bottom takes the manifest's `theme_color`. That one is the dark value of `--color-bg-secondary` (`#141414`), the owner's choice: the bar stays dark in the dark theme and is not far off in the light one. The toolbar still follows the meta tags. A change to it reaches a phone only after the app is reinstalled or Chrome updates it.
 - The choice lives in `localStorage` (`tarja:theme`). The settings screen (`/settings`, linked from the header) holds it, next to the language. Both are a `ChoiceGroup`: a radio group drawn as boxes, the checked one filled with the accent. The theme lists Light and Dark first and System last, since System follows the device and is not a look of its own.
 
+### Forced colors
+
+In forced colors (Windows high contrast, `@media (forced-colors: active)`) the browser swaps every color that is not a system one for the user's palette and drops every fill, shadow and transparent text. A state that is drawn only with a background would vanish, so each component that draws one says it again with system colors (`Highlight`, `HighlightText`, `ButtonText`, `CanvasText`, `Canvas`; they are not raw colors, which stay out of components), in a block at the end of its own CSS, and no more than needed:
+
+- The left edge of a `Button`, a `Field` and the toggle of a `Disclosure`, which is a `::before` fill, is drawn in the text color; a toggle that is on (`pressed`) is also filled with `Highlight`.
+- The checked option of a `ChoiceGroup` and a checked `Checkbox` are filled with `Highlight` and their text and mark are `HighlightText`; the mark of an unchecked box is hidden with `visibility`, since its transparent color is not kept. The example of an empty labelled field is hidden by `opacity` for the same reason.
+- The `Toast` gets a 1 px border, and the time left is a bar along its foot, draining like the ink.
+- The current tab of the bottom bar is the link whose top edge is drawn (a transparent border would otherwise show on all of them), and the plus is filled with `Highlight`.
+
+Tabs, the `Card` and the notches of the other boxes are borders, which are kept, so they need nothing.
+
 ## 3. Shape
 
 - **No rounded corners.** Never use `border-radius`; there are no radius tokens. This includes buttons, inputs, avatars and focus outlines.

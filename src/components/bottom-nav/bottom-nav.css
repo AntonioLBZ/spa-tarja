@@ -137,3 +137,20 @@
     overflow-wrap: break-word;
     text-align: center;
 }
+
+/* Forced colors turn a transparent border into a visible one and drop the fill of the plus, so the current tab is the
+   one whose top edge is drawn, and the plus is filled with the selection colors */
+@media (forced-colors: active) {
+    .bottom-nav__link {
+        border-top-color: Canvas;
+    }
+
+    .bottom-nav__link--current {
+        border-top-color: CanvasText;
+    }
+
+    .bottom-nav__square {
+        background: Highlight;
+        color: HighlightText;
+    }
+}

@@ -125,3 +125,16 @@ a.button:not(.button--ghost) {
     line-height: 1;
     position: absolute;
 }
+
+/* Forced colors drop every fill, so the L is drawn in the text color and a toggle that is on is filled with the selection
+   colors (see forced colors in the design document) */
+@media (forced-colors: active) {
+    .button:not(.button--ghost)::before {
+        background: ButtonText;
+    }
+
+    .button--pressed:not(:disabled) {
+        background: Highlight;
+        color: HighlightText;
+    }
+}

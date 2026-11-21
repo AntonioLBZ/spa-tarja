@@ -150,3 +150,17 @@
     min-width: 0;
     overflow-wrap: anywhere;
 }
+
+/* Forced colors drop the ink, so the toast is a bordered box and the time left is a bar along its foot that drains the
+   same way */
+@media (forced-colors: active) {
+    .toast {
+        border: var(--size-px) solid CanvasText;
+    }
+
+    .toast::before {
+        background: CanvasText;
+        block-size: var(--size-1);
+        inset: auto 0 0;
+    }
+}
