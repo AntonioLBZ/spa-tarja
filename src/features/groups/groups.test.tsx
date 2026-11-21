@@ -224,6 +224,14 @@ describe('the sections', () => {
         expect(within(friends).queryAllByRole('link')).toEqual([]);
     });
 
+    it('are not landmarks: the heading is enough, so no section is named', async () => {
+        open();
+        await screen.findByText(text.empty);
+
+        expect(screen.queryAllByRole('region')).toEqual([]);
+        expect(section(text.lists.groups).getAttribute('aria-labelledby')).toBeNull();
+    });
+
     it('end the row of each heading with its action, New under Groups and Invite under Friends', async () => {
         open([sampleGroup({ name: 'Lisbon' })]);
         await screen.findByText(text.balance.allSettled);

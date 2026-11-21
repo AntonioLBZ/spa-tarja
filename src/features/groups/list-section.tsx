@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import './list-section.css';
 
@@ -9,15 +9,14 @@ interface ListSectionProps {
     children: ReactNode;
 }
 
-// A list of the Groups screen with its own heading
+// A list of the Groups screen with its own heading; the section has no name, so it is no landmark
 const ListSection = (props: ListSectionProps) => {
     const { title, action, children } = props;
-    const headingId = useId();
 
     return (
-        <section className="list-section" aria-labelledby={headingId}>
+        <section className="list-section">
             <div className="list-section__head">
-                <h2 id={headingId}>{title}</h2>
+                <h2>{title}</h2>
                 {action}
             </div>
             {children}
