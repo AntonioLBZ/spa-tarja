@@ -26,9 +26,30 @@ jobs:
             - run: pnpm test
             - run: pnpm build
 
-    release:
+    version:
         needs: check
         if: github.event_name == 'push'
+        runs-on: ubuntu-latest
+        outputs:
+            new: ${{ steps.release.outputs.new }}
+        steps:
+            - uses: actions/checkout@v7
+            - id: release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  version="v$(node -p "require('./package.json').version")"
+                  if gh release view "$version" > /dev/null 2>&1; then
+                      echo "$version is already released, nothing to deploy"
+                      echo "new=false" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "$version is new"
+                      echo "new=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    release:
+        needs: version
+        if: github.event_name == 'push' && needs.version.outputs.new == 'true'
         runs-on: ubuntu-latest
         concurrency:
             group: release
@@ -51,8 +72,8 @@ jobs:
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     tag:
-        needs: release
-        if: github.event_name == 'push'
+        needs: [version, release]
+        if: github.event_name == 'push' && needs.version.outputs.new == 'true'
         runs-on: ubuntu-latest
         permissions:
             contents: write

@@ -157,14 +157,32 @@ describe('the version', () => {
     });
 });
 
+describe('the version job', () => {
+    it('runs on a push, after the checks, and asks whether the version is released', () => {
+        const version = job(workflow('ci.yml'), 'version');
+
+        expect(version).toContain('needs: check');
+        expect(version).toContain("if: github.event_name == 'push'");
+        expect(version).toContain('gh release view');
+        expect(version).toContain('new: ${{ steps.release.outputs.new }}');
+    });
+
+    it('holds no secret and writes nothing', () => {
+        const version = job(workflow('ci.yml'), 'version');
+
+        expect(version).not.toContain('secrets.');
+        expect(version).not.toContain('contents: write');
+    });
+});
+
 describe('the release job', () => {
-    it('is started by a push to main only, after the checks', () => {
+    it('is started by a push to main only, after the checks, and only for a new version', () => {
         const text = workflow('ci.yml');
         const release = job(text, 'release');
 
         expect(text).toMatch(/\non:\n {4}push:\n {8}branches: \[main\]\n {4}pull_request:\n {8}branches: \[main\]\n/);
-        expect(release).toContain('needs: check');
-        expect(release).toContain("if: github.event_name == 'push'");
+        expect(release).toContain('needs: version');
+        expect(release).toContain("if: github.event_name == 'push' && needs.version.outputs.new == 'true'");
     });
 
     it('applies the migrations before it deploys', () => {
@@ -202,8 +220,8 @@ describe('the tag job', () => {
         const text = workflow('ci.yml');
         const tag = job(text, 'tag');
 
-        expect(tag).toContain('needs: release');
-        expect(tag).toContain("if: github.event_name == 'push'");
+        expect(tag).toContain('needs: [version, release]');
+        expect(tag).toContain("if: github.event_name == 'push' && needs.version.outputs.new == 'true'");
         expect(tag).toContain('permissions:\n            contents: write\n');
         expect(tag).not.toContain('secrets.');
         expect(text.match(/contents: write/g)).toHaveLength(1);
