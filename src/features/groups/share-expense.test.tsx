@@ -872,9 +872,10 @@ describe('the category of a shared expense', () => {
     it('is one of the default ones only', async () => {
         await openHome([trip()], { categories: [kids] });
 
-        expect(optionNames(form.category)).toEqual([...Object.values(en.categories), 'Kids']);
+        const { other, ...rest } = en.categories;
+        expect(optionNames(form.category)).toEqual([other, ...Object.values(rest), 'Kids']);
         fireEvent.click(forChoice(form.forShared));
-        expect(optionNames(form.category)).toEqual(Object.values(en.categories));
+        expect(optionNames(form.category)).toEqual([other, ...Object.values(rest)]);
     });
 
     it('takes the place of a custom one with the suggestion, says why, and gives it back to Just me', async () => {

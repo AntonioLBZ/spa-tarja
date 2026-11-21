@@ -47,6 +47,21 @@ describe('CategorySelect', () => {
         expect(rows[0]?.querySelector('.select__space')).not.toBeNull();
     });
 
+    it('lists the fallback first, after the options with no style, and the rest in the order given', () => {
+        renderSelect({
+            value: 'other',
+            options: [
+                { id: '', label: 'All categories' },
+                { id: 'food', label: 'Food', style: { color: 'vermillion', icon: 'restaurant' } },
+                { id: 'other', label: 'Other', style: { color: 'gray', icon: 'more_horiz' } },
+                { id: 'gym', label: 'Gym', style: { color: 'blue', icon: 'fitness_center' } },
+            ],
+        });
+
+        const rows = within(field()).getAllByRole('option');
+        expect(rows.map((row) => row.textContent)).toEqual(['All categories', 'Other', 'Food', 'Gym']);
+    });
+
     it('answers with the id of the category that was picked', () => {
         const onChange = vi.fn();
         renderSelect({ onChange });
