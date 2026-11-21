@@ -470,6 +470,8 @@
             "date": "Fecha",
             "save": "Guardar",
             "same": "Quien paga y quien recibe tienen que ser dos personas distintas.",
+            "amountInvalid": "Pon un importe de al menos un céntimo.",
+            "dateInvalid": "Elige el día del pago.",
             "sentence": "{text}.",
             "after": {
                 "youOwe": "Con esto, debes {amount} a {name}",
@@ -648,6 +650,8 @@
             "byName": "Añadir a «{name}» por su nombre",
             "byNameHint": "No necesita la app.",
             "empty": "Escribe el nombre de alguien para añadirlo.",
+            "found": "{count, plural, one {# persona encontrada} other {# personas encontradas}}",
+            "nobody": "No se ha encontrado a nadie",
             "added": "Se ha añadido a {name}.",
             "close": "Cerrar"
         },
@@ -831,6 +835,7 @@
         "readoutCategory": "{label}, {category}: {amount}",
         "readoutHint": "Toca una columna, o usa las flechas, para ver su importe.",
         "chartSpan": "{granularity, select, day {{count, plural, one {# día} other {# días}}} week {{count, plural, one {# semana} other {# semanas}}} other {{count, plural, one {# mes} other {# meses}}}}",
+        "chartRole": "gráfico",
         "chartSummary": "Gasto en {span}: {total} en total. Máximo: {biggest} ({label}).",
         "chartSummaryEmpty": "Gasto en {span}: sin gastos.",
         "vsPrevious": "{change} frente a {period}",

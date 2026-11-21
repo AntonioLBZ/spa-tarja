@@ -80,7 +80,7 @@ const IncomeForm = (props: IncomeFormProps) => {
     };
 
     return (
-        <form className="income-form" onSubmit={(event) => void handleSubmit(event)}>
+        <form className="income-form" noValidate onSubmit={(event) => void handleSubmit(event)}>
             <Field
                 label={t('label', { month: monthName })}
                 placeholder={amountPlaceholder}
@@ -104,6 +104,7 @@ const IncomeForm = (props: IncomeFormProps) => {
                         autoComplete="off"
                         disabled={!online}
                         inputMode="decimal"
+                        required
                         type="text"
                         value={value}
                         onChange={(event) => {

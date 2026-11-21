@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
 import { CategoryBadge } from '@/features/categories/category-badge';
@@ -13,6 +14,7 @@ import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
+import { focusHeading } from '@/lib/screen-arrival';
 import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { isSharedRow } from '@core/shared-expense';
@@ -64,10 +66,14 @@ const ExpenseList = (props: ExpenseListProps) => {
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     // The toggle of each row by the id of its expense, and the title, where the focus goes back after an edit
     const toggles = useRef(new Map<string, HTMLElement>());
-    const title = useRef<HTMLHeadingElement>(null);
+    const focusRow = (id: string | null | undefined) => {
+        const toggle = id ? toggles.current.get(id) : undefined;
+        if (toggle) toggle.focus();
+        else focusHeading();
+    };
     useEffect(() => {
         if (refocus === null) return;
-        (toggles.current.get(refocus) ?? title.current)?.focus();
+        focusRow(refocus);
         clearRefocus();
     }, [refocus, clearRefocus]);
     // The expense that Undo brought back, whose row takes the focus once it is there
@@ -83,7 +89,7 @@ const ExpenseList = (props: ExpenseListProps) => {
     const moreFocus = useRef<string | null>(null);
     useEffect(() => {
         if (moreFocus.current === null) return;
-        (toggles.current.get(moreFocus.current) ?? title.current)?.focus();
+        focusRow(moreFocus.current);
         moreFocus.current = null;
     });
 
@@ -114,7 +120,7 @@ const ExpenseList = (props: ExpenseListProps) => {
         if (editing && expenses.some((expense) => expense.id === editing[0]!.id)) endEdit();
         list.fadeOut(expenses);
         setRestored(null);
-        ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
+        focusRow(neighbour);
         toast.show({
             icon: 'check',
             message: t('deleted', { name: expenses[0]!.text || labelOf(expenses[0]!.categoryId) }),
@@ -142,7 +148,7 @@ const ExpenseList = (props: ExpenseListProps) => {
             if (editingEntry?.entry.id === row.id) endEdit();
             list.fadeOut([row]);
             setRestored(null);
-            ((neighbour && toggles.current.get(neighbour)) || title.current)?.focus();
+            focusRow(neighbour);
             toast.show({
                 icon: 'check',
                 message: tLedger('deleted', {
@@ -190,9 +196,7 @@ const ExpenseList = (props: ExpenseListProps) => {
 
     return (
         <section className="expense-list">
-            <h2 className={titleClsx} ref={title} tabIndex={-1}>
-                {t('title')}
-            </h2>
+            <ScreenTitle className={titleClsx}>{t('title')}</ScreenTitle>
 
             {failure && (
                 <Notice tone="danger" role="alert">

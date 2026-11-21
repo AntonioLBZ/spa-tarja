@@ -5,7 +5,9 @@ import { useTranslations } from 'use-intl';
 import { ButtonLink } from '@/components/button/button-link';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Icon } from '@/components/icon/icon';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
 import { useAmount } from '@/lib/amounts';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
@@ -53,14 +55,12 @@ const Groups = () => {
 
     return (
         <section className="groups">
-            <h1>{t('title')}</h1>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <ScreenTitle>{t('title')}</ScreenTitle>
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
             <EntryRefusals />
-            {!hasData && (isError || isWaitingForNetwork) && (
-                <Notice role="status" tone="danger">
-                    {t('group.loadFailed')}
-                </Notice>
-            )}
+            <LiveNotice tone="danger">
+                {!hasData && (isError || isWaitingForNetwork) && t('group.loadFailed')}
+            </LiveNotice>
             {hasData &&
                 (open.length > 0 ? (
                     <GroupTotals ledgers={open} />
@@ -117,11 +117,7 @@ const GroupTotals = (props: GroupTotalsProps) => {
 
     const missing = ledgers.filter((ledger) => !ledger.hasData);
     if (missing.some((ledger) => ledger.isError || ledger.isWaitingForNetwork)) {
-        return (
-            <Notice role="status" tone="danger">
-                {t('totalsWait')}
-            </Notice>
-        );
+        return <Notice tone="danger">{t('totalsWait')}</Notice>;
     }
     if (missing.length > 0) return null;
 
@@ -129,12 +125,12 @@ const GroupTotals = (props: GroupTotalsProps) => {
     const owed = balances.filter((cents) => cents > 0).reduce((sum, cents) => sum + cents, 0);
     const owe = balances.filter((cents) => cents < 0).reduce((sum, cents) => sum - cents, 0);
 
-    if (owed === 0 && owe === 0) return <Notice role="status">{t('balance.allSettled')}</Notice>;
+    if (owed === 0 && owe === 0) return <Notice>{t('balance.allSettled')}</Notice>;
 
     return (
         <div className="groups__totals">
             {owed > 0 && (
-                <Notice role="status">
+                <Notice>
                     <SentenceWithAmount
                         sentence={(text) => t('balance.owed', { amount: text })}
                         amount={{ ...amount(owed, undefined, { cues: true }), sign: false }}
@@ -142,7 +138,7 @@ const GroupTotals = (props: GroupTotalsProps) => {
                 </Notice>
             )}
             {owe > 0 && (
-                <Notice role="status">
+                <Notice>
                     <SentenceWithAmount
                         sentence={(text) => t('balance.owe', { amount: text })}
                         amount={{ ...amount(-owe, undefined, { cues: true }), sign: false }}

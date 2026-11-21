@@ -22,40 +22,44 @@
    never moves its icon, its amount or the chevron down */
 .expense-item__body {
     align-items: start;
-    display: grid;
+    display: flex;
     flex: 1;
+    flex-wrap: wrap;
     gap: var(--size-1) var(--size-3);
-    grid-template-columns: minmax(0, 1fr) auto;
     min-width: 0;
     padding-block: var(--size-2);
 }
 
+/* Takes what the amount leaves, and no less than a few words: where the text is larger and that is not left, the amount
+   goes to the line under it, at the end, so a name breaks between words and not between letters */
 .expense-item__name {
     align-items: flex-start;
     display: flex;
+    flex: 1 1 6rem;
     gap: var(--size-2);
-    grid-area: 1 / 1;
     min-width: 0;
 }
 
+/* Between words first; inside a word only when the word alone is longer than the line */
 .expense-item__text {
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .expense-item__amount {
+    flex: none;
     font-variant-numeric: tabular-nums;
-    grid-area: 1 / 2;
+    margin-inline-start: auto;
     white-space: nowrap;
 }
 
 .expense-item__meta {
     color: var(--color-content-secondary);
     display: flex;
+    flex: 1 1 100%;
     flex-wrap: wrap;
     font-size: var(--font-size-s);
     gap: 0 var(--size-3);
-    grid-area: 2 / 1 / auto / -1;
     min-width: 0;
 }
 

@@ -7,7 +7,8 @@ import { Actions } from '@/components/actions/actions';
 import { Amount } from '@/components/amount/amount';
 import { CardList, CardTerm } from '@/components/card/card';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
-import { Notice } from '@/components/notice/notice';
+import { LiveNotice } from '@/components/notice/live-notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { BudgetBars } from '@/features/budgets/budget-bars';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { useAmount, useMoney } from '@/lib/amounts';
@@ -42,7 +43,7 @@ const Summary = () => {
 
     return (
         <section className="summary">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
 
             <MonthSwitch
                 monthName={monthName}
@@ -69,7 +70,7 @@ const Summary = () => {
                     {t('loadFailed')}
                 </p>
             )}
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
 
             <BudgetBars month={month} />
 

@@ -145,3 +145,10 @@
         opacity var(--duration-base) var(--ease-exit),
         transform var(--duration-base) var(--ease-exit);
 }
+
+/* Forced colors drop every fill, so the left edge is drawn in the text color */
+@media (forced-colors: active) {
+    .disclosure__toggle::before {
+        background: ButtonText;
+    }
+}

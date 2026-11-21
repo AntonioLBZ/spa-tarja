@@ -470,6 +470,8 @@
             "date": "Date",
             "save": "Save",
             "same": "From and To have to be two different people.",
+            "amountInvalid": "Enter an amount of at least one cent.",
+            "dateInvalid": "Pick the day of the payment.",
             "sentence": "{text}.",
             "after": {
                 "youOwe": "After this, you owe {name} {amount}",
@@ -648,6 +650,8 @@
             "byName": "Add “{name}” by name",
             "byNameHint": "They don't need the app.",
             "empty": "Type the name of somebody to add.",
+            "found": "{count, plural, one {# person found} other {# people found}}",
+            "nobody": "Nobody found",
             "added": "{name} added.",
             "close": "Close"
         },
@@ -831,6 +835,7 @@
         "readoutCategory": "{label}, {category}: {amount}",
         "readoutHint": "Tap a column, or use the arrow keys, to read its amount.",
         "chartSpan": "{granularity, select, day {{count, plural, one {# day} other {# days}}} week {{count, plural, one {# week} other {# weeks}}} other {{count, plural, one {# month} other {# months}}}}",
+        "chartRole": "chart",
         "chartSummary": "Spending over {span}: {total} in total. Highest: {biggest} ({label}).",
         "chartSummaryEmpty": "Spending over {span}: nothing spent.",
         "vsPrevious": "{change} vs. {period}",

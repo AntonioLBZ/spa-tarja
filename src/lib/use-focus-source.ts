@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
 type FocusSource = 'keyboard' | 'pointer';
 
@@ -28,4 +28,17 @@ const useFocusSource = () => {
     }, []);
 };
 
-export { useFocusSource };
+const subscribe = (onChange: () => void) => {
+    const observer = new MutationObserver(onChange);
+    observer.observe(document.documentElement, { attributeFilter: ['data-focus-source'], attributes: true });
+    return () => observer.disconnect();
+};
+
+const getSnapshot = () => document.documentElement.dataset.focusSource === 'keyboard';
+
+// Whether the last move of the focus came from the keyboard, as it changes
+const useKeyboardFocus = () => {
+    return useSyncExternalStore(subscribe, getSnapshot, () => false);
+};
+
+export { useFocusSource, useKeyboardFocus };

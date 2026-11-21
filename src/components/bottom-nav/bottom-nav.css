@@ -1,4 +1,5 @@
-/* Fixed to the bottom of a phone. The page pads itself by `--bottom-nav-height` and the safe area to keep clear. */
+/* Fixed to the bottom of a phone. The page pads itself by `--bottom-nav-height`, which the bar keeps at the height it
+   really has, and the safe area to keep clear. */
 .bottom-nav {
     background: var(--color-bg-secondary);
     border-top: var(--size-px) solid var(--color-border);
@@ -63,33 +64,42 @@
     padding: 0;
 }
 
+/* A column, as tall as the bar is at least and as the tallest word needs: where the text is larger a word wraps inside
+   its column and the bar grows, so no word runs into the next one or is cut by the edge. Icons start at the same height
+   whatever the other words do. */
+.bottom-nav__item {
+    display: flex;
+}
+
 .bottom-nav__link {
     align-items: center;
-    block-size: var(--bottom-nav-height);
     border-top: var(--size-1) solid transparent;
     color: inherit;
     display: flex;
+    flex: 1;
     flex-direction: column;
     font-size: var(--font-size-s);
     gap: var(--size-1);
-    justify-content: center;
+    min-block-size: var(--bottom-nav-min-height);
+    min-inline-size: 0;
+    padding-block: var(--size-1);
     text-decoration: none;
 }
 
 /* The action is a column like the links, so all of it is the button */
 .bottom-nav__button {
     align-items: center;
-    block-size: var(--bottom-nav-height);
     border-width: 0;
     color: inherit;
     display: flex;
+    flex: 1;
     flex-direction: column;
     font-size: var(--font-size-s);
     font-weight: 700;
     gap: var(--size-1);
-    inline-size: 100%;
-    justify-content: center;
-    padding: 0;
+    min-block-size: var(--bottom-nav-min-height);
+    min-inline-size: 0;
+    padding: 0.125rem 0;
     text-align: center;
 }
 
@@ -121,6 +131,26 @@
     border-top-color: var(--color-border);
 }
 
+/* Between words first; inside a word only when the word alone is wider than its column */
 .bottom-nav__word {
-    white-space: nowrap;
+    max-inline-size: 100%;
+    overflow-wrap: break-word;
+    text-align: center;
+}
+
+/* Forced colors turn a transparent border into a visible one and drop the fill of the plus, so the current tab is the
+   one whose top edge is drawn, and the plus is filled with the selection colors */
+@media (forced-colors: active) {
+    .bottom-nav__link {
+        border-top-color: Canvas;
+    }
+
+    .bottom-nav__link--current {
+        border-top-color: CanvasText;
+    }
+
+    .bottom-nav__square {
+        background: Highlight;
+        color: HighlightText;
+    }
 }

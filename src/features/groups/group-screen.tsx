@@ -2,7 +2,9 @@ import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
 import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
 import { PushSuggestion } from '@/features/notifications/push-suggestion';
@@ -63,10 +65,10 @@ const GroupView = (props: GroupViewProps) => {
         <section className="group-screen">
             {/* Under a tab the tabs are the title, so the link goes to the foot instead of a row of its own */}
             {inTab ? (
-                <h2 className={titleClsx}>{words.title}</h2>
+                <ScreenTitle className={titleClsx}>{words.title}</ScreenTitle>
             ) : (
                 <div className="group-screen__head">
-                    <h1 className={titleClsx}>{words.title}</h1>
+                    <ScreenTitle className={titleClsx}>{words.title}</ScreenTitle>
                     {editLink}
                 </div>
             )}
@@ -99,11 +101,9 @@ const GroupView = (props: GroupViewProps) => {
                     />
                 </>
             )}
-            {!hasData && (isError || isWaitingForNetwork) && (
-                <Notice role="status" tone="danger">
-                    {t('group.entriesFailed')}
-                </Notice>
-            )}
+            <LiveNotice tone="danger">
+                {!hasData && (isError || isWaitingForNetwork) && t('group.entriesFailed')}
+            </LiveNotice>
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
             {hasData && (
                 <GroupLedger

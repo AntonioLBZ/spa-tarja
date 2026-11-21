@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { AmountSettings } from '@/features/amounts/amount-settings';
 import { THEMES, useTheme } from '@/lib/theme';
 
@@ -14,7 +15,7 @@ const Appearance = () => {
 
     return (
         <section className="settings">
-            <h1>{t('appearance.title')}</h1>
+            <ScreenTitle>{t('appearance.title')}</ScreenTitle>
             <ChoiceGroup
                 legend={t('theme.title')}
                 name="theme"

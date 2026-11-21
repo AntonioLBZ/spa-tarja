@@ -11,7 +11,8 @@ interface MonthSwitchProps {
     onNext: () => void;
 }
 
-// The name of a month between the buttons that go to the one before and the one after
+// The name of a month between the buttons that go to the one before and the one after. The name is a polite status, so
+// the new month is read after a press.
 const MonthSwitch = (props: MonthSwitchProps) => {
     const { monthName, labels, onPrevious, onNext } = props;
 
@@ -20,7 +21,9 @@ const MonthSwitch = (props: MonthSwitchProps) => {
             <Button glyph aria-label={labels.previous} onClick={onPrevious}>
                 ←
             </Button>
-            <span className="month-switch__name">{monthName}</span>
+            <span className="month-switch__name" role="status">
+                {monthName}
+            </span>
             <Button glyph aria-label={labels.next} onClick={onNext}>
                 →
             </Button>

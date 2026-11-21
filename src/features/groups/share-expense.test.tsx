@@ -65,8 +65,16 @@ async function openGroup(group: SharedGroup) {
     return { api, app };
 }
 
+function spokenLeft() {
+    return within(theForm()).getByRole('status').textContent;
+}
+
 function balance() {
-    return spokenText(within(screen.getByRole('main')).getByRole('status'));
+    return spokenText(
+        within(screen.getByRole('main'))
+            .getAllByRole('status')
+            .find((region) => region.textContent !== '')
+    );
 }
 
 function splitToggle() {
@@ -654,9 +662,9 @@ describe('splitting by percent', () => {
         pickMode('percent');
 
         fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '30.83' } });
-        expect(within(theForm()).getByRole('status').textContent).toBe(
-            t('groups.share.percentLeft', { percent: percent(250) })
-        );
+        await waitFor(() => expect(spokenLeft()).toBe(t('groups.share.percentLeft', { percent: percent(250) })), {
+            timeout: 2_000,
+        });
         await addIsRefused();
 
         fireEvent.change(shareField('Cris', 'percentOf'), { target: { value: '40' } });
@@ -750,9 +758,9 @@ describe('splitting by amount', () => {
         pickMode('exact');
 
         fireEvent.change(shareField('Cris', 'amountOf'), { target: { value: '1' } });
-        expect(within(theForm()).getByRole('status').textContent).toBe(
-            t('groups.share.unassigned', { amount: euros(233) })
-        );
+        await waitFor(() => expect(spokenLeft()).toBe(t('groups.share.unassigned', { amount: euros(233) })), {
+            timeout: 2_000,
+        });
         await addIsRefused();
         expect(within(theForm()).getByRole('alert').textContent).toBe(
             t('groups.share.unassigned', { amount: euros(233) })

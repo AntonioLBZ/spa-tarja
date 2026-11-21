@@ -28,6 +28,24 @@ describe('MonthSwitch', () => {
         expect(name.compareDocumentPosition(next)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 
+    it('keeps the name in a polite status that stays in the page, so a month that comes is read', () => {
+        const { rerender } = renderSwitch();
+        const status = screen.getByRole('status');
+        expect(status.textContent).toBe('october 2026');
+
+        rerender(
+            <MonthSwitch
+                monthName="november 2026"
+                labels={labels}
+                onPrevious={() => undefined}
+                onNext={() => undefined}
+            />
+        );
+
+        expect(screen.getByRole('status')).toBe(status);
+        expect(status.textContent).toBe('november 2026');
+    });
+
     it('asks for the previous and the next month when each button is pressed', () => {
         const onPrevious = vi.fn();
         const onNext = vi.fn();

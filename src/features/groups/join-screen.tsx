@@ -6,7 +6,9 @@ import { useTranslations } from 'use-intl';
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { ButtonLink } from '@/components/button/button-link';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { Sheet } from '@/components/sheet/sheet';
 import { ApiError, invitationQuery } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
@@ -89,12 +91,9 @@ const JoinScreen = (props: JoinScreenProps) => {
     const content = () => {
         if (end) {
             return (
-                <>
-                    <Notice role="status">{t(`join.${end}`)}</Notice>
-                    <ButtonLink block to="/groups">
-                        {t('group.back')}
-                    </ButtonLink>
-                </>
+                <ButtonLink block to="/groups">
+                    {t('group.back')}
+                </ButtonLink>
             );
         }
         if (link.data) {
@@ -133,13 +132,14 @@ const JoinScreen = (props: JoinScreenProps) => {
                 </>
             );
         }
-        return online && <p role="status">{t('join.loading')}</p>;
+        return online && <p>{t('join.loading')}</p>;
     };
 
     return (
         <section className="join">
-            <h1 className="join__title">{t('join.title')}</h1>
-            {!online && !end && <Notice role="status">{t('join.offline')}</Notice>}
+            <ScreenTitle className="join__title">{t('join.title')}</ScreenTitle>
+            <LiveNotice>{!online && !end && t('join.offline')}</LiveNotice>
+            <LiveNotice>{end && t(`join.${end}`)}</LiveNotice>
             {content()}
         </section>
     );

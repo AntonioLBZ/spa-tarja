@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { pendingInvitationsQuery } from '@/lib/api';
@@ -108,7 +109,7 @@ const InviteFriend = (props: InviteFriendProps) => {
                     ))}
                 </Sheet>
             )}
-            {links.isError && <Notice role="status">{t('links.loadFailed')}</Notice>}
+            <LiveNotice>{links.isError && t('links.loadFailed')}</LiveNotice>
             {children}
         </ListSection>
     );

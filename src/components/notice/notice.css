@@ -16,3 +16,9 @@
     border-left-color: var(--color-border-subtle);
     color: var(--color-content-secondary);
 }
+
+/* The region of a notice that comes and goes: out of the flow while it is empty, so it leaves no gap in a grid or a
+   column, yet stays in the page for assistive technology to watch */
+.live-notice:empty {
+    position: absolute;
+}

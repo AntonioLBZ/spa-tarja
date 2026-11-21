@@ -14,6 +14,7 @@ import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { groupsFirst, useGroupOptions } from '@/features/groups/use-group-options';
 import { useGroups } from '@/features/groups/use-ledgers';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
 
 import type { ListFilters, ListGrouping } from '@core/expense-list';
@@ -61,6 +62,9 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const clearFilters = () => onFiltersChange({ categoryId: '', from: '', to: '', paidWith: 'any', sharedWith: '' });
 
     const status = shown === 0 ? tList('noMatch') : t('showing', { shown, total });
+    // The count changes with every key of the search: it shows at once and is read out once the typing pauses
+    const settled = useDebouncedValue(filtering ? status : '');
+    const spoken = filtering ? settled : '';
     const statusClsx = clsx('expense-list-controls__status', { 'expense-list-controls__status--idle': !filtering });
     const sheetStatusClsx = clsx({ 'expense-list-controls__status--idle': !filtering });
 
@@ -162,13 +166,21 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         />
                     )}
                 </Field>
-                <div className={sheetStatusClsx} role="status">
-                    {filtering && <Notice tone="quiet">{status}</Notice>}
+                <div className={sheetStatusClsx}>
+                    <div className="visually-hidden" role="status">
+                        {spoken}
+                    </div>
+                    <div aria-hidden="true">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
                 </div>
             </Dialog>
 
             <div className={statusClsx}>
-                <div role="status">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
+                <div>
+                    <div className="visually-hidden" role="status">
+                        {spoken}
+                    </div>
+                    <div aria-hidden="true">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
+                </div>
                 {filtering && (
                     <Button ghost onClick={clear}>
                         {t('clear')}

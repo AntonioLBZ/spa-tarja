@@ -95,3 +95,19 @@
     outline: var(--focus-width) solid var(--color-border-focus);
     outline-offset: var(--focus-offset);
 }
+
+/* Forced colors drop every fill, so the checked option is filled with the selection colors, ring and swatch included */
+@media (forced-colors: active) {
+    .choice-group__input:checked + .choice-group__text {
+        background: Highlight;
+        color: HighlightText;
+    }
+
+    .choice-group__input:checked:focus-visible + .choice-group__text {
+        outline-color: HighlightText;
+    }
+
+    .choice-group--swatch .choice-group__input:checked + .choice-group__text * {
+        color: HighlightText;
+    }
+}

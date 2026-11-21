@@ -6,6 +6,7 @@ import { useTranslations } from 'use-intl';
 import { Card } from '@/components/card/card';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Icon } from '@/components/icon/icon';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { About } from '@/features/about/about';
 import { NotificationsSection } from '@/features/notifications/notifications-section';
 import { profileQuery } from '@/lib/api';
@@ -66,7 +67,7 @@ const Settings = () => {
 
     return (
         <section className="settings">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
             <ChoiceGroup
                 legend={t('language.title')}
                 name="locale"
@@ -74,7 +75,7 @@ const Settings = () => {
                 value={locale}
                 onChange={setLocale}
             />
-            <ul className="settings__cards">
+            <ul className="settings__cards" role="list">
                 <SettingsCard to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
                 <SettingsCard to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />
                 <AccountCard />

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslations } from 'use-intl';
 
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { Account } from '@/features/auth/account';
 import { YourData } from '@/features/export/your-data';
 import { Profile } from '@/features/profile/profile';
@@ -13,7 +14,7 @@ const AccountPage = () => {
 
     return (
         <section className="settings">
-            <h1>{t('account.title')}</h1>
+            <ScreenTitle>{t('account.title')}</ScreenTitle>
             <Profile />
             <YourData />
             <Account />

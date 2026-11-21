@@ -181,3 +181,16 @@
 .field__row > :first-child {
     flex: 1 1 8rem;
 }
+
+/* Forced colors drop every fill, so the left edge is drawn in the text color, and the example that a transparent color
+   hides at rest is hidden by its opacity, which they leave alone */
+@media (forced-colors: active) {
+    .field__box::before,
+    .field__box:has([aria-invalid='true'])::before {
+        background: CanvasText;
+    }
+
+    .field__box--labelled:not(:focus-within) :is(input)::placeholder {
+        opacity: 0;
+    }
+}

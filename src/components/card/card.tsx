@@ -53,13 +53,14 @@ const CardTerm = (props: CardTermProps) => {
     );
 };
 
-// Cards stacked one under another, `--size-2` apart
+// Cards stacked one under another, `--size-2` apart. A list drawn with no marker loses its semantics in Safari, so it
+// says it is a list
 const CardList = (props: CardListProps) => {
     const { as: Tag = 'ul', flush, label, className, children } = props;
     const cardListClsx = clsx('card-list', { 'card-list--flush': flush }, className);
 
     return (
-        <Tag aria-label={label} className={cardListClsx}>
+        <Tag aria-label={label} className={cardListClsx} role={Tag === 'dl' ? undefined : 'list'}>
             {children}
         </Tag>
     );

@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Brand } from '@/components/brand/brand';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
 import { isPrerelease } from '@/lib/prerelease';
 import { forgetPushInBrowser } from '@/lib/push';
@@ -58,7 +59,7 @@ const SignInScreen = (props: SignInScreenProps) => {
     return (
         <main className="sign-in">
             <Brand size="hero" prerelease={isPrerelease()} />
-            <h1 className="sign-in__title">{t('title')}</h1>
+            <ScreenTitle className="sign-in__title">{t('title')}</ScreenTitle>
             <p className="sign-in__description">{t('description')}</p>
             {deleted?.cleared === true && <Notice role="alert">{t('deleted')}</Notice>}
             {deleted?.cleared === false && (

@@ -5,6 +5,7 @@ import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
@@ -68,7 +69,7 @@ const Profile = () => {
             <p className="hint" id={hintId}>
                 {t('hint', { name: personName({ nickname: null, name: profile?.name ?? user.name }) })}
             </p>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
             <form className="profile__form" onSubmit={handleSubmit}>
                 <Field
                     label={t('label')}

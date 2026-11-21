@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Field } from '@/components/field/field';
+import { SpokenHint } from '@/components/field/spoken-hint';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
@@ -232,11 +233,9 @@ const PersonalTail = (props: PersonalTailProps) => {
                     {t('remaining', { amount: money(balance) })}
                 </Notice>
             )}
-            {partsProblem === 'remaining' && !tried && (
-                <p className="field__hint" role="status">
-                    {t('remaining', { amount: money(balance) })}
-                </p>
-            )}
+            <SpokenHint>
+                {partsProblem === 'remaining' && !tried && t('remaining', { amount: money(balance) })}
+            </SpokenHint>
         </>
     );
 };

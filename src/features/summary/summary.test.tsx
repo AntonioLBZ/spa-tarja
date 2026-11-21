@@ -406,6 +406,13 @@ describe('setting the income', () => {
         expect(screen.getByLabelText(t('summary.form.label', { month: 'October 2026' }))).toBeDefined();
     });
 
+    it('tells assistive technology that the amount is required, with no bubble of the browser', async () => {
+        await open();
+
+        expect(incomeField().required).toBe(true);
+        expect(incomeField().closest('form')!.noValidate).toBe(true);
+    });
+
     it.each(['', 'abc', '0', '-5', '12.345'])('refuses %j and sends nothing', async (amount) => {
         const { api } = await open();
 
@@ -619,6 +626,22 @@ describe('without a connection', () => {
         expect(await screen.findByText(text.offline)).toBeDefined();
         expect((screen.getByRole('button', { name: text.form.save }) as HTMLButtonElement).disabled).toBe(true);
         expect((screen.getByRole('button', { name: text.form.remove }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('says so in a status that was already in the page, so it is announced as it comes', async () => {
+        await open();
+        const region = document.querySelector('.live-notice')!;
+        expect(region.getAttribute('role')).toBe('status');
+        expect(region.textContent).toBe('');
+
+        onlineManager.setOnline(false);
+
+        await waitFor(() => expect(region.textContent).toBe(text.offline));
+        expect(document.querySelector('.live-notice')).toBe(region);
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(region.textContent).toBe(''));
     });
 
     it('turns the income field off too, with its value still in it', async () => {

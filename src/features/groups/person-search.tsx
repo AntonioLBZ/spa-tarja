@@ -6,6 +6,7 @@ import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { useWide } from '@/lib/use-wide';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
@@ -62,6 +63,8 @@ const PersonSearch = (props: PersonSearchProps) => {
     const parsed = v.safeParse(sharedNameSchema, query);
     const matches = friends.filter((friend) => matchesName(friend.name, query));
     const off = disabled || Boolean(full);
+    // How many friends the typed words find, said once the typing pauses, so the rows that come and go are not silent
+    const found = useDebouncedValue(query.trim() === '' ? null : matches.length);
 
     const done = (name: string | null) => {
         if (name === null) return;
@@ -122,7 +125,7 @@ const PersonSearch = (props: PersonSearchProps) => {
                             {failure}
                         </Notice>
                     )}
-                    <ul className="person-search__rows" id={listId} aria-label={t('results')}>
+                    <ul className="person-search__rows" id={listId} aria-label={t('results')} role="list">
                         {matches.map((friend) => (
                             <li key={friend.id}>
                                 <button
@@ -156,6 +159,11 @@ const PersonSearch = (props: PersonSearchProps) => {
                     {matches.length === 0 && !parsed.success && <p className="hint">{t('empty')}</p>}
                     <p className="person-search__added" role="status">
                         {added}
+                        {!added && found !== null && (
+                            <span className="visually-hidden">
+                                {found === 0 ? t('nobody') : t('found', { count: found })}
+                            </span>
+                        )}
                     </p>
                 </div>
             )}

@@ -7,6 +7,7 @@ import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
@@ -94,7 +95,7 @@ const Charts = () => {
 
     return (
         <section className="charts">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
 
             <ChoiceGroup
                 legend={t('group.title')}

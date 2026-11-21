@@ -1,7 +1,7 @@
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { useFocusSource } from './use-focus-source';
+import { useFocusSource, useKeyboardFocus } from './use-focus-source';
 
 const Probe = () => {
     useFocusSource();
@@ -51,5 +51,37 @@ describe('useFocusSource', () => {
         expect(source()).toBeUndefined();
         fireEvent.keyDown(document.body, { key: 'Tab' });
         expect(source()).toBeUndefined();
+    });
+});
+
+describe('useKeyboardFocus', () => {
+    afterEach(() => {
+        delete document.documentElement.dataset.focusSource;
+    });
+
+    it('is false until the keyboard moves the focus', async () => {
+        render(<Probe />);
+        const { result } = renderHook(() => useKeyboardFocus());
+
+        expect(result.current).toBe(false);
+
+        await act(async () => {
+            fireEvent.keyDown(document.body, { key: 'Tab' });
+        });
+        expect(result.current).toBe(true);
+    });
+
+    it('goes back to false when a press follows', async () => {
+        render(<Probe />);
+        const { result } = renderHook(() => useKeyboardFocus());
+        await act(async () => {
+            fireEvent.keyDown(document.body, { key: 'Tab' });
+        });
+
+        await act(async () => {
+            fireEvent.pointerDown(document.body);
+        });
+
+        expect(result.current).toBe(false);
     });
 });

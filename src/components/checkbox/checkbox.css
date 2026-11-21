@@ -67,3 +67,16 @@
     color: var(--color-content-secondary);
     margin: 0;
 }
+
+/* Forced colors drop every fill and the transparent color of the mark: a checked box is filled with the selection
+   colors, and the mark of an unchecked one is hidden */
+@media (forced-colors: active) {
+    .checkbox__input:checked + .checkbox__box {
+        background: Highlight;
+        color: HighlightText;
+    }
+
+    .checkbox__input:not(:checked) + .checkbox__box .icon {
+        visibility: hidden;
+    }
+}

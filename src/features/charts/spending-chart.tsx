@@ -161,8 +161,9 @@ const SpendingChart = (props: SpendingChartProps) => {
                 <div className="spending-chart__scroller" ref={scroller}>
                     <svg
                         className="spending-chart__plot"
-                        role="img"
+                        role="group"
                         aria-label={summary}
+                        aria-roledescription={t('chartRole')}
                         aria-describedby={readoutId}
                         tabIndex={0}
                         viewBox={`0 0 ${count} ${HEADROOM + PLOT}`}

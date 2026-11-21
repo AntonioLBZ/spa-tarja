@@ -1,0 +1,4 @@
+/* It takes the focus from a script, not from the tab key: a heading is not a control, so no ring is drawn on it */
+.screen-title:focus-visible {
+    outline: none;
+}

@@ -377,6 +377,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
                         {...control}
                         autoComplete="off"
                         inputMode="decimal"
+                        required
                         type="text"
                         value={amount}
                         onChange={(event) => {

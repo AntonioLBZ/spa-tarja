@@ -1,6 +1,7 @@
 import { useTranslations } from 'use-intl';
 
 import { Checkbox } from '@/components/checkbox/checkbox';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { useOnline } from '@/lib/offline';
 
@@ -21,7 +22,7 @@ const NotificationsSection = () => {
             <p className="hint">{t('hint')}</p>
             {state === 'unsupported' && <Notice tone="quiet">{t('unsupported')}</Notice>}
             {state === 'denied' && <Notice tone="quiet">{t('denied')}</Notice>}
-            {usable && !online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{usable && !online && t('offline')}</LiveNotice>
             <Checkbox
                 label={t('toggle')}
                 checked={state === 'on'}
