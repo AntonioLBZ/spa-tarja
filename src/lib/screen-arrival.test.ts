@@ -1,6 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { expectArrival, focusHeading, markSwiped, showHeading, takeArrival, takeSwiped } from './screen-arrival';
+import {
+    beginSwipe,
+    decideSwipe,
+    expectArrival,
+    focusHeading,
+    markSwiped,
+    markUndone,
+    sayWhenSwipeIsDecided,
+    showHeading,
+    takeArrival,
+    takeSwiped,
+    takeUndone,
+} from './screen-arrival';
 
 beforeEach(() => {
     vi.useFakeTimers();
@@ -9,6 +21,8 @@ beforeEach(() => {
 afterEach(() => {
     takeArrival();
     takeSwiped();
+    takeUndone();
+    decideSwipe(true);
     showHeading(null);
     vi.useRealTimers();
 });
@@ -51,6 +65,81 @@ describe('a swipe', () => {
         vi.advanceTimersByTime(1_500);
 
         expect(takeSwiped()).toBe(false);
+    });
+});
+
+describe('a swipe that goes back', () => {
+    it('is marked for the next change of screen only', () => {
+        markUndone();
+
+        expect(takeUndone()).toBe(true);
+        expect(takeUndone()).toBe(false);
+    });
+
+    it('is forgotten when no change of screen came of it', () => {
+        markUndone();
+
+        vi.advanceTimersByTime(1_500);
+
+        expect(takeUndone()).toBe(false);
+    });
+});
+
+describe('what is said of a swiped screen', () => {
+    it('is said at once when no swipe is deciding', () => {
+        const say = vi.fn();
+
+        sayWhenSwipeIsDecided(say);
+
+        expect(say).toHaveBeenCalledOnce();
+    });
+
+    it('waits for the finger to lift, and is said if the swipe goes on', () => {
+        const say = vi.fn();
+        beginSwipe();
+
+        sayWhenSwipeIsDecided(say);
+        expect(say).not.toHaveBeenCalled();
+        decideSwipe(true);
+
+        expect(say).toHaveBeenCalledOnce();
+    });
+
+    it('is never said if the swipe goes back', () => {
+        const say = vi.fn();
+        beginSwipe();
+
+        sayWhenSwipeIsDecided(say);
+        decideSwipe(false);
+        decideSwipe(true);
+
+        expect(say).not.toHaveBeenCalled();
+    });
+
+    it('is said at once by a screen that shows up after the swipe went on, and never after it went back', () => {
+        const after = vi.fn();
+        const back = vi.fn();
+
+        beginSwipe();
+        decideSwipe(true);
+        sayWhenSwipeIsDecided(after);
+        beginSwipe();
+        decideSwipe(false);
+        sayWhenSwipeIsDecided(back);
+
+        expect(after).toHaveBeenCalledOnce();
+        expect(back).not.toHaveBeenCalled();
+    });
+
+    it('is forgotten when another swipe starts', () => {
+        const say = vi.fn();
+        beginSwipe();
+        sayWhenSwipeIsDecided(say);
+
+        beginSwipe();
+        decideSwipe(true);
+
+        expect(say).not.toHaveBeenCalled();
     });
 });
 

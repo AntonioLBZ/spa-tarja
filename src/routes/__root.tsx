@@ -29,7 +29,7 @@ import {
     type NavSection,
     type SwipeDirection,
 } from '@/lib/route-transition';
-import { markSwiped } from '@/lib/screen-arrival';
+import { markSwiped, markUndone } from '@/lib/screen-arrival';
 import { followSlide, skipNextSlide } from '@/lib/swipe-slide';
 import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
 import { useScreenArrivals } from '@/lib/use-screen-arrivals';
@@ -86,6 +86,7 @@ const useSwipeNavigation = (main: RefObject<HTMLElement | null>, on: boolean) =>
                     resolve();
                 });
                 skipNextSlide();
+                markUndone();
                 router.history.back();
             });
         };

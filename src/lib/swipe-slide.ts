@@ -1,4 +1,5 @@
 import { readDuration } from './motion';
+import { beginSwipe, decideSwipe } from './screen-arrival';
 
 import type { SwipeDrag } from './use-swipe';
 
@@ -84,11 +85,13 @@ const glide = async (animations: readonly Animation[], from: number, to: number,
 const followSlide = (moves: SlideMoves): SwipeDrag => {
     const { go, undo } = moves;
     const ms = readDuration('--duration-slow');
+    beginSwipe();
 
     if (ms === 0 || typeof document.startViewTransition !== 'function') {
         return {
             follow: () => undefined,
             release: (goOn) => {
+                decideSwipe(goOn);
                 if (goOn) go();
             },
         };
@@ -149,6 +152,7 @@ const followSlide = (moves: SlideMoves): SwipeDrag => {
         release: (goOn) => {
             if (released !== null) return;
             released = goOn;
+            decideSwipe(goOn);
             if (prepared) void settle(goOn);
         },
     };

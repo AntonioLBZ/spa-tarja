@@ -8,13 +8,14 @@ import { person, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { stubViewport } from '@/lib/test/viewport';
 
-import { markSwiped } from './screen-arrival';
+import { beginSwipe, decideSwipe, markSwiped, markUndone } from './screen-arrival';
 
 beforeEach(() => {
     localStorage.clear();
 });
 
 afterEach(() => {
+    decideSwipe(true);
     vi.unstubAllGlobals();
 });
 
@@ -125,6 +126,56 @@ describe('a change of screen', () => {
 
         expect(document.activeElement).toBe(other);
         await waitFor(() => expect(said()).toBe(en.summary.title));
+    });
+
+    it('says nothing of a swiped screen until the finger lifts, and then says it', async () => {
+        const app = await open('/');
+        const other = screen.getAllByRole('button', { name: en.nav.add })[0]!;
+        other.focus();
+
+        beginSwipe();
+        markSwiped();
+        await act(() => app.router.navigate({ to: '/summary' }));
+        await heading(en.summary.title);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        expect(said()).toBe('');
+        act(() => decideSwipe(true));
+
+        expect(document.activeElement).toBe(other);
+        await waitFor(() => expect(said()).toBe(en.summary.title));
+    });
+
+    it('says nothing at all of a swipe that goes back: not the screen it opened, nor the one it returns to', async () => {
+        const app = await open('/');
+
+        beginSwipe();
+        markSwiped();
+        await act(() => app.router.navigate({ to: '/summary' }));
+        await heading(en.summary.title);
+        act(() => decideSwipe(false));
+        markUndone();
+        await act(async () => app.router.history.back());
+        await heading(en.expenses.list.title);
+        await new Promise((resolve) => setTimeout(resolve, 250));
+
+        expect(said()).toBe('');
+    });
+
+    it('goes back to saying the screens once a swipe that went back is over', async () => {
+        const app = await open('/');
+        beginSwipe();
+        markSwiped();
+        await act(() => app.router.navigate({ to: '/summary' }));
+        await heading(en.summary.title);
+        act(() => decideSwipe(false));
+        markUndone();
+        await act(async () => app.router.history.back());
+        await heading(en.expenses.list.title);
+
+        press(link(en.nav.settings));
+        await heading(en.settings.title);
+
+        await waitFor(() => expect(said()).toBe(en.settings.title));
     });
 
     it('leaves the focus on a tab of Expenses and says the group of the tab', async () => {

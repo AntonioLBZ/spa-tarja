@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 
 import { useAnnounce } from '@/components/announcer/announcer';
-import { showHeading, takeArrival } from '@/lib/screen-arrival';
+import { sayWhenSwipeIsDecided, showHeading, takeArrival } from '@/lib/screen-arrival';
 
 import './screen-title.css';
 
@@ -15,8 +15,8 @@ interface ScreenTitleProps {
 }
 
 // The `h1` of a screen, the one place that names it. It sets the title of the page, and when its screen has just
-// opened it takes the focus or says its text, as the way the screen was reached asks (`useScreenArrivals`). It can take
-// the focus without being in the tab order.
+// opened it takes the focus or says its text, as the way the screen was reached asks (`useScreenArrivals`; a swiped
+// screen says it once the swipe is decided). It can take the focus without being in the tab order.
 const ScreenTitle = (props: ScreenTitleProps) => {
     const { children, className } = props;
     const announce = useAnnounce();
@@ -35,6 +35,7 @@ const ScreenTitle = (props: ScreenTitleProps) => {
         const arrival = takeArrival();
         if (arrival === 'focus') node?.focus({ preventScroll: true });
         else if (arrival === 'announce') announce(children);
+        else if (arrival === 'hold') sayWhenSwipeIsDecided(() => announce(children));
         return () => showHeading(null);
     }, [children, announce]);
 

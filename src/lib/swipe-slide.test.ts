@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { decideSwipe, sayWhenSwipeIsDecided } from './screen-arrival';
 import { followSlide, skipNextSlide, takeSkippedSlide } from './swipe-slide';
 
 const fakeAnimation = (duration: number) => {
@@ -52,6 +53,7 @@ afterEach(() => {
         Reflect.deleteProperty(document, name);
     }
     takeSkippedSlide();
+    decideSwipe(true);
 });
 
 describe('followSlide', () => {
@@ -136,6 +138,56 @@ describe('followSlide', () => {
         followSlide({ go, undo }).release(false);
 
         await vi.waitFor(() => expect(undo).toHaveBeenCalledOnce(), { timeout: 2000 });
+    });
+});
+
+describe('followSlide and what is said of the screen', () => {
+    it('lets it be said once the finger lifts to go on, with no view transition', () => {
+        const say = vi.fn();
+        const drag = followSlide(moves());
+        sayWhenSwipeIsDecided(say);
+
+        drag.follow(0.5);
+        expect(say).not.toHaveBeenCalled();
+        drag.release(true);
+
+        expect(say).toHaveBeenCalledOnce();
+    });
+
+    it('never says it when the finger lifts to go back, with no view transition', () => {
+        const say = vi.fn();
+        const drag = followSlide(moves());
+        sayWhenSwipeIsDecided(say);
+
+        drag.release(false);
+
+        expect(say).not.toHaveBeenCalled();
+    });
+
+    it('holds it while the screen follows the finger, and says it once the finger lifts to go on', async () => {
+        const { animations, start } = stubTransition();
+        const say = vi.fn();
+        const drag = followSlide(moves(start));
+        sayWhenSwipeIsDecided(say);
+        await vi.waitFor(() => expect(animations[0]!.pause).toHaveBeenCalled());
+
+        drag.follow(0.4);
+        expect(say).not.toHaveBeenCalled();
+        drag.release(true);
+
+        expect(say).toHaveBeenCalledOnce();
+    });
+
+    it('never says it when the finger lifts to go back, though the screen was open', async () => {
+        const { animations, start } = stubTransition();
+        const say = vi.fn();
+        const drag = followSlide(moves(start));
+        sayWhenSwipeIsDecided(say);
+        await vi.waitFor(() => expect(animations[0]!.pause).toHaveBeenCalled());
+
+        drag.release(false);
+
+        expect(say).not.toHaveBeenCalled();
     });
 });
 
