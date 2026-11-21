@@ -2,10 +2,6 @@
 
 Items build on each other in the order they appear below. Delete an item when it is done and its docs are updated; the numbers stay.
 
-## Needs the owner
-
-- An account deletion from start to end in production with a second Google account: make a group with a dummy, add that account as a friend in the dummy's place, delete it, then look for its email and the old dummy name in `user`, `session`, `account`, `profile`, `expenses` and `shared_members`.
-
 ## 17. Revisar junto al owner los componentes, a11y y diseño
 
 El owner pedirá cambios en diferentes componentes llegado el momento, ir de la mano paso a paso.
