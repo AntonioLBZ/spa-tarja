@@ -6,6 +6,7 @@ import { ButtonLink } from '@/components/button/button-link';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
 import { useAmount } from '@/lib/amounts';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
@@ -53,7 +54,7 @@ const Groups = () => {
 
     return (
         <section className="groups">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <EntryRefusals />
             {!hasData && (isError || isWaitingForNetwork) && (

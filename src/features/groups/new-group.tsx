@@ -7,6 +7,7 @@ import * as v from 'valibot';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
 import { useOnline } from '@/lib/offline';
@@ -118,7 +119,7 @@ const NewGroup = () => {
 
     return (
         <section className="new-group">
-            <h1>{t('new.title')}</h1>
+            <ScreenTitle>{t('new.title')}</ScreenTitle>
             {!online && <Notice role="status">{t('offline')}</Notice>}
             <form className="new-group__form" onSubmit={(event) => void handleSubmit(event)}>
                 <Field label={t('new.name')} error={nameInvalid ? t('nameInvalid') : null}>

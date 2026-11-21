@@ -7,6 +7,7 @@ import { CardList } from '@/components/card/card';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field } from '@/components/field/field';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { Sheet } from '@/components/sheet/sheet';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { readDuration } from '@/lib/motion';
@@ -113,7 +114,7 @@ const CategoryManager = () => {
 
     return (
         <section className="category-manager">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
 
             {!online && <Notice role="status">{t('offline')}</Notice>}
 

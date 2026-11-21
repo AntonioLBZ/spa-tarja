@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { useRef, type RefObject } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { AnnouncerProvider } from '@/components/announcer/announcer';
 import { BannerProvider } from '@/components/banner/banner';
 import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-nav';
 import { Brand } from '@/components/brand/brand';
@@ -28,8 +29,10 @@ import {
     type NavSection,
     type SwipeDirection,
 } from '@/lib/route-transition';
+import { markSwiped } from '@/lib/screen-arrival';
 import { followSlide, skipNextSlide } from '@/lib/swipe-slide';
 import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
+import { useScreenArrivals } from '@/lib/use-screen-arrivals';
 import { useSwipe } from '@/lib/use-swipe';
 import { useWide } from '@/lib/use-wide';
 
@@ -69,6 +72,7 @@ const useSwipeNavigation = (main: RefObject<HTMLElement | null>, on: boolean) =>
         if (!stop) return undefined;
         const viewTransition = { types: stop.types };
         const go = () => {
+            markSwiped();
             if (stop.to === '/') {
                 void navigate({ to: '/', search: stop.group === null ? {} : { group: stop.group }, viewTransition });
             } else {
@@ -97,25 +101,28 @@ const RootLayout = () => {
     const rootClsx = clsx('root', { 'root--tabs': !wide });
     const main = useRef<HTMLElement>(null);
     useSwipeNavigation(main, !wide);
+    useScreenArrivals();
 
     return (
         <ExpenseSheetProvider>
-            <ToastProvider dismissLabel={t('dismiss')}>
-                <BannerProvider dismissLabel={t('dismiss')}>
-                    <div className={rootClsx}>
-                        {wide ? <RootHeader /> : <RootPhoneHeader />}
-                        <main className="root__main" ref={main}>
-                            <Outlet />
-                        </main>
-                        {!wide && <RootTabs />}
-                        <ExpenseSheet />
-                        <AppUpdate />
-                        <NicknamePrompt />
-                        <NoticeBanner />
-                        <PushSync />
-                    </div>
-                </BannerProvider>
-            </ToastProvider>
+            <AnnouncerProvider>
+                <ToastProvider dismissLabel={t('dismiss')}>
+                    <BannerProvider dismissLabel={t('dismiss')}>
+                        <div className={rootClsx}>
+                            {wide ? <RootHeader /> : <RootPhoneHeader />}
+                            <main className="root__main" ref={main}>
+                                <Outlet />
+                            </main>
+                            {!wide && <RootTabs />}
+                            <ExpenseSheet />
+                            <AppUpdate />
+                            <NicknamePrompt />
+                            <NoticeBanner />
+                            <PushSync />
+                        </div>
+                    </BannerProvider>
+                </ToastProvider>
+            </AnnouncerProvider>
         </ExpenseSheetProvider>
     );
 };
@@ -150,7 +157,7 @@ const RootBrand = () => {
     const homeSearch = useHomeSearch();
 
     return (
-        <Link className="root__brand" to="/" search={homeSearch} activeOptions={{ exact: true }}>
+        <Link className="root__brand" to="/" search={homeSearch} activeOptions={{ exact: true }} data-keeps-focus>
             <Brand prerelease={isPrerelease()} />
         </Link>
     );

@@ -6,6 +6,7 @@ import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
 import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useAmountPlaceholder } from '@/lib/amounts';
@@ -103,7 +104,7 @@ const Budgets = () => {
 
     return (
         <section className="budgets">
-            <h1>{t('title')}</h1>
+            <ScreenTitle>{t('title')}</ScreenTitle>
 
             <MonthSwitch
                 monthName={monthName}

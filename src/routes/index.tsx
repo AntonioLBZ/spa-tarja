@@ -37,7 +37,6 @@ const Home = () => {
 
     return (
         <section className="home">
-            <h1 className="visually-hidden">Tarja</h1>
             {pinned.length > 0 && <PinnedTabs groups={pinned} />}
             {shown ? (
                 <GroupScreen groupId={shown.id} inTab />
