@@ -105,7 +105,7 @@ const BottomNav = (props: BottomNavProps) => {
 
     return (
         <nav aria-label={label} className="bottom-nav">
-            <ul ref={list} className="bottom-nav__list">
+            <ul ref={list} className="bottom-nav__list" role="list">
                 {links}
             </ul>
         </nav>

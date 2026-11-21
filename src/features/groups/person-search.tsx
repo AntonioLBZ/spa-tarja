@@ -125,7 +125,7 @@ const PersonSearch = (props: PersonSearchProps) => {
                             {failure}
                         </Notice>
                     )}
-                    <ul className="person-search__rows" id={listId} aria-label={t('results')}>
+                    <ul className="person-search__rows" id={listId} aria-label={t('results')} role="list">
                         {matches.map((friend) => (
                             <li key={friend.id}>
                                 <button

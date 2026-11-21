@@ -550,7 +550,7 @@ const SharedPeople = (props: SharedPeopleProps) => {
                         </Button>
                     ))}
                 </div>
-                <ul className="shared-people__list">
+                <ul className="shared-people__list" role="list">
                     {tail.rows.map((row) => (
                         <li key={row.id} className="shared-people__row">
                             <Checkbox

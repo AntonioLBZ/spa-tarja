@@ -89,6 +89,12 @@ describe('BottomNav', () => {
             .map((link) => link.textContent);
     }
 
+    it('says its links are a list, since a list drawn with no marker loses it', async () => {
+        const nav = await renderNav();
+
+        expect(within(nav).getByRole('list').getAttribute('role')).toBe('list');
+    });
+
     it('marks only the current item', async () => {
         const nav = await renderNav(
             ITEMS.map((item) => ({ ...item, current: item.label === 'Summary' })),

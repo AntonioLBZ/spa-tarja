@@ -75,7 +75,7 @@ const Settings = () => {
                 value={locale}
                 onChange={setLocale}
             />
-            <ul className="settings__cards">
+            <ul className="settings__cards" role="list">
                 <SettingsCard to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
                 <SettingsCard to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />
                 <AccountCard />

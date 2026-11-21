@@ -96,6 +96,29 @@ describe('CardList', () => {
         expect(container.firstElementChild!.tagName).toBe(as.toUpperCase());
     });
 
+    it.each(['ul', 'ol'] as const)(
+        'says it is a list when it is a %s, since a list drawn with no marker loses it',
+        (as) => {
+            const { container } = render(
+                <CardList as={as}>
+                    <Card as="li">Rent</Card>
+                </CardList>
+            );
+
+            expect(container.firstElementChild!.getAttribute('role')).toBe('list');
+        }
+    );
+
+    it('gives a description list no role of its own', () => {
+        const { container } = render(
+            <CardList as="dl">
+                <Card>Rent</Card>
+            </CardList>
+        );
+
+        expect(container.firstElementChild!.hasAttribute('role')).toBe(false);
+    });
+
     it('holds the term and the value of a row straight inside its card', () => {
         const { container } = render(
             <CardList as="dl">

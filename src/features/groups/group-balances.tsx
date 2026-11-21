@@ -84,7 +84,7 @@ const GroupBalances = (props: GroupBalancesProps) => {
             {group.simplifyDebts && <Notice tone="quiet">{t('debts.simplified')}</Notice>}
             {moving.length === 0 && <p className="group-balances__none">{t('debts.none')}</p>}
             {moving.length > 0 && (
-                <ul className="group-balances">
+                <ul className="group-balances" role="list">
                     {moving.map((balance) => {
                         const person = balance.memberId;
                         const lines = debts.filter((debt) => debt.from === person || debt.to === person);
@@ -105,7 +105,7 @@ const GroupBalances = (props: GroupBalancesProps) => {
                                     </span>
                                 }
                             >
-                                <ul className="group-balances__debts">
+                                <ul className="group-balances__debts" role="list">
                                     {lines.map((debt) => {
                                         const sentence = words.debt(debt);
                                         const cents = debt.to === person ? debt.cents : -debt.cents;

@@ -130,7 +130,7 @@ const LedgerRow = (props: LedgerRowProps) => {
     return (
         <Disclosure as="li" className={rowClsx} chevron align="top" toggleRef={focusRef} summary={body}>
             {entry.kind === 'expense' && (
-                <ul className="ledger-row__breakdown" aria-label={t('ledger.breakdown')}>
+                <ul className="ledger-row__breakdown" aria-label={t('ledger.breakdown')} role="list">
                     <li className="ledger-row__share">
                         <span className="ledger-row__who">
                             {paidByMe ? t('ledger.youPaid') : t('ledger.paidBy', { name: payer })}
