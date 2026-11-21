@@ -9,3 +9,6 @@ permissions:
         skills: false
     '@tanstack/router-plugin':
         skills: false
+overrides:
+    '@joshwooding/vite-plugin-react-docgen-typescript>glob': 14.0.2
+    workbox-build>glob: 14.0.2
