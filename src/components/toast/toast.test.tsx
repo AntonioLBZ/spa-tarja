@@ -262,6 +262,99 @@ describe('Toast', () => {
         expect(toast()).toBeNull();
     });
 
+    describe('while the last input came from the keyboard', () => {
+        async function typing() {
+            await act(async () => {
+                root.dataset.focusSource = 'keyboard';
+            });
+        }
+
+        async function pointing() {
+            await act(async () => {
+                root.dataset.focusSource = 'pointer';
+            });
+        }
+
+        afterEach(() => {
+            delete root.dataset.focusSource;
+        });
+
+        it('stays past 8 seconds when it offers an action, and its bar does not drain', async () => {
+            await typing();
+            setup();
+            show();
+
+            elapse(60_000);
+
+            expect(toast()).not.toBeNull();
+            expect(toast()!.classList.contains('toast--kept')).toBe(true);
+        });
+
+        it('stays while the keyboard is used even if it came in before the keyboard was', async () => {
+            setup();
+            show();
+            elapse(5_000);
+
+            await typing();
+            elapse(60_000);
+
+            expect(toast()).not.toBeNull();
+        });
+
+        it('counts its whole time from the moment the pointer is used again', async () => {
+            await typing();
+            setup();
+            show();
+            elapse(30_000);
+
+            await pointing();
+            expect(toast()!.classList.contains('toast--kept')).toBe(false);
+            elapse(7_999);
+            expect(toast()).not.toBeNull();
+
+            elapse(1);
+            expect(toast()).toBeNull();
+        });
+
+        it('still goes after 8 seconds when it has no action to answer', async () => {
+            await typing();
+            setup();
+            show('Show plain');
+
+            elapse(8_000);
+
+            expect(screen.queryByText('Close to the limit')).toBeNull();
+        });
+
+        it('is closed by Escape, by its dismiss button and by its action', async () => {
+            await typing();
+            setup();
+            show();
+            fireEvent.keyDown(document.body, { key: 'Escape' });
+            expect(toast()).toBeNull();
+
+            show();
+            fireEvent.click(screen.getByRole('button', { name: 'Clear' }));
+            expect(toast()).toBeNull();
+
+            show();
+            fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+            expect(toast()).toBeNull();
+        });
+
+        it('is replaced by the next toast, which stays too', async () => {
+            await typing();
+            setup();
+            show();
+
+            show('Show another');
+            elapse(60_000);
+
+            expect(screen.queryByText('Deleted Lunch')).toBeNull();
+            expect(screen.getByText('Deleted Coffee')).toBeDefined();
+        });
+    });
+
     it('closes with Escape', () => {
         setup();
         show();

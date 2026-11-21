@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { readDuration } from '@/lib/motion';
+import { useKeyboardFocus } from '@/lib/use-focus-source';
 import { useSwipeAway, type SwipeSide } from '@/lib/use-swipe-away';
 
 import type { IconName } from '@/components/icon/icon-paths';
@@ -101,8 +102,10 @@ const fadeOut = (set: Dispatch<SetStateAction<ShownToast | null>>, timer: Timer,
 
 // A toast that goes away by itself keeps its count of the time left: hovering it or keeping the focus inside holds the
 // count, and it ends with a button that clears it away; it can be swiped away too, which holds the count while it is
-// dragged. A pinned one has no count and no such button: its answers close it, and so does a swipe when it names what
-// a swipe answers.
+// dragged. While the keyboard is what moves the focus, one that offers an action doesn't count at all: the way to its
+// button is the tab order, which a few seconds can't be trusted to cover. It stays until it is answered, replaced or
+// cleared, and counts its whole time from the moment a pointer is used again. A pinned one has no count and no such
+// button: its answers close it, and so does a swipe when it names what a swipe answers.
 const ToastBox = (props: ToastBoxProps) => {
     const { toast, pinned, dismissLabel, onDismiss } = props;
     const [hovered, setHovered] = useState(false);
@@ -114,14 +117,21 @@ const ToastBox = (props: ToastBoxProps) => {
     };
     const swipes = !pinned || toast.onSwipeAway !== undefined;
     const swipe = useSwipeAway({ sides: SWIPED_TO, onAway: swipeAway, on: swipes && !toast.leaving });
-    const counting = !pinned && !hovered && !focused && !swipe.dragged && !toast.leaving;
+    const keyboard = useKeyboardFocus();
+    const kept = !pinned && keyboard && toast.actions.length > 0;
+    const counting = !pinned && !hovered && !focused && !swipe.dragged && !toast.leaving && !kept;
     const toastClsx = clsx('toast', {
         'toast--pinned': pinned,
+        'toast--kept': kept,
         'toast--held': !pinned && (hovered || focused || swipe.dragged),
         'toast--dragged': swipe.dragged,
         'toast--leaving': toast.leaving,
     });
     const style = (pinned ? swipe.style : { '--toast-duration': `${SHOW_FOR_MS}ms`, ...swipe.style }) as CSSProperties;
+
+    useEffect(() => {
+        if (kept) remaining.current = SHOW_FOR_MS;
+    }, [kept]);
 
     useEffect(() => {
         if (!counting) return;

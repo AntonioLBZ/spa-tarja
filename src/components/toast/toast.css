@@ -75,6 +75,11 @@
     animation-play-state: paused;
 }
 
+/* Kept while the keyboard is in use: the ink stays whole, and drains from the start once the pointer is used */
+.toast--kept::before {
+    animation: none;
+}
+
 @keyframes toast-countdown {
     to {
         transform: scaleX(0);
