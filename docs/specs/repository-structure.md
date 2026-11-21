@@ -33,5 +33,5 @@ public/          static files
 - pnpm only, with `save-exact` in `.npmrc`: dependencies are added with `pnpm add -E`. The versions are in `package.json`.
 - Install scripts are allowed only for `workerd` and `esbuild`, in `pnpm-workspace.yaml`. pnpm 12 also offers "agent skills" shipped by some packages; the two that offer them, `@tanstack/react-router` and `@tanstack/router-plugin`, are denied: they only feed AI assistants and the build doesn't need them.
 - `design-system/` pins the same `react`, `react-dom` and `vite` as the root, so pnpm keeps one copy of React. Storybook 10 (`storybook`, `@storybook/react-vite`, `@storybook/addon-a11y`) needed no install script and offered no agent skills.
-- Held back, as of 2026-10-25: TypeScript stays on 6.0, because 7.0 exists but `typescript-eslint` 8.72 requires `<6.1`. ESLint stays on 9, because `eslint-plugin-import` doesn't support ESLint 10.
+- Held back, as of 2026-10-25: TypeScript stays on 6.0, because 7.0 exists but `typescript-eslint` 8.73 requires `<6.1`. ESLint stays on 9, because `eslint-plugin-import` doesn't support ESLint 10.
 - Tests use `@cloudflare/vitest-plugin`, which replaces the deprecated `@cloudflare/vitest-pool-workers`. `vite-plugin-pwa` goes with `workbox-build` and `workbox-window` at the same version, and the icons come from `@vite-pwa/assets-generator`.
