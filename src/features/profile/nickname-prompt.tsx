@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -11,6 +11,7 @@ import { Notice } from '@/components/notice/notice';
 import { profileQuery } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useOnline } from '@/lib/offline';
+import { focusHeading } from '@/lib/screen-arrival';
 import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/profile';
 import { personName } from '@core/shared-group';
 
@@ -35,7 +36,19 @@ const NicknamePrompt = () => {
     const [busy, setBusy] = useState(false);
 
     if (profile && asking === null) setAsking(fresh && profile.nickname === null);
-    if (!profile || profile.nickname !== null || !asking) return null;
+    const shown = Boolean(profile && profile.nickname === null && asking);
+
+    // It opens with nothing to go back to, so once it is gone the focus would be left on the page itself
+    const wasShown = useRef(false);
+    useEffect(() => {
+        const gone = wasShown.current && !shown;
+        wasShown.current = shown;
+        if (gone && (!document.activeElement || document.activeElement === document.body)) {
+            focusHeading({ preventScroll: true });
+        }
+    }, [shown]);
+
+    if (!profile || !shown) return null;
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();

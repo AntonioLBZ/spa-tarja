@@ -96,6 +96,35 @@ describe('the nickname prompt', () => {
         expect(api.profileBodies).toEqual([]);
     });
 
+    it('hands the focus to the title of the screen when it goes away, since it opened with nothing to go back to', async () => {
+        const { sheet } = await openWithout();
+
+        fireEvent.click(button(sheet, text.later));
+
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: text.title })).toBeNull());
+        expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    });
+
+    it('hands the focus to the title of the screen when Escape closes it', async () => {
+        const { sheet } = await openWithout();
+
+        (sheet as HTMLDialogElement).dispatchEvent(new Event('cancel', { cancelable: true }));
+        (sheet as HTMLDialogElement).close();
+
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: text.title })).toBeNull());
+        expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    });
+
+    it('hands the focus to the title of the screen once the nickname is saved', async () => {
+        const { sheet } = await openWithout();
+
+        fireEvent.change(field(sheet), { target: { value: 'Anita' } });
+        fireEvent.click(button(sheet, text.save));
+
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: text.title })).toBeNull());
+        expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1 }));
+    });
+
     it('asks again at the next sign-in', async () => {
         const { app, sheet } = await openWithout();
         fireEvent.click(button(sheet, text.later));
