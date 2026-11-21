@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useTranslations } from 'use-intl';
 
 import { ButtonLink } from '@/components/button/button-link';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
@@ -100,11 +101,9 @@ const GroupView = (props: GroupViewProps) => {
                     />
                 </>
             )}
-            {!hasData && (isError || isWaitingForNetwork) && (
-                <Notice role="status" tone="danger">
-                    {t('group.entriesFailed')}
-                </Notice>
-            )}
+            <LiveNotice tone="danger">
+                {!hasData && (isError || isWaitingForNetwork) && t('group.entriesFailed')}
+            </LiveNotice>
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
             {hasData && (
                 <GroupLedger

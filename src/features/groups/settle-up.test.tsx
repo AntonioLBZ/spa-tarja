@@ -63,6 +63,12 @@ async function open(group: SharedGroup, entries: PendingEntry[]) {
     return { api, app };
 }
 
+function spokenStatus() {
+    return within(screen.getByRole('main'))
+        .getAllByRole('status')
+        .find((region) => region.textContent !== '');
+}
+
 function sheet() {
     return screen.getByRole('heading', { name: en.groups.debts.label }).closest('section')!;
 }
@@ -181,9 +187,7 @@ describe('settling up from a line', () => {
         await waitFor(() =>
             expect(lines()).toEqual([t('groups.debts.owesYou', { name: 'Cris', amount: euros(1000) })])
         );
-        expect(spokenText(within(screen.getByRole('main')).getByRole('status'))).toBe(
-            t('groups.balance.owed', { amount: euros(1000) })
-        );
+        expect(spokenText(spokenStatus())).toBe(t('groups.balance.owed', { amount: euros(1000) }));
         expect(app.groupOutbox.getState().pending).toMatchObject([
             {
                 groupId: group.id,
@@ -390,7 +394,7 @@ describe('settling up in the simplified view', () => {
         fireEvent.click(save());
 
         await waitFor(() => expect(lines()).toEqual([crisOwesBea]));
-        expect(spokenText(within(screen.getByRole('main')).getByRole('status'))).toBe(t('groups.balance.allSettled'));
+        expect(spokenText(spokenStatus())).toBe(t('groups.balance.allSettled'));
         expect(app.groupOutbox.getState().pending).toMatchObject([
             {
                 groupId: group.id,

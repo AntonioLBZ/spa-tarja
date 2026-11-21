@@ -659,7 +659,7 @@ describe('while the groups are loading', () => {
         renderApp({ path: '/settings/account' });
         await screen.findByRole('heading', { name: en.settings.data.title });
 
-        expect(screen.getByText(en.settings.data.loading).getAttribute('role')).toBe('status');
+        expect(screen.getByText(en.settings.data.loading).closest('[role="status"]')).not.toBeNull();
         expect(json().disabled).toBe(true);
         expect(csv().disabled).toBe(true);
 
@@ -726,7 +726,7 @@ describe('while the groups are loading', () => {
         await advance(6_000);
 
         expect(screen.queryByText(en.settings.data.loading)).toBeNull();
-        expect(screen.getByText(en.settings.data.missing).getAttribute('role')).toBe('status');
+        expect(screen.getByText(en.settings.data.missing).closest('[role="status"]')).not.toBeNull();
         expect(json().disabled).toBe(false);
         expect(csv().disabled).toBe(false);
 
@@ -768,7 +768,7 @@ describe('while the groups are loading', () => {
         await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(lost.id))?.status).toBe('error'));
         await waitFor(() => expect(app.queryClient.getQueryState(groupEntriesKey(found.id))?.status).toBe('success'));
 
-        expect(screen.getByText(en.settings.data.missing).getAttribute('role')).toBe('status');
+        expect(screen.getByText(en.settings.data.missing).closest('[role="status"]')).not.toBeNull();
         expect(screen.queryByText(en.settings.data.loading)).toBeNull();
         const backup = JSON.parse((await press(en.settings.data.json)).text);
         const sheet = (await press(en.settings.data.csv)).text;

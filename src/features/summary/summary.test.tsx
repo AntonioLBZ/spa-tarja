@@ -621,6 +621,22 @@ describe('without a connection', () => {
         expect((screen.getByRole('button', { name: text.form.remove }) as HTMLButtonElement).disabled).toBe(true);
     });
 
+    it('says so in a status that was already in the page, so it is announced as it comes', async () => {
+        await open();
+        const region = document.querySelector('.live-notice')!;
+        expect(region.getAttribute('role')).toBe('status');
+        expect(region.textContent).toBe('');
+
+        onlineManager.setOnline(false);
+
+        await waitFor(() => expect(region.textContent).toBe(text.offline));
+        expect(document.querySelector('.live-notice')).toBe(region);
+
+        onlineManager.setOnline(true);
+
+        await waitFor(() => expect(region.textContent).toBe(''));
+    });
+
     it('turns the income field off too, with its value still in it', async () => {
         await open({ income: [{ month: '2026-10', amountCents: 200_000, currency: 'EUR' }] });
 

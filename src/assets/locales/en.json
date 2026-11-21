@@ -648,6 +648,8 @@
             "byName": "Add “{name}” by name",
             "byNameHint": "They don't need the app.",
             "empty": "Type the name of somebody to add.",
+            "found": "{count, plural, one {# person found} other {# people found}}",
+            "nobody": "Nobody found",
             "added": "{name} added.",
             "close": "Close"
         },

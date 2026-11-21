@@ -5,6 +5,7 @@ import * as v from 'valibot';
 import { Button } from '@/components/button/button';
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { Field } from '@/components/field/field';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { useOnline } from '@/lib/offline';
@@ -57,7 +58,7 @@ const SettingsView = (props: SettingsViewProps) => {
     return (
         <section className="group-settings">
             <ScreenTitle className="group-settings__title">{t('edit.title', { name: words.title })}</ScreenTitle>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
             {open && group.kind === 'group' && isOwner(group) && (
                 <section className="group-settings__part">
                     <h2>{t('edit.forGroup')}</h2>

@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { YOUR_DATA_ID } from '@/features/export/your-data';
 import { ApiError, deleteAccount } from '@/lib/api';
@@ -97,7 +98,7 @@ const DeleteAccount = () => {
 
     return (
         <>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
             <Button block variant="danger" disabled={!online} onClick={start}>
                 {t('open')}
             </Button>
@@ -125,7 +126,7 @@ const DeleteAccount = () => {
                         )}
                     </Field>
                 </div>
-                {!online && <Notice role="status">{t('offline')}</Notice>}
+                <LiveNotice>{!online && t('offline')}</LiveNotice>
                 {(phase === 'failed' || phase === 'wrong-email') && (
                     <Notice tone="danger" role="alert">
                         {phase === 'failed' ? t('failed') : t('wrongEmail')}

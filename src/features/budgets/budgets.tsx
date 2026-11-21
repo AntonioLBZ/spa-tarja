@@ -5,6 +5,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
 import { MonthSwitch } from '@/components/month-switch/month-switch';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { CategoryBadge } from '@/features/categories/category-badge';
@@ -119,7 +120,7 @@ const Budgets = () => {
                     {t('loadFailed')}
                 </p>
             )}
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
 
             <form className="budgets__form" onSubmit={(event) => void handleSubmit(event)}>
                 {scopes.map((scope) => {

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
-import { Notice } from '@/components/notice/notice';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
@@ -75,12 +75,8 @@ const YourData = () => {
                 {t('title')}
             </h2>
             <p className="hint">{t('description')}</p>
-            {loading && <Notice role="status">{t('loading')}</Notice>}
-            {!loading && missing && (
-                <Notice tone="danger" role="status">
-                    {t('missing')}
-                </Notice>
-            )}
+            <LiveNotice>{loading && t('loading')}</LiveNotice>
+            <LiveNotice tone="danger">{!loading && missing && t('missing')}</LiveNotice>
             <div className="your-data__actions">
                 <Button block disabled={loading} onClick={downloadJson}>
                     {t('json')}

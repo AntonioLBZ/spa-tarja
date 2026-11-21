@@ -648,6 +648,8 @@
             "byName": "Añadir a «{name}» por su nombre",
             "byNameHint": "No necesita la app.",
             "empty": "Escribe el nombre de alguien para añadirlo.",
+            "found": "{count, plural, one {# persona encontrada} other {# personas encontradas}}",
+            "nobody": "No se ha encontrado a nadie",
             "added": "Se ha añadido a {name}.",
             "close": "Cerrar"
         },

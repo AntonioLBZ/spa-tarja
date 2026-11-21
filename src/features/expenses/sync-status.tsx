@@ -2,6 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { useOnline, useOutbox } from '@/lib/offline';
 
@@ -13,12 +14,10 @@ const SyncStatus = () => {
     const { pending, rejected } = useSyncExternalStore(outbox.subscribe, outbox.getState);
     const online = useOnline();
 
-    if (online && pending.length === 0 && rejected.length === 0) return null;
-
     return (
         <div className="sync-status">
-            {!online && <Notice tone="quiet">{t('offline')}</Notice>}
-            {pending.length > 0 && <Notice tone="quiet">{t('pending', { count: pending.length })}</Notice>}
+            <LiveNotice tone="quiet">{!online && t('offline')}</LiveNotice>
+            <LiveNotice tone="quiet">{pending.length > 0 && t('pending', { count: pending.length })}</LiveNotice>
             {rejected.length > 0 && (
                 <div className="sync-status__rejected">
                     <Notice tone="danger" role="alert" className="sync-status__message">

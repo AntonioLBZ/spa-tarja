@@ -4,6 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Field } from '@/components/field/field';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { useLocale } from '@/lib/i18n';
 
@@ -74,7 +75,7 @@ const InvitationLink = (props: InvitationLinkProps) => {
                     {t('revoke')}
                 </Button>
             </Actions>
-            {sent === 'copied' && <Notice role="status">{t('copied')}</Notice>}
+            <LiveNotice>{sent === 'copied' && t('copied')}</LiveNotice>
             {sent === 'failed' && (
                 <Notice tone="danger" role="alert">
                     {t('sendFailed')}

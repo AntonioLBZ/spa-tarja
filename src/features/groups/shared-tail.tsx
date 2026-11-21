@@ -5,6 +5,7 @@ import { Button } from '@/components/button/button';
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Field, FieldBox } from '@/components/field/field';
+import { SpokenHint } from '@/components/field/spoken-hint';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
@@ -600,13 +601,14 @@ const SharedPeople = (props: SharedPeopleProps) => {
                         : t('unassigned', { amount: money(problem.left) })}
                 </Notice>
             )}
-            {problem?.kind === 'left' && problem.left > 0 && !tried && (
-                <p className="field__hint" role="status">
-                    {byPercent
+            <SpokenHint>
+                {problem?.kind === 'left' &&
+                    problem.left > 0 &&
+                    !tried &&
+                    (byPercent
                         ? t('percentLeft', { percent: percent(problem.left) })
-                        : t('unassigned', { amount: money(problem.left) })}
-                </p>
-            )}
+                        : t('unassigned', { amount: money(problem.left) }))}
+            </SpokenHint>
             {problem?.kind === 'left' && problem.left < 0 && (
                 <Notice tone="danger" role="alert" id={`${id}-left`}>
                     {byPercent

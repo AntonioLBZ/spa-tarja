@@ -806,7 +806,12 @@ describe('installments', () => {
 
         fireEvent.change(partField(3, 3, DAYS[2]!), { target: { value: '4' } });
 
-        expect(screen.getByText(t('expenses.form.remaining', { amount: '€1.00' })).getAttribute('role')).toBe('status');
+        const hint = screen.getByText(t('expenses.form.remaining', { amount: '€1.00' }), { selector: 'p' });
+        expect(hint.classList.contains('field__hint')).toBe(true);
+        const spoken = document.querySelector('dialog [role="status"].visually-hidden')!;
+        await waitFor(() => expect(spoken.textContent).toBe(t('expenses.form.remaining', { amount: '€1.00' })), {
+            timeout: 2_000,
+        });
         expect(submit().disabled).toBe(false);
         fireEvent.click(submit());
         await new Promise((resolve) => setTimeout(resolve, 20));
@@ -2952,13 +2957,16 @@ describe('searching, filtering and grouping the list', () => {
             .closest('section')
             ?.querySelector('.expense-list__subtotal')?.textContent;
     const statusRegion = () => document.querySelector<HTMLElement>('.expense-list-controls__status [role="status"]')!;
+    const statusLine = () => document.querySelector<HTMLElement>('.expense-list-controls__status')!;
     const clear = () => {
         closeFilters();
         fireEvent.click(screen.getByRole('button', { name: f.clear }));
     };
     const showing = (shownCount: number, total: number) =>
-        within(statusRegion()).queryByText(t('expenses.filters.showing', { shown: shownCount, total }));
-    const noMatch = () => within(statusRegion()).queryByText(en.expenses.list.noMatch);
+        within(statusLine()).queryByText(t('expenses.filters.showing', { shown: shownCount, total }), {
+            selector: 'p',
+        });
+    const noMatch = () => within(statusLine()).queryByText(en.expenses.list.noMatch, { selector: 'p' });
 
     beforeEach(() => localStorage.clear());
 
@@ -3028,7 +3036,9 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(filtersToggle(1).querySelector('.button__badge')!.textContent).toBe('1');
             expect(
-                within(filtersSheet()).getByText(t('expenses.filters.showing', { shown: 1, total: 4 }))
+                within(filtersSheet()).getByText(t('expenses.filters.showing', { shown: 1, total: 4 }), {
+                    selector: 'p',
+                })
             ).toBeDefined();
         });
 
@@ -3185,7 +3195,7 @@ describe('searching, filtering and grouping the list', () => {
             search('shop');
 
             expect(showing(1, 4)).not.toBeNull();
-            expect(showing(1, 4)!.closest('[role="status"]')).toBe(statusRegion());
+            expect(showing(1, 4)!.closest('[aria-hidden="true"]')).not.toBeNull();
 
             clear();
 
@@ -3977,7 +3987,12 @@ describe('searching, filtering and grouping the list', () => {
             search('shop');
 
             expect(statusRegion()).toBe(region);
-            expect(region.textContent).toContain(t('expenses.filters.showing', { shown: 1, total: 4 }));
+            await waitFor(
+                () => expect(region.textContent).toBe(t('expenses.filters.showing', { shown: 1, total: 4 })),
+                {
+                    timeout: 2_000,
+                }
+            );
 
             clear();
 
@@ -3985,14 +4000,33 @@ describe('searching, filtering and grouping the list', () => {
             expect(region.textContent).toBe('');
         });
 
+        it('reads the count out only once the typing pauses, though it shows at once', async () => {
+            await open(list);
+            const region = statusRegion();
+
+            search('s');
+            search('sh');
+            search('shop');
+
+            expect(showing(1, 4)).not.toBeNull();
+            expect(region.textContent).toBe('');
+            await waitFor(
+                () => expect(region.textContent).toBe(t('expenses.filters.showing', { shown: 1, total: 4 })),
+                {
+                    timeout: 2_000,
+                }
+            );
+        });
+
         it('keeps the empty status region out of the layout of the controls', async () => {
             await open(list);
 
-            expect(statusRegion()!.parentElement!.className).toContain('expense-list-controls__status--idle');
+            const line = () => statusRegion().closest('.expense-list-controls__status')!;
+            expect(line().className).toContain('expense-list-controls__status--idle');
 
             search('shop');
 
-            expect(statusRegion()!.parentElement!.className).not.toContain('expense-list-controls__status--idle');
+            expect(line().className).not.toContain('expense-list-controls__status--idle');
         });
     });
 

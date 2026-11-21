@@ -6,6 +6,7 @@ import * as v from 'valibot';
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { profileQuery } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -99,7 +100,7 @@ const NicknamePrompt = () => {
                     )}
                 </Field>
             </form>
-            {!online && <Notice role="status">{t('offline')}</Notice>}
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
             {problem === 'failed' && (
                 <Notice tone="danger" role="alert">
                     {t('failed')}

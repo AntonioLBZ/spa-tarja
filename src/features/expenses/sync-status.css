@@ -1,6 +1,11 @@
+/* Its notices come and go in regions that stay in the page; with nothing to show it leaves no room of its own */
 .sync-status {
     display: grid;
     gap: var(--size-2);
+}
+
+.sync-status:not(:has(.notice, .sync-status__rejected)) {
+    position: absolute;
 }
 
 .sync-status__rejected {

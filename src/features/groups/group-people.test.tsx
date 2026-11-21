@@ -550,6 +550,47 @@ describe('adding a friend', () => {
         return screen.queryByRole('combobox', { name: t('groups.people.placeOf', { name: 'Eva' }) });
     }
 
+    describe('what the search says while the person types', () => {
+        const status = () => document.querySelector('.person-search [role="status"]')!;
+
+        it('says how many friends match, once the typing pauses, and nothing before anything is typed', async () => {
+            await editWith(sampleGroup({ members: [ana, bea], me: ana.id }), [friendOf('Eva'), friendOf('Evelyn')]);
+            expect(status().textContent).toBe('');
+
+            search('ev');
+            expect(status().textContent).toBe('');
+
+            await waitFor(() => expect(status().textContent).toBe(t('groups.search.found', { count: 2 })), {
+                timeout: 2_000,
+            });
+        });
+
+        it('says one person, and then nobody, as the typing goes on', async () => {
+            await editWith(sampleGroup({ members: [ana, bea], me: ana.id }), [friendOf('Eva'), friendOf('Evelyn')]);
+
+            search('evel');
+            await waitFor(() => expect(status().textContent).toBe(t('groups.search.found', { count: 1 })), {
+                timeout: 2_000,
+            });
+
+            search('evelx');
+            await waitFor(() => expect(status().textContent).toBe(t('groups.search.nobody')), { timeout: 2_000 });
+        });
+
+        it('leaves the words of a person who was just added alone', async () => {
+            await editWith(sampleGroup({ members: [ana, bea], me: ana.id }), [friendOf('Eva')]);
+
+            search('eva');
+            fireEvent.click(
+                within(screen.getByRole('list', { name: en.groups.search.results })).getByRole('button', {
+                    name: 'Eva',
+                })
+            );
+
+            await waitFor(() => expect(status().textContent).toBe(t('groups.search.added', { name: 'Eva' })));
+        });
+    });
+
     it('lists the open friends and adds one as a new member, who has joined', async () => {
         const { members } = await editWith(sampleGroup({ members: [ana, bea], me: ana.id }));
 
