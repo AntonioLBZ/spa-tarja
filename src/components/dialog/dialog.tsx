@@ -51,8 +51,6 @@ const Dialog = (props: DialogProps) => {
         children,
     } = props;
     const ref = useRef<HTMLDialogElement>(null);
-    // The shadows of its edges are drawn only while something scrolls under them
-    useOverflowMark(ref);
     const titleId = useId();
     // Where the press started: one that starts in the box and ends on the veil, as a text selection does, is no tap outside
     const pressedOutside = useRef(false);
@@ -75,6 +73,9 @@ const Dialog = (props: DialogProps) => {
             focusStart(dialog);
         } else if (!open && dialog.open) dialog.close();
     }, [open]);
+
+    // The shadows of its edges are drawn only while something scrolls under them; after it is shown, so it is measured open
+    useOverflowMark(ref, open);
 
     // The veil is the dialog itself as an event target, so a press on it lands outside the box
     const isOutside = (event: { target: EventTarget; clientX: number; clientY: number }) => {

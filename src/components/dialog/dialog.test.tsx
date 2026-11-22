@@ -396,4 +396,38 @@ describe('Dialog while what it holds changes size', () => {
         expect(dialog.hasAttribute('data-overflow')).toBe(true);
         vi.unstubAllGlobals();
     });
+    it('measures nothing while it is closed, and starts once it opens', () => {
+        const observing = vi.fn();
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                observe() {
+                    observing();
+                }
+                disconnect() {}
+            }
+        );
+        const measured = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(1200);
+        vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(800);
+
+        const { rerender } = render(
+            <Dialog open={false} variant="sheet" title="Edit" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+
+        expect(measured).not.toHaveBeenCalled();
+        expect(observing).not.toHaveBeenCalled();
+
+        rerender(
+            <Dialog open variant="sheet" title="Edit" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+
+        expect(measured).toHaveBeenCalled();
+        expect(observing).toHaveBeenCalled();
+        expect(screen.getByRole('dialog').hasAttribute('data-overflow')).toBe(true);
+        vi.unstubAllGlobals();
+    });
 });

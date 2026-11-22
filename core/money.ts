@@ -8,8 +8,25 @@ const MAX_AMOUNT_CENTS = 10 ** (MAX_INTEGER_DIGITS + 2) - 1;
 
 const GROUPED_INTEGER = /^\d{1,3}([.,])\d{3}(\1\d{3})*$/;
 
+// Making a formatter costs far more than using one, and a screen formats hundreds of amounts, so each is made once
+const formatters = new Map<string, Intl.NumberFormat>();
+
+const formatterOf = (locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat => {
+    const key = `${locale} ${JSON.stringify(options)}`;
+    let format = formatters.get(key);
+    if (format === undefined) {
+        format = new Intl.NumberFormat(locale, options);
+        formatters.set(key, format);
+    }
+    return format;
+};
+
 const decimalSeparatorOf = (locale: string): string => {
-    return new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value ?? '.';
+    return (
+        formatterOf(locale, {})
+            .formatToParts(1.1)
+            .find((part) => part.type === 'decimal')?.value ?? '.'
+    );
 };
 
 // Reads what a person types as an amount and returns cents, or null when it isn't a valid one
@@ -46,7 +63,7 @@ const parseAmount = (input: string, locale: string): number | null => {
 
 // Money as the locale writes it. `symbol` draws another symbol in the place of the currency's own, for display only
 const formatAmount = (cents: number, currency: string, locale: string, symbol?: string): string => {
-    const format = new Intl.NumberFormat(locale, { style: 'currency', currency });
+    const format = formatterOf(locale, { style: 'currency', currency });
     if (symbol === undefined) return format.format(cents / 100);
     return format
         .formatToParts(cents / 100)
@@ -56,11 +73,9 @@ const formatAmount = (cents: number, currency: string, locale: string, symbol?: 
 
 // Cents as text for an amount field: what parseAmount reads back, so no grouping and no currency
 const formatAmountInput = (cents: number, locale: string): string => {
-    return new Intl.NumberFormat(locale, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        useGrouping: false,
-    }).format(cents / 100);
+    return formatterOf(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }).format(
+        cents / 100
+    );
 };
 
 export { DEFAULT_CURRENCY, MAX_AMOUNT_CENTS, formatAmount, formatAmountInput, parseAmount };
