@@ -15,10 +15,14 @@ const INSERT_INVITATION = `
     SELECT ?1, ?3, ?2, ?4
     WHERE (SELECT COUNT(*) FROM friend_invitations WHERE created_by = ?3 AND ${PENDING}) < ${MAX_OPEN_INVITATIONS}`;
 
-// The invitations of ?1 that ended before ?2 without being accepted: revoked, declined, or past their end
-const PURGE_ENDED = `
-    DELETE FROM friend_invitations
-    WHERE created_by = ?1 AND accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ?2`;
+// Never accepted, and ended before `cut`: revoked, declined, or past its end
+const endedBefore = (cut: string) => `accepted_at IS NULL AND COALESCE(revoked_at, declined_at, expires_at) < ${cut}`;
+
+// The invitations of ?1 that ended before ?2
+const PURGE_ENDED = `DELETE FROM friend_invitations WHERE created_by = ?1 AND ${endedBefore('?2')}`;
+
+// Everybody's that ended before ?1
+const PURGE_ALL_ENDED = `DELETE FROM friend_invitations WHERE ${endedBefore('?1')}`;
 
 // The rowid breaks a tie of two made in the same millisecond, as it grows with every invitation made
 const LIST_PENDING = `
@@ -148,6 +152,11 @@ const createInvitation = async (
     return (inserted?.meta.changes ?? 0) > 0 ? { id, expiresAt } : null;
 };
 
+// Everybody's invitations that ended long ago without being accepted, as making a link deletes the person's own
+const purgeEndedInvitations = (db: D1Database, at: number): D1PreparedStatement => {
+    return db.prepare(PURGE_ALL_ENDED).bind(at - ENDED_INVITATION_DAYS * DAY);
+};
+
 // The invitations of the person that can still be used, newest first
 const listPendingInvitations = async (
     db: D1Database,
@@ -173,6 +182,7 @@ export {
     createInvitation,
     declineInvitation,
     listPendingInvitations,
+    purgeEndedInvitations,
     readInvitation,
     revokeInvitation,
     type InvitationState,
