@@ -33,10 +33,6 @@ The search of the list also finds amounts: a plain number (`12,30` or `12.30`, i
 
 A line in the Summary that compares the month so far with the same days of the month before ("15 % more than October at this point"). The charts already compare spans (`comparison`, `previousRange`): reuse it.
 
-## 24. Budgets warn earlier
-
-A limit also warns when it reaches 80 % of it, not only when it is passed. It still only warns ([ADR-0009](docs/adr/0009-budgets-only-warn.md)).
-
 ## 25. Frequent expenses (analysis, likely dropped)
 
 When the "+" opens, offer the 3 or 4 texts the person types most, to fill the form in one press. Not recurring expenses ([ADR-0010](docs/adr/0010-edit-duplicate-and-delete-expenses.md)). Analyse whether it earns its place in the form; the owner will probably drop it.
@@ -67,6 +63,10 @@ After the accessibility audit now under way is done, run Lighthouse (the CLI thr
 - **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and hand it to Lighthouse as a `Cookie` header (`--extra-headers`). Google is never involved, and the owner's own session is never used.
 - **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (the same seed can serve item 29).
 - **The screens**: Expenses (and a pinned tab), Groups, a group, `/groups/new`, Summary, Charts, Budgets, Settings and its pages, the join page, and the sign-in screen without the cookie. Light and dark theme, phone and desktop widths.
+
+## 31. Review the look of "Filters" and add it to a group's screen
+
+Go over the visual design of the filters sheet of the expense list ([ADR-0024](docs/adr/0024-the-list-filters-open-in-a-sheet.md)) with the owner. Then offer the same filters on the screen of a group, for its ledger. Decide first what a group can be filtered by (who paid, who is in it, category, range, settlements) and update `docs/specs/expense-list.md` and `docs/specs/groups.md` before building.
 
 ## 18. More locales
 
