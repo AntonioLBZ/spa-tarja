@@ -13,10 +13,6 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - **Stories of the groups.** None yet for Settle up, the Leave and Delete panels, the steps of a person, `InvitationLink` or `InviteFriend`; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
-## 19. A daily clean-up on the server
-
-A Cron Trigger of the Worker (free tier), once a day: delete the invitations that expired, the push subscriptions a push service answered `404` or `410`, and the sessions of Better Auth that ended. Soft-deleted expenses and entries stay: the `seq` cursor needs them. Each environment gets its own trigger; the privacy notice changes if what is kept changes.
-
 ## 20. Performance
 
 Measure before changing anything: the size of the bundle per route, and the LCP and INP on a slow phone (a build, `pnpm preview`, throttled). Then check that the charts, the groups and the settings pages load lazily and stay out of the first paint, and that the persisted cache doesn't hold back the first screen.
