@@ -63,7 +63,7 @@ describe('pulling changes', () => {
         api.serverWrite(expense('c'));
         const state = await sync();
 
-        expect(api.requests.at(-1)).toBe('GET /api/expenses?after=2');
+        expect(api.requests.at(-1)).toBe('GET /api/expenses?after=2&limit=500');
         expect(state.expenses.map((item) => [item.id, item.text, item.deletedAt])).toEqual([
             ['a', 'edited', null],
             ['b', 'b', 3],
@@ -267,7 +267,7 @@ describe('pushing the outbox', () => {
 
         await sync();
 
-        expect(api.requests.at(-1)).toBe('GET /api/expenses?after=0');
+        expect(api.requests.at(-1)).toBe('GET /api/expenses?after=0&limit=500');
         const ids = cached()?.expenses.map((item) => item.id) ?? [];
         expect(ids.toSorted()).toEqual(['sent', 'stored']);
     });

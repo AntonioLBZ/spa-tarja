@@ -273,7 +273,7 @@ describe('delete account', () => {
         void app.queryClient.invalidateQueries({ queryKey: EXPENSES_KEY });
         void syncEntries();
         await waitFor(() => {
-            expect(api.requests).toContain('GET /api/expenses?after=0');
+            expect(api.requests).toContain('GET /api/expenses?after=0&limit=500');
             expect(api.requests).toContain(`GET /api/groups/${entry.groupId}/entries?after=0`);
         });
 

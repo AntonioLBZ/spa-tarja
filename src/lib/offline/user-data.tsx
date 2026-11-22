@@ -1,5 +1,5 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { createContext, use, useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, use, useEffect, useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 
 import { bindApiUser } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
@@ -60,6 +60,17 @@ const UserDataProvider = (props: UserDataProviderProps) => {
         };
     });
 
+    // The copy of the cache waiting to be written is written as the page is hidden, which is all a phone says before it
+    // closes the app
+    useEffect(() => {
+        const { persister } = data.persistOptions;
+        const flushWhenHidden = () => {
+            if (document.visibilityState === 'hidden') void persister.flush().catch(() => undefined);
+        };
+        document.addEventListener('visibilitychange', flushWhenHidden);
+        return () => document.removeEventListener('visibilitychange', flushWhenHidden);
+    }, [data]);
+
     // Every call says it is for this user, and what this window had waiting to be sent stops with it
     useLayoutEffect(() => {
         const unbind = bindApiUser(user.id);
@@ -69,7 +80,10 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             unbind();
             data.outbox.pause();
             data.groupOutbox.pause();
-            if (getState().status !== 'signed-out') return;
+            if (getState().status !== 'signed-out') {
+                void data.persistOptions.persister.flush().catch(() => undefined);
+                return;
+            }
             // Whatever is waiting to be sent, this device stops getting the notifications of who signed out
             void forgetPushInBrowser().catch(() => undefined);
             void data.discardWhenIdle().catch(() => undefined);
