@@ -38,8 +38,11 @@ const UserDataProvider = (props: UserDataProviderProps) => {
     const { check, getState } = useAuth();
     const [data] = useState(() => {
         const mine = createUserStorage(storage, user.id);
-        const outbox = createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY);
-        const groupOutbox = createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY);
+        const persistOptions = createPersistOptions(mine.storage);
+        // What the server kept is written to the cache on the device before the outbox lets go of the write
+        const flushCache = () => persistOptions.persister.flush();
+        const outbox = createOutbox<Expense>(mine.storage, OUTBOX_STORAGE_KEY, flushCache);
+        const groupOutbox = createOutbox<PendingEntry>(mine.storage, GROUP_OUTBOX_STORAGE_KEY, flushCache);
         // Nothing waits in this window, nor on the device: another window may have saved a write since this one opened
         const discardWhenIdle = async () => {
             await Promise.all([outbox.ready, groupOutbox.ready]);
@@ -54,21 +57,26 @@ const UserDataProvider = (props: UserDataProviderProps) => {
             outbox,
             groupOutbox,
             queryClient: createQueryClient({ onUnauthorized: check }),
-            persistOptions: createPersistOptions(mine.storage),
+            persistOptions,
             userData: { discard: mine.discard, homeTab: createHomeTab(user.id) },
             discardWhenIdle,
         };
     });
 
-    // The copy of the cache waiting to be written is written as the page is hidden, which is all a phone says before it
-    // closes the app
+    // The copy of the cache waiting to be written is written as the page is hidden or left, which is all a phone says
+    // before it closes the app
     useEffect(() => {
         const { persister } = data.persistOptions;
+        const flush = () => void persister.flush().catch(() => undefined);
         const flushWhenHidden = () => {
-            if (document.visibilityState === 'hidden') void persister.flush().catch(() => undefined);
+            if (document.visibilityState === 'hidden') flush();
         };
         document.addEventListener('visibilitychange', flushWhenHidden);
-        return () => document.removeEventListener('visibilitychange', flushWhenHidden);
+        window.addEventListener('pagehide', flush);
+        return () => {
+            document.removeEventListener('visibilitychange', flushWhenHidden);
+            window.removeEventListener('pagehide', flush);
+        };
     }, [data]);
 
     // Every call says it is for this user, and what this window had waiting to be sent stops with it

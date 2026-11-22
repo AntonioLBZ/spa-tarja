@@ -28,20 +28,26 @@ const createPersister = (storage: KeyValueStorage, every = PERSIST_EVERY_MS): Th
         if (client) await storage.set(QUERY_CACHE_STORAGE_KEY, client);
     };
 
+    const writeNow = () => {
+        if (timer !== null) clearTimeout(timer);
+        return write().catch(() => undefined);
+    };
+
     return {
-        // The first change is written at once; those that follow within the time are written together at its end
+        // The first change is written at once; those that follow within the time are written together at its end. A
+        // hidden page may be frozen before a timer fires, so there every change is written at once.
         persistClient: (client: PersistedClient) => {
             latest = client;
+            if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return writeNow();
             if (timer !== null) return;
-            const wait = lastWrite + every - Date.now();
-            if (wait <= 0) return write();
-            timer = setTimeout(() => void write().catch(() => undefined), wait);
+            const wait = Math.min(lastWrite + every - Date.now(), every);
+            if (wait <= 0) return writeNow();
+            timer = setTimeout(() => void writeNow(), wait);
         },
         restoreClient: () => storage.get<PersistedClient>(QUERY_CACHE_STORAGE_KEY),
         flush: async () => {
             if (timer === null) return;
-            clearTimeout(timer);
-            await write();
+            await writeNow();
         },
         removeClient: () => {
             if (timer !== null) clearTimeout(timer);

@@ -16,6 +16,7 @@ import { createUserStorage } from './user-storage';
 
 import type { AuthUser } from '@/lib/auth';
 import type { Expense } from '@core/expense';
+import type { PersistedClient } from '@tanstack/react-query-persist-client';
 
 const BEA: AuthUser = { id: 'user-bea', name: 'Bea Ruiz', email: 'bea@example.com' };
 
@@ -442,5 +443,50 @@ describe('opening the app', () => {
             expect(asked).toEqual(expect.arrayContaining(['GET /api/expenses', `GET /api/groups/${group.id}/entries`]))
         );
         release();
+    });
+});
+
+describe('the copy of the cache', () => {
+    const cursorOnDisk = async (storage: ReturnType<typeof createMemoryStorage>) => {
+        const copy = await storage.get<PersistedClient>(`tarja:query-cache:${TEST_USER.id}`);
+        const query = copy?.clientState.queries.find((candidate) => candidate.queryKey[0] === EXPENSES_KEY[0]);
+        return (query?.state.data as { cursor: number } | undefined)?.cursor;
+    };
+
+    async function openAndChange() {
+        stubApi(createFakeApi().handler);
+        const storage = createMemoryStorage();
+        const app = renderApp({ storage });
+        await waitFor(async () => expect(await cursorOnDisk(storage)).toBe(0), { timeout: 3000 });
+        app.queryClient.setQueryData(EXPENSES_KEY, { expenses: [], cursor: 41 });
+        app.queryClient.setQueryData(EXPENSES_KEY, { expenses: [], cursor: 42 });
+        return { app, storage };
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('is written at once as the page is hidden', async () => {
+        const { storage } = await openAndChange();
+
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+        document.dispatchEvent(new Event('visibilitychange'));
+
+        await waitFor(async () => expect(await cursorOnDisk(storage)).toBe(42), { timeout: 200 });
+    });
+
+    it('is written at once as the page is left', async () => {
+        const { storage } = await openAndChange();
+
+        window.dispatchEvent(new Event('pagehide'));
+
+        await waitFor(async () => expect(await cursorOnDisk(storage)).toBe(42), { timeout: 200 });
+    });
+
+    it('is written at once when the app goes away with the person still signed in', async () => {
+        const { app, storage } = await openAndChange();
+
+        app.unmount();
+
+        await waitFor(async () => expect(await cursorOnDisk(storage)).toBe(42), { timeout: 200 });
     });
 });

@@ -86,6 +86,32 @@ describe('outbox', () => {
         expect(reloaded.getState().pending).toEqual([expense('a')]);
     });
 
+    it('lets a settled expense go only once what runs before it is done, and still if that fails', async () => {
+        const storage = createMemoryStorage();
+        const steps: string[] = [];
+        const set = storage.set.bind(storage);
+        vi.spyOn(storage, 'set').mockImplementation(async (key, value) => {
+            steps.push(`write ${key}`);
+            await set(key, value);
+        });
+        let fail = false;
+        const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY, async () => {
+            steps.push('before');
+            if (fail) throw new Error('quota');
+        });
+        await outbox.ready;
+        await outbox.put(expense('a'));
+        await outbox.put(expense('b'));
+        steps.length = 0;
+
+        await outbox.settle(expense('a'));
+        fail = true;
+        await outbox.settle(expense('b'));
+
+        expect(steps).toEqual(['before', `write ${OUTBOX_STORAGE_KEY}`, 'before', `write ${OUTBOX_STORAGE_KEY}`]);
+        expect(outbox.getState().pending).toEqual([]);
+    });
+
     it('drops a settled expense', async () => {
         const { outbox, storage } = await openOutbox();
         const sent = expense('a');

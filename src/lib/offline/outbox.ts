@@ -49,7 +49,13 @@ interface Outbox<T extends OutboxItem> {
     isPaused: () => boolean;
 }
 
-const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: string): Outbox<T> => {
+// `beforeSettle` runs before a write the server confirmed leaves: what the server kept, already in the cache, is then on
+// the device first, so the write never blinks out of a device that closes at that moment
+const createOutbox = <T extends OutboxItem>(
+    storage: KeyValueStorage,
+    key: string,
+    beforeSettle?: () => Promise<void>
+): Outbox<T> => {
     let state: OutboxState<T> = { pending: [], rejected: [] };
     const listeners = new Set<() => void>();
     let paused = false;
@@ -104,7 +110,10 @@ const createOutbox = <T extends OutboxItem>(storage: KeyValueStorage, key: strin
             items.length === 0
                 ? Promise.resolve()
                 : run(() => save({ ...state, pending: items.reduce<T[]>(upsertById, [...state.pending]) })),
-        settle: (sent) => forget(sent, null),
+        settle: async (sent) => {
+            await beforeSettle?.().catch(() => undefined);
+            await forget(sent, null);
+        },
         reject: (sent, code) => forget(sent, { item: sent, code }),
         dismissRejected: () => commit({ ...state, rejected: [] }),
         dismissRejection: (rejection) =>

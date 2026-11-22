@@ -45,7 +45,7 @@ After the accessibility audit now under way is done, run Lighthouse (the CLI thr
 
 - **On localhost, never production**: `pnpm build`, then `pnpm preview`, against the local D1. The preview sends nothing compressed, so put a small proxy in front of it that compresses with brotli as Cloudflare does, or every number comes out too slow.
 - **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and add it to every request (`--extra-headers` is not enough: once the app has a cookie of its own, the browser stops sending the injected one, so the same proxy adds it). Google is never involved, and the owner's own session is never used.
-- **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (a heavy account was seeded once already, through the API of the preview: "Performance" in `docs/specs/frontend.md`).
+- **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (it was done once already for item 29: two kinds of user made straight in the local D1 with their sessions, then filled through the API of the preview, as the app would).
 - **The screens**: Expenses (and a pinned tab), Groups, a group, `/groups/new`, Summary, Charts, Budgets, Settings and its pages, the join page, and the sign-in screen without the cookie. Light and dark theme, phone and desktop widths.
 
 ## 31. Review the look of "Filters" and add it to a group's screen

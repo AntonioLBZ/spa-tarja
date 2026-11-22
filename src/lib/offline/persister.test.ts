@@ -120,7 +120,10 @@ describe('createPersister', () => {
         return { storage, set, persister: createPersister(storage) };
     };
 
-    afterEach(() => vi.useRealTimers());
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
 
     it('writes the first change at once and the ones that follow within a second together, the latest of them', async () => {
         vi.useFakeTimers();
@@ -160,6 +163,29 @@ describe('createPersister', () => {
         expect(set).toHaveBeenCalledTimes(2);
         expect((await storage.get<{ timestamp: number }>(QUERY_CACHE_STORAGE_KEY))?.timestamp).toBe(2);
         await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits no more than the time when the clock goes back', async () => {
+        vi.useFakeTimers();
+        const { set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        vi.setSystemTime(Date.now() - 3_600_000);
+        await persister.persistClient(copy(2));
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('writes every change at once while the page is hidden', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+        const { set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        await persister.persistClient(copy(2));
+
         expect(set).toHaveBeenCalledTimes(2);
     });
 
