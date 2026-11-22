@@ -17,10 +17,6 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 
 An optional free text on an expense. Analyse before building: where it shows (list row, detail, search), whether shared entries get one too (today their text is empty for settlements), what the export carries, and the length limit. The migration only adds a column.
 
-## 22. Search by amount
-
-The search of the list also finds amounts: a plain number (`12,30` or `12.30`, in the locale's format) matches that amount, and `>50` / `<10` match above or below. Decide whether it reads the whole amount or your part, as the list shows it.
-
 ## 23. Compare months in the Summary
 
 A line in the Summary that compares the month so far with the same days of the month before ("15 % more than October at this point"). The charts already compare spans (`comparison`, `previousRange`): reuse it.
