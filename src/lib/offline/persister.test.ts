@@ -1,6 +1,6 @@
 import { QueryClient, dehydrate } from '@tanstack/react-query';
 import { persistQueryClientRestore } from '@tanstack/react-query-persist-client';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
     BUDGETS_KEY,
@@ -15,7 +15,13 @@ import {
 } from '@/lib/api';
 import { createMemoryStorage } from '@/lib/test/memory-storage';
 
-import { PERSIST_BUSTER, createPersistOptions, createPersister } from './persister';
+import {
+    PERSIST_BUSTER,
+    PERSIST_EVERY_MS,
+    QUERY_CACHE_STORAGE_KEY,
+    createPersistOptions,
+    createPersister,
+} from './persister';
 
 const state = { expenses: [], cursor: 7 };
 
@@ -99,5 +105,99 @@ describe('createPersistOptions', () => {
         await persistQueryClientRestore({ queryClient, ...createPersistOptions(storage) });
 
         expect(queryClient.getQueryData(EXPENSES_KEY)).toBeUndefined();
+    });
+});
+
+describe('createPersister', () => {
+    const copy = (cursor: number) => {
+        const source = new QueryClient();
+        source.setQueryData(EXPENSES_KEY, { expenses: [], cursor });
+        return { timestamp: cursor, buster: PERSIST_BUSTER, clientState: dehydrate(source) };
+    };
+    const writer = () => {
+        const storage = createMemoryStorage();
+        const set = vi.spyOn(storage, 'set');
+        return { storage, set, persister: createPersister(storage) };
+    };
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+    });
+
+    it('writes the first change at once and the ones that follow within a second together, the latest of them', async () => {
+        vi.useFakeTimers();
+        const { storage, set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        await persister.persistClient(copy(2));
+        await persister.persistClient(copy(3));
+
+        expect(set).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+        expect(set).toHaveBeenCalledTimes(2);
+        expect((await storage.get<{ timestamp: number }>(QUERY_CACHE_STORAGE_KEY))?.timestamp).toBe(3);
+    });
+
+    it('writes at once again once a second has gone by with no change', async () => {
+        vi.useFakeTimers();
+        const { set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+        await persister.persistClient(copy(2));
+
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('writes the copy waiting at once when told to flush, and nothing when none waits', async () => {
+        vi.useFakeTimers();
+        const { storage, set, persister } = writer();
+
+        await persister.flush();
+        expect(set).not.toHaveBeenCalled();
+        await persister.persistClient(copy(1));
+        await persister.persistClient(copy(2));
+        await persister.flush();
+
+        expect(set).toHaveBeenCalledTimes(2);
+        expect((await storage.get<{ timestamp: number }>(QUERY_CACHE_STORAGE_KEY))?.timestamp).toBe(2);
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits no more than the time when the clock goes back', async () => {
+        vi.useFakeTimers();
+        const { set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        vi.setSystemTime(Date.now() - 3_600_000);
+        await persister.persistClient(copy(2));
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('writes every change at once while the page is hidden', async () => {
+        vi.useFakeTimers();
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+        const { set, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        await persister.persistClient(copy(2));
+
+        expect(set).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops a write still waiting when the copy is removed, so it never comes back', async () => {
+        vi.useFakeTimers();
+        const { storage, persister } = writer();
+
+        await persister.persistClient(copy(1));
+        await persister.persistClient(copy(2));
+        await persister.removeClient();
+        await vi.advanceTimersByTimeAsync(PERSIST_EVERY_MS);
+
+        expect(await storage.get(QUERY_CACHE_STORAGE_KEY)).toBeUndefined();
     });
 });

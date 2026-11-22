@@ -17,8 +17,13 @@ interface Changes {
 
 const EXPENSES_KEY = ['expenses'] as const;
 
+// The most the server answers in a page: a device that starts empty pulls years of expenses in a few requests
+const EXPENSES_PAGE_SIZE = 500;
+
 const fetchChanges = async (after: number): Promise<Changes> => {
-    const response = await api.api.expenses.$get({ query: { after: String(after) } });
+    const response = await api.api.expenses.$get({
+        query: { after: String(after), limit: String(EXPENSES_PAGE_SIZE) },
+    });
     if (!response.ok) throw new ApiError(response.status);
     return response.json();
 };

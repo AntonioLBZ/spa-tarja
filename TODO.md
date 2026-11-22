@@ -39,17 +39,13 @@ In the balances of a group, a "Remind" on a debt you are owed sends a Web Push t
 
 Go over what a new person sees on every screen: no expenses, no groups, no friends, no budget, no income. Each empty screen says what it is for and offers the one action that fills it.
 
-## 29. Performance with many people and a lot of data
-
-Fill a local D1 with a heavy account: many friends, many groups with many members (users and dummies), thousands of shared entries and years of personal expenses. Then measure the first load, the sync from an empty device (the pages of `seq`), the watcher's `GET /groups`, the balances and simplified debts of a big group, the list with its search and filters, the charts over a long range, and the size of the persisted cache and of the outbox. Also check the Worker's answers against the limits of the free tier (CPU time, D1 rows read). The first sync pulls the expenses and the entries of each group 200 at a time, one page after another; asking for 500 (the most the server gives) would save round trips on a fresh device.
-
 ## 30. A Lighthouse pass on every screen
 
 After the accessibility audit now under way is done, run Lighthouse (the CLI through `pnpm dlx`, never a dependency) on every screen, signed in, and fix what it finds: accessibility first, then best practices and performance (the first load, a visit with the app installed and the interactions were measured once already: "Performance" in `docs/specs/frontend.md`).
 
 - **On localhost, never production**: `pnpm build`, then `pnpm preview`, against the local D1. The preview sends nothing compressed, so put a small proxy in front of it that compresses with brotli as Cloudflare does, or every number comes out too slow.
 - **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and add it to every request (`--extra-headers` is not enough: once the app has a cookie of its own, the browser stops sending the injected one, so the same proxy adds it). Google is never involved, and the owner's own session is never used.
-- **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (the same seed can serve item 29).
+- **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (it was done once already for item 29: two kinds of user made straight in the local D1 with their sessions, then filled through the API of the preview, as the app would).
 - **The screens**: Expenses (and a pinned tab), Groups, a group, `/groups/new`, Summary, Charts, Budgets, Settings and its pages, the join page, and the sign-in screen without the cookie. Light and dark theme, phone and desktop widths.
 
 ## 31. Review the look of "Filters" and add it to a group's screen
