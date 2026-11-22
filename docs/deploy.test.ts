@@ -12,8 +12,10 @@ interface D1Binding {
 
 interface WranglerConfig {
     d1_databases: D1Binding[];
+    triggers?: { crons?: string[] };
     env?: {
         prerelease?: {
+            triggers?: { crons?: string[] };
             workers_dev?: boolean;
             routes?: unknown[];
             d1_databases?: D1Binding[];
@@ -81,6 +83,14 @@ describe('the prerelease environment', () => {
 
         expect(prerelease?.workers_dev).toBe(false);
         expect(prerelease?.routes).toEqual([{ pattern: 'tarja-prerelease.albz.app', custom_domain: true }]);
+    });
+});
+
+describe('the daily clean-up', () => {
+    it('runs once a day in production and in the prerelease', () => {
+        const config = wrangler();
+        expect(config.triggers?.crons).toEqual(['0 4 * * *']);
+        expect(config.env?.prerelease?.triggers?.crons).toEqual(['0 4 * * *']);
     });
 });
 

@@ -6,7 +6,7 @@ import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/invitation';
 import { app } from '@server/app';
 import { dailyCleanup } from '@server/cleanup';
 import worker from '@server/index';
-import { makeGroup } from '@server/test/groups';
+import { makeGroup, seedEntry } from '@server/test/groups';
 import { ORIGIN, signIn, signInAgain, type TestSession } from '@server/test/session';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -125,6 +125,32 @@ describe('the daily clean-up', () => {
 
         expect(counts.invitations).toBe(gone.length);
         expect(await invitationIds()).toEqual(kept.sort());
+    });
+
+    it('never deletes an expense, an entry or a push subscription, however old or deleted', async () => {
+        const group = await makeGroup(ana, ['Bruno']);
+        const [me, bruno] = group.members.map((member) => member.id) as [string, string];
+        await seedEntry(group.id, { paidBy: me, shares: { [me]: 500, [bruno]: 500 }, deletedAt: 1 });
+        await env.DB.prepare(
+            `INSERT INTO expenses (id, user_id, category_id, text, amount_cents, currency, date, created_at, updated_at,
+                deleted_at, seq)
+             VALUES (?1, ?2, 'food', 'Bread', 120, 'EUR', '2020-01-01', 1, 1, 1, 1)`
+        )
+            .bind(crypto.randomUUID(), ana.userId)
+            .run();
+        await env.DB.prepare(
+            `INSERT INTO push_subscriptions (id, user_id, endpoint, p256dh, auth, locale, created_at, updated_at)
+             VALUES (?1, ?2, 'https://fcm.googleapis.com/fcm/send/old', 'key', 'auth', 'en', 1, 1)`
+        )
+            .bind(crypto.randomUUID(), ana.userId)
+            .run();
+        const tables = ['expenses', 'shared_entries', 'shared_groups', 'shared_members', 'push_subscriptions', 'user'];
+        const before = await Promise.all(tables.map(count));
+
+        await dailyCleanup(env.DB, Date.now() + 10 * 365 * DAY);
+
+        expect(await Promise.all(tables.map(count))).toEqual(before);
+        expect(before.every((n) => n > 0)).toBe(true);
     });
 
     it('runs from the Cron Trigger of the Worker', async () => {

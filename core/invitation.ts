@@ -3,7 +3,8 @@ import * as v from 'valibot';
 // How long the link of an invitation can be used
 const INVITATION_DAYS = 14;
 
-// How long an invitation that ended without being accepted stays in the table, after which making a link deletes it
+// How long an invitation that ended without being accepted stays in the table, after which making a link or the daily
+// clean-up deletes it
 const ENDED_INVITATION_DAYS = 30;
 
 // The id of the invitation, a UUID, and a signature of it in base64url: 32 bytes, whose last character carries only 4
