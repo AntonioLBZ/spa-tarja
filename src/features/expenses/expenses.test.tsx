@@ -3170,7 +3170,7 @@ describe('searching, filtering and grouping the list', () => {
             vi.spyOn(Math, 'random').mockReturnValue(0.75);
             await open(list);
 
-            expect(searchBox().placeholder).toBe(t('expenses.filters.searchExample', { example: '<10' }));
+            expect(searchBox().placeholder).toBe(en.expenses.filters.searchExamples.below);
         });
 
         it('finds an amount, a whole number or one above a bound, in the language of the app', async () => {

@@ -79,7 +79,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 <Field
                     className="expense-list-controls__search-field"
                     label={t('search')}
-                    placeholder={t('searchExample', { example: t(`searchExamples.${example}`) })}
+                    placeholder={t(`searchExamples.${example}`)}
                     icon={<Icon name="search" />}
                 >
                     {(control) => (

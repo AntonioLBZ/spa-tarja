@@ -57,7 +57,6 @@
         },
         "filters": {
             "search": "Buscar texto o importe",
-            "searchExample": "p. ej. {example}",
             "searchExamples": {
                 "text": "Café",
                 "category": "Ocio",
