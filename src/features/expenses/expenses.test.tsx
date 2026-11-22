@@ -2954,7 +2954,7 @@ describe('searching, filtering and grouping the list', () => {
     const groupHeadings = () =>
         screen
             .queryAllByRole('heading', { level: 2 })
-            .filter((heading) => heading.classList.contains('sheet__label'))
+            .filter((heading) => !heading.closest('dialog'))
             .map((heading) => heading.textContent);
     const subtotalOf = (label: string) =>
         screen
