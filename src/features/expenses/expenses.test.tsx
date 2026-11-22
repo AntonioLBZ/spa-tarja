@@ -2951,10 +2951,14 @@ describe('searching, filtering and grouping the list', () => {
             .queryAllByRole('listitem')
             .map((row) => row.querySelector('.expense-item__text')?.textContent)
             .filter(Boolean);
-    const groupHeadings = () => screen.queryAllByRole('heading', { level: 3 }).map((heading) => heading.textContent);
+    const groupHeadings = () =>
+        screen
+            .queryAllByRole('heading', { level: 2 })
+            .filter((heading) => heading.classList.contains('sheet__label'))
+            .map((heading) => heading.textContent);
     const subtotalOf = (label: string) =>
         screen
-            .getByRole('heading', { level: 3, name: label })
+            .getByRole('heading', { level: 2, name: label })
             .closest('section')
             ?.querySelector('.expense-list__subtotal')?.textContent;
     const statusRegion = () => document.querySelector<HTMLElement>('.expense-list-controls__status [role="status"]')!;
@@ -3665,7 +3669,7 @@ describe('searching, filtering and grouping the list', () => {
                 en.categories.food,
             ]);
             expect(subtotalOf(en.categories.housing)).toBe('€600.00');
-            const heading = screen.getByRole('heading', { level: 3, name: en.categories.groceries });
+            const heading = screen.getByRole('heading', { level: 2, name: en.categories.groceries });
             expect(heading.querySelector('.category-badge')).not.toBeNull();
         });
 
@@ -4060,7 +4064,7 @@ describe('searching, filtering and grouping the list', () => {
     describe('the group labels', () => {
         it('are plain text for a date, which keeps its capital letter, and a row of icon and name for a category', async () => {
             await open(list);
-            const heading = () => screen.getAllByRole('heading', { level: 3 })[0]!;
+            const heading = () => screen.getAllByRole('heading', { level: 2 })[0]!;
 
             expect(heading().className).toContain('expense-list__label--date');
             expect(heading().className).not.toContain('expense-list__label--category');
@@ -4074,7 +4078,7 @@ describe('searching, filtering and grouping the list', () => {
         it('end with a line that says Total in visible text, under the rows', async () => {
             await open(list);
 
-            const group = screen.getByRole('heading', { level: 3, name: longDay('2026-10-24') }).closest('section')!;
+            const group = screen.getByRole('heading', { level: 2, name: longDay('2026-10-24') }).closest('section')!;
             const total = group.querySelector('.expense-list__total')!;
 
             expect(total.textContent).toBe(`${en.expenses.list.total} €48.00`);

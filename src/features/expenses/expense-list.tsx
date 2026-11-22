@@ -224,7 +224,7 @@ const ExpenseList = (props: ExpenseListProps) => {
             )}
 
             {groups.map((group) => (
-                <Sheet key={group.key} label={labelOfGroup(group)} level="h3" labelClassName={labelClsx}>
+                <Sheet key={group.key} label={labelOfGroup(group)} labelClassName={labelClsx}>
                     <CardList flush>
                         {group.items.map((item) => {
                             const expenses = item.kind === 'plan' ? item.parts : [item.expense];
