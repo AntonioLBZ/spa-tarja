@@ -56,7 +56,17 @@
             "voucher": "Restaurant card"
         },
         "filters": {
-            "search": "Search",
+            "search": "Search text or amount",
+            "searchExample": "e.g. {example}",
+            "searchExamples": {
+                "text": "Coffee",
+                "category": "Leisure",
+                "whole": "12",
+                "exact": "12.50",
+                "above": ">50",
+                "below": "<10",
+                "between": ">10 <20"
+            },
             "toggle": "{count, plural, =0 {Filters} other {Filters (#)}}",
             "groupBy": "Group by",
             "group": {

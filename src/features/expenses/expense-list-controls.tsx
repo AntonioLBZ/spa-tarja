@@ -21,6 +21,10 @@ import type { ListFilters, ListGrouping } from '@core/expense-list';
 
 import './expense-list-controls.css';
 
+// What the placeholder of the search shows, one of them each time the list opens, so a person learns over time that it
+// finds amounts too
+const SEARCH_EXAMPLES = ['text', 'category', 'whole', 'exact', 'above', 'below', 'between'] as const;
+
 interface ExpenseListControlsProps {
     filters: ListFilters;
     grouping: ListGrouping;
@@ -51,6 +55,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const groupOptions = useGroupOptions(listed);
     const toggle = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
+    const [example] = useState(() => SEARCH_EXAMPLES[Math.floor(Math.random() * SEARCH_EXAMPLES.length)]!);
 
     // The button goes with the filters: the focus goes to the filters button, never to the field, whose keyboard would open
     const clear = () => {
@@ -74,6 +79,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 <Field
                     className="expense-list-controls__search-field"
                     label={t('search')}
+                    placeholder={t('searchExample', { example: t(`searchExamples.${example}`) })}
                     icon={<Icon name="search" />}
                 >
                     {(control) => (

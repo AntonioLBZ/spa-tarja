@@ -3166,6 +3166,13 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toEqual(['Café con leche']);
         });
 
+        it('shows one example of what it finds as its placeholder, a different one as the list opens', async () => {
+            vi.spyOn(Math, 'random').mockReturnValue(0.75);
+            await open(list);
+
+            expect(searchBox().placeholder).toBe(t('expenses.filters.searchExample', { example: '<10' }));
+        });
+
         it('finds an amount, a whole number or one above a bound, in the language of the app', async () => {
             localStorage.setItem('tarja:locale', 'es');
             await open([

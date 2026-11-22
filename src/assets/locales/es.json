@@ -56,7 +56,17 @@
             "voucher": "Tarjeta restaurante"
         },
         "filters": {
-            "search": "Buscar",
+            "search": "Buscar texto o importe",
+            "searchExample": "p. ej. {example}",
+            "searchExamples": {
+                "text": "Café",
+                "category": "Ocio",
+                "whole": "12",
+                "exact": "12,50",
+                "above": ">50",
+                "below": "<10",
+                "between": ">10 <20"
+            },
             "toggle": "{count, plural, =0 {Filtros} other {Filtros (#)}}",
             "groupBy": "Agrupar por",
             "group": {
