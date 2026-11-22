@@ -443,6 +443,12 @@ describe('the search by amount', () => {
         expect(ids(list, { query: '12,30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
         expect(ids(list, { query: '12.30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
         expect(ids(list, { query: '12,3' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(
+            ids([expense('a', { amountCents: 1234 }), expense('b', { amountCents: 1240 })], { query: '12,3' })
+        ).toEqual(['a']);
+        expect(
+            ids([expense('a', { amountCents: 1234 }), expense('b', { amountCents: 1230 })], { query: '12,30' })
+        ).toEqual(['b']);
         expect(ids(list, { query: '12,00' })).toEqual(['twelve']);
     });
 
@@ -454,11 +460,20 @@ describe('the search by amount', () => {
         expect(buildList(big, filters({ query: '1.234' }), 'day', { ...ctx, locale: 'es' })).toHaveLength(1);
     });
 
+    it('reads an amount typed with the symbol it is drawn with, before or after it', () => {
+        expect(ids(list, { query: '€12.30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '12,30€' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '$12' })).toEqual(ids(list, { query: '12' }));
+        expect(ids(list, { query: '>£100' })).toEqual(['hundred-twenty']);
+    });
+
     it('keeps the amounts above or below a bound, a space after the sign allowed', () => {
         expect(ids(list, { query: '>12' }).toSorted()).toEqual(['hundred-twenty', 'twelve-thirty']);
         expect(ids(list, { query: '<12' }).toSorted()).toEqual(['bus-12', 'menu']);
         expect(ids(list, { query: '> 12 <100' })).toEqual(['twelve-thirty']);
         expect(ids(list, { query: '>100 <12' })).toEqual([]);
+        expect(ids(list, { query: '>12 >20' })).toEqual(['hundred-twenty']);
+        expect(ids(list, { query: '<12 <5' })).toEqual(['bus-12']);
     });
 
     it('needs the words too', () => {
@@ -489,11 +504,14 @@ describe('the search by amount', () => {
         expect(ids(rows, { query: '25' })).toEqual(['dinner']);
         expect(ids(rows, { query: '100' })).toEqual(['dinner']);
         expect(ids(rows, { query: '>90' })).toEqual(['dinner']);
+        expect(ids(rows, { query: '>10 <15' })).toEqual([]);
+        expect(ids(rows, { query: '>5 <10' })).toEqual(['meal']);
     });
 
     it('narrows the list, so the status line shows', () => {
         expect(hasFilters(filters({ query: '>50' }))).toBe(true);
         expect(hasFilters(filters({ query: '12,30' }))).toBe(true);
+        expect(hasFilters(filters({ query: '>' }))).toBe(false);
     });
 });
 

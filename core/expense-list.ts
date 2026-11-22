@@ -109,12 +109,12 @@ const searchTextOf = (expense: Expense, ctx: ListContext): string => {
     return text;
 };
 
-// A number typed in the search: the text it would match as words, and the amount it names. Without decimals it names every
-// amount of that whole number (12 is 12.00 to 12.99), with them that amount alone.
+// A number typed in the search: the text it would match as words, and the amounts it names, from `cents` and `span`
+// cents wide. What is typed is a start, as in a word: 12 is 12.00 to 12.99, 12,3 is 12.30 to 12.39, 12,30 is 12.30 alone.
 interface SearchNumber {
     text: string;
     cents: number;
-    whole: boolean;
+    span: number;
 }
 
 // What a search asks: words in the text, numbers in the text or the amounts, and amounts above or below a bound
@@ -125,25 +125,30 @@ interface ParsedSearch {
     below: number | null;
 }
 
-const HAS_DECIMALS = /[.,]\d{1,2}$/;
+const DECIMALS = /[.,](\d{1,2})$/;
+
+// The symbols an amount can be drawn with (ADR-0028), which a person may type as they see them
+const CURRENCY_SYMBOLS = /[€$£¥]/g;
 
 // Reads the search as typed, before it is normalised, which would split `12,30` in two. `>50` and `<10` are bounds on the
 // amount (a space after the sign is fine); a word that only looks like one, as `>` alone, is a word.
 const parseSearch = (query: string, locale = 'en'): ParsedSearch => {
     const parsed: ParsedSearch = { words: [], numbers: [], above: null, below: null };
     for (const token of query.replace(/([<>])\s+/g, '$1').split(/\s+/)) {
-        const sign = token[0];
+        const bare = token.replace(CURRENCY_SYMBOLS, '');
+        const sign = bare[0];
         if (sign === '>' || sign === '<') {
-            const cents = parseAmount(token.slice(1), locale);
+            const cents = parseAmount(bare.slice(1), locale);
             if (cents !== null) {
                 if (sign === '>') parsed.above = Math.max(parsed.above ?? cents, cents);
                 else parsed.below = Math.min(parsed.below ?? cents, cents);
                 continue;
             }
         }
-        const cents = /^\d/.test(token) ? parseAmount(token, locale) : null;
+        const cents = /^\d/.test(bare) ? parseAmount(bare, locale) : null;
         if (cents !== null) {
-            parsed.numbers.push({ text: normalizeText(token), cents, whole: !HAS_DECIMALS.test(token) });
+            const decimals = DECIMALS.exec(bare)?.[1]?.length ?? 0;
+            parsed.numbers.push({ text: normalizeText(bare), cents, span: 10 ** (2 - decimals) });
             continue;
         }
         parsed.words.push(...searchWords(token));
@@ -160,7 +165,7 @@ const amountsOf = (item: ListItem): number[] => {
 };
 
 const numberMatches = (number: SearchNumber, cents: number): boolean => {
-    return number.whole ? Math.floor(cents / 100) === number.cents / 100 : cents === number.cents;
+    return cents >= number.cents && cents < number.cents + number.span;
 };
 
 const isNarrowing = (search: ParsedSearch): boolean => {
@@ -186,6 +191,7 @@ const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => b
     const search = parseSearch(filters.query, ctx.locale);
     const { words, numbers, above, below } = search;
     const bounded = above !== null || below !== null;
+    const narrowing = isNarrowing(search);
 
     return (item) => {
         const expense = shownExpense(item);
@@ -194,7 +200,7 @@ const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => b
         if (categoryId !== '' && ctx.categoryOf(expense.categoryId) !== categoryId) return false;
         if (from !== '' && expense.date < from) return false;
         if (to !== '' && expense.date > to) return false;
-        if (!isNarrowing(search)) return true;
+        if (!narrowing) return true;
         const amounts = numbers.length > 0 || bounded ? amountsOf(item) : [];
         // Every bound holds for one same amount of the row
         if (bounded && !amounts.some((cents) => (above === null || cents > above) && (below === null || cents < below)))
@@ -297,11 +303,9 @@ export {
     limitRows,
     listItems,
     openingFilters,
-    parseSearch,
     shownExpense,
     type ListContext,
     type ListFilters,
     type ListGroup,
     type ListGrouping,
-    type ParsedSearch,
 };
