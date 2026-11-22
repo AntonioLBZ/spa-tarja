@@ -505,10 +505,11 @@ const SharedPeople = (props: SharedPeopleProps) => {
             .split('')
             .filter((char) => !/[\d\s.,\u00a0\u202f-]/.test(char))
             .join('') || group.currency;
-    const percent = (basisPoints: number) =>
-        new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }).format(
-            Math.abs(basisPoints) / HUNDRED_PERCENT
-        );
+    const percentFormat = useMemo(
+        () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 2 }),
+        [locale]
+    );
+    const percent = (basisPoints: number) => percentFormat.format(Math.abs(basisPoints) / HUNDRED_PERCENT);
 
     return (
         <>

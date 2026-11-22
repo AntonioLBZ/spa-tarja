@@ -49,7 +49,7 @@ Fill a local D1 with a heavy account: many friends, many groups with many member
 
 ## 30. A Lighthouse pass on every screen
 
-After the accessibility audit now under way is done, run Lighthouse (the CLI through `pnpm dlx`, never a dependency) on every screen, signed in, and fix what it finds: accessibility first, then best practices and performance (item 20 measured the first load, the visit with the app installed and the interactions; see "Performance" in `docs/specs/frontend.md`).
+After the accessibility audit now under way is done, run Lighthouse (the CLI through `pnpm dlx`, never a dependency) on every screen, signed in, and fix what it finds: accessibility first, then best practices and performance (the first load, a visit with the app installed and the interactions were measured once already: "Performance" in `docs/specs/frontend.md`).
 
 - **On localhost, never production**: `pnpm build`, then `pnpm preview`, against the local D1. The preview sends nothing compressed, so put a small proxy in front of it that compresses with brotli as Cloudflare does, or every number comes out too slow.
 - **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and add it to every request (`--extra-headers` is not enough: once the app has a cookie of its own, the browser stops sending the injected one, so the same proxy adds it). Google is never involved, and the owner's own session is never used.

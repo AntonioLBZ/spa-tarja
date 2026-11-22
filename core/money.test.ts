@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { DEFAULT_CURRENCY, formatAmount, formatAmountInput, parseAmount } from './money';
 
@@ -70,6 +70,17 @@ describe('formats made once', () => {
         expect(formatAmountInput(123456, 'es')).toBe('1234,56');
         expect(formatAmountInput(123456, 'en')).toBe('1234.56');
         expect(formatAmount(123456, 'EUR', 'en')).toBe('€1,234.56');
+    });
+
+    it('are made once for each locale and currency', () => {
+        const made = vi.spyOn(Intl, 'NumberFormat');
+
+        formatAmount(100, 'EUR', 'fr');
+        formatAmount(250, 'EUR', 'fr');
+        formatAmount(100, 'GBP', 'fr');
+
+        expect(made).toHaveBeenCalledTimes(2);
+        made.mockRestore();
     });
 });
 
