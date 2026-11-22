@@ -426,6 +426,95 @@ describe('the text filter', () => {
     });
 });
 
+describe('the search by amount', () => {
+    const list = [
+        expense('twelve', { text: 'Lunch', amountCents: 1200 }),
+        expense('twelve-thirty', { text: 'Taxi', amountCents: 1230 }),
+        expense('hundred-twenty', { text: 'Shoes', amountCents: 12000 }),
+        expense('bus-12', { text: 'Bus 12', amountCents: 150 }),
+        expense('menu', { text: 'Menu 12,30', amountCents: 999 }),
+    ];
+
+    it('finds every amount of a whole number, and the numbers in the text as before', () => {
+        expect(ids(list, { query: '12' }).toSorted()).toEqual(['bus-12', 'menu', 'twelve', 'twelve-thirty']);
+    });
+
+    it('finds the one amount written with decimals, with a comma or a dot, and the same text', () => {
+        expect(ids(list, { query: '12,30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '12.30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '12,3' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(
+            ids([expense('a', { amountCents: 1234 }), expense('b', { amountCents: 1240 })], { query: '12,3' })
+        ).toEqual(['a']);
+        expect(
+            ids([expense('a', { amountCents: 1234 }), expense('b', { amountCents: 1230 })], { query: '12,30' })
+        ).toEqual(['b']);
+        expect(ids(list, { query: '12,00' })).toEqual(['twelve']);
+    });
+
+    it('reads the thousands of the language the amounts are typed in', () => {
+        const big = [expense('car', { amountCents: 123_456 }), expense('cheap', { amountCents: 123 })];
+
+        expect(buildList(big, filters({ query: '1.234,56' }), 'day', { ...ctx, locale: 'es' })).toHaveLength(1);
+        expect(buildList(big, filters({ query: '1,234.56' }), 'day', ctx)).toHaveLength(1);
+        expect(buildList(big, filters({ query: '1.234' }), 'day', { ...ctx, locale: 'es' })).toHaveLength(1);
+    });
+
+    it('reads an amount typed with the symbol it is drawn with, before or after it', () => {
+        expect(ids(list, { query: '€12.30' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '12,30€' }).toSorted()).toEqual(['menu', 'twelve-thirty']);
+        expect(ids(list, { query: '$12' })).toEqual(ids(list, { query: '12' }));
+        expect(ids(list, { query: '>£100' })).toEqual(['hundred-twenty']);
+    });
+
+    it('keeps the amounts above or below a bound, a space after the sign allowed', () => {
+        expect(ids(list, { query: '>12' }).toSorted()).toEqual(['hundred-twenty', 'twelve-thirty']);
+        expect(ids(list, { query: '<12' }).toSorted()).toEqual(['bus-12', 'menu']);
+        expect(ids(list, { query: '> 12 <100' })).toEqual(['twelve-thirty']);
+        expect(ids(list, { query: '>100 <12' })).toEqual([]);
+        expect(ids(list, { query: '>12 >20' })).toEqual(['hundred-twenty']);
+        expect(ids(list, { query: '<12 <5' })).toEqual(['bus-12']);
+    });
+
+    it('needs the words too', () => {
+        expect(ids(list, { query: 'taxi 12' })).toEqual(['twelve-thirty']);
+        expect(ids(list, { query: 'lunch >12' })).toEqual([]);
+        expect(ids(list, { query: '>5 shoes' })).toEqual(['hundred-twenty']);
+    });
+
+    it('reads a sign with no amount after it as a word', () => {
+        expect(ids(list, { query: '>' })).toHaveLength(list.length);
+        expect(ids(list, { query: '>taxi' })).toEqual(['twelve-thirty']);
+    });
+
+    it('looks at what a row shows: a plan at its total, your part and what was paid', () => {
+        const rows = [
+            ...plan('sofa', 3),
+            expense('meal', { amountCents: 2000, payment: 'voucher', chargeDate: '2026-10-25', personalCents: 800 }),
+            {
+                ...expense('dinner', { amountCents: 2500 }),
+                shared: { groupId: 'trip', paidBy: 'bea', totalCents: 10_000 },
+            },
+        ];
+
+        expect(ids(rows, { query: '15' })).toEqual(['sofa']);
+        expect(ids(rows, { query: '5' })).toEqual([]);
+        expect(ids(rows, { query: '8' })).toEqual(['meal']);
+        expect(ids(rows, { query: '20' })).toEqual(['meal']);
+        expect(ids(rows, { query: '25' })).toEqual(['dinner']);
+        expect(ids(rows, { query: '100' })).toEqual(['dinner']);
+        expect(ids(rows, { query: '>90' })).toEqual(['dinner']);
+        expect(ids(rows, { query: '>10 <15' })).toEqual([]);
+        expect(ids(rows, { query: '>5 <10' })).toEqual(['meal']);
+    });
+
+    it('narrows the list, so the status line shows', () => {
+        expect(hasFilters(filters({ query: '>50' }))).toBe(true);
+        expect(hasFilters(filters({ query: '12,30' }))).toBe(true);
+        expect(hasFilters(filters({ query: '>' }))).toBe(false);
+    });
+});
+
 describe('the category filter', () => {
     const list = [
         expense('food', { categoryId: 'food' }),

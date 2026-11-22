@@ -3,7 +3,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useGroupTitles } from '@/features/groups/use-group-options';
 import { useGroups } from '@/features/groups/use-ledgers';
-import { useWeekStart } from '@/lib/i18n';
+import { useLocale, useWeekStart } from '@/lib/i18n';
 import { useFadeOut } from '@/lib/use-fade-out';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { toDateString } from '@core/date';
@@ -38,6 +38,7 @@ const useExpenseList = () => {
     const titles = useGroupTitles(sharedGroups);
     const { added } = useExpenseSheet();
     const weekStart = useWeekStart();
+    const { locale } = useLocale();
 
     // What the list opened on, which does not count as a filter in use
     const [opening] = useState(() => openingFilters(toDateString(new Date())));
@@ -62,8 +63,9 @@ const useExpenseList = () => {
             groupNameOf: (groupId) => titles.get(groupId) ?? '',
             searchTexts: new WeakMap<Expense, string>(),
             weekStart,
+            locale,
         }),
-        [known, labelOf, titles, weekStart]
+        [known, labelOf, titles, weekStart, locale]
     );
 
     const query = useDeferredValue(filters.query);

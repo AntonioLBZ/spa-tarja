@@ -3166,6 +3166,32 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toEqual(['Café con leche']);
         });
 
+        it('shows one example of what it finds as its placeholder, a different one as the list opens', async () => {
+            vi.spyOn(Math, 'random').mockReturnValue(0.75);
+            await open(list);
+
+            expect(searchBox().placeholder).toBe(en.expenses.filters.searchExamples.below);
+        });
+
+        it('finds an amount, a whole number or one above a bound, in the language of the app', async () => {
+            localStorage.setItem('tarja:locale', 'es');
+            await open([
+                expense({ text: 'Coche', amountCents: 123_456 }),
+                expense({ text: 'Taxi', amountCents: 1230 }),
+                expense({ text: 'Menú', amountCents: 1200 }),
+            ]);
+            const box = screen.getByRole('searchbox', { name: es.expenses.filters.search });
+
+            fireEvent.change(box, { target: { value: '1.234' } });
+            expect(rowNames()).toEqual(['Coche']);
+
+            fireEvent.change(box, { target: { value: '12' } });
+            expect(rowNames()).toEqual(['Taxi', 'Menú']);
+
+            fireEvent.change(box, { target: { value: '>12,5' } });
+            expect(rowNames()).toEqual(['Coche']);
+        });
+
         it('finds part of a word', async () => {
             await open(list);
 
