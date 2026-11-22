@@ -13,10 +13,6 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 - **Stories of the groups.** None yet for Settle up, the Leave and Delete panels, the steps of a person, `InvitationLink` or `InviteFriend`; the ledger row has one (`Features/LedgerRow`).
 - **`:focus-visible` of the rest.** The ring of `ChoiceGroup`, `Select` and the `Dialog` is done. What is left is the global one, on buttons, links and fields: with the gray accent it sits next to the ink edge and may be hard to tell apart, which only the owner's eye can say. A throwaway story that forces the focus on each component, to look at every accent in light and dark, would settle it.
 
-## 20. Performance
-
-Measure before changing anything: the size of the bundle per route, and the LCP and INP on a slow phone (a build, `pnpm preview`, throttled). Then check that the charts, the groups and the settings pages load lazily and stay out of the first paint, and that the persisted cache doesn't hold back the first screen.
-
 ## 21. A note on an expense (analysis first)
 
 An optional free text on an expense. Analyse before building: where it shows (list row, detail, search), whether shared entries get one too (today their text is empty for settlements), what the export carries, and the length limit. The migration only adds a column.
@@ -49,14 +45,14 @@ Go over what a new person sees on every screen: no expenses, no groups, no frien
 
 ## 29. Performance with many people and a lot of data
 
-Fill a local D1 with a heavy account: many friends, many groups with many members (users and dummies), thousands of shared entries and years of personal expenses. Then measure the first load, the sync from an empty device (the pages of `seq`), the watcher's `GET /groups`, the balances and simplified debts of a big group, the list with its search and filters, the charts over a long range, and the size of the persisted cache and of the outbox. Also check the Worker's answers against the limits of the free tier (CPU time, D1 rows read).
+Fill a local D1 with a heavy account: many friends, many groups with many members (users and dummies), thousands of shared entries and years of personal expenses. Then measure the first load, the sync from an empty device (the pages of `seq`), the watcher's `GET /groups`, the balances and simplified debts of a big group, the list with its search and filters, the charts over a long range, and the size of the persisted cache and of the outbox. Also check the Worker's answers against the limits of the free tier (CPU time, D1 rows read). The first sync pulls the expenses and the entries of each group 200 at a time, one page after another; asking for 500 (the most the server gives) would save round trips on a fresh device.
 
 ## 30. A Lighthouse pass on every screen
 
-After the accessibility audit now under way is done, run Lighthouse (the CLI through `pnpm dlx`, never a dependency) on every screen, signed in, and fix what it finds: accessibility first, then best practices and performance (a starting point for item 20).
+After the accessibility audit now under way is done, run Lighthouse (the CLI through `pnpm dlx`, never a dependency) on every screen, signed in, and fix what it finds: accessibility first, then best practices and performance (item 20 measured the first load, the visit with the app installed and the interactions; see "Performance" in `docs/specs/frontend.md`).
 
-- **On localhost, never production**: `pnpm build`, then `pnpm preview`, against the local D1.
-- **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and hand it to Lighthouse as a `Cookie` header (`--extra-headers`). Google is never involved, and the owner's own session is never used.
+- **On localhost, never production**: `pnpm build`, then `pnpm preview`, against the local D1. The preview sends nothing compressed, so put a small proxy in front of it that compresses with brotli as Cloudflare does, or every number comes out too slow.
+- **A fake session**: make a test user and its session in the local D1, as `signIn()` of the server tests does, sign the cookie with the `BETTER_AUTH_SECRET` of `.dev.vars` and add it to every request (`--extra-headers` is not enough: once the app has a cookie of its own, the browser stops sending the injected one, so the same proxy adds it). Google is never involved, and the owner's own session is never used.
 - **Data on screen**: fill that user with expenses, budgets, income, custom categories, friends and groups, so no screen is measured empty (the same seed can serve item 29).
 - **The screens**: Expenses (and a pinned tab), Groups, a group, `/groups/new`, Summary, Charts, Budgets, Settings and its pages, the join page, and the sign-in screen without the cookie. Light and dark theme, phone and desktop widths.
 

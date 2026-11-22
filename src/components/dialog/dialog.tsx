@@ -52,7 +52,7 @@ const Dialog = (props: DialogProps) => {
     } = props;
     const ref = useRef<HTMLDialogElement>(null);
     // The shadows of its edges are drawn only while something scrolls under them
-    useOverflowMark(ref);
+    useOverflowMark(ref, open);
     const titleId = useId();
     // Where the press started: one that starts in the box and ends on the veil, as a text selection does, is no tap outside
     const pressedOutside = useRef(false);

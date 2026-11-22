@@ -62,6 +62,17 @@ describe('formatAmount', () => {
     });
 });
 
+describe('formats made once', () => {
+    it('keep each locale and currency apart, whatever was formatted before', () => {
+        expect(formatAmount(123456, 'EUR', 'en')).toBe('€1,234.56');
+        expect(formatAmount(123456, 'EUR', 'es')).toBe('1234,56\u00a0€');
+        expect(formatAmount(123456, 'USD', 'en')).toBe('$1,234.56');
+        expect(formatAmountInput(123456, 'es')).toBe('1234,56');
+        expect(formatAmountInput(123456, 'en')).toBe('1234.56');
+        expect(formatAmount(123456, 'EUR', 'en')).toBe('€1,234.56');
+    });
+});
+
 describe('formatAmountInput', () => {
     it('writes cents the way a person would type them, with two decimals and no grouping', () => {
         expect(formatAmountInput(123456, 'en')).toBe('1234.56');
