@@ -1,7 +1,7 @@
 import { app } from './app';
 import { dailyCleanup } from './cleanup';
 
-// The requests go to the API; the Cron Trigger of each environment runs the clean-up once a day
+// The requests go to the API; the Cron Trigger of production runs the clean-up once a day
 const worker = {
     fetch: app.fetch,
     scheduled: async (_controller, env, ctx) => {

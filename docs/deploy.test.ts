@@ -87,10 +87,10 @@ describe('the prerelease environment', () => {
 });
 
 describe('the daily clean-up', () => {
-    it('runs once a day in production and in the prerelease', () => {
+    it('runs once a day in production and never in the prerelease', () => {
         const config = wrangler();
         expect(config.triggers?.crons).toEqual(['0 4 * * *']);
-        expect(config.env?.prerelease?.triggers?.crons).toEqual(['0 4 * * *']);
+        expect(config.env?.prerelease?.triggers?.crons).toEqual([]);
     });
 });
 

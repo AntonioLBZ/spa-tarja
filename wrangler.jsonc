@@ -17,7 +17,7 @@
             "migrations_dir": "db/migrations",
         },
     ],
-    // The daily clean-up, at 04:00 UTC
+    // The daily clean-up, at 04:00 UTC, in production only
     "triggers": { "crons": ["0 4 * * *"] },
     // Workers Logs keep what the code logs, not an entry per request (no invocation logs); no traces
     "observability": {
@@ -28,7 +28,8 @@
         "prerelease": {
             "workers_dev": false,
             "routes": [{ "pattern": "tarja-prerelease.albz.app", "custom_domain": true }],
-            "triggers": { "crons": ["0 4 * * *"] },
+            // Inherited unless emptied: the prerelease has no daily clean-up
+            "triggers": { "crons": [] },
             "d1_databases": [
                 {
                     "binding": "DB",
