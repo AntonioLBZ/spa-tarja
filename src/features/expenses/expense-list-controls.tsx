@@ -3,7 +3,6 @@ import { useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
 import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
@@ -17,13 +16,29 @@ import { useGroups } from '@/features/groups/use-ledgers';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
 
-import type { ListFilters, ListGrouping } from '@core/expense-list';
+import type { IconName } from '@/components/icon/icon-paths';
+import type { ListFilters, ListGrouping, PaidWith } from '@core/expense-list';
 
 import './expense-list-controls.css';
 
 // What the placeholder of the search shows, one of them each time the list opens, so a person learns over time that it
 // finds amounts too
 const SEARCH_EXAMPLES = ['text', 'category', 'whole', 'exact', 'above', 'below', 'between'] as const;
+
+const GROUPING_ICONS: Record<ListGrouping, IconName> = {
+    day: 'today',
+    week: 'date_range',
+    month: 'calendar_month',
+    category: 'category',
+};
+
+const PAID_WITH_ICONS: Record<PaidWith, IconName> = {
+    any: 'wallet',
+    direct: 'payments',
+    credit: 'credit_card',
+    voucher: 'confirmation_number',
+    plan: 'event_repeat',
+};
 
 interface ExpenseListControlsProps {
     filters: ListFilters;
@@ -124,18 +139,25 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     toggle.current?.focus();
                 }}
             >
-                <ChoiceGroup
-                    legend={t('groupBy')}
-                    name="list-grouping"
-                    options={LIST_GROUPINGS.map((value) => ({ value, label: t(`group.${value}`) }))}
-                    value={grouping}
-                    onChange={onGroupingChange}
-                />
+                <Field label={t('groupBy')}>
+                    {(control) => (
+                        <Select
+                            {...control}
+                            options={LIST_GROUPINGS.map((value) => ({
+                                value,
+                                label: t(`group.${value}`),
+                                icon: <Icon name={GROUPING_ICONS[value]} />,
+                            }))}
+                            value={grouping}
+                            onChange={onGroupingChange}
+                        />
+                    )}
+                </Field>
                 <Field label={t('category')}>
                     {(control) => (
                         <CategorySelect
                             {...control}
-                            options={[{ id: '', label: t('allCategories') }, ...options]}
+                            options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
                             value={filters.categoryId}
                             onChange={(categoryId) => onFiltersChange({ categoryId })}
                         />
@@ -148,23 +170,27 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     labels={{ from: t('from'), to: t('to') }}
                     onChange={(edge, day) => onFiltersChange({ [edge]: day })}
                 />
-                <ChoiceGroup
-                    legend={t('paidWith')}
-                    name="list-paid-with"
-                    options={PAID_WITH.map((value) => ({
-                        value,
-                        label: value === 'any' || value === 'plan' ? t(`paid.${value}`) : tPayment(value),
-                    }))}
-                    value={filters.paidWith}
-                    onChange={(paidWith) => onFiltersChange({ paidWith })}
-                />
+                <Field label={t('paidWith')}>
+                    {(control) => (
+                        <Select
+                            {...control}
+                            options={PAID_WITH.map((value) => ({
+                                value,
+                                label: value === 'any' || value === 'plan' ? t(`paid.${value}`) : tPayment(value),
+                                icon: <Icon name={PAID_WITH_ICONS[value]} />,
+                            }))}
+                            value={filters.paidWith}
+                            onChange={(paidWith) => onFiltersChange({ paidWith })}
+                        />
+                    )}
+                </Field>
                 <Field label={t('sharedWith')}>
                     {(control) => (
                         <Select
                             {...control}
                             options={[
-                                { value: '', label: t('shared.anyone') },
-                                { value: JUST_ME, label: t('shared.me') },
+                                { value: '', label: t('shared.anyone'), icon: <Icon name="groups" /> },
+                                { value: JUST_ME, label: t('shared.me'), icon: <Icon name="account_circle" /> },
                                 ...groupOptions,
                             ]}
                             value={filters.sharedWith}

@@ -47,6 +47,22 @@ describe('CategorySelect', () => {
         expect(rows[0]?.querySelector('.select__space')).not.toBeNull();
     });
 
+    it('draws the icon given to an option with no style, in its row and in the field once chosen', () => {
+        renderSelect({
+            value: '',
+            options: [
+                { id: '', label: 'All categories', icon: <span data-icon="apps" /> },
+                { id: 'food', label: 'Food', style: { color: 'vermillion', icon: 'restaurant' } },
+            ],
+        });
+
+        const rows = within(field()).getAllByRole('option');
+        expect(rows[0]?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('apps');
+        expect(field().parentElement?.querySelector('.select__icon [data-icon]')?.getAttribute('data-icon')).toBe(
+            'apps'
+        );
+    });
+
     it('lists the fallback first, after the options with no style, and the rest in the order given', () => {
         renderSelect({
             value: 'other',

@@ -389,9 +389,9 @@ describe('searching and filtering shared rows', () => {
         await openMixed();
         openFilters();
 
-        fireEvent.click(screen.getByRole('radio', { name: en.expenses.payment.credit }));
+        pickOption(f.paidWith, en.expenses.payment.credit);
         expect(rowNames()).toEqual(['Dinner']);
-        fireEvent.click(screen.getByRole('radio', { name: en.expenses.payment.direct }));
+        pickOption(f.paidWith, en.expenses.payment.direct);
         expect(rowNames().toSorted()).toEqual(['Concert', 'Lunch']);
     });
 });

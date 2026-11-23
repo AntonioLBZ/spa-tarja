@@ -6,6 +6,7 @@ import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { CategorySelect } from '@/features/categories/category-select';
@@ -109,7 +110,7 @@ const Charts = () => {
                 {(control) => (
                     <CategorySelect
                         {...control}
-                        options={[{ id: '', label: t('allCategories') }, ...options]}
+                        options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
                         value={categoryId}
                         onChange={setCategoryId}
                     />
