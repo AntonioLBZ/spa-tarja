@@ -10,6 +10,7 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
 import { optionNames, pickOption } from '@/lib/test/select';
+import { openAddSheet } from '@/lib/test/sheet';
 import { formatAmount } from '@core/money';
 
 import type { PendingEntry } from '@/lib/offline';
@@ -900,5 +901,77 @@ describe('the search and the filters of the ledger', () => {
 
         await waitFor(() => expect(rowNames()).toHaveLength(4));
         expect((within(sheet()).getByRole('searchbox', { name: ef.search }) as HTMLInputElement).value).toBe('');
+    });
+
+    it('is there in a closed group too, which can still be read', async () => {
+        const group = trip({ closed: 'deleted' });
+        await open(group, seed(group));
+        fireEvent.click(toggle());
+
+        pickOption(lf.kind, lf.kinds.settlement);
+
+        expect(rowNames()).toEqual([t('groups.ledger.paidYou', { name: 'Cris' })]);
+    });
+
+    it('starts Show more over at 100 rows when a filter changes', async () => {
+        const group = trip();
+        const many = Array.from({ length: 250 }, (_, index) =>
+            dinner(group, { text: `Row ${index}`, createdAt: 1_000 - index })
+        );
+        await open(group, many);
+        fireEvent.click(within(theLedger()).getByRole('button', { name: en.expenses.list.showMore }));
+        expect(rowNames()).toHaveLength(200);
+
+        fireEvent.click(toggle());
+        pickOption(lf.kind, lf.kinds.expense);
+
+        expect(rowNames()).toHaveLength(100);
+    });
+
+    it('adds up a day of the rows it shows only', async () => {
+        const group = trip();
+        await open(group, [
+            dinner(group, { text: 'Dinner', date: '2026-10-24', createdAt: 2 }),
+            dinner(group, {
+                text: 'Taxi',
+                date: '2026-10-24',
+                amountCents: 900,
+                paidBy: bea.id,
+                createdAt: 1,
+                shares: [
+                    { memberId: ana.id, cents: 450 },
+                    { memberId: bea.id, cents: 450 },
+                ],
+            }),
+        ]);
+        chooseOrder(ledger.order.date);
+        const total = () => theLedger().querySelector('.expense-list__subtotal')?.textContent;
+        const both = total();
+
+        fireEvent.click(toggle());
+        pickOption(lf.paidBy, 'Bea');
+
+        expect(rowNames()).toEqual(['Taxi']);
+        expect(total()).not.toBe(both);
+        expect(total()).toContain(euros(450));
+    });
+
+    it('drops the search and the filters once the form adds an expense, so it is never hidden', async () => {
+        const group = trip();
+        const { api } = await open(group, seed(group));
+        fireEvent.click(toggle());
+        pickOption(lf.kind, lf.kinds.settlement);
+        fireEvent.click(within(sheet()).getByRole('button', { name: ef.close }));
+        expect(rowNames()).toHaveLength(1);
+
+        const form = await openAddSheet();
+        fireEvent.change(within(form).getByLabelText(en.expenses.form.amount), { target: { value: '12' } });
+        fireEvent.change(within(form).getByLabelText(en.expenses.form.text), { target: { value: 'Snacks' } });
+        fireEvent.click(within(form).getByRole('button', { name: en.expenses.form.submit }));
+        await waitFor(() => expect(api.entryWrites).toHaveLength(1));
+
+        await waitFor(() => expect(rowNames()).toContain('Snacks'));
+        expect(rowNames()).toHaveLength(5);
+        expect(toggle(0)).toBeDefined();
     });
 });
