@@ -694,8 +694,20 @@
             "empty": "No expenses yet.",
             "order": {
                 "legend": "Order",
-                "added": "Recently added",
+                "added": "Recent",
                 "date": "By date"
+            },
+            "filters": {
+                "toggle": "{count, plural, =0 {Search and filters} other {Search and filters (#)}}",
+                "paidBy": "Paid by",
+                "with": "With",
+                "anyone": "Anyone",
+                "kind": "Type",
+                "kinds": {
+                    "all": "Everything",
+                    "expense": "Expenses",
+                    "settlement": "Settlements"
+                }
             },
             "youPaid": "You paid",
             "paidBy": "Paid by {name}",
