@@ -18,4 +18,4 @@ The shapes in `icon-paths.ts` come from Material Symbols (Sharp style, weight 40
 
 `person` and `person_filled`, who is in a group: a friend, who uses the app, filled, and a dummy, a name only, in outline (and `person` for a friend in the list of groups to choose), are icons of the interface too: the `d` of `sharp/person.svg` and `sharp/person-fill.svg` of the same package version.
 
-`all_inclusive`, `today`, `date_range`, `calendar_month`, `confirmation_number`, `event_repeat` and `account_circle`, the options of the filters of the expense list, are icons of the interface too: the `d` of `sharp/<name>.svg` of the same package version.
+`apps`, `wallet`, `today`, `date_range`, `calendar_month`, `confirmation_number`, `event_repeat` and `account_circle`, the options of the filters of the expense list, are icons of the interface too: the `d` of `sharp/<name>.svg` of the same package version.

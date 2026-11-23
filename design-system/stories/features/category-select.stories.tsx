@@ -47,9 +47,7 @@ export const CategorySelect = (args: CategorySelectStoryProps) => {
     const { label, withAll, error, ...props } = args;
     const [, updateArgs] = useArgs();
     const { options } = useStoryCategories();
-    const shown = withAll
-        ? [{ id: 'all', label: 'All categories', icon: <Icon name="all_inclusive" /> }, ...options]
-        : options;
+    const shown = withAll ? [{ id: 'all', label: 'All categories', icon: <Icon name="apps" /> }, ...options] : options;
 
     return (
         <Field label={label} error={error || undefined}>

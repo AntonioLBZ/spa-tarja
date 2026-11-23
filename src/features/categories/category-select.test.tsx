@@ -51,15 +51,15 @@ describe('CategorySelect', () => {
         renderSelect({
             value: '',
             options: [
-                { id: '', label: 'All categories', icon: <span data-icon="all_inclusive" /> },
+                { id: '', label: 'All categories', icon: <span data-icon="apps" /> },
                 { id: 'food', label: 'Food', style: { color: 'vermillion', icon: 'restaurant' } },
             ],
         });
 
         const rows = within(field()).getAllByRole('option');
-        expect(rows[0]?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('all_inclusive');
+        expect(rows[0]?.querySelector('[data-icon]')?.getAttribute('data-icon')).toBe('apps');
         expect(field().parentElement?.querySelector('.select__icon [data-icon]')?.getAttribute('data-icon')).toBe(
-            'all_inclusive'
+            'apps'
         );
     });
 

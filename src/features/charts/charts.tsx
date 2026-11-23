@@ -110,10 +110,7 @@ const Charts = () => {
                 {(control) => (
                     <CategorySelect
                         {...control}
-                        options={[
-                            { id: '', label: t('allCategories'), icon: <Icon name="all_inclusive" /> },
-                            ...options,
-                        ]}
+                        options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
                         value={categoryId}
                         onChange={setCategoryId}
                     />

@@ -3086,9 +3086,9 @@ describe('searching, filtering and grouping the list', () => {
                     .getByRole('option', { name })
                     .querySelector('[data-icon]')
                     ?.getAttribute('data-icon');
-            expect(iconOf(f.category, f.allCategories)).toBe('all_inclusive');
-            expect(iconOf(f.paidWith, f.paid.any)).toBe('all_inclusive');
-            expect(iconOf(f.sharedWith, f.shared.anyone)).toBe('all_inclusive');
+            expect(iconOf(f.category, f.allCategories)).toBe('apps');
+            expect(iconOf(f.paidWith, f.paid.any)).toBe('wallet');
+            expect(iconOf(f.sharedWith, f.shared.anyone)).toBe('groups');
             expect(iconOf(f.sharedWith, f.shared.me)).toBe('account_circle');
             expect(iconOf(f.groupBy, f.group.week)).toBe('date_range');
             expect(iconOf(f.paidWith, f.paid.plan)).toBe('event_repeat');

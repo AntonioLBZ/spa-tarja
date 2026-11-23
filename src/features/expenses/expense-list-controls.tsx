@@ -25,9 +25,6 @@ import './expense-list-controls.css';
 // finds amounts too
 const SEARCH_EXAMPLES = ['text', 'category', 'whole', 'exact', 'above', 'below', 'between'] as const;
 
-// The option of a filter that narrows nothing, in every list of the sheet
-const ANY_ICON: IconName = 'all_inclusive';
-
 const GROUPING_ICONS: Record<ListGrouping, IconName> = {
     day: 'today',
     week: 'date_range',
@@ -36,7 +33,7 @@ const GROUPING_ICONS: Record<ListGrouping, IconName> = {
 };
 
 const PAID_WITH_ICONS: Record<PaidWith, IconName> = {
-    any: ANY_ICON,
+    any: 'wallet',
     direct: 'payments',
     credit: 'credit_card',
     voucher: 'confirmation_number',
@@ -160,10 +157,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                     {(control) => (
                         <CategorySelect
                             {...control}
-                            options={[
-                                { id: '', label: t('allCategories'), icon: <Icon name={ANY_ICON} /> },
-                                ...options,
-                            ]}
+                            options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
                             value={filters.categoryId}
                             onChange={(categoryId) => onFiltersChange({ categoryId })}
                         />
@@ -195,7 +189,7 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         <Select
                             {...control}
                             options={[
-                                { value: '', label: t('shared.anyone'), icon: <Icon name={ANY_ICON} /> },
+                                { value: '', label: t('shared.anyone'), icon: <Icon name="groups" /> },
                                 { value: JUST_ME, label: t('shared.me'), icon: <Icon name="account_circle" /> },
                                 ...groupOptions,
                             ]}
