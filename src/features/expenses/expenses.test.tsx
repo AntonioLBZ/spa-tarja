@@ -2940,10 +2940,9 @@ describe('searching, filtering and grouping the list', () => {
         closeFilters();
         fireEvent.change(searchBox(), { target: { value } });
     };
-    const radio = (name: string) => screen.getByRole('radio', { name }) as HTMLInputElement;
     const pickGrouping = (name: string) => {
         openFilters();
-        fireEvent.click(radio(name));
+        pickOption(f.groupBy, name);
         closeFilters();
     };
     const rowNames = () =>
@@ -2999,7 +2998,7 @@ describe('searching, filtering and grouping the list', () => {
             expect(filtersToggle(0).getAttribute('aria-haspopup')).toBe('dialog');
             expect(filtersToggle(0).querySelector('.button__badge')).toBeNull();
             expect(filtersSheet().open).toBe(false);
-            expect(screen.queryByRole('group', { name: f.groupBy })).toBeNull();
+            expect(screen.queryByRole('combobox', { name: f.groupBy })).toBeNull();
             expect(showing(3, 4)).toBeNull();
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
         });
@@ -3011,24 +3010,17 @@ describe('searching, filtering and grouping the list', () => {
 
             const sheet = within(filtersSheet());
             expect(filtersSheet().open).toBe(true);
-            expect(sheet.getByRole('group', { name: f.groupBy })).toBeDefined();
-            expect(sheet.getAllByRole('radio').map((one) => one.getAttribute('value'))).toEqual([
-                'day',
-                'week',
-                'month',
-                'category',
-                'any',
-                'direct',
-                'credit',
-                'voucher',
-                'plan',
-            ]);
+            expect(
+                sheet
+                    .getAllByRole('combobox')
+                    .map((one) => document.querySelector(`label[for="${one.id}"]`)?.textContent)
+            ).toEqual([f.groupBy, f.category, f.paidWith, f.sharedWith]);
+            expect(optionNames(f.groupBy)).toEqual([f.group.day, f.group.week, f.group.month, f.group.category]);
             expect(chosenOption(f.category)).toBe(f.allCategories);
             expect((sheet.getByLabelText(f.from) as HTMLInputElement).value).toBe('2026-10-01');
             expect((sheet.getByLabelText(f.to) as HTMLInputElement).value).toBe('');
-            expect(sheet.getByRole('group', { name: f.paidWith })).toBeDefined();
-            expect(radio(f.group.day).checked).toBe(true);
-            expect(radio(f.paid.any).checked).toBe(true);
+            expect(chosenOption(f.groupBy)).toBe(f.group.day);
+            expect(chosenOption(f.paidWith)).toBe(f.paid.any);
             expect((sheet.getByRole('button', { name: f.clearFilters }) as HTMLButtonElement).disabled).toBe(true);
             expect(sheet.getAllByRole('button').map((button) => button.textContent)).toEqual([f.clearFilters, f.close]);
         });
@@ -3053,15 +3045,15 @@ describe('searching, filtering and grouping the list', () => {
             search('shop');
             openFilters();
             pickOption(f.category, en.categories.groceries);
-            fireEvent.click(radio(en.expenses.payment.direct));
+            pickOption(f.paidWith, en.expenses.payment.direct);
 
             fireEvent.click(within(filtersSheet()).getByRole('button', { name: f.clearFilters }));
 
             expect(filtersToggle(0)).toBeDefined();
             expect(chosenOption(f.category)).toBe(f.allCategories);
-            expect(radio(f.paid.any).checked).toBe(true);
+            expect(chosenOption(f.paidWith)).toBe(f.paid.any);
             expect((screen.getByLabelText(f.from) as HTMLInputElement).value).toBe('');
-            expect(radio(f.group.week).checked).toBe(true);
+            expect(chosenOption(f.groupBy)).toBe(f.group.week);
             expect(searchBox().value).toBe('shop');
             expect(filtersSheet().open).toBe(true);
         });
@@ -3070,15 +3062,25 @@ describe('searching, filtering and grouping the list', () => {
             await open(list);
             fireEvent.click(filtersToggle());
 
-            const paidWith = within(screen.getByRole('group', { name: f.paidWith }));
-
-            expect(paidWith.getAllByRole('radio').map((one) => one.parentElement!.textContent)).toEqual([
+            expect(optionNames(f.paidWith)).toEqual([
                 f.paid.any,
                 en.expenses.payment.direct,
                 en.expenses.payment.credit,
                 en.expenses.payment.voucher,
                 f.paid.plan,
             ]);
+        });
+
+        it('draw an icon before every option of the lists of the sheet, the ones that narrow nothing too', async () => {
+            await open(list);
+            fireEvent.click(filtersToggle());
+
+            const options = within(filtersSheet()).getAllByRole('option');
+
+            expect(options.length).toBeGreaterThan(0);
+            expect(
+                options.filter((option) => !option.querySelector('svg')).map((option) => option.textContent)
+            ).toEqual([]);
         });
 
         it('offer who it is shared with after how it was paid: anyone, just you, then each group and friend in your expenses', async () => {
@@ -3099,7 +3101,7 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(filtersToggle());
 
             const sharedWith = screen.getByRole('combobox', { name: f.sharedWith });
-            const paidWith = screen.getByRole('group', { name: f.paidWith });
+            const paidWith = screen.getByRole('combobox', { name: f.paidWith });
             expect(paidWith.compareDocumentPosition(sharedWith) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(chosenOption(f.sharedWith)).toBe(f.shared.anyone);
             expect(optionNames(f.sharedWith)).toEqual([f.shared.anyone, f.shared.me, 'Trip', 'Rome', 'Bea']);
@@ -3354,20 +3356,20 @@ describe('searching, filtering and grouping the list', () => {
             ]);
             openFilters();
 
-            fireEvent.click(radio(f.paid.plan));
+            pickOption(f.paidWith, f.paid.plan);
             expect(rowNames()).toEqual(['Sofa']);
 
-            fireEvent.click(radio(en.expenses.payment.direct));
+            pickOption(f.paidWith, en.expenses.payment.direct);
             expect(rowNames()).toEqual(['Lunch']);
 
-            fireEvent.click(radio(en.expenses.payment.credit));
+            pickOption(f.paidWith, en.expenses.payment.credit);
             expect(rowNames()).toEqual(['Shoes']);
 
-            fireEvent.click(radio(en.expenses.payment.voucher));
+            pickOption(f.paidWith, en.expenses.payment.voucher);
             expect(rowNames()).toEqual(['Dinner']);
             expect(filtersToggle(1)).toBeDefined();
 
-            fireEvent.click(radio(f.paid.any));
+            pickOption(f.paidWith, f.paid.any);
             expect(rowNames()).toHaveLength(4);
         });
 
@@ -3392,7 +3394,7 @@ describe('searching, filtering and grouping the list', () => {
             openFilters();
             pickOption(f.category, en.categories.groceries);
             fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
-            fireEvent.click(radio(en.expenses.payment.direct));
+            pickOption(f.paidWith, en.expenses.payment.direct);
 
             clear();
 
@@ -3402,8 +3404,8 @@ describe('searching, filtering and grouping the list', () => {
             openFilters();
             expect(chosenOption(f.category)).toBe(f.allCategories);
             expect((screen.getByLabelText(f.from) as HTMLInputElement).value).toBe('');
-            expect(radio(f.paid.any).checked).toBe(true);
-            expect(radio(f.group.week).checked).toBe(true);
+            expect(chosenOption(f.paidWith)).toBe(f.paid.any);
+            expect(chosenOption(f.groupBy)).toBe(f.group.week);
         });
 
         it('are gone once the screen is left, so a new expense is never hidden by an old filter', async () => {
@@ -3728,7 +3730,7 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(groupHeadings()).toEqual(['October']);
             fireEvent.click(filtersToggle());
-            expect(radio(f.group.month).checked).toBe(true);
+            expect(chosenOption(f.groupBy)).toBe(f.group.month);
         });
 
         it('falls back to days for something nobody saved', async () => {
@@ -3904,7 +3906,7 @@ describe('searching, filtering and grouping the list', () => {
             expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
             openFilters();
             expect(chosenOption(f.category)).toBe(f.allCategories);
-            expect(radio(f.group.week).checked).toBe(true);
+            expect(chosenOption(f.groupBy)).toBe(f.group.week);
             expect(localStorage.getItem('tarja:list-grouping')).toBe('week');
         });
 

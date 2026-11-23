@@ -308,4 +308,5 @@ export {
     type ListFilters,
     type ListGroup,
     type ListGrouping,
+    type PaidWith,
 };

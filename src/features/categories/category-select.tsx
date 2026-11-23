@@ -4,12 +4,14 @@ import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { CategoryBadge } from './category-badge';
 
 import type { CategoryStyle } from '@core/category-style';
+import type { ReactNode } from 'react';
 
 interface CategorySelectOption {
     id: string;
     label: string;
-    // An option with no style, like "All categories", has no icon
+    // An option with no style, like "All categories", has no badge: the icon given, if any
     style?: CategoryStyle;
+    icon?: ReactNode;
 }
 
 interface CategorySelectProps {
@@ -35,7 +37,7 @@ const CategorySelect = (props: CategorySelectProps) => {
     const selectOptions = ordered.map((option) => ({
         value: option.id,
         label: option.label,
-        icon: option.style && <CategoryBadge style={option.style} />,
+        icon: option.style ? <CategoryBadge style={option.style} /> : option.icon,
     }));
 
     return <Select {...rest} options={selectOptions} />;
