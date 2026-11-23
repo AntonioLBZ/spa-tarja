@@ -1,0 +1,4 @@
+/* At the right end of the actions of the sheet */
+.filters-sheet__close {
+    margin-inline-start: auto;
+}

@@ -1,29 +1,25 @@
-import clsx from 'clsx';
 import { useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
-import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { groupsFirst, useGroupOptions } from '@/features/groups/use-group-options';
 import { useGroups } from '@/features/groups/use-ledgers';
-import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
+
+import { FilterStatus } from './filter-status';
+import { FiltersSheet } from './filters-sheet';
+import { ListSearchField } from './list-search-field';
 
 import type { IconName } from '@/components/icon/icon-paths';
 import type { ListFilters, ListGrouping, PaidWith } from '@core/expense-list';
 
 import './expense-list-controls.css';
-
-// What the placeholder of the search shows, one of them each time the list opens, so a person learns over time that it
-// finds amounts too
-const SEARCH_EXAMPLES = ['text', 'category', 'whole', 'exact', 'above', 'below', 'between'] as const;
 
 const GROUPING_ICONS: Record<ListGrouping, IconName> = {
     day: 'today',
@@ -61,7 +57,6 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const { filters, grouping, shown, total, filtering, filterCount, onFiltersChange, onGroupingChange, onClear } =
         props;
     const t = useTranslations('expenses.filters');
-    const tList = useTranslations('expenses.list');
     const tPayment = useTranslations('expenses.payment');
     const { options } = useCategoryOptions();
     const { groups } = useGroups();
@@ -70,7 +65,6 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     const groupOptions = useGroupOptions(listed);
     const toggle = useRef<HTMLButtonElement>(null);
     const [open, setOpen] = useState(false);
-    const [example] = useState(() => SEARCH_EXAMPLES[Math.floor(Math.random() * SEARCH_EXAMPLES.length)]!);
 
     // The button goes with the filters: the focus goes to the filters button, never to the field, whose keyboard would open
     const clear = () => {
@@ -81,32 +75,19 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
     // The filters of the sheet, the dates too; the search and the grouping stay
     const clearFilters = () => onFiltersChange({ categoryId: '', from: '', to: '', paidWith: 'any', sharedWith: '' });
 
-    const status = shown === 0 ? tList('noMatch') : t('showing', { shown, total });
-    // The count changes with every key of the search: it shows at once and is read out once the typing pauses
-    const settled = useDebouncedValue(filtering ? status : '');
-    const spoken = filtering ? settled : '';
-    const statusClsx = clsx('expense-list-controls__status', { 'expense-list-controls__status--idle': !filtering });
-    const sheetStatusClsx = clsx({ 'expense-list-controls__status--idle': !filtering });
+    const close = () => {
+        setOpen(false);
+        toggle.current?.focus();
+    };
 
     return (
         <div className="expense-list-controls">
             <div className="expense-list-controls__row">
-                <Field
+                <ListSearchField
                     className="expense-list-controls__search-field"
-                    label={t('search')}
-                    placeholder={t(`searchExamples.${example}`)}
-                    icon={<Icon name="search" />}
-                >
-                    {(control) => (
-                        <input
-                            {...control}
-                            className="expense-list-controls__search"
-                            type="search"
-                            value={filters.query}
-                            onChange={(event) => onFiltersChange({ query: event.target.value })}
-                        />
-                    )}
-                </Field>
+                    value={filters.query}
+                    onChange={(query) => onFiltersChange({ query })}
+                />
                 <Button
                     ref={toggle}
                     ghost
@@ -120,24 +101,14 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 </Button>
             </div>
 
-            <Dialog
+            <FiltersSheet
                 open={open}
-                variant="sheet"
-                title={t('title')}
-                actions={
-                    <>
-                        <Button ghost disabled={filterCount === 0} onClick={clearFilters}>
-                            {t('clearFilters')}
-                        </Button>
-                        <Button ghost className="expense-list-controls__close" onClick={() => setOpen(false)}>
-                            {t('close')}
-                        </Button>
-                    </>
-                }
-                onClose={() => {
-                    setOpen(false);
-                    toggle.current?.focus();
-                }}
+                inUse={filterCount > 0}
+                filtering={filtering}
+                shown={shown}
+                total={total}
+                onClearFilters={clearFilters}
+                onClose={close}
             >
                 <Field label={t('groupBy')}>
                     {(control) => (
@@ -198,27 +169,9 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                         />
                     )}
                 </Field>
-                <div className={sheetStatusClsx}>
-                    <div className="visually-hidden" role="status">
-                        {spoken}
-                    </div>
-                    <div aria-hidden="true">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
-                </div>
-            </Dialog>
+            </FiltersSheet>
 
-            <div className={statusClsx}>
-                <div>
-                    <div className="visually-hidden" role="status">
-                        {spoken}
-                    </div>
-                    <div aria-hidden="true">{filtering && <Notice tone="quiet">{status}</Notice>}</div>
-                </div>
-                {filtering && (
-                    <Button ghost onClick={clear}>
-                        {t('clear')}
-                    </Button>
-                )}
-            </div>
+            <FilterStatus filtering={filtering} shown={shown} total={total} onClear={clear} />
         </div>
     );
 };
