@@ -1,6 +1,6 @@
 # ADR-0042: The ledger of a group is searched and filtered from one button
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-23
 
 ## Context
