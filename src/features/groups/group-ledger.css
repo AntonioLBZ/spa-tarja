@@ -21,3 +21,11 @@
 .group-ledger__more {
     justify-self: start;
 }
+
+/* The order and the button of the search and the filters keep together, the button at the very end */
+.group-ledger__tools {
+    align-items: center;
+    display: flex;
+    gap: var(--size-2);
+    margin-inline-start: auto;
+}

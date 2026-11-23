@@ -1,0 +1,17 @@
+/* The line takes the row and Clear ends it, as a ghost on paper */
+.filter-status {
+    align-items: center;
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* With no Clear, as in a sheet, the line takes the whole row */
+.filter-status--bare {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* Out of the layout while its live region is empty */
+.filter-status--idle {
+    position: absolute;
+}

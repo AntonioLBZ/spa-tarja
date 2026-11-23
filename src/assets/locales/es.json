@@ -694,8 +694,20 @@
             "empty": "Aún no hay gastos.",
             "order": {
                 "legend": "Orden",
-                "added": "Últimos añadidos",
+                "added": "Recientes",
                 "date": "Por fecha"
+            },
+            "filters": {
+                "toggle": "{count, plural, =0 {Buscar y filtrar} other {Buscar y filtrar (#)}}",
+                "paidBy": "Pagado por",
+                "with": "Con",
+                "anyone": "Cualquiera",
+                "kind": "Tipo",
+                "kinds": {
+                    "all": "Todo",
+                    "expense": "Gastos",
+                    "settlement": "Pagos"
+                }
             },
             "youPaid": "Pagaste",
             "paidBy": "Pagó {name}",

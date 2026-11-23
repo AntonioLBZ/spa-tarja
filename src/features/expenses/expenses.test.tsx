@@ -2960,8 +2960,9 @@ describe('searching, filtering and grouping the list', () => {
             .getByRole('heading', { level: 2, name: label })
             .closest('section')
             ?.querySelector('.expense-list__subtotal')?.textContent;
-    const statusRegion = () => document.querySelector<HTMLElement>('.expense-list-controls__status [role="status"]')!;
-    const statusLine = () => document.querySelector<HTMLElement>('.expense-list-controls__status')!;
+    const statusRegion = () =>
+        document.querySelector<HTMLElement>('.expense-list-controls > .filter-status [role="status"]')!;
+    const statusLine = () => document.querySelector<HTMLElement>('.expense-list-controls > .filter-status')!;
     const clear = () => {
         closeFilters();
         fireEvent.click(screen.getByRole('button', { name: f.clear }));
@@ -4065,12 +4066,12 @@ describe('searching, filtering and grouping the list', () => {
         it('keeps the empty status region out of the layout of the controls', async () => {
             await open(list);
 
-            const line = () => statusRegion().closest('.expense-list-controls__status')!;
-            expect(line().className).toContain('expense-list-controls__status--idle');
+            const line = () => statusRegion().closest('.expense-list-controls > .filter-status')!;
+            expect(line().className).toContain('filter-status--idle');
 
             search('shop');
 
-            expect(line().className).not.toContain('expense-list-controls__status--idle');
+            expect(line().className).not.toContain('filter-status--idle');
         });
     });
 

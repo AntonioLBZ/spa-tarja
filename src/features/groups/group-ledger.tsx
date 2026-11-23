@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Amount } from '@/components/amount/amount';
@@ -8,20 +8,27 @@ import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
+import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
+import { FilterStatus } from '@/features/expenses/filter-status';
 import { useAmount } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useGroupOutbox } from '@/lib/offline';
 import { useFadeOut } from '@/lib/use-fade-out';
 import { fromDateString } from '@core/date';
+import { NO_LEDGER_FILTERS, filterLedger, ledgerFilterCount } from '@core/ledger-list';
+import { normalizeText } from '@core/text';
 
 import { failureOf, useFailureWords, type GroupFailure } from './group-failure';
 import { ledgerEffect } from './ledger-effect';
+import { LedgerFilters } from './ledger-filters';
 import { LedgerRow } from './ledger-row';
 import { useEntryActions } from './use-entry-actions';
 import { useEntryWords } from './use-entry-words';
 
 import type { SettlementEntry } from './settle-up';
 import type { Ledger } from './use-ledgers';
+import type { LedgerContext, LedgerFilters as Filters } from '@core/ledger-list';
 import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
 import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
@@ -122,6 +129,12 @@ const GroupLedger = (props: GroupLedgerProps) => {
     const [order, setOrder] = useState<LedgerOrder>('added');
     const [failure, setFailure] = useState<GroupFailure | null>(null);
     const open = group.closed === null;
+    const { labelOf } = useCategoryOptions();
+    const { added } = useExpenseSheet();
+    const [filters, setFilters] = useState<Filters>(NO_LEDGER_FILTERS);
+    const query = useDeferredValue(filters.query);
+    const filterCount = ledgerFilterCount(filters);
+    const toggle = useRef<HTMLButtonElement>(null);
 
     // What takes the focus in each row by the id of its entry, and the title, where it goes when no row is left
     const targets = useRef(new Map<string, HTMLElement>());
@@ -141,16 +154,72 @@ const GroupLedger = (props: GroupLedgerProps) => {
     // The entry that Undo brought back, whose row takes the focus once it is there
     const [restored, setRestored] = useState<string | null>(null);
 
+    // What a search reads in an entry: what its row shows of it, its name, its category and who paid
+    const context = useMemo<LedgerContext>(() => {
+        const texts = new WeakMap<SharedEntry, string>();
+        return {
+            members: group.members,
+            me: group.me,
+            locale,
+            textOf: (entry) => {
+                let text = texts.get(entry);
+                if (text === undefined) {
+                    const category = entry.kind === 'expense' ? labelOf(entry.categoryId) : '';
+                    const payer = words.isMe(entry.paidBy) ? t('youPaid') : words.nameOf(entry.paidBy);
+                    text = normalizeText(`${words.entryName(entry)} ${category} ${payer}`);
+                    texts.set(entry, text);
+                }
+                return text;
+            },
+        };
+    }, [group, locale, labelOf, words, t]);
+
     // The rows fading out stay where they were until they are gone
-    const sheets = useMemo(() => {
-        if (leaving.size === 0) return ledgerSheets(entries, order, group);
+    const rows = useMemo(() => {
+        if (leaving.size === 0) return entries;
         const live = new Set(entries.filter((entry) => entry.deletedAt === null).map((entry) => entry.id));
-        return ledgerSheets(
-            [...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))],
-            order,
-            group
-        );
-    }, [entries, leaving, order, group]);
+        return [...entries, ...[...leaving.values()].filter((entry) => !live.has(entry.id))];
+    }, [entries, leaving]);
+    const applied = useMemo(() => ({ ...filters, query }), [filters, query]);
+    const sheets = useMemo(
+        () =>
+            ledgerSheets(
+                filterLedger(
+                    rows.filter((entry) => entry.deletedAt === null),
+                    applied,
+                    context
+                ),
+                order,
+                group
+            ),
+        [rows, applied, context, order, group]
+    );
+    const all = useMemo(() => rows.filter((entry) => entry.deletedAt === null).length, [rows]);
+    const filtering = ledgerFilterCount(applied) > 0;
+
+    // A filter must never hide a new expense, nor stay on once the ledger is empty
+    const [seenAdded, setSeenAdded] = useState(added);
+    if (added !== seenAdded) {
+        setSeenAdded(added);
+        if (added && filters !== NO_LEDGER_FILTERS) setFilters(NO_LEDGER_FILTERS);
+    }
+    if (all === 0 && filters !== NO_LEDGER_FILTERS) setFilters(NO_LEDGER_FILTERS);
+
+    // A row brought back by Undo takes the focus only while nothing else has moved it
+    const changeFilters = (patch: Partial<Filters>) => {
+        setFilters((current) => ({ ...current, ...patch }));
+        setLimit(PAGE_SIZE);
+        setRestored(null);
+    };
+
+    // Clear goes with the filters: the focus goes to their button, never to the search, whose keyboard would open
+    const clearFilters = () => {
+        setFilters(NO_LEDGER_FILTERS);
+        setLimit(PAGE_SIZE);
+        setRestored(null);
+        toggle.current?.focus();
+    };
+
     useEffect(() => {
         if (restored === null) return;
         const target = targets.current.get(restored);
@@ -236,28 +305,43 @@ const GroupLedger = (props: GroupLedgerProps) => {
 
     return (
         <section className="group-ledger">
-            {/* The order at the end of the row of the title, as tabs (ADR-0041) */}
+            {/* The order at the end of the row of the title, as tabs (ADR-0041), and the button of the search and the
+                filters after it, so the screen grows no taller for them */}
             <div className="group-ledger__head">
                 <h2 ref={title} tabIndex={-1}>
                     {t('title')}
                 </h2>
-                {total > 0 && (
-                    <ChoiceGroup
-                        tabs
-                        legend={t('order.legend')}
-                        name="ledger-order"
-                        options={LEDGER_ORDERS.map((value) => ({ value, label: t(`order.${value}`) }))}
-                        value={order}
-                        onChange={setOrder}
-                    />
+                {all > 0 && (
+                    <div className="group-ledger__tools">
+                        <ChoiceGroup
+                            tabs
+                            legend={t('order.legend')}
+                            name="ledger-order"
+                            options={LEDGER_ORDERS.map((value) => ({ value, label: t(`order.${value}`) }))}
+                            value={order}
+                            onChange={setOrder}
+                        />
+                        <LedgerFilters
+                            group={group}
+                            filters={filters}
+                            count={filterCount}
+                            filtering={filtering}
+                            shown={total}
+                            total={all}
+                            toggleRef={toggle}
+                            onChange={changeFilters}
+                            onClosed={() => toggle.current?.focus()}
+                        />
+                    </div>
                 )}
             </div>
+            <FilterStatus filtering={filtering} shown={total} total={all} onClear={clearFilters} />
             {failure && (
                 <Notice tone="danger" role="alert">
                     {failureWords(failure)}
                 </Notice>
             )}
-            {total === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
+            {all === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
             {drawn.map((sheet) => (
                 <Sheet
                     key={sheet.day ?? 'added'}

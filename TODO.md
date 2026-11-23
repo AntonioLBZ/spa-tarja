@@ -39,10 +39,6 @@ In the balances of a group, a "Remind" on a debt you are owed sends a Web Push t
 
 Go over what a new person sees on every screen: no expenses, no groups, no friends, no budget, no income. Each empty screen says what it is for and offers the one action that fills it.
 
-## 31. Add "Filters" to a group's screen
-
-Offer the filters of the expense list ([ADR-0024](docs/adr/0024-the-list-filters-open-in-a-sheet.md)) on the screen of a group, for its ledger. Decide first what a group can be filtered by (who paid, who is in it, category, range, settlements) and update `docs/specs/expense-list.md` and `docs/specs/groups.md` before building.
-
 ## 18. More locales
 
 Locales beyond `en` and `es` (the owner's `spa-anicalendar` also ships `fr` and `de`) come among the last things, not now.

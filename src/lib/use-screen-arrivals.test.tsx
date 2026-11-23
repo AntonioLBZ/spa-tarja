@@ -34,7 +34,7 @@ const heading = (name: string) => screen.findByRole('heading', { level: 1, name 
 
 const link = (name: string) => screen.getByRole('link', { name });
 
-const said = () => document.querySelector('.visually-hidden[role="status"]')!.textContent;
+const said = () => [...document.querySelectorAll('.visually-hidden[role="status"]')].at(-1)!.textContent;
 
 const press = (element: HTMLElement) => {
     element.focus();

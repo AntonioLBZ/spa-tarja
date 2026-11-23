@@ -7,9 +7,9 @@ import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/test/fake-api';
 import { TEST_USER } from '@/lib/test/fake-auth';
-import { person, sampleGroup } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { chosenOption } from '@/lib/test/select';
+import { chosenOption, pickOption } from '@/lib/test/select';
 import { openAddSheet } from '@/lib/test/sheet';
 import { stubViewport } from '@/lib/test/viewport';
 import { MAX_PINNED_GROUPS } from '@core/shared-group';
@@ -25,8 +25,8 @@ const named = (name: string, overrides: Partial<SharedGroup> = {}) => {
     return sampleGroup({ name, members: [ana, bea], me: ana.id, ...overrides });
 };
 
-const open = async (path: string, groups: SharedGroup[]) => {
-    const api = createFakeApi({ groups });
+const open = async (path: string, groups: SharedGroup[], entries: ReturnType<typeof sampleEntry>[] = []) => {
+    const api = createFakeApi({ groups, entries });
     stubApi(api.handler);
     const app = renderApp({ path });
     await screen.findAllByRole('button', { name: en.nav.add });
@@ -84,6 +84,24 @@ describe('the tabs of the Expenses screen', () => {
         expect(tab(en.expenses.list.title).getAttribute('aria-current')).toBeNull();
         await openAddSheet();
         expect(chosenOption(en.groups.share.with)).toBe('Trip');
+    });
+
+    it('start each group with its own search and filters, none carried over from the tab before', async () => {
+        const trip = named('Trip', { pinnedAt: 1_000 });
+        const flat = named('Flat', { pinnedAt: 2_000 });
+        await open('/', [trip, flat], [sampleEntry(trip, { text: 'Dinner' }), sampleEntry(flat, { text: 'Rent' })]);
+        const filters = (count: number) =>
+            screen.findByRole('button', { name: t('groups.ledger.filters.toggle', { count }) });
+
+        fireEvent.click(await waitFor(() => tab('Trip')));
+        fireEvent.click(await filters(0));
+        pickOption(en.groups.ledger.filters.kind, en.groups.ledger.filters.kinds.settlement);
+        expect(await filters(1)).toBeDefined();
+        fireEvent.click(screen.getByRole('button', { name: en.expenses.filters.close }));
+
+        fireEvent.click(tab('Flat'));
+        expect(await screen.findByText('Rent', { selector: '.expense-item__text' })).toBeDefined();
+        expect(await filters(0)).toBeDefined();
     });
 
     it('go back to Expenses for a group that is not pinned', async () => {
