@@ -44,11 +44,12 @@ interface LedgerContext {
     locale?: string;
 }
 
-// The amounts a row of the ledger shows: what the entry does to the person's balance and the whole that was paid
+// The amounts a row of the ledger shows: what the entry does to the person's balance, unless it does nothing, and the
+// whole that was paid
 const ledgerAmountsOf = (entry: SharedEntry, ctx: LedgerContext): number[] => {
     const paidByMe = canonicalMember(ctx.members, entry.paidBy) === ctx.me;
     const effect = (paidByMe ? entry.amountCents : 0) - yourPart(entry, ctx.me, ctx.members);
-    return [Math.abs(effect), entry.amountCents];
+    return effect === 0 ? [entry.amountCents] : [Math.abs(effect), entry.amountCents];
 };
 
 const isIn = (entry: SharedEntry, memberId: string, members: readonly SharedMember[]): boolean => {

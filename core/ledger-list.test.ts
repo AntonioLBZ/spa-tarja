@@ -136,6 +136,17 @@ describe('filterLedger', () => {
         expect(ids({ query: '>24 <26' })).toEqual(['tickets']);
     });
 
+    it('finds no amount of its own in an entry that does nothing to the person', () => {
+        const notIn = { ...ctx, me: 'carlos' };
+        const ownLunch = expense('own-lunch', { shares: [{ memberId: 'ana', cents: 4000 }] });
+        const found = (query: string) =>
+            filterLedger([ownLunch, payBack], { ...NO_LEDGER_FILTERS, query }, notIn).map((entry) => entry.id);
+        expect(found('<5')).toEqual([]);
+        expect(found('0')).toEqual([]);
+        expect(found('40')).toEqual(['own-lunch']);
+        expect(filterLedger([ownLunch], { ...NO_LEDGER_FILTERS, query: '<5' }, ctx)).toEqual([]);
+    });
+
     it('needs every filter at once', () => {
         expect(ids({ kind: 'expense', with: 'carlos', query: 'museum' })).toEqual(['tickets']);
     });

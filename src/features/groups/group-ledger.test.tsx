@@ -844,6 +844,11 @@ describe('the search and the filters of the ledger', () => {
 
         fireEvent.change(within(sheet()).getByRole('searchbox', { name: ef.search }), { target: { value: '4,5' } });
         await waitFor(() => expect(rowNames()).toEqual(['Taxi']));
+
+        fireEvent.change(within(sheet()).getByRole('searchbox', { name: ef.search }), {
+            target: { value: 'you paid' },
+        });
+        await waitFor(() => expect(rowNames()).toEqual(['Dinner', t('groups.ledger.paidYou', { name: 'Cris' })]));
     });
 
     it('keeps the settlements alone, or what a member paid, or what a member is in', async () => {

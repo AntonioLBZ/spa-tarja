@@ -165,13 +165,14 @@ const GroupLedger = (props: GroupLedgerProps) => {
                 let text = texts.get(entry);
                 if (text === undefined) {
                     const category = entry.kind === 'expense' ? labelOf(entry.categoryId) : '';
-                    text = normalizeText(`${words.entryName(entry)} ${category} ${words.nameOf(entry.paidBy)}`);
+                    const payer = words.isMe(entry.paidBy) ? t('youPaid') : words.nameOf(entry.paidBy);
+                    text = normalizeText(`${words.entryName(entry)} ${category} ${payer}`);
                     texts.set(entry, text);
                 }
                 return text;
             },
         };
-    }, [group, locale, labelOf, words]);
+    }, [group, locale, labelOf, words, t]);
 
     // The rows fading out stay where they were until they are gone
     const rows = useMemo(() => {
@@ -181,7 +182,16 @@ const GroupLedger = (props: GroupLedgerProps) => {
     }, [entries, leaving]);
     const applied = useMemo(() => ({ ...filters, query }), [filters, query]);
     const sheets = useMemo(
-        () => ledgerSheets(filterLedger(rows, applied, context), order, group),
+        () =>
+            ledgerSheets(
+                filterLedger(
+                    rows.filter((entry) => entry.deletedAt === null),
+                    applied,
+                    context
+                ),
+                order,
+                group
+            ),
         [rows, applied, context, order, group]
     );
     const all = useMemo(() => rows.filter((entry) => entry.deletedAt === null).length, [rows]);
@@ -195,15 +205,18 @@ const GroupLedger = (props: GroupLedgerProps) => {
     }
     if (all === 0 && filters !== NO_LEDGER_FILTERS) setFilters(NO_LEDGER_FILTERS);
 
+    // A row brought back by Undo takes the focus only while nothing else has moved it
     const changeFilters = (patch: Partial<Filters>) => {
         setFilters((current) => ({ ...current, ...patch }));
         setLimit(PAGE_SIZE);
+        setRestored(null);
     };
 
     // Clear goes with the filters: the focus goes to their button, never to the search, whose keyboard would open
     const clearFilters = () => {
         setFilters(NO_LEDGER_FILTERS);
         setLimit(PAGE_SIZE);
+        setRestored(null);
         toggle.current?.focus();
     };
 

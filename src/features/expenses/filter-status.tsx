@@ -26,7 +26,7 @@ const FilterStatus = (props: FilterStatusProps) => {
     const status = shown === 0 ? tList('noMatch') : t('showing', { shown, total });
     const settled = useDebouncedValue(filtering ? status : '');
     const spoken = filtering ? settled : '';
-    const statusClsx = clsx('filter-status', { 'filter-status--idle': !filtering });
+    const statusClsx = clsx('filter-status', { 'filter-status--bare': !onClear, 'filter-status--idle': !filtering });
 
     return (
         <div className={statusClsx}>

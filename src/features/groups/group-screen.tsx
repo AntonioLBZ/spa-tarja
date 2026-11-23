@@ -107,6 +107,7 @@ const GroupView = (props: GroupViewProps) => {
             {words.closed && <Notice tone="quiet">{t(`group.closed.${words.closed}`)}</Notice>}
             {hasData && (
                 <GroupLedger
+                    key={group.id}
                     ledger={ledger}
                     onEdit={(entry) => sheet.startEditEntry({ group, entry })}
                     onEditSettlement={(entry) => settle.edit(entry, group.members)}
