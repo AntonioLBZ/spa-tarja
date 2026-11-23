@@ -1,4 +1,5 @@
 import { Field } from '@/components/field/field';
+import { Icon } from '@/components/icon/icon';
 import {
     CategorySelect as CategorySelectComponent,
     type CategorySelectProps,
@@ -12,7 +13,7 @@ import type { Meta } from '@storybook/react-vite';
 
 interface CategorySelectStoryProps extends Omit<CategorySelectProps, 'id' | 'options'> {
     label: string;
-    // Adds an option with no icon, like the "All categories" of the filters
+    // Adds an option with no category, like the "All categories" of the filters, with the icon it is given
     withAll: boolean;
     error: string;
 }
@@ -46,7 +47,9 @@ export const CategorySelect = (args: CategorySelectStoryProps) => {
     const { label, withAll, error, ...props } = args;
     const [, updateArgs] = useArgs();
     const { options } = useStoryCategories();
-    const shown = withAll ? [{ id: 'all', label: 'All categories' }, ...options] : options;
+    const shown = withAll
+        ? [{ id: 'all', label: 'All categories', icon: <Icon name="all_inclusive" /> }, ...options]
+        : options;
 
     return (
         <Field label={label} error={error || undefined}>

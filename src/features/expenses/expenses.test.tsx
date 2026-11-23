@@ -3081,6 +3081,17 @@ describe('searching, filtering and grouping the list', () => {
             expect(
                 options.filter((option) => !option.querySelector('svg')).map((option) => option.textContent)
             ).toEqual([]);
+            const iconOf = (label: string, name: string) =>
+                within(screen.getByRole('combobox', { name: label }))
+                    .getByRole('option', { name })
+                    .querySelector('[data-icon]')
+                    ?.getAttribute('data-icon');
+            expect(iconOf(f.category, f.allCategories)).toBe('all_inclusive');
+            expect(iconOf(f.paidWith, f.paid.any)).toBe('all_inclusive');
+            expect(iconOf(f.sharedWith, f.shared.anyone)).toBe('all_inclusive');
+            expect(iconOf(f.sharedWith, f.shared.me)).toBe('account_circle');
+            expect(iconOf(f.groupBy, f.group.week)).toBe('date_range');
+            expect(iconOf(f.paidWith, f.paid.plan)).toBe('event_repeat');
         });
 
         it('offer who it is shared with after how it was paid: anyone, just you, then each group and friend in your expenses', async () => {
