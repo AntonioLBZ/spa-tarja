@@ -141,7 +141,7 @@ describe('the table of a group', () => {
         fireEvent.change(screen.getByLabelText(text.from), { target: { value: '2026-11-10' } });
         fireEvent.change(screen.getByLabelText(text.to), { target: { value: '2026-11-01' } });
 
-        expect(screen.getByText(text.backwards)).toBeDefined();
+        expect(screen.getByRole('alert').textContent).toBe(text.backwards);
         expect(screen.queryByRole('table')).toBeNull();
         expect(button(text.print).disabled).toBe(true);
         expect(button(text.csv).disabled).toBe(true);
@@ -164,6 +164,59 @@ describe('the table of a group', () => {
             .getAllByRole('columnheader')
             .map((cell) => cell.textContent);
         expect(headers.slice(-2)).toEqual(['Ana', 'Bea']);
+    });
+});
+
+describe('the people and the amounts of the table', () => {
+    it('names nobody as You or as one who left, and a deleted account as Deleted user', async () => {
+        const group = sampleGroup();
+        const gone = person('', { leftAt: 5 });
+        group.members.push(gone);
+        await open(group, [sampleEntry(group, { paidBy: gone.id })]);
+
+        const headers = within(table())
+            .getAllByRole('columnheader')
+            .map((cell) => cell.textContent);
+        expect(headers.slice(-3)).toEqual(['Ana', 'Bea', en.groups.names.deleted]);
+        expect(table().textContent).not.toMatch(/\(You\)|\(left\)/);
+    });
+
+    it('is titled with the other person for a friend', async () => {
+        const friend = sampleGroup({ kind: 'direct', name: null });
+        await open(friend, [sampleEntry(friend)]);
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Bea' })).toBeDefined();
+    });
+
+    it('signs every amount of a person, also when the settings leave the sign out', async () => {
+        localStorage.setItem('tarja:amounts', JSON.stringify({ sign: false }));
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        expect(rowTexts().at(-1)).toBe(`${text.closing}+€5.00−€5.00`);
+    });
+
+    it('scrolls sideways in a box the keyboard reaches, named by its caption', async () => {
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        const region = screen.getByRole('region', { name: text.range.all });
+        expect(region.tabIndex).toBe(0);
+        expect(within(region).getByRole('table')).toBeDefined();
+    });
+
+    it('says the expenses could not be loaded, with its actions off, when the device never had them', async () => {
+        const group = sampleGroup();
+        const api = createFakeApi({ groups: [group] });
+        stubApi((url, init) =>
+            url.pathname.endsWith('/entries') ? new Response(null, { status: 503 }) : api.handler(url, init)
+        );
+        renderApp({ path: `/groups/${group.id}/export` });
+
+        expect((await screen.findByText(en.groups.group.entriesFailed)).closest('[role="status"]')).not.toBeNull();
+        expect(screen.queryByText(text.empty)).toBeNull();
+        expect(button(text.print).disabled).toBe(true);
+        expect(button(text.csv).disabled).toBe(true);
     });
 });
 

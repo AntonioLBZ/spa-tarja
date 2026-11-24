@@ -10,10 +10,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.group-export__error {
-    color: var(--color-danger);
-}
-
 /* A table wider than the column scrolls inside its own box, which the keyboard can reach */
 .group-export__scroll {
     overflow-x: auto;
@@ -57,6 +53,10 @@
     white-space: nowrap;
 }
 
+.group-export__table .group-export__person {
+    text-align: end;
+}
+
 .group-export__date {
     white-space: nowrap;
 }
@@ -65,8 +65,7 @@
     font-weight: bold;
 }
 
-.group-export__table tfoot th,
-.group-export__table tfoot td {
+.group-export__table .group-export__balance--closing > * {
     border-bottom: none;
     border-top: var(--size-1) solid var(--color-border);
 }

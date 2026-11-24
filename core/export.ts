@@ -108,8 +108,9 @@ interface GroupCsvLabels {
     closing: string;
 }
 
-// Characters a file name can't hold on some system
-const UNSAFE_IN_FILE_NAME = /[\\/:*?"<>|\p{Cc}]+/gu;
+// Characters a file name can't hold on some system, and the invisible ones that would change how it reads
+const UNSAFE_IN_FILE_NAME = /[\\/:*?"<>|\p{Cc}\p{Cf}]+/gu;
+const FILE_NAME_MAX_LENGTH = 60;
 
 const compare = (a: string | number, b: string | number): number => {
     return a < b ? -1 : a > b ? 1 : 0;
@@ -268,7 +269,9 @@ const groupCsv = (table: GroupTable<SharedEntry>, currency: string, locale: stri
 
 // The file of a group: its name as the screens say it, kept to what a file name can hold, and the day of the device
 const groupFileName = (title: string, now: Date): string => {
-    const name = title.replace(UNSAFE_IN_FILE_NAME, ' ').trim().replace(/\s+/g, '-').slice(0, 60);
+    const words = title.replace(UNSAFE_IN_FILE_NAME, ' ').trim().replace(/\s+/g, '-');
+    // By code points, so a character made of two units is never cut in half
+    const name = Array.from(words).slice(0, FILE_NAME_MAX_LENGTH).join('').replace(/-+$/, '');
     return name === '' ? `tarja-${toDateString(now)}.csv` : `tarja-${name}-${toDateString(now)}.csv`;
 };
 

@@ -87,6 +87,23 @@ describe('groupTable', () => {
         expect(table.closing).toEqual(memberBalances(entries, MEMBERS).map(({ cents }) => cents));
     });
 
+    it('closes on the balances the group shows with a first day and a merged member too', () => {
+        const members = [...MEMBERS, { id: 'dummy', mergedInto: 'cai' }];
+        const entries = [
+            expense({ date: '2026-10-01', paidBy: 'dummy' }),
+            expense({
+                date: '2026-11-03',
+                paidBy: 'bea',
+                amountCents: 700,
+                shares: [{ memberId: 'dummy', cents: 700 }],
+            }),
+            settlement({ date: '2026-11-05' }),
+        ];
+        const table = groupTable(entries, members, { from: '2026-11-01', to: '' });
+
+        expect(table.closing).toEqual(memberBalances(entries, members).map(({ cents }) => cents));
+    });
+
     it('tells a member who is out of an entry from one it leaves even', () => {
         const justAna = expense({ createdAt: 2_000, amountCents: 500, shares: [{ memberId: 'ana', cents: 500 }] });
 
@@ -110,6 +127,13 @@ describe('groupTable', () => {
         const table = groupTable([later, deleted, kept], MEMBERS, { from: '', to: '2026-11-10' });
 
         expect(table.rows.map((row) => row.entry)).toEqual([kept]);
+    });
+
+    it('orders rows made at the same moment by their id', () => {
+        const b = expense({ id: 'bbbbbbbb-0000-4000-8000-000000000000' });
+        const a = expense({ id: 'aaaaaaaa-0000-4000-8000-000000000000' });
+
+        expect(groupTable([b, a], MEMBERS, WHOLE).rows.map((row) => row.entry)).toEqual([a, b]);
     });
 
     it('lists the rows by the day made, then when they were made', () => {

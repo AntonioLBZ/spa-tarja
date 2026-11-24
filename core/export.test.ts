@@ -891,6 +891,14 @@ describe('groupCsv', () => {
         expect(csv[1]).toMatch(/^2026-10-25,'\+SUM\(A1\),.*,-20.00$/);
     });
 
+    it('guards who paid, the category and the label of a balance as texts', () => {
+        const words = { ...labels, memberName: () => '@ana', categoryName: () => '-food', closing: '=total' };
+        const csv = rows(csvOf([dinner()], '', 'en', words));
+
+        expect(csv[1]).toBe("2026-10-25,Dinner,'-food,'@ana,40.00,EUR,20.00,-20.00");
+        expect(csv[2]).toBe(",'=total,,,,EUR,20.00,-20.00");
+    });
+
     it('starts with a byte order mark', () => {
         expect(csvOf([dinner()]).startsWith(BOM)).toBe(true);
     });
@@ -905,6 +913,15 @@ describe('groupFileName', () => {
 
     it('drops what a file name cannot hold', () => {
         expect(groupFileName('Rent: 2026/27 "flat"', now)).toBe('tarja-Rent-2026-27-flat-2026-11-24.csv');
+    });
+
+    it('keeps 60 characters at most, never half of one, and no dash at the end', () => {
+        expect(groupFileName(`${'a'.repeat(59)}🏠🏠`, now)).toBe(`tarja-${'a'.repeat(59)}🏠-2026-11-24.csv`);
+        expect(groupFileName(`${'a'.repeat(59)} b`, now)).toBe(`tarja-${'a'.repeat(59)}-2026-11-24.csv`);
+    });
+
+    it('drops the invisible characters that change how a name reads', () => {
+        expect(groupFileName('Flat\u202Etxt.exe', now)).toBe('tarja-Flat-txt.exe-2026-11-24.csv');
     });
 
     it('is tarja and the day when nothing of the name is left', () => {

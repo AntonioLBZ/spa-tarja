@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useId, useMemo, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
@@ -46,6 +47,8 @@ interface ExportTableProps {
 }
 
 interface BalanceRowProps {
+    // The last row, ruled off from the entries
+    closing?: boolean;
     label: string;
     columns: readonly string[];
     cells: readonly number[];
@@ -139,9 +142,9 @@ const ExportView = (props: ExportViewProps) => {
                     onChange={(edge, day) => setRange((current) => ({ ...current, [edge]: day }))}
                 />
                 {backwards && (
-                    <p className="hint group-export__error" id={rangeErrorId}>
+                    <Notice tone="danger" role="alert" id={rangeErrorId}>
                         {t('backwards')}
-                    </p>
+                    </Notice>
                 )}
                 <Actions>
                     <Button disabled={!filled} onClick={() => window.print()}>
@@ -168,8 +171,7 @@ const ExportTable = (props: ExportTableProps) => {
 
     const cell = (cents: number | null) => {
         if (cents === null) return null;
-        const props = amount(cents, group.currency, { cues: true });
-        return <Amount {...props} sign spokenSign />;
+        return <Amount {...amount(cents, group.currency, { cues: true })} sign spokenSign />;
     };
 
     return (
@@ -188,7 +190,7 @@ const ExportTable = (props: ExportTableProps) => {
                             {t('columns.amount')}
                         </th>
                         {table.columns.map((memberId) => (
-                            <th key={memberId} className="group-export__number" scope="col">
+                            <th key={memberId} className="group-export__person" scope="col">
                                 {words.nameOf(memberId)}
                             </th>
                         ))}
@@ -219,27 +221,28 @@ const ExportTable = (props: ExportTableProps) => {
                             ))}
                         </tr>
                     ))}
-                </tbody>
-                <tfoot>
                     <BalanceRow
+                        closing
                         label={t('closing')}
                         columns={table.columns}
                         cells={table.closing}
                         currency={group.currency}
                     />
-                </tfoot>
+                </tbody>
             </table>
         </div>
     );
 };
 
-// The opening or the closing balance of each person, under the columns of the people
+// The opening or the closing balance of each person, under the columns of the people. The closing one is a row of the
+// body, not a foot, which paper would repeat at the end of every sheet.
 const BalanceRow = (props: BalanceRowProps) => {
-    const { label, columns, cells, currency } = props;
+    const { closing, label, columns, cells, currency } = props;
     const amount = useAmount();
+    const rowClsx = clsx('group-export__balance', { 'group-export__balance--closing': closing });
 
     return (
-        <tr className="group-export__balance">
+        <tr className={rowClsx}>
             <th scope="row" colSpan={5}>
                 {label}
             </th>

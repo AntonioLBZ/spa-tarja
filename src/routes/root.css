@@ -307,7 +307,7 @@
         display: none;
     }
 
-    .root__main {
+    .root .root__main {
         max-width: none;
         padding: 0;
     }
