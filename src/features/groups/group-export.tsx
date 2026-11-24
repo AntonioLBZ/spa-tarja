@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useDeferredValue, useId, useMemo, useRef, useState } from 'react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
@@ -7,6 +7,7 @@ import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
 import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
+import { PrintTable } from '@/components/print-table/print-table';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { FilterStatus } from '@/features/expenses/filter-status';
@@ -192,8 +193,8 @@ const ExportView = (props: ExportViewProps) => {
     return (
         <section className="group-export">
             <ScreenTitle>{words.title}</ScreenTitle>
-            <p className="hint group-export__screen-only">{t('hint')}</p>
-            <div className="group-export__controls group-export__screen-only">
+            <p className="hint screen-only">{t('hint')}</p>
+            <div className="group-export__controls screen-only">
                 <Actions>
                     <Button disabled={!filled} onClick={() => window.print()}>
                         {t('print')}
@@ -216,7 +217,7 @@ const ExportView = (props: ExportViewProps) => {
                     />
                 )}
             </div>
-            <div className="group-export__screen-only">
+            <div className="screen-only">
                 <FilterStatus filtering={filtering} shown={table.rows.length} total={all} onClear={clearFilters} />
             </div>
             <LiveNotice>{!hasData && (isError || isWaitingForNetwork) && tGroup('entriesFailed')}</LiveNotice>
@@ -240,7 +241,6 @@ const ExportTable = (props: ExportTableProps) => {
     const t = useTranslations('groups.export');
     const shortDate = useShortDate();
     const amount = useAmount();
-    const captionId = useId();
 
     const cell = (cents: number | null) => {
         if (cents === null) return null;
@@ -248,62 +248,57 @@ const ExportTable = (props: ExportTableProps) => {
     };
 
     return (
-        <div className="group-export__scroll" role="region" aria-labelledby={captionId} tabIndex={0}>
-            <table className="group-export__table">
-                <caption className="group-export__caption" id={captionId}>
-                    {caption}
-                </caption>
-                <thead>
-                    <tr>
-                        <th scope="col">{t('columns.date')}</th>
-                        <th scope="col">{t('columns.text')}</th>
-                        <th scope="col">{t('columns.category')}</th>
-                        <th scope="col">{t('columns.paidBy')}</th>
-                        <th className="group-export__number" scope="col">
-                            {t('columns.amount')}
+        <PrintTable caption={caption}>
+            <thead>
+                <tr>
+                    <th scope="col">{t('columns.date')}</th>
+                    <th scope="col">{t('columns.text')}</th>
+                    <th scope="col">{t('columns.category')}</th>
+                    <th scope="col">{t('columns.paidBy')}</th>
+                    <th className="print-table__number" scope="col">
+                        {t('columns.amount')}
+                    </th>
+                    {table.columns.map((memberId) => (
+                        <th key={memberId} className="print-table__end" scope="col">
+                            {words.nameOf(memberId)}
                         </th>
-                        {table.columns.map((memberId) => (
-                            <th key={memberId} className="group-export__person" scope="col">
-                                {words.nameOf(memberId)}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {table.opening && (
-                        <BalanceRow
-                            label={opening}
-                            columns={table.columns}
-                            cells={table.opening}
-                            currency={group.currency}
-                        />
-                    )}
-                    {table.rows.map(({ entry, cells }) => (
-                        <tr key={entry.id}>
-                            <td className="group-export__date">{shortDate(entry.date)}</td>
-                            <th scope="row">{words.entryText(entry)}</th>
-                            <td>{entry.kind === 'expense' ? words.categoryName(entry.categoryId) : ''}</td>
-                            <td>{words.nameOf(entry.paidBy)}</td>
-                            <td className="group-export__number">
-                                <Amount {...amount(entry.amountCents, entry.currency)} />
-                            </td>
-                            {cells.map((cents, index) => (
-                                <td key={table.columns[index]} className="group-export__number">
-                                    {cell(cents)}
-                                </td>
-                            ))}
-                        </tr>
                     ))}
+                </tr>
+            </thead>
+            <tbody>
+                {table.opening && (
                     <BalanceRow
-                        closing
-                        label={closing}
+                        label={opening}
                         columns={table.columns}
-                        cells={table.closing}
+                        cells={table.opening}
                         currency={group.currency}
                     />
-                </tbody>
-            </table>
-        </div>
+                )}
+                {table.rows.map(({ entry, cells }) => (
+                    <tr key={entry.id}>
+                        <td className="print-table__date">{shortDate(entry.date)}</td>
+                        <th scope="row">{words.entryText(entry)}</th>
+                        <td>{entry.kind === 'expense' ? words.categoryName(entry.categoryId) : ''}</td>
+                        <td>{words.nameOf(entry.paidBy)}</td>
+                        <td className="print-table__number">
+                            <Amount {...amount(entry.amountCents, entry.currency)} />
+                        </td>
+                        {cells.map((cents, index) => (
+                            <td key={table.columns[index]} className="print-table__number">
+                                {cell(cents)}
+                            </td>
+                        ))}
+                    </tr>
+                ))}
+                <BalanceRow
+                    closing
+                    label={closing}
+                    columns={table.columns}
+                    cells={table.closing}
+                    currency={group.currency}
+                />
+            </tbody>
+        </PrintTable>
     );
 };
 
@@ -312,7 +307,7 @@ const ExportTable = (props: ExportTableProps) => {
 const BalanceRow = (props: BalanceRowProps) => {
     const { closing, label, columns, cells, currency } = props;
     const amount = useAmount();
-    const rowClsx = clsx('group-export__balance', { 'group-export__balance--closing': closing });
+    const rowClsx = clsx('print-table__sum', { 'print-table__sum--last': closing });
 
     return (
         <tr className={rowClsx}>
@@ -320,7 +315,7 @@ const BalanceRow = (props: BalanceRowProps) => {
                 {label}
             </th>
             {cells.map((cents, index) => (
-                <td key={columns[index]} className="group-export__number">
+                <td key={columns[index]} className="print-table__number">
                     <Amount {...amount(cents, currency, { cues: true })} sign spokenSign />
                 </td>
             ))}

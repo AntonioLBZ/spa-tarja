@@ -30,4 +30,4 @@ The export of the settings is the person's own: the JSON holds every group as st
 - **A table per person**, each with what it cost, what they paid, their part and its effect: it repeats what each column already says and, built from the side of whoever exports it, it is not the same for everyone.
 - **Print styles on the screen of the group**: its ledger is folded and shows a page at a time, so it would print half of it.
 - **A PDF made by a library**: a dependency for what the browser already does.
-- **The printable view of the person's own expenses over a range**: left out for now, as the need is to show a group.
+- **The printable view of the person's own expenses** in this decision: it is the person's side, not the same for everyone, so it is a decision of its own ([ADR-0044](0044-your-expenses-print-as-the-list-shows-them.md)).

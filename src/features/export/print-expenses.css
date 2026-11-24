@@ -1,0 +1,12 @@
+.print-expenses {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* Print, then the search and the filters of the list */
+.print-expenses__controls {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}

@@ -153,7 +153,8 @@
         "groups": "Grupos",
         "label": "Principal",
         "settings": "Ajustes",
-        "summary": "Resumen"
+        "summary": "Resumen",
+        "account": "Cuenta"
     },
     "auth": {
         "title": "Inicia sesión en Tarja",
@@ -292,7 +293,30 @@
                 "personal": "Tu parte",
                 "part": "Parte",
                 "group": "Grupo"
-            }
+            },
+            "print": "Vista para imprimir"
+        },
+        "print": {
+            "title": "Tus gastos",
+            "hint": "Tus gastos como los muestra la lista, en una tabla para imprimirla o guardarla como PDF.",
+            "print": "Imprimir",
+            "range": {
+                "all": "Todos tus gastos",
+                "from": "Desde el {from}",
+                "to": "Hasta el {to}",
+                "between": "Del {from} al {to}"
+            },
+            "search": "«{query}»",
+            "plan": "{parts} plazos",
+            "columns": {
+                "date": "Fecha",
+                "text": "Gasto",
+                "category": "Categoría",
+                "payment": "Pago",
+                "group": "Grupo",
+                "amount": "Importe"
+            },
+            "total": "Total"
         },
         "account": {
             "title": "Cuenta",

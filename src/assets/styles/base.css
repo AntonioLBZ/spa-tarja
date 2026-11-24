@@ -83,6 +83,13 @@ button:disabled {
     white-space: nowrap;
 }
 
+/* On screen only: the controls of a page made to be printed. Above a class of a component, whatever loads after. */
+@media print {
+    :root .screen-only {
+        display: none;
+    }
+}
+
 /* A theme change fades the colors for --duration-slow (see withColorTransition) */
 :root[data-color-transition],
 :root[data-color-transition] *,

@@ -12,6 +12,7 @@ import {
     isListGrouping,
     limitRows,
     listItems,
+    listTable,
     openingFilters,
     shownExpense,
     type ListContext,
@@ -880,5 +881,42 @@ describe('limitRows', () => {
 
     it('is empty for a limit of none', () => {
         expect(limitRows(groups, 0)).toEqual([]);
+    });
+});
+
+describe('listTable', () => {
+    const idsOf = (table: ReturnType<typeof listTable>) =>
+        table.items.map((item) => (item.kind === 'plan' ? item.planId : item.expense.id));
+
+    it('reads the rows of the list from the oldest, a day and then the moment it was logged', () => {
+        const expenses = [
+            expense('late', { date: '2026-10-26', createdAt: 1 }),
+            expense('second', { date: '2026-10-25', createdAt: 2 }),
+            expense('first', { date: '2026-10-25', createdAt: 1 }),
+        ];
+
+        expect(idsOf(listTable(listItems(expenses), NO_FILTERS, ctx))).toEqual(['first', 'second', 'late']);
+    });
+
+    it('keeps a plan as one row at its full price and adds up as the subtotals of the list', () => {
+        const expenses = [
+            ...plan('laptop', 3),
+            expense('lunch', { amountCents: 1250, payment: 'voucher', personalCents: 800, date: '2026-10-26' }),
+        ];
+        const table = listTable(listItems(expenses), NO_FILTERS, ctx);
+
+        expect(idsOf(table)).toEqual(['laptop', 'lunch']);
+        expect(table.totalCents).toBe(1500 + 800);
+        expect(table.totalCents).toBe(
+            buildList(expenses, NO_FILTERS, 'day', ctx).reduce((sum, group) => sum + group.totalCents, 0)
+        );
+    });
+
+    it('keeps only the rows the filters leave', () => {
+        const expenses = [expense('lunch'), expense('cinema', { categoryId: 'leisure', amountCents: 900 })];
+        const table = listTable(listItems(expenses), filters({ categoryId: 'leisure' }), ctx);
+
+        expect(idsOf(table)).toEqual(['cinema']);
+        expect(table.totalCents).toBe(900);
     });
 });

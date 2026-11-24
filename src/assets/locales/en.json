@@ -153,7 +153,8 @@
         "groups": "Groups",
         "label": "Main",
         "settings": "Settings",
-        "summary": "Summary"
+        "summary": "Summary",
+        "account": "Account"
     },
     "auth": {
         "title": "Sign in to Tarja",
@@ -292,7 +293,30 @@
                 "personal": "Your part",
                 "part": "Part",
                 "group": "Group"
-            }
+            },
+            "print": "Printable view"
+        },
+        "print": {
+            "title": "Your expenses",
+            "hint": "Your expenses as the list shows them, in one table to print or save as a PDF.",
+            "print": "Print",
+            "range": {
+                "all": "All your expenses",
+                "from": "From {from}",
+                "to": "Up to {to}",
+                "between": "{from} to {to}"
+            },
+            "search": "“{query}”",
+            "plan": "{parts} payments",
+            "columns": {
+                "date": "Date",
+                "text": "Expense",
+                "category": "Category",
+                "payment": "Payment",
+                "group": "Group",
+                "amount": "Amount"
+            },
+            "total": "Total"
         },
         "account": {
             "title": "Account",

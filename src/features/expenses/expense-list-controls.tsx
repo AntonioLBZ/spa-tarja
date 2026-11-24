@@ -38,7 +38,8 @@ const PAID_WITH_ICONS: Record<PaidWith, IconName> = {
 
 interface ExpenseListControlsProps {
     filters: ListFilters;
-    grouping: ListGrouping;
+    // The grouping of the rows, a field of the sheet; left out where the rows are not grouped
+    grouping?: ListGrouping;
     // The rows that pass the filters, and all of them
     shown: number;
     total: number;
@@ -47,7 +48,7 @@ interface ExpenseListControlsProps {
     // How many of the filters of the panel are in use
     filterCount: number;
     onFiltersChange: (patch: Partial<ListFilters>) => void;
-    onGroupingChange: (grouping: ListGrouping) => void;
+    onGroupingChange?: (grouping: ListGrouping) => void;
     onClear: () => void;
 }
 
@@ -110,20 +111,22 @@ const ExpenseListControls = (props: ExpenseListControlsProps) => {
                 onClearFilters={clearFilters}
                 onClose={close}
             >
-                <Field label={t('groupBy')}>
-                    {(control) => (
-                        <Select
-                            {...control}
-                            options={LIST_GROUPINGS.map((value) => ({
-                                value,
-                                label: t(`group.${value}`),
-                                icon: <Icon name={GROUPING_ICONS[value]} />,
-                            }))}
-                            value={grouping}
-                            onChange={onGroupingChange}
-                        />
-                    )}
-                </Field>
+                {grouping && onGroupingChange && (
+                    <Field label={t('groupBy')}>
+                        {(control) => (
+                            <Select
+                                {...control}
+                                options={LIST_GROUPINGS.map((value) => ({
+                                    value,
+                                    label: t(`group.${value}`),
+                                    icon: <Icon name={GROUPING_ICONS[value]} />,
+                                }))}
+                                value={grouping}
+                                onChange={onGroupingChange}
+                            />
+                        )}
+                    </Field>
+                )}
                 <Field label={t('category')}>
                     {(control) => (
                         <CategorySelect

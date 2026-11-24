@@ -23,6 +23,7 @@ describe('routeDepth', () => {
         expect(routeDepth('/settings/appearance')).toBe(2);
         expect(routeDepth('/settings/categories')).toBe(2);
         expect(routeDepth('/settings/account')).toBe(2);
+        expect(routeDepth('/settings/account/print')).toBe(3);
         expect(routeDepth('/charts')).toBe(2);
         expect(routeDepth('/budgets')).toBe(2);
     });
@@ -81,6 +82,10 @@ describe('backTarget', () => {
         expect(backTarget('/groups/new')).toEqual({ to: '/groups' });
     });
 
+    it('leads the printable view of the expenses to the account it is reached from', () => {
+        expect(backTarget('/settings/account/print')).toEqual({ to: '/settings/account' });
+    });
+
     it('leads the settings and the export of a group to the group of the address', () => {
         expect(backTarget(`/groups/${group}/edit`)).toEqual({ to: '/groups/$groupId', params: { groupId: group } });
         expect(backTarget(`/groups/${group}/export`)).toEqual({ to: '/groups/$groupId', params: { groupId: group } });
@@ -93,7 +98,8 @@ describe('backTarget', () => {
     });
 
     it('gives one to every screen deeper than a tab and to no other', () => {
-        const paths = ['/', '/settings', '/summary', '/groups', '/settings/account', '/charts', '/budgets'];
+        const paths = ['/', '/settings', '/summary', '/groups', '/settings/account', '/settings/account/print'];
+        paths.push('/charts', '/budgets');
         paths.push(`/groups/${group}`, `/groups/${group}/edit`, `/groups/${group}/export`, `/join/${group}.token`);
 
         for (const pathname of paths) {
