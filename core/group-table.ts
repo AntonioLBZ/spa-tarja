@@ -16,14 +16,17 @@ interface GroupTableRow<E extends SharedEntry> {
 }
 
 // The entries of a group in a range of days, a column per member, the same whoever reads it. Each column adds up:
-// the opening balance and the rows make the closing one.
+// the opening balance and the rows make the closing one. Narrowed by more than the days, the rows are only some of
+// what moved the balances, so there is no opening balance and the last row is their total.
 interface GroupTable<E extends SharedEntry> {
     // Member ids, merged ones read as their target, in the group's order
     columns: string[];
-    // What each column held before the first day, only when the range has one
+    // What each column held before the first day, only when the range has one and nothing else narrows the rows
     opening: number[] | null;
     rows: GroupTableRow<E>[];
     closing: number[];
+    // The last row is the total of the rows, not a balance
+    narrowed: boolean;
 }
 
 const compare = (a: string | number, b: string | number): number => {
@@ -42,16 +45,19 @@ const effectOf = (entry: SharedEntry, members: readonly SharedMember[]): Map<str
     return effect;
 };
 
+// `keep` narrows the rows by more than the days
 const groupTable = <E extends SharedEntry>(
     entries: readonly E[],
     members: readonly SharedMember[],
-    range: DayRange
+    range: DayRange,
+    keep?: (entry: E) => boolean
 ): GroupTable<E> => {
+    const narrowed = keep !== undefined;
     const live = entries
         .filter((entry) => entry.deletedAt === null && (range.to === '' || entry.date <= range.to))
         .toSorted((a, b) => compare(a.date, b.date) || compare(a.createdAt, b.createdAt) || compare(a.id, b.id));
-    const before = live.filter((entry) => range.from !== '' && entry.date < range.from);
-    const within = live.filter((entry) => range.from === '' || entry.date >= range.from);
+    const before = live.filter((entry) => !narrowed && range.from !== '' && entry.date < range.from);
+    const within = live.filter((entry) => (range.from === '' || entry.date >= range.from) && (keep?.(entry) ?? true));
 
     const held = new Map<string, number>();
     for (const entry of before) {
@@ -62,7 +68,7 @@ const groupTable = <E extends SharedEntry>(
     const shown = new Set(effects.flatMap((effect) => [...effect.keys()]));
     const columns = ledgerOrder(live, members).filter((id) => shown.has(id) || (held.get(id) ?? 0) !== 0);
 
-    const opening = range.from === '' ? null : columns.map((id) => held.get(id) ?? 0);
+    const opening = range.from === '' || narrowed ? null : columns.map((id) => held.get(id) ?? 0);
     const rows = within.map((entry, index) => ({
         entry,
         cells: columns.map((id) => effects[index]!.get(id) ?? null),
@@ -71,7 +77,7 @@ const groupTable = <E extends SharedEntry>(
         (_, column) => (opening?.[column] ?? 0) + rows.reduce((sum, row) => sum + (row.cells[column] ?? 0), 0)
     );
 
-    return { columns, opening, rows, closing };
+    return { columns, opening, rows, closing, narrowed };
 };
 
 export { groupTable, type DayRange, type GroupTable, type GroupTableRow };

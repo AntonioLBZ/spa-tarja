@@ -627,12 +627,9 @@
         },
         "export": {
             "hint": "Cada gasto y lo que mueve en el saldo de cada persona. Imprímelo, guárdalo como PDF o ábrelo en una hoja de cálculo.",
-            "from": "Desde",
-            "to": "Hasta",
-            "backwards": "El primer día va después del último.",
             "print": "Imprimir",
             "csv": "Descargar CSV",
-            "empty": "No hay gastos en esos días.",
+            "empty": "No hay gastos que mostrar.",
             "range": {
                 "all": "Todos los gastos",
                 "from": "Desde el {from}",
@@ -648,7 +645,13 @@
                 "currency": "Moneda"
             },
             "opening": "Saldo antes del {day}",
-            "closing": "Saldo"
+            "closing": "Saldo",
+            "total": "Total de estos gastos",
+            "caption": {
+                "paidBy": "Pagó {name}",
+                "with": "Con {name}",
+                "search": "«{query}»"
+            }
         },
         "people": {
             "title": "Personas",

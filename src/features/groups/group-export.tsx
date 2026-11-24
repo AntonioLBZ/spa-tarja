@@ -1,27 +1,32 @@
 import clsx from 'clsx';
-import { useId, useMemo, useState } from 'react';
+import { useDeferredValue, useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
 import { Amount } from '@/components/amount/amount';
 import { Button } from '@/components/button/button';
-import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
 import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { FilterStatus } from '@/features/expenses/filter-status';
 import { useShortDate } from '@/features/expenses/use-short-date';
 import { useAmount } from '@/lib/amounts';
 import { downloadFile } from '@/lib/download';
 import { useLocale } from '@/lib/i18n';
 import { groupCsv, groupFileName, type GroupCsvLabels } from '@core/export';
-import { groupTable, type DayRange, type GroupTable } from '@core/group-table';
+import { groupTable, type GroupTable } from '@core/group-table';
+import { NO_LEDGER_FILTERS, ledgerFilterCount, ledgerMatcher } from '@core/ledger-list';
+import { yourPart } from '@core/shared-expense';
 import { canonicalMember } from '@core/shared-member';
+import { normalizeText } from '@core/text';
 
 import { GroupGate } from './group-gate';
+import { LedgerFilters } from './ledger-filters';
 import { groupTitle, memberNames } from './member-names';
 
 import type { Ledger } from './use-ledgers';
+import type { LedgerContext, LedgerFilters as Filters } from '@core/ledger-list';
 import type { SharedEntry } from '@core/shared-entry';
 import type { SharedGroup } from '@core/shared-group';
 
@@ -43,6 +48,8 @@ interface ExportTableProps {
     caption: string;
     // The label of the opening balance, when the range has a first day
     opening: string;
+    // The label of the last row: the balance, or the total of what the filters leave
+    closing: string;
     words: TableWords;
 }
 
@@ -91,25 +98,80 @@ const ExportView = (props: ExportViewProps) => {
     const { group, entries, hasData, isError, isWaitingForNetwork } = ledger;
     const t = useTranslations('groups.export');
     const tGroup = useTranslations('groups.group');
+    const tKinds = useTranslations('groups.ledger.filters.kinds');
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const words = useTableWords(group);
-    const [range, setRange] = useState<DayRange>({ from: '', to: '' });
-    const rangeErrorId = useId();
-    const backwards = range.from !== '' && range.to !== '' && range.from > range.to;
-    const table = useMemo(() => groupTable(entries, group.members, range), [entries, group.members, range]);
-    const ready = hasData && !backwards;
-    const filled = ready && table.columns.length > 0;
+    const [filters, setFilters] = useState<Filters>(NO_LEDGER_FILTERS);
+    const query = useDeferredValue(filters.query);
+    const toggle = useRef<HTMLButtonElement>(null);
+    const applied = useMemo(() => ({ ...filters, query }), [filters, query]);
 
+    // What a search reads in an entry, as the table shows it to anybody: its text, its category and who paid, and the
+    // whole amount with what it does to each person
+    const context = useMemo<LedgerContext>(() => {
+        return {
+            members: group.members,
+            me: group.me,
+            locale,
+            textOf: (entry) => {
+                const category = entry.kind === 'expense' ? words.categoryName(entry.categoryId) : '';
+                return normalizeText(`${words.entryText(entry)} ${category} ${words.nameOf(entry.paidBy)}`);
+            },
+            amountsOf: (entry) => {
+                const payer = canonicalMember(group.members, entry.paidBy);
+                const effects = group.members
+                    .filter((member) => member.mergedInto === null)
+                    .map(
+                        (member) =>
+                            (member.id === payer ? entry.amountCents : 0) - yourPart(entry, member.id, group.members)
+                    )
+                    .filter((cents) => cents !== 0);
+                return [entry.amountCents, ...effects.map(Math.abs)];
+            },
+        };
+    }, [group, locale, words]);
+
+    const table = useMemo(() => {
+        // Narrowed by more than the days, the table totals what it shows instead of giving a balance
+        const others = { ...applied, from: '', to: '' };
+        const keep = ledgerFilterCount(others) > 0 ? ledgerMatcher(others, context) : undefined;
+        return groupTable(entries, group.members, { from: applied.from, to: applied.to }, keep);
+    }, [entries, group.members, applied, context]);
+    const all = useMemo(() => entries.filter((entry) => entry.deletedAt === null).length, [entries]);
+    const filterCount = ledgerFilterCount(filters);
+    const filtering = ledgerFilterCount(applied) > 0;
+    const filled = hasData && table.columns.length > 0;
+
+    // What the table holds, in words, which paper keeps too: the days, then each filter in use
     const caption = (() => {
-        const from = range.from && shortDate(range.from);
-        const to = range.to && shortDate(range.to);
-        if (from && to) return t('range.between', { from, to });
-        if (from) return t('range.from', { from });
-        if (to) return t('range.to', { to });
-        return t('range.all');
+        const from = applied.from && shortDate(applied.from);
+        const to = applied.to && shortDate(applied.to);
+        const days =
+            from && to
+                ? t('range.between', { from, to })
+                : from
+                  ? t('range.from', { from })
+                  : to
+                    ? t('range.to', { to })
+                    : t('range.all');
+        const kind = applied.kind === 'all' ? '' : tKinds(applied.kind);
+        const category = applied.categoryId && words.categoryName(applied.categoryId);
+        const paidBy = applied.paidBy && t('caption.paidBy', { name: words.nameOf(applied.paidBy) });
+        const withWhom = applied.with && t('caption.with', { name: words.nameOf(applied.with) });
+        const search = applied.query.trim() && t('caption.search', { query: applied.query.trim() });
+        return [days, kind, category, paidBy, withWhom, search].filter(Boolean).join(' · ');
     })();
-    const opening = range.from === '' ? '' : t('opening', { day: shortDate(range.from) });
+    const opening = applied.from === '' ? '' : t('opening', { day: shortDate(applied.from) });
+    const closing = table.narrowed ? t('total') : t('closing');
+
+    const changeFilters = (patch: Partial<Filters>) => setFilters((current) => ({ ...current, ...patch }));
+
+    // The focus goes to the button of the filters, never to the search, whose keyboard would open
+    const clearFilters = () => {
+        setFilters(NO_LEDGER_FILTERS);
+        toggle.current?.focus();
+    };
 
     const downloadCsv = () => {
         const labels: GroupCsvLabels = {
@@ -118,7 +180,7 @@ const ExportView = (props: ExportViewProps) => {
             entryText: words.entryText,
             categoryName: words.categoryName,
             opening,
-            closing: t('closing'),
+            closing,
         };
         downloadFile(
             groupFileName(words.title, new Date()),
@@ -132,20 +194,6 @@ const ExportView = (props: ExportViewProps) => {
             <ScreenTitle>{words.title}</ScreenTitle>
             <p className="hint group-export__screen-only">{t('hint')}</p>
             <div className="group-export__controls group-export__screen-only">
-                <DateRangeFields
-                    allowEmpty
-                    from={range.from}
-                    to={range.to}
-                    labels={{ from: t('from'), to: t('to') }}
-                    invalid={backwards}
-                    describedBy={backwards ? rangeErrorId : undefined}
-                    onChange={(edge, day) => setRange((current) => ({ ...current, [edge]: day }))}
-                />
-                {backwards && (
-                    <Notice tone="danger" role="alert" id={rangeErrorId}>
-                        {t('backwards')}
-                    </Notice>
-                )}
                 <Actions>
                     <Button disabled={!filled} onClick={() => window.print()}>
                         {t('print')}
@@ -154,16 +202,41 @@ const ExportView = (props: ExportViewProps) => {
                         {t('csv')}
                     </Button>
                 </Actions>
+                {hasData && all > 0 && (
+                    <LedgerFilters
+                        group={group}
+                        filters={filters}
+                        count={filterCount}
+                        filtering={filtering}
+                        shown={table.rows.length}
+                        total={all}
+                        toggleRef={toggle}
+                        onChange={changeFilters}
+                        onClosed={() => toggle.current?.focus()}
+                    />
+                )}
+            </div>
+            <div className="group-export__screen-only">
+                <FilterStatus filtering={filtering} shown={table.rows.length} total={all} onClear={clearFilters} />
             </div>
             <LiveNotice>{!hasData && (isError || isWaitingForNetwork) && tGroup('entriesFailed')}</LiveNotice>
-            {ready && table.columns.length === 0 && <Notice>{t('empty')}</Notice>}
-            {filled && <ExportTable group={group} table={table} caption={caption} opening={opening} words={words} />}
+            {hasData && table.columns.length === 0 && <Notice>{t('empty')}</Notice>}
+            {filled && (
+                <ExportTable
+                    group={group}
+                    table={table}
+                    caption={caption}
+                    opening={opening}
+                    closing={closing}
+                    words={words}
+                />
+            )}
         </section>
     );
 };
 
 const ExportTable = (props: ExportTableProps) => {
-    const { group, table, caption, opening, words } = props;
+    const { group, table, caption, opening, closing, words } = props;
     const t = useTranslations('groups.export');
     const shortDate = useShortDate();
     const amount = useAmount();
@@ -223,7 +296,7 @@ const ExportTable = (props: ExportTableProps) => {
                     ))}
                     <BalanceRow
                         closing
-                        label={t('closing')}
+                        label={closing}
                         columns={table.columns}
                         cells={table.closing}
                         currency={group.currency}

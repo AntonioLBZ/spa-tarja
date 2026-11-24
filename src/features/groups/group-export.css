@@ -4,10 +4,12 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
+/* The actions, and the button of the filters at the end of their row */
 .group-export__controls {
-    display: grid;
+    align-items: center;
+    display: flex;
     gap: var(--size-4);
-    grid-template-columns: minmax(0, 1fr);
+    justify-content: space-between;
 }
 
 /* A table wider than the column scrolls inside its own box, which the keyboard can reach */

@@ -13,6 +13,8 @@ import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.export;
+const lf = en.groups.ledger.filters;
+const ef = en.expenses.filters;
 
 let downloads: { name: string; text: string }[];
 
@@ -49,6 +51,10 @@ function rowTexts() {
     return within(table())
         .getAllByRole('row')
         .map((row) => row.textContent);
+}
+
+function toggle(count = 0) {
+    return screen.getByRole('button', { name: t('groups.ledger.filters.toggle', { count }) });
 }
 
 function button(name: string) {
@@ -120,11 +126,12 @@ describe('the table of a group', () => {
         expect(within(table()).getByText(text.range.all)).toBeDefined();
     });
 
-    it('opens on the balance before the first day when one is chosen', async () => {
+    it('opens on the balance before the first day chosen in the filters', async () => {
         const { group, entries } = trip();
         await open(group, entries);
 
-        fireEvent.change(screen.getByLabelText(text.from), { target: { value: '2026-11-01' } });
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(ef.from), { target: { value: '2026-11-01' } });
 
         expect(rowTexts().slice(1)).toEqual([
             `${t('groups.export.opening', { day: 'Nov 1, 2026' })}+€20.00−€20.00`,
@@ -134,17 +141,44 @@ describe('the table of a group', () => {
         expect(within(table()).getByText(t('groups.export.range.from', { from: 'Nov 1, 2026' }))).toBeDefined();
     });
 
-    it('says when the first day comes after the last, with the table and its actions gone', async () => {
+    it('totals what is left instead of a balance when a filter narrows more than the days', async () => {
         const { group, entries } = trip();
         await open(group, entries);
 
-        fireEvent.change(screen.getByLabelText(text.from), { target: { value: '2026-11-10' } });
-        fireEvent.change(screen.getByLabelText(text.to), { target: { value: '2026-11-01' } });
+        fireEvent.click(toggle(0));
+        fireEvent.change(screen.getByLabelText(lf.kind), { target: { value: 'settlement' } });
+        fireEvent.change(screen.getByLabelText(ef.from), { target: { value: '2026-10-01' } });
 
-        expect(screen.getByRole('alert').textContent).toBe(text.backwards);
-        expect(screen.queryByRole('table')).toBeNull();
-        expect(button(text.print).disabled).toBe(true);
-        expect(button(text.csv).disabled).toBe(true);
+        expect(rowTexts().slice(1)).toEqual([expect.stringContaining('Bea paid Ana'), `${text.total}−€15.00+€15.00`]);
+        expect(
+            within(table()).getByText(
+                `${t('groups.export.range.from', { from: 'Oct 1, 2026' })} · ${lf.kinds.settlement}`
+            )
+        ).toBeDefined();
+        expect(toggle(2)).toBeDefined();
+    });
+
+    it('finds an entry by what it does to anybody, not only to the person', async () => {
+        const group = sampleGroup();
+        const [, bea] = group.members;
+        const cai = person('Cai');
+        group.members.push(cai);
+        const taxi = sampleEntry(group, {
+            text: 'Taxi',
+            paidBy: bea!.id,
+            amountCents: 900,
+            shares: [
+                { memberId: bea!.id, cents: 450 },
+                { memberId: cai.id, cents: 450 },
+            ],
+        });
+        await open(group, [sampleEntry(group), taxi]);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: '4.50' } });
+
+        await waitFor(() => expect(rowTexts()).toHaveLength(3));
+        expect(rowTexts()[1]).toContain('Taxi');
     });
 
     it('says when there is nothing to show, with its actions off', async () => {

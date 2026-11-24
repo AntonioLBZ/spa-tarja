@@ -42,6 +42,8 @@ interface LedgerContext {
     textOf: (entry: SharedEntry) => string;
     // The language amounts are typed in, English when not given
     locale?: string;
+    // The amounts a search finds an entry by; those of the person's row of the ledger when not given
+    amountsOf?: (entry: SharedEntry) => number[];
 }
 
 // The amounts a row of the ledger shows: what the entry does to the person's balance, unless it does nothing, and the
@@ -59,17 +61,14 @@ const isIn = (entry: SharedEntry, memberId: string, members: readonly SharedMemb
     );
 };
 
-// The entries that pass the filters, in the order given; a merged placeholder is read as the member it became
-const filterLedger = <T extends SharedEntry>(
-    entries: readonly T[],
-    filters: LedgerFilters,
-    ctx: LedgerContext
-): T[] => {
+// Whether an entry passes the filters; a merged placeholder is read as the member it became
+const ledgerMatcher = (filters: LedgerFilters, ctx: LedgerContext): ((entry: SharedEntry) => boolean) => {
     const { categoryId, from, to, paidBy, kind } = filters;
     const search = parseSearch(filters.query, ctx.locale);
     const narrowing = isNarrowing(search);
+    const amountsOf = ctx.amountsOf ?? ((entry: SharedEntry) => ledgerAmountsOf(entry, ctx));
 
-    return entries.filter((entry) => {
+    return (entry) => {
         if (kind !== 'all' && entry.kind !== kind) return false;
         if (categoryId !== '' && entry.categoryId !== categoryId) return false;
         if (from !== '' && entry.date < from) return false;
@@ -80,9 +79,18 @@ const filterLedger = <T extends SharedEntry>(
         return searchMatches(
             search,
             () => ctx.textOf(entry),
-            () => ledgerAmountsOf(entry, ctx)
+            () => amountsOf(entry)
         );
-    });
+    };
+};
+
+// The entries that pass the filters, in the order given
+const filterLedger = <T extends SharedEntry>(
+    entries: readonly T[],
+    filters: LedgerFilters,
+    ctx: LedgerContext
+): T[] => {
+    return entries.filter(ledgerMatcher(filters, ctx));
 };
 
 // How many of the search and the filters are in use, the dates one together
@@ -102,6 +110,7 @@ export {
     NO_LEDGER_FILTERS,
     filterLedger,
     ledgerFilterCount,
+    ledgerMatcher,
     type EntryKind,
     type LedgerContext,
     type LedgerFilters,

@@ -627,12 +627,9 @@
         },
         "export": {
             "hint": "Every expense and what it does to each person's balance. Print it, save it as a PDF or open it in a spreadsheet.",
-            "from": "From",
-            "to": "To",
-            "backwards": "The first day comes after the last one.",
             "print": "Print",
             "csv": "Download CSV",
-            "empty": "No expenses in these days.",
+            "empty": "No expenses to show.",
             "range": {
                 "all": "All the expenses",
                 "from": "From {from}",
@@ -648,7 +645,13 @@
                 "currency": "Currency"
             },
             "opening": "Balance before {day}",
-            "closing": "Balance"
+            "closing": "Balance",
+            "total": "Total of these expenses",
+            "caption": {
+                "paidBy": "Paid by {name}",
+                "with": "With {name}",
+                "search": "“{query}”"
+            }
         },
         "people": {
             "title": "People",

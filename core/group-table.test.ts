@@ -173,6 +173,33 @@ describe('groupTable', () => {
         expect(table.opening).toEqual([0, -100, 0, 100]);
     });
 
+    it('totals the rows instead of a balance when more than the days narrows them', () => {
+        const early = expense({ date: '2026-10-20' });
+        const food = expense({
+            date: '2026-11-02',
+            paidBy: 'bea',
+            amountCents: 200,
+            shares: [{ memberId: 'cai', cents: 200 }],
+        });
+        const other = expense({ date: '2026-11-03', categoryId: 'home' });
+        const table = groupTable(
+            [early, food, other],
+            MEMBERS,
+            { from: '2026-11-01', to: '' },
+            (entry) => entry.categoryId === 'food'
+        );
+
+        expect(table.narrowed).toBe(true);
+        expect(table.opening).toBeNull();
+        expect(table.columns).toEqual(['bea', 'cai']);
+        expect(table.rows.map((row) => row.entry)).toEqual([food]);
+        expect(table.closing).toEqual([200, -200]);
+    });
+
+    it('is not narrowed by the days alone', () => {
+        expect(groupTable([expense()], MEMBERS, { from: '2026-11-01', to: '' }).narrowed).toBe(false);
+    });
+
     it('reads a merged member as the one they were merged into', () => {
         const members = [...MEMBERS, { id: 'dummy', mergedInto: 'bea' }];
         const entry = expense({
