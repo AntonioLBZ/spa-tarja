@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { backupJson, buildBackup, expensesCsv, exportFileName, type BackupLedger, type CsvLabels } from './export';
+import {
+    backupJson,
+    buildBackup,
+    expensesCsv,
+    exportFileName,
+    groupCsv,
+    groupFileName,
+    type BackupLedger,
+    type CsvLabels,
+    type GroupCsvLabels,
+} from './export';
+import { groupTable } from './group-table';
 import { sharedExpenseRows } from './shared-expense';
 
 import type { Budget } from './budget';
@@ -829,5 +840,74 @@ describe('exportFileName', () => {
 
     it('pads the month and the day', () => {
         expect(exportFileName(new Date(2026, 0, 5, 0, 1), 'csv')).toBe('tarja-2026-01-05.csv');
+    });
+});
+
+describe('groupCsv', () => {
+    const names: Readonly<Record<string, string>> = { ana: 'Ana', bea: 'Bea' };
+    const labels: GroupCsvLabels = {
+        columns: ['date', 'text', 'category', 'paid by', 'amount', 'currency'],
+        memberName: (id) => names[id] ?? '',
+        entryText: (entry) => (entry.kind === 'expense' ? entry.text : `${names[entry.paidBy]} paid`),
+        categoryName: (id) => (id === 'food' ? 'Food' : 'Other'),
+        opening: 'Before',
+        closing: 'Balance',
+    };
+    const csvOf = (entries: LedgerEntry[], from = '', locale = 'en', words = labels) =>
+        groupCsv(groupTable(entries, group().members, { from, to: '' }), 'EUR', locale, words);
+    const rows = (csv: string) => csv.slice(BOM.length).split('\r\n').slice(0, -1);
+
+    it('has a column per member and a row per entry, each cell signed, with the closing balance last', () => {
+        expect(rows(csvOf([dinner(), settlement()]))).toEqual([
+            'date,text,category,paid by,amount,currency,Ana,Bea',
+            '2026-10-25,Dinner,Food,Ana,40.00,EUR,20.00,-20.00',
+            '2026-10-26,Bea paid,,Bea,15.00,EUR,-15.00,15.00',
+            ',Balance,,,,EUR,5.00,-5.00',
+        ]);
+    });
+
+    it('opens on the balance before the first day when the range has one', () => {
+        expect(rows(csvOf([dinner(), settlement()], '2026-10-26')).slice(1, 3)).toEqual([
+            ',Before,,,,EUR,20.00,-20.00',
+            '2026-10-26,Bea paid,,Bea,15.00,EUR,-15.00,15.00',
+        ]);
+    });
+
+    it('leaves the cell of a member who is out of the entry empty', () => {
+        const alone = dinner({ createdAt: 2_000, shares: [{ memberId: 'ana', cents: 4000 }] });
+
+        expect(rows(csvOf([dinner(), alone]))[2]).toBe('2026-10-25,Dinner,Food,Ana,40.00,EUR,0.00,');
+    });
+
+    it('writes the numbers and the delimiter of the language', () => {
+        expect(rows(csvOf([dinner()], '', 'es'))[1]).toBe('2026-10-25;Dinner;Food;Ana;40,00;EUR;20,00;-20,00');
+    });
+
+    it('guards a text or a name, so a spreadsheet never runs it, but never a number', () => {
+        const memberName = (id: string) => (id === 'bea' ? '=cmd|calc' : 'Ana');
+        const csv = rows(csvOf([dinner({ text: '+SUM(A1)' })], '', 'en', { ...labels, memberName }));
+
+        expect(csv[0]).toMatch(/,'=cmd\|calc$/);
+        expect(csv[1]).toMatch(/^2026-10-25,'\+SUM\(A1\),.*,-20.00$/);
+    });
+
+    it('starts with a byte order mark', () => {
+        expect(csvOf([dinner()]).startsWith(BOM)).toBe(true);
+    });
+});
+
+describe('groupFileName', () => {
+    const now = new Date(2026, 10, 24, 12, 0);
+
+    it('is tarja, the group and the day of the device', () => {
+        expect(groupFileName('Trip to Lisbon', now)).toBe('tarja-Trip-to-Lisbon-2026-11-24.csv');
+    });
+
+    it('drops what a file name cannot hold', () => {
+        expect(groupFileName('Rent: 2026/27 "flat"', now)).toBe('tarja-Rent-2026-27-flat-2026-11-24.csv');
+    });
+
+    it('is tarja and the day when nothing of the name is left', () => {
+        expect(groupFileName(' /?* ', now)).toBe('tarja-2026-11-24.csv');
     });
 });

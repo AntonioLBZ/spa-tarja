@@ -79,4 +79,4 @@ const pairwiseDebts = (entries: readonly SharedEntry[], members: readonly Shared
     );
 };
 
-export { memberBalances, pairwiseDebts, type Debt, type MemberBalance };
+export { ledgerOrder, memberBalances, pairwiseDebts, type Debt, type MemberBalance };
