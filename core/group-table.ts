@@ -84,4 +84,4 @@ const groupTable = <E extends SharedEntry>(
     return { columns, opening, rows, closing, narrowed };
 };
 
-export { groupTable, type DayRange, type GroupTable, type GroupTableRow };
+export { effectOf, groupTable, type DayRange, type GroupTable, type GroupTableRow };

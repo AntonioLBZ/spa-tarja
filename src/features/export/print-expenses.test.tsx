@@ -183,6 +183,64 @@ describe('the printable view of the expenses', () => {
         expect(await screen.findByText(text.missing)).toBeDefined();
     });
 
+    it('says who it is shared with and the search in its caption', async () => {
+        await open({ expenses: [expense({ text: 'Lunch' })] });
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+
+        fireEvent.change(screen.getByLabelText(en.expenses.filters.search), { target: { value: 'lunch' } });
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.filters.toggle', { count: 0 }) }));
+        fireEvent.change(screen.getByLabelText(en.expenses.filters.sharedWith), { target: { value: 'me' } });
+
+        await waitFor(() =>
+            expect(
+                screen.getByText(
+                    [
+                        t('settings.print.range.from', { from: 'Nov 1, 2026' }),
+                        en.expenses.filters.shared.me,
+                        '“lunch”',
+                    ].join(' · ')
+                )
+            ).toBeDefined()
+        );
+    });
+
+    it('names a plan by all its payments, also when some are not on the device', async () => {
+        await open({ expenses: plan(3, 30000).slice(0, 2) });
+
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+        expect(rowTexts()[1]![3]).toBe(t('settings.print.plan', { parts: 3 }));
+    });
+
+    it('says there are no expenses yet when there are none', async () => {
+        await open({ expenses: [] });
+
+        expect(await screen.findByText(en.expenses.list.empty)).toBeDefined();
+        expect(screen.queryByRole('button', { name: text.print })).toBeNull();
+    });
+
+    it('says when the expenses could not be loaded', async () => {
+        const api = createFakeApi();
+        stubApi((url, init) =>
+            url.pathname.endsWith('/expenses') ? new Response(null, { status: 503 }) : api.handler(url, init)
+        );
+        renderApp({ path: '/settings/account/print' });
+
+        expect(await screen.findByText(en.expenses.list.loadFailed)).toBeDefined();
+    });
+
+    it('keeps Print off, and says why, while the expenses of a group are on their way', async () => {
+        const group = sampleGroup();
+        const api = createFakeApi({ expenses: [expense()], groups: [group] });
+        stubApi((url, init) =>
+            url.pathname.endsWith('/entries') ? new Promise<Response>(() => undefined) : api.handler(url, init)
+        );
+        renderApp({ path: '/settings/account/print' });
+
+        expect(await screen.findByText(text.loading)).toBeDefined();
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+        expect((screen.getByRole('button', { name: text.print }) as HTMLButtonElement).disabled).toBe(true);
+    });
+
     it('says when nothing is left, with Print off', async () => {
         await open({ expenses: [expense({ date: '2026-10-01' })] });
 

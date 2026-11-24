@@ -17,9 +17,8 @@ import { daysCaption } from '@/lib/days-caption';
 import { downloadFile } from '@/lib/download';
 import { useLocale } from '@/lib/i18n';
 import { groupCsv, groupFileName, type GroupCsvLabels } from '@core/export';
-import { groupTable, type GroupTable } from '@core/group-table';
+import { effectOf, groupTable, type GroupTable } from '@core/group-table';
 import { NO_LEDGER_FILTERS, ledgerFilterCount, ledgerMatcher } from '@core/ledger-list';
-import { yourPart } from '@core/shared-expense';
 import { canonicalMember } from '@core/shared-member';
 import { normalizeText } from '@core/text';
 
@@ -121,14 +120,7 @@ const ExportView = (props: ExportViewProps) => {
                 return normalizeText(`${words.entryText(entry)} ${category} ${words.nameOf(entry.paidBy)}`);
             },
             amountsOf: (entry) => {
-                const payer = canonicalMember(group.members, entry.paidBy);
-                const effects = group.members
-                    .filter((member) => member.mergedInto === null)
-                    .map(
-                        (member) =>
-                            (member.id === payer ? entry.amountCents : 0) - yourPart(entry, member.id, group.members)
-                    )
-                    .filter((cents) => cents !== 0);
+                const effects = [...effectOf(entry, group.members).values()].filter((cents) => cents !== 0);
                 return [entry.amountCents, ...effects.map(Math.abs)];
             },
         };
@@ -218,7 +210,8 @@ const ExportView = (props: ExportViewProps) => {
                 <FilterStatus filtering={filtering} shown={table.rows.length} total={all} onClear={clearFilters} />
             </div>
             <LiveNotice>{!hasData && (isError || isWaitingForNetwork) && tGroup('entriesFailed')}</LiveNotice>
-            {hasData && table.columns.length === 0 && <Notice>{t('empty')}</Notice>}
+            {/* Once a filter narrows the table, the status line says it is empty */}
+            {hasData && table.columns.length === 0 && !filtering && <Notice>{t('empty')}</Notice>}
             {filled && (
                 <ExportTable
                     group={group}

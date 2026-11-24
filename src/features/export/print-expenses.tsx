@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
+import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { PrintTable } from '@/components/print-table/print-table';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
@@ -31,6 +32,8 @@ import {
 } from '@core/expense-list';
 import { isSharedRow } from '@core/shared-expense';
 
+import { useExportGroups } from './use-export-groups';
+
 import type { Expense } from '@core/expense';
 import type { ListContext, ListFilters } from '@core/expense-list';
 
@@ -51,9 +54,11 @@ const PrintExpenses = () => {
     const shortDate = useShortDate();
     const money = useMoney();
     const { ledgers } = useExpenseLedgers();
+    // The groups the files wait for, ten seconds at most, after which one that hasn't come counts as missing
+    const { loading } = useExportGroups();
     // A group whose expenses can't be had is left out of the rows and of the total, which says so
     const missing = ledgers.some(({ hasData: held, isError: failed, isWaitingForNetwork }) => {
-        return !held && (failed || isWaitingForNetwork);
+        return !held && (failed || isWaitingForNetwork || !loading);
     });
 
     // What the page opens on, the month of the list, which does not count as a filter in use
@@ -107,12 +112,13 @@ const PrintExpenses = () => {
                     {tList('loadFailed')}
                 </Notice>
             )}
+            <LiveNotice>{loading && t('loading')}</LiveNotice>
             {missing && <Notice tone="danger">{t('missing')}</Notice>}
             {hasData && items.length === 0 && <Notice tone="quiet">{tList('empty')}</Notice>}
             {items.length > 0 && (
                 <div className="print-expenses__controls screen-only">
                     <Actions>
-                        <Button disabled={table.items.length === 0} onClick={() => window.print()}>
+                        <Button disabled={loading || table.items.length === 0} onClick={() => window.print()}>
                             {t('print')}
                         </Button>
                     </Actions>

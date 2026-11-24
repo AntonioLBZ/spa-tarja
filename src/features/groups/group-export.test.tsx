@@ -182,6 +182,9 @@ describe('the table of a group', () => {
         await waitFor(() => expect(rowTexts()).toHaveLength(3));
         expect(rowTexts()[1]).toContain('Taxi');
         expect(rowTexts()[2]).toMatch(new RegExp(`^${text.total}`));
+
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: '3.00' } });
+        await waitFor(() => expect(rowTexts()[1]).toContain('Taxi'));
     });
 
     it('says each filter in use in its caption, the people as the table names them', async () => {
@@ -201,6 +204,67 @@ describe('the table of a group', () => {
         );
     });
 
+    it('finds an entry by its category and by who paid it', async () => {
+        const group = sampleGroup();
+        const [, bea] = group.members;
+        const dinner = sampleEntry(group, { text: 'Dinner', date: '2026-11-01' });
+        const taxi = sampleEntry(group, {
+            text: 'Taxi',
+            categoryId: 'transport',
+            date: '2026-11-02',
+            paidBy: bea!.id,
+        });
+        await open(group, [dinner, taxi]);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: 'food' } });
+        await waitFor(() => expect(rowTexts()).toHaveLength(3));
+        expect(rowTexts()[1]).toContain('Dinner');
+
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: 'bea' } });
+        await waitFor(() => expect(rowTexts()[1]).toContain('Taxi'));
+        expect(rowTexts()).toHaveLength(3);
+    });
+
+    it('says the category and whom it is with in its caption', async () => {
+        const { group, bea, entries } = trip();
+        await open(group, entries);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(ef.category), { target: { value: 'food' } });
+        fireEvent.change(screen.getByLabelText(lf.with), { target: { value: bea.id } });
+
+        expect(
+            within(table()).getByText(
+                [text.range.all, 'Food', t('groups.export.caption.with', { name: 'Bea' })].join(' · ')
+            )
+        ).toBeDefined();
+    });
+
+    it('gives the focus back to its button when the sheet closes and after Clear', async () => {
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(lf.kind), { target: { value: 'expense' } });
+        fireEvent.click(button(ef.close));
+        expect(document.activeElement).toBe(toggle(1));
+
+        fireEvent.click(button(ef.clear));
+        expect(document.activeElement).toBe(toggle(0));
+        expect(rowTexts()).toHaveLength(4);
+    });
+
+    it('counts only the entries that are not deleted in its status line', async () => {
+        const { group, entries } = trip();
+        await open(group, [...entries, sampleEntry(group, { deletedAt: 9 })]);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(lf.kind), { target: { value: 'expense' } });
+
+        expect(screen.getAllByText(t('expenses.filters.showing', { shown: 1, total: 2 })).length).toBeGreaterThan(0);
+    });
+
     it('is empty, with its actions off, when the first day comes after the last', async () => {
         const { group, entries } = trip();
         await open(group, entries);
@@ -209,7 +273,8 @@ describe('the table of a group', () => {
         fireEvent.change(screen.getByLabelText(ef.from), { target: { value: '2026-11-10' } });
         fireEvent.change(screen.getByLabelText(ef.to), { target: { value: '2026-11-01' } });
 
-        expect(screen.getByText(text.empty)).toBeDefined();
+        expect(screen.getAllByText(en.expenses.list.noMatch).length).toBeGreaterThan(0);
+        expect(screen.queryByText(text.empty)).toBeNull();
         expect(screen.queryByRole('table')).toBeNull();
         expect(button(text.print).disabled).toBe(true);
         expect(button(text.csv).disabled).toBe(true);
@@ -254,6 +319,17 @@ describe('the people and the amounts of the table', () => {
         await open(friend, [sampleEntry(friend)]);
 
         expect(screen.getByRole('heading', { level: 1, name: 'Bea' })).toBeDefined();
+    });
+
+    it('reads the sign of each amount of a person aloud and colors it as the settings allow', async () => {
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        const closing = within(table()).getAllByRole('row').at(-1)!;
+        const [owed, owes] = [...closing.querySelectorAll('.amount')];
+        expect(owed!.className).toContain('amount--in');
+        expect(owes!.className).toContain('amount--out');
+        expect(owed!.querySelector('[aria-hidden]')).toBeNull();
     });
 
     it('signs every amount of a person, also when the settings leave the sign out', async () => {

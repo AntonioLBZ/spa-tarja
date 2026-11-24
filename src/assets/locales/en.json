@@ -323,7 +323,8 @@
                 "voucher": "By restaurant card",
                 "plan": "In installments"
             },
-            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the table and its total."
+            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the table and its total.",
+            "loading": "Loading the expenses of your groups so they go in the table…"
         },
         "account": {
             "title": "Account",
@@ -657,7 +658,7 @@
             "exportLink": "See the table"
         },
         "export": {
-            "hint": "Every expense and what it does to each person's balance. Print it, save it as a PDF or open it in a spreadsheet.",
+            "hint": "Every expense and what it does to each person's balance, in one table. Print it, save it as a PDF or open it in a spreadsheet.",
             "print": "Print",
             "csv": "Download CSV",
             "empty": "No expenses to show.",
@@ -677,7 +678,7 @@
             },
             "opening": "Balance before {day}",
             "closing": "Balance",
-            "total": "Total of these expenses",
+            "total": "Total of these rows",
             "caption": {
                 "paidBy": "Paid by {name}",
                 "with": "With {name}",

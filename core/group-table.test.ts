@@ -136,6 +136,14 @@ describe('groupTable', () => {
         expect(groupTable([b, a], MEMBERS, WHOLE).rows.map((row) => row.entry)).toEqual([a, b]);
     });
 
+    it('keeps the last day of the range', () => {
+        const last = expense({ date: '2026-11-10' });
+
+        expect(groupTable([last], MEMBERS, { from: '', to: '2026-11-10' }).rows.map((row) => row.entry)).toEqual([
+            last,
+        ]);
+    });
+
     it('lists the rows by the day made, then when they were made', () => {
         const second = expense({ date: '2026-11-02', createdAt: 9_000 });
         const first = expense({ date: '2026-11-02', createdAt: 1_000 });
