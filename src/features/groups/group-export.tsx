@@ -13,6 +13,7 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { FilterStatus } from '@/features/expenses/filter-status';
 import { useShortDate } from '@/features/expenses/use-short-date';
 import { useAmount } from '@/lib/amounts';
+import { daysCaption } from '@/lib/days-caption';
 import { downloadFile } from '@/lib/download';
 import { useLocale } from '@/lib/i18n';
 import { groupCsv, groupFileName, type GroupCsvLabels } from '@core/export';
@@ -146,16 +147,12 @@ const ExportView = (props: ExportViewProps) => {
 
     // What the table holds, in words, which paper keeps too: the days, then each filter in use
     const caption = (() => {
-        const from = applied.from && shortDate(applied.from);
-        const to = applied.to && shortDate(applied.to);
-        const days =
-            from && to
-                ? t('range.between', { from, to })
-                : from
-                  ? t('range.from', { from })
-                  : to
-                    ? t('range.to', { to })
-                    : t('range.all');
+        const days = daysCaption(applied.from && shortDate(applied.from), applied.to && shortDate(applied.to), {
+            all: t('range.all'),
+            from: (from) => t('range.from', { from }),
+            to: (to) => t('range.to', { to }),
+            between: (from, to) => t('range.between', { from, to }),
+        });
         const kind = applied.kind === 'all' ? '' : tKinds(applied.kind);
         const category = applied.categoryId && words.categoryName(applied.categoryId);
         const paidBy = applied.paidBy && t('caption.paidBy', { name: words.nameOf(applied.paidBy) });
@@ -217,7 +214,7 @@ const ExportView = (props: ExportViewProps) => {
                     />
                 )}
             </div>
-            <div className="screen-only">
+            <div className="group-export__status screen-only">
                 <FilterStatus filtering={filtering} shown={table.rows.length} total={all} onClear={clearFilters} />
             </div>
             <LiveNotice>{!hasData && (isError || isWaitingForNetwork) && tGroup('entriesFailed')}</LiveNotice>

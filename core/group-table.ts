@@ -53,6 +53,10 @@ const groupTable = <E extends SharedEntry>(
     keep?: (entry: E) => boolean
 ): GroupTable<E> => {
     const narrowed = keep !== undefined;
+    // A first day after the last holds no day, so nothing before it is a balance either
+    if (range.from !== '' && range.to !== '' && range.from > range.to) {
+        return { columns: [], opening: null, rows: [], closing: [], narrowed };
+    }
     const live = entries
         .filter((entry) => entry.deletedAt === null && (range.to === '' || entry.date <= range.to))
         .toSorted((a, b) => compare(a.date, b.date) || compare(a.createdAt, b.createdAt) || compare(a.id, b.id));

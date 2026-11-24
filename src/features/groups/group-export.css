@@ -11,3 +11,8 @@
     gap: var(--size-4);
     justify-content: space-between;
 }
+
+/* The status line takes its own place, or none while it is idle, as if the wrapper that hides it on paper weren't there */
+.group-export__status {
+    display: contents;
+}

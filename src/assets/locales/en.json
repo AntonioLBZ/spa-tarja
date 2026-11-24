@@ -145,6 +145,7 @@
         "dismiss": "Dismiss"
     },
     "nav": {
+        "account": "Account",
         "add": "Add expense",
         "addWord": "Add",
         "back": "Back to {place}",
@@ -153,8 +154,7 @@
         "groups": "Groups",
         "label": "Main",
         "settings": "Settings",
-        "summary": "Summary",
-        "account": "Account"
+        "summary": "Summary"
     },
     "auth": {
         "title": "Sign in to Tarja",
@@ -316,7 +316,14 @@
                 "group": "Group",
                 "amount": "Amount"
             },
-            "total": "Total"
+            "total": "Total",
+            "paid": {
+                "direct": "Paid now",
+                "credit": "By credit card",
+                "voucher": "By restaurant card",
+                "plan": "In installments"
+            },
+            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the table and its total."
         },
         "account": {
             "title": "Account",

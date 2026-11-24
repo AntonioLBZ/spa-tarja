@@ -145,6 +145,7 @@
         "dismiss": "Cerrar"
     },
     "nav": {
+        "account": "Cuenta",
         "add": "Añadir gasto",
         "addWord": "Añadir",
         "back": "Volver a {place}",
@@ -153,8 +154,7 @@
         "groups": "Grupos",
         "label": "Principal",
         "settings": "Ajustes",
-        "summary": "Resumen",
-        "account": "Cuenta"
+        "summary": "Resumen"
     },
     "auth": {
         "title": "Inicia sesión en Tarja",
@@ -316,7 +316,14 @@
                 "group": "Grupo",
                 "amount": "Importe"
             },
-            "total": "Total"
+            "total": "Total",
+            "paid": {
+                "direct": "Pagado al momento",
+                "credit": "Con tarjeta de crédito",
+                "voucher": "Con tarjeta restaurante",
+                "plan": "A plazos"
+            },
+            "missing": "Los gastos de algunos grupos aún no están en este dispositivo, así que faltan en la tabla y en su total."
         },
         "account": {
             "title": "Cuenta",

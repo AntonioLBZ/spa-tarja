@@ -196,6 +196,18 @@ describe('groupTable', () => {
         expect(table.closing).toEqual([200, -200]);
     });
 
+    it('is empty when the first day comes after the last', () => {
+        const entries = [expense({ date: '2026-10-20' }), expense({ date: '2026-11-02' })];
+
+        expect(groupTable(entries, MEMBERS, { from: '2026-11-10', to: '2026-11-01' })).toEqual({
+            columns: [],
+            opening: null,
+            rows: [],
+            closing: [],
+            narrowed: false,
+        });
+    });
+
     it('is not narrowed by the days alone', () => {
         expect(groupTable([expense()], MEMBERS, { from: '2026-11-01', to: '' }).narrowed).toBe(false);
     });

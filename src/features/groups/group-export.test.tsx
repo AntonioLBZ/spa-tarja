@@ -162,23 +162,57 @@ describe('the table of a group', () => {
         const group = sampleGroup();
         const [, bea] = group.members;
         const cai = person('Cai');
-        group.members.push(cai);
+        const dan = person('Dan');
+        group.members.push(cai, dan);
         const taxi = sampleEntry(group, {
             text: 'Taxi',
             paidBy: bea!.id,
             amountCents: 900,
             shares: [
-                { memberId: bea!.id, cents: 450 },
-                { memberId: cai.id, cents: 450 },
+                { memberId: bea!.id, cents: 300 },
+                { memberId: cai.id, cents: 300 },
+                { memberId: dan.id, cents: 300 },
             ],
         });
         await open(group, [sampleEntry(group), taxi]);
 
         fireEvent.click(toggle());
-        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: '4.50' } });
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: '6.00' } });
 
         await waitFor(() => expect(rowTexts()).toHaveLength(3));
         expect(rowTexts()[1]).toContain('Taxi');
+        expect(rowTexts()[2]).toMatch(new RegExp(`^${text.total}`));
+    });
+
+    it('says each filter in use in its caption, the people as the table names them', async () => {
+        const { group, bea, entries } = trip();
+        await open(group, entries);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(lf.paidBy), { target: { value: bea.id } });
+        fireEvent.change(screen.getByLabelText(ef.search), { target: { value: 'paid' } });
+
+        await waitFor(() =>
+            expect(
+                within(table()).getByText(
+                    [text.range.all, t('groups.export.caption.paidBy', { name: 'Bea' }), '“paid”'].join(' · ')
+                )
+            ).toBeDefined()
+        );
+    });
+
+    it('is empty, with its actions off, when the first day comes after the last', async () => {
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(ef.from), { target: { value: '2026-11-10' } });
+        fireEvent.change(screen.getByLabelText(ef.to), { target: { value: '2026-11-01' } });
+
+        expect(screen.getByText(text.empty)).toBeDefined();
+        expect(screen.queryByRole('table')).toBeNull();
+        expect(button(text.print).disabled).toBe(true);
+        expect(button(text.csv).disabled).toBe(true);
     });
 
     it('says when there is nothing to show, with its actions off', async () => {
@@ -279,6 +313,23 @@ describe('the actions of the table', () => {
             '2026-10-20,Dinner,Food,Ana,40.00,EUR,20.00,-20.00',
             '2026-11-02,Bea paid Ana,,Bea,15.00,EUR,-15.00,15.00',
             ',Balance,,,,EUR,5.00,-5.00',
+        ]);
+    });
+
+    it('downloads the total of what is left, with no opening balance, when a filter narrows the table', async () => {
+        const { group, entries } = trip();
+        await open(group, entries);
+
+        fireEvent.click(toggle());
+        fireEvent.change(screen.getByLabelText(lf.kind), { target: { value: 'expense' } });
+        fireEvent.change(screen.getByLabelText(ef.from), { target: { value: '2026-10-01' } });
+        fireEvent.click(button(ef.close));
+        fireEvent.click(button(text.csv));
+        await waitFor(() => expect(downloads).toHaveLength(1));
+
+        expect(downloads[0]!.text.split('\r\n').slice(1, 3)).toEqual([
+            '2026-10-20,Dinner,Food,Ana,40.00,EUR,20.00,-20.00',
+            `,${text.total},,,,EUR,20.00,-20.00`,
         ]);
     });
 });

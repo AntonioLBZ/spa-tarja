@@ -127,6 +127,62 @@ describe('the printable view of the expenses', () => {
         expect(screen.getByText(`${t('settings.print.range.from', { from: 'Nov 1, 2026' })} · Leisure`)).toBeDefined();
     });
 
+    it('names how it was paid on each row and in the caption when it filters by it', async () => {
+        await open({
+            expenses: [
+                expense({ text: 'Lunch' }),
+                expense({ text: 'Shoes', payment: 'credit', chargeDate: '2026-12-01', amountCents: 6000 }),
+            ],
+        });
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+
+        fireEvent.click(screen.getByRole('button', { name: t('expenses.filters.toggle', { count: 0 }) }));
+        fireEvent.change(screen.getByLabelText(en.expenses.filters.paidWith), { target: { value: 'credit' } });
+
+        expect(rowTexts()[1]).toEqual(['Nov 10, 2026', 'Shoes', 'Food', en.expenses.payment.credit, '', '€60.00']);
+        expect(
+            screen.getByText(`${t('settings.print.range.from', { from: 'Nov 1, 2026' })} · ${text.paid.credit}`)
+        ).toBeDefined();
+    });
+
+    it('drops every filter on Clear, the month it opened on too', async () => {
+        await open({ expenses: [expense({ text: 'Lunch' }), expense({ text: 'October', date: '2026-10-30' })] });
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+
+        fireEvent.change(screen.getByLabelText(en.expenses.filters.search), { target: { value: 'lunch' } });
+        fireEvent.click(await screen.findByRole('button', { name: en.expenses.filters.clear }));
+
+        await waitFor(() => expect(rowTexts()).toHaveLength(4));
+        expect(
+            rowTexts()
+                .slice(1, 3)
+                .map((row) => row[1])
+        ).toEqual(['October', 'Lunch']);
+        expect(screen.getByText(text.range.all)).toBeDefined();
+    });
+
+    it('says once that a filter leaves nothing', async () => {
+        await open({ expenses: [expense()] });
+        await waitFor(() => expect(screen.getByRole('table')).toBeDefined());
+
+        fireEvent.change(screen.getByLabelText(en.expenses.filters.search), { target: { value: 'nothing like it' } });
+
+        await waitFor(() => expect(screen.queryByRole('table')).toBeNull());
+        const said = screen.getAllByText(en.expenses.list.noMatch);
+        expect(said.every((element) => element.closest('.filter-status') !== null)).toBe(true);
+    });
+
+    it('says when the expenses of a group are left out of the table', async () => {
+        const group = sampleGroup();
+        const api = createFakeApi({ expenses: [expense()], groups: [group] });
+        stubApi((url, init) =>
+            url.pathname.endsWith('/entries') ? new Response(null, { status: 503 }) : api.handler(url, init)
+        );
+        renderApp({ path: '/settings/account/print' });
+
+        expect(await screen.findByText(text.missing)).toBeDefined();
+    });
+
     it('says when nothing is left, with Print off', async () => {
         await open({ expenses: [expense({ date: '2026-10-01' })] });
 

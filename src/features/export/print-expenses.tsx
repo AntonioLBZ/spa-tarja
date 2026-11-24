@@ -11,8 +11,9 @@ import { ExpenseListControls } from '@/features/expenses/expense-list-controls';
 import { useShortDate } from '@/features/expenses/use-short-date';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { useGroupTitles } from '@/features/groups/use-group-options';
-import { useGroups } from '@/features/groups/use-ledgers';
+import { useExpenseLedgers, useGroups } from '@/features/groups/use-ledgers';
 import { useMoney } from '@/lib/amounts';
+import { daysCaption } from '@/lib/days-caption';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { paymentOf } from '@core/counting';
@@ -49,6 +50,11 @@ const PrintExpenses = () => {
     const { locale } = useLocale();
     const shortDate = useShortDate();
     const money = useMoney();
+    const { ledgers } = useExpenseLedgers();
+    // A group whose expenses can't be had is left out of the rows and of the total, which says so
+    const missing = ledgers.some(({ hasData: held, isError: failed, isWaitingForNetwork }) => {
+        return !held && (failed || isWaitingForNetwork);
+    });
 
     // What the page opens on, the month of the list, which does not count as a filter in use
     const [opening] = useState(() => openingFilters(toDateString(new Date())));
@@ -72,23 +78,14 @@ const PrintExpenses = () => {
 
     // What the table holds, in words, which paper keeps too: the days, then each filter in use
     const caption = (() => {
-        const from = applied.from && shortDate(applied.from);
-        const to = applied.to && shortDate(applied.to);
-        const days =
-            from && to
-                ? t('range.between', { from, to })
-                : from
-                  ? t('range.from', { from })
-                  : to
-                    ? t('range.to', { to })
-                    : t('range.all');
+        const days = daysCaption(applied.from && shortDate(applied.from), applied.to && shortDate(applied.to), {
+            all: t('range.all'),
+            from: (from) => t('range.from', { from }),
+            to: (to) => t('range.to', { to }),
+            between: (from, to) => t('range.between', { from, to }),
+        });
         const category = applied.categoryId && labelOf(applied.categoryId);
-        const paidWith =
-            applied.paidWith === 'any'
-                ? ''
-                : applied.paidWith === 'plan'
-                  ? tFilters('paid.plan')
-                  : tPayment(applied.paidWith);
+        const paidWith = applied.paidWith === 'any' ? '' : t(`paid.${applied.paidWith}`);
         const sharedWith =
             applied.sharedWith === ''
                 ? ''
@@ -110,6 +107,7 @@ const PrintExpenses = () => {
                     {tList('loadFailed')}
                 </Notice>
             )}
+            {missing && <Notice tone="danger">{t('missing')}</Notice>}
             {hasData && items.length === 0 && <Notice tone="quiet">{tList('empty')}</Notice>}
             {items.length > 0 && (
                 <div className="print-expenses__controls screen-only">
@@ -129,7 +127,10 @@ const PrintExpenses = () => {
                     />
                 </div>
             )}
-            {items.length > 0 && table.items.length === 0 && <Notice tone="quiet">{tList('noMatch')}</Notice>}
+            {/* Once a filter narrows the table, the status line says it is empty */}
+            {items.length > 0 && table.items.length === 0 && !hasFilters(applied, opening) && (
+                <Notice tone="quiet">{tList('noMatch')}</Notice>
+            )}
             {table.items.length > 0 && (
                 <PrintTable caption={caption}>
                     <thead>
