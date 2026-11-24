@@ -1,0 +1,87 @@
+.group-export {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-export__controls {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.group-export__error {
+    color: var(--color-danger);
+}
+
+/* A table wider than the column scrolls inside its own box, which the keyboard can reach */
+.group-export__scroll {
+    overflow-x: auto;
+}
+
+.group-export__scroll:focus-visible {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.group-export__table {
+    border-collapse: collapse;
+    font-size: var(--font-size-s);
+    min-width: 100%;
+}
+
+.group-export__caption {
+    color: var(--color-content-secondary);
+    padding-bottom: var(--size-2);
+    text-align: start;
+}
+
+.group-export__table th,
+.group-export__table td {
+    border-bottom: var(--size-px) solid var(--color-border-subtle);
+    font-weight: inherit;
+    padding: var(--size-2) var(--size-3);
+    text-align: start;
+    vertical-align: top;
+}
+
+.group-export__table thead th {
+    border-bottom: var(--size-1) solid var(--color-border);
+    color: var(--color-content-secondary);
+    vertical-align: bottom;
+}
+
+.group-export__table .group-export__number {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    white-space: nowrap;
+}
+
+.group-export__date {
+    white-space: nowrap;
+}
+
+.group-export__balance {
+    font-weight: bold;
+}
+
+.group-export__table tfoot th,
+.group-export__table tfoot td {
+    border-bottom: none;
+    border-top: var(--size-1) solid var(--color-border);
+}
+
+/* On paper the table is the page: no controls, no box that scrolls, and a row is never cut between two sheets */
+@media print {
+    .group-export__screen-only {
+        display: none;
+    }
+
+    .group-export__scroll {
+        overflow: visible;
+    }
+
+    .group-export__table tr {
+        break-inside: avoid;
+    }
+}

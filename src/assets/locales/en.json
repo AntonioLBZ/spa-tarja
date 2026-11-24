@@ -620,7 +620,35 @@
             "save": "Save",
             "pin": "Pin to Expenses",
             "pinHint": "Shows as a tab in Expenses.",
-            "pinFull": "You already have {max} pinned to Expenses. Unpin one to pin another."
+            "pinFull": "You already have {max} pinned to Expenses. Unpin one to pin another.",
+            "export": "Export",
+            "exportHint": "A table of the expenses, to print or open in a spreadsheet.",
+            "exportLink": "See the table"
+        },
+        "export": {
+            "hint": "Every expense and what it does to each person's balance. Print it, save it as a PDF or open it in a spreadsheet.",
+            "from": "From",
+            "to": "To",
+            "backwards": "The first day comes after the last one.",
+            "print": "Print",
+            "csv": "Download CSV",
+            "empty": "No expenses in these days.",
+            "range": {
+                "all": "All the expenses",
+                "from": "From {from}",
+                "to": "Up to {to}",
+                "between": "{from} to {to}"
+            },
+            "columns": {
+                "date": "Date",
+                "text": "Expense",
+                "category": "Category",
+                "paidBy": "Paid by",
+                "amount": "Amount",
+                "currency": "Currency"
+            },
+            "opening": "Balance before {day}",
+            "closing": "Balance"
         },
         "people": {
             "title": "People",

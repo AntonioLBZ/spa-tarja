@@ -299,3 +299,16 @@
         animation: screen-fade-in var(--duration-base) var(--ease-enter) both;
     }
 }
+
+/* On paper the screen is the page: no header, no bar, nothing that floats over it, and the whole width */
+@media print {
+    .root::before,
+    .root > :not(.root__main) {
+        display: none;
+    }
+
+    .root__main {
+        max-width: none;
+        padding: 0;
+    }
+}

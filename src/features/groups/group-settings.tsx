@@ -3,6 +3,7 @@ import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
 import { Button } from '@/components/button/button';
+import { ButtonLink } from '@/components/button/button-link';
 import { Checkbox } from '@/components/checkbox/checkbox';
 import { Field } from '@/components/field/field';
 import { LiveNotice } from '@/components/notice/live-notice';
@@ -40,7 +41,7 @@ interface SectionProps {
 }
 
 // The settings of a group or a friend: what its owner changes for everybody, then what is the person's own, the people,
-// and last the way to leave or delete it. A closed group keeps only the person's own switches.
+// the export, and last the way to leave or delete it. A closed group keeps only the person's own switches and the export.
 const GroupSettings = (props: GroupSettingsProps) => {
     const { groupId } = props;
 
@@ -71,6 +72,13 @@ const SettingsView = (props: SettingsViewProps) => {
                 <PersonalSwitches group={group} disabled={!online} />
             </section>
             {open && group.kind === 'group' && <GroupPeople ledger={ledger} disabled={!online} />}
+            <section className="group-settings__part">
+                <h2>{t('edit.export')}</h2>
+                <p className="hint">{t('edit.exportHint')}</p>
+                <ButtonLink block to="/groups/$groupId/export" params={{ groupId: group.id }}>
+                    {t('edit.exportLink')}
+                </ButtonLink>
+            </section>
             {open && <CloseGroup ledger={ledger} disabled={!online} />}
         </section>
     );
