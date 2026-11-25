@@ -1,6 +1,6 @@
 import { CardList } from '@/components/card/card';
 import { Sheet } from '@/components/sheet/sheet';
-import { LedgerRow as LedgerRowComponent, type LedgerRowProps } from '@/features/groups/ledger-row';
+import { LedgerRow as LedgerRowComponent, type LedgerRowProps } from '@/features/groups/ledger/ledger-row';
 import { fn } from 'storybook/test';
 
 import { AppData } from './app-data';

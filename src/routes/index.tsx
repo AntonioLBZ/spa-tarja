@@ -3,11 +3,11 @@ import { useLayoutEffect } from 'react';
 
 import { ExpenseList } from '@/features/expenses/expense-list';
 import { SyncStatus } from '@/features/expenses/sync-status';
-import { EntryRefusals } from '@/features/groups/entry-refusals';
-import { GroupScreen } from '@/features/groups/group-screen';
-import { usePinnedGroups } from '@/features/groups/pinned-groups';
-import { PinnedTabs } from '@/features/groups/pinned-tabs';
-import { useGroups } from '@/features/groups/use-ledgers';
+import { EntryRefusals } from '@/features/groups/data/entry-refusals';
+import { useGroups } from '@/features/groups/data/use-ledgers';
+import { usePinnedGroups } from '@/features/groups/pins/pinned-groups';
+import { PinnedTabs } from '@/features/groups/pins/pinned-tabs';
+import { GroupScreen } from '@/features/groups/screen/group-screen';
 import { useUserData } from '@/lib/offline';
 
 import './index.css';

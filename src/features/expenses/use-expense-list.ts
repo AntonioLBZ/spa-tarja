@@ -1,8 +1,8 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useGroupTitles } from '@/features/groups/use-group-options';
-import { useGroups } from '@/features/groups/use-ledgers';
+import { useGroups } from '@/features/groups/data/use-ledgers';
+import { useGroupTitles } from '@/features/groups/share/use-group-options';
 import { useLocale, useWeekStart } from '@/lib/i18n';
 import { useFadeOut } from '@/lib/motion';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';

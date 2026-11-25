@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { GroupSettings } from '@/features/groups/group-settings';
+import { GroupSettings } from '@/features/groups/settings/group-settings';
 
 const EditGroup = () => {
     const { groupId } = Route.useParams();

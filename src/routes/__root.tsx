@@ -14,7 +14,7 @@ import { AddExpenseButton } from '@/features/expenses/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/expense-sheet';
 import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
 import { useOpenAdd } from '@/features/expenses/use-open-add';
-import { usePinnedGroups } from '@/features/groups/pinned-groups';
+import { usePinnedGroups } from '@/features/groups/pins/pinned-groups';
 import { NoticeBanner } from '@/features/notices/notice-banner';
 import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';

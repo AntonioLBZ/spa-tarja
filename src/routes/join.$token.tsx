@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { JoinScreen } from '@/features/groups/join-screen';
+import { JoinScreen } from '@/features/groups/invites/join-screen';
 
 const Join = () => {
     const { token } = Route.useParams();

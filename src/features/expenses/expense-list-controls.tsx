@@ -8,8 +8,8 @@ import { Icon } from '@/components/icon/icon';
 import { Select } from '@/components/select/select';
 import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { groupsFirst, useGroupOptions } from '@/features/groups/use-group-options';
-import { useGroups } from '@/features/groups/use-ledgers';
+import { useGroups } from '@/features/groups/data/use-ledgers';
+import { groupsFirst, useGroupOptions } from '@/features/groups/share/use-group-options';
 import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
 
 import { FilterStatus } from './filter-status';

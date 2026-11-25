@@ -2,7 +2,7 @@ import { useTranslations } from 'use-intl';
 
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { SharedRowDetails } from '@/features/groups/shared-row-details';
+import { SharedRowDetails } from '@/features/groups/share/shared-row-details';
 import { useMoney } from '@/lib/amounts';
 import { countedCents, paymentOf } from '@core/counting';
 import { planTotal } from '@core/installments';
