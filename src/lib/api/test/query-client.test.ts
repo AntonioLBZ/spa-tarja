@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api';
-
-import { createQueryClient } from './query-client';
+import { createQueryClient } from '@/lib/api/query-client';
 
 import type { QueryClient } from '@tanstack/react-query';
 

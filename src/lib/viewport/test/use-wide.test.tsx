@@ -2,8 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { stubViewport } from '@/lib/testing/viewport';
-
-import { useWide } from './use-wide';
+import { useWide } from '@/lib/viewport/use-wide';
 
 const Probe = () => {
     const wide = useWide();

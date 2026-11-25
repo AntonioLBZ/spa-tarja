@@ -1,6 +1,6 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 
-import { ApiError } from '@/lib/api';
+import { ApiError } from './api-error';
 
 interface QueryClientOptions {
     // The server answered 401: the session may be over, which only the auth check can tell

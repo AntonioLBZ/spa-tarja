@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { endTransitionsOnTap } from './view-transition-tap';
+import { endTransitionsOnTap } from '@/lib/navigation/view-transition-tap';
 
 const stubTransition = () => {
     let finish: () => void = () => undefined;

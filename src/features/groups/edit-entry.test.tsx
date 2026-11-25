@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { groupEntriesKey } from '@/lib/api';
-import { randomSeed } from '@/lib/random-seed';
+import { randomSeed } from '@/lib/random';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { seedFavouring } from '@/lib/testing/favouring-seed';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
@@ -17,7 +17,7 @@ import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/testing/fake-groups';
 import type { SharedGroup } from '@core/shared-group';
 
-vi.mock('@/lib/random-seed', () => ({ randomSeed: vi.fn() }));
+vi.mock('@/lib/random', () => ({ randomSeed: vi.fn() }));
 
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;

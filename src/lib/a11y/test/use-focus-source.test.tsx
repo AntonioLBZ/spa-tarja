@@ -1,7 +1,7 @@
 import { act, fireEvent, render, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { useFocusSource, useKeyboardFocus } from './use-focus-source';
+import { useFocusSource, useKeyboardFocus } from '@/lib/a11y/use-focus-source';
 
 const Probe = () => {
     useFocusSource();

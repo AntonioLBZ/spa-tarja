@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { useOnScreenKeyboard } from './use-on-screen-keyboard';
+import { useOnScreenKeyboard } from '@/lib/viewport/use-on-screen-keyboard';
 
 const Probe = () => {
     useOnScreenKeyboard();

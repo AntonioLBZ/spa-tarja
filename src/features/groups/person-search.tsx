@@ -6,8 +6,8 @@ import { Dialog } from '@/components/dialog/dialog';
 import { Field } from '@/components/field/field';
 import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
-import { useDebouncedValue } from '@/lib/use-debounced-value';
-import { useWide } from '@/lib/use-wide';
+import { useDebouncedValue } from '@/lib/a11y';
+import { useWide } from '@/lib/viewport';
 import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
 
 import { matchesName } from './matches-name';

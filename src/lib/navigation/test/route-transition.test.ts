@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { backTarget, navSection, routeDepth, slideTypes, swipeTarget, type SwipeFrom } from './route-transition';
+import {
+    backTarget,
+    navSection,
+    routeDepth,
+    slideTypes,
+    swipeTarget,
+    type SwipeFrom,
+} from '@/lib/navigation/route-transition';
 
 function at(pathname: string) {
     return { pathname } as never;

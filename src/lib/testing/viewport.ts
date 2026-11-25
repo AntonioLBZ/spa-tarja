@@ -1,4 +1,4 @@
-import { WIDE_QUERY } from '@/lib/use-wide';
+import { WIDE_QUERY } from '@/lib/viewport';
 
 interface Viewport {
     setWide: (wide: boolean) => void;

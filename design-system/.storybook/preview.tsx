@@ -1,10 +1,10 @@
+import { useFocusSource } from '@/lib/a11y';
 import { AmountsProvider } from '@/lib/amounts';
 import { DEFAULT_AMOUNT_PREFERENCES, storeAmounts } from '@/lib/amounts/amounts';
 import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18n';
 import { storeLocale } from '@/lib/i18n/locale';
 import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
 import { storeTheme } from '@/lib/theme/theme';
-import { useFocusSource } from '@/lib/use-focus-source';
 
 import type { Preview } from '@storybook/react-vite';
 import type { ReactNode } from 'react';

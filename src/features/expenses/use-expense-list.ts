@@ -4,7 +4,7 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useGroupTitles } from '@/features/groups/use-group-options';
 import { useGroups } from '@/features/groups/use-ledgers';
 import { useLocale, useWeekStart } from '@/lib/i18n';
-import { useFadeOut } from '@/lib/use-fade-out';
+import { useFadeOut } from '@/lib/motion';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { toDateString } from '@core/date';
 import {

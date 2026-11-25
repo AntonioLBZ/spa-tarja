@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { readDuration } from './motion';
+import { readDuration } from '@/lib/motion/motion';
 
 const root = document.documentElement;
 

@@ -2,9 +2,9 @@ import { render } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { useSwipe, type SwipeDrag } from './use-swipe';
+import { useSwipe, type SwipeDrag } from '@/lib/navigation/use-swipe';
 
-import type { SwipeDirection } from './route-transition';
+import type { SwipeDirection } from '@/lib/navigation/route-transition';
 
 interface AreaProps {
     begin: (direction: SwipeDirection) => SwipeDrag | undefined;

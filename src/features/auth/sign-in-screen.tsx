@@ -5,8 +5,8 @@ import { Brand } from '@/components/brand/brand';
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
+import { isPrerelease } from '@/lib/app-info';
 import { invitationPath, useAuth, type DeletedAccount } from '@/lib/auth';
-import { isPrerelease } from '@/lib/prerelease';
 import { forgetPushInBrowser } from '@/lib/push';
 
 import { PrivacyNotice } from './privacy-notice';

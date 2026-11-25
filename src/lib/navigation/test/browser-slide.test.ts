@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { leaveSlidesToTheBrowser } from './browser-slide';
-import { takeSkippedSlide } from './swipe-slide';
+import { leaveSlidesToTheBrowser } from '@/lib/navigation/browser-slide';
+import { takeSkippedSlide } from '@/lib/navigation/swipe-slide';
 
 const pop = (hasUAVisualTransition?: boolean) => {
     const event = new PopStateEvent('popstate');

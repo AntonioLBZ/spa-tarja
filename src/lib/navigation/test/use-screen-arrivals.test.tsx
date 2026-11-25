@@ -3,12 +3,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
+import { beginSwipe, decideSwipe, markSwiped, markUndone } from '@/lib/navigation/screen-arrival';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { person, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { stubViewport } from '@/lib/testing/viewport';
-
-import { beginSwipe, decideSwipe, markSwiped, markUndone } from './screen-arrival';
 
 beforeEach(() => {
     localStorage.clear();

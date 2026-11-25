@@ -3,8 +3,7 @@ import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { stubPageScroll, type PageScroll } from '@/lib/testing/scroll';
-
-import { useHideOnScroll } from './use-hide-on-scroll';
+import { useHideOnScroll } from '@/lib/viewport/use-hide-on-scroll';
 
 const HEADER_HEIGHT = 60;
 const PAGE_HEIGHT = 3000;

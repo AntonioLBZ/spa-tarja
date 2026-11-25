@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { downloadFile } from './download';
+import { downloadFile } from '@/lib/files/download';
 
 let revoke: ReturnType<typeof vi.fn>;
 

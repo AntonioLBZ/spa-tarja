@@ -1,4 +1,4 @@
-import { useDebouncedValue } from '@/lib/use-debounced-value';
+import { useDebouncedValue } from '@/lib/a11y';
 
 interface SpokenHintProps {
     // The hint, or false while there is none

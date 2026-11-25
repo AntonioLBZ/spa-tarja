@@ -4,7 +4,7 @@ import { useEffectEvent, useId, useLayoutEffect, useRef, type ReactNode } from '
 import { Actions } from '@/components/actions/actions';
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
-import { useOverflowMark } from '@/lib/use-overflow-mark';
+import { useOverflowMark } from '@/lib/viewport';
 
 import './dialog.css';
 

@@ -10,8 +10,8 @@ import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { profileQuery } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { focusHeading } from '@/lib/navigation';
 import { useOnline } from '@/lib/offline';
-import { focusHeading } from '@/lib/screen-arrival';
 import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/profile';
 import { personName } from '@core/shared-group';
 

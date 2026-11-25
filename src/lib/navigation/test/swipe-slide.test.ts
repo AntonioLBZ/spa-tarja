@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { decideSwipe, sayWhenSwipeIsDecided } from './screen-arrival';
-import { followSlide, skipNextSlide, takeSkippedSlide } from './swipe-slide';
+import { decideSwipe, sayWhenSwipeIsDecided } from '@/lib/navigation/screen-arrival';
+import { followSlide, skipNextSlide, takeSkippedSlide } from '@/lib/navigation/swipe-slide';
 
 const fakeAnimation = (duration: number) => {
     return {

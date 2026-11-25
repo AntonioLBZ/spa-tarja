@@ -2,10 +2,10 @@ import { QueryObserver } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { GROUPS_KEY, deleteMember, groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
+import { createQueryClient } from '@/lib/api';
 import { groupEntriesQuery, syncGroup } from '@/lib/offline/group-sync';
 import { subscribeNotices } from '@/lib/offline/notices';
 import { GROUP_OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from '@/lib/offline/outbox';
-import { createQueryClient } from '@/lib/query-client';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';

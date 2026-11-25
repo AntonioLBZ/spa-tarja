@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { daysCaption } from './days-caption';
+import { daysCaption } from '@/lib/files/days-caption';
 
 const words = {
     all: 'All',

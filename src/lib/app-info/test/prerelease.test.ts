@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { isPrerelease } from './prerelease';
+import { isPrerelease } from '@/lib/app-info/prerelease';
 
 afterEach(() => {
     vi.unstubAllEnvs();

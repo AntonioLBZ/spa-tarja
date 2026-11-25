@@ -3,7 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Notice } from '@/components/notice/notice';
-import { useDebouncedValue } from '@/lib/use-debounced-value';
+import { useDebouncedValue } from '@/lib/a11y';
 
 import './filter-status.css';
 

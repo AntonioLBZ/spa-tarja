@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { EXPENSES_KEY, type ExpensesState } from '@/lib/api';
+import { createQueryClient } from '@/lib/api';
 import { OUTBOX_STORAGE_KEY, createOutbox } from '@/lib/offline/outbox';
 import { expensesQuery, syncExpenses } from '@/lib/offline/sync';
-import { createQueryClient } from '@/lib/query-client';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { stubApi } from '@/lib/testing/render-app';

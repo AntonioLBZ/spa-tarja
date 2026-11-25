@@ -5,10 +5,9 @@ import { createRoot } from 'react-dom/client';
 
 import { appUpdate } from './features/pwa/app-update-state';
 import { createAuth, createAuthService } from './lib/auth';
-import { leaveSlidesToTheBrowser } from './lib/browser-slide';
+import { endTransitionsOnTap, leaveSlidesToTheBrowser } from './lib/navigation';
 import { idbStorage } from './lib/offline';
 import { applyTheme, forgetStoredAccent, readStoredTheme } from './lib/theme';
-import { endTransitionsOnTap } from './lib/view-transition-tap';
 import { AppProviders } from './providers';
 import { createAppRouter } from './router';
 
