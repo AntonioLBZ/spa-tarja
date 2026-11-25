@@ -4,7 +4,7 @@ import {
     CategorySelect as CategorySelectComponent,
     type CategorySelectProps,
 } from '@/features/categories/category-select';
-import { DEFAULT_CATEGORY_IDS } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS } from '@core/categories/categories';
 import { useArgs } from 'storybook/preview-api';
 
 import { CUSTOM_CATEGORIES, useStoryCategories } from './fixtures';

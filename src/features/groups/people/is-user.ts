@@ -1,4 +1,4 @@
-import type { GroupMember } from '@core/shared-group';
+import type { GroupMember } from '@core/groups/shared-group';
 
 // Whether the member is a person who uses the app: one who has joined and kept their account, as one who deleted it
 // has no name left. Whether they are still in the group is another question.

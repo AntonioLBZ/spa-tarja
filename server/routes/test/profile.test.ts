@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { NICKNAME_MAX_LENGTH } from '@core/profile';
+import { NICKNAME_MAX_LENGTH } from '@core/account/profile';
 import { app } from '@server/app';
 import { signIn, type TestSession } from '@server/testing/session';
 

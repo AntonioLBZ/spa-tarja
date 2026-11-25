@@ -15,7 +15,7 @@ import { closeSheet, openAddSheet, openSplit } from '@/lib/testing/sheet';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/testing/fake-groups';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 vi.mock('@/lib/random', () => ({ randomSeed: vi.fn() }));
 

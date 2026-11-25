@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Field } from '@/components/field/field';
-import { isCalendarDate } from '@core/date';
+import { isCalendarDate } from '@core/basics/date';
 
 import './date-range-fields.css';
 

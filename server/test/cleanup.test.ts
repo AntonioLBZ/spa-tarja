@@ -2,7 +2,7 @@ import { createExecutionContext, createScheduledController, waitOnExecutionConte
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/invitation';
+import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/groups/invitation';
 import { app } from '@server/app';
 import { dailyCleanup } from '@server/cleanup';
 import worker from '@server/index';

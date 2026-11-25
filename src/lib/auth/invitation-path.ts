@@ -1,4 +1,4 @@
-import { isInvitationToken } from '@core/invitation';
+import { isInvitationToken } from '@core/groups/invitation';
 
 const JOIN = '/join/';
 

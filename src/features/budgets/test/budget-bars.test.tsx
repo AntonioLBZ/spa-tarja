@@ -7,9 +7,9 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
-import type { Budget } from '@core/budget';
-import type { Category } from '@core/category';
-import type { Expense } from '@core/expense';
+import type { Budget } from '@core/budgets/budget';
+import type { Category } from '@core/categories/category';
+import type { Expense } from '@core/expenses/expense';
 
 const GYM: Category = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' };
 

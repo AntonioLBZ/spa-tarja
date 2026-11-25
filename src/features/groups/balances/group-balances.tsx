@@ -9,10 +9,10 @@ import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
 import { useAmount } from '@/lib/amounts';
-import { memberBalances, type Debt, type MemberBalance } from '@core/balance';
+import { memberBalances, type Debt, type MemberBalance } from '@core/groups/balance';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './group-balances.css';
 

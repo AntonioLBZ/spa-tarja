@@ -1,7 +1,7 @@
 import { createContext, use, useCallback, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { useLocale } from '@/lib/i18n';
-import { DEFAULT_CURRENCY, formatAmount, formatAmountInput } from '@core/money';
+import { DEFAULT_CURRENCY, formatAmount, formatAmountInput } from '@core/basics/money';
 
 import { applyMoneyPalette, readStoredAmounts, storeAmounts, type AmountPreferences } from './amounts';
 

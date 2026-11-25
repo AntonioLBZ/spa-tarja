@@ -12,8 +12,8 @@ import { profileQuery } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { focusHeading } from '@/lib/navigation';
 import { useOnline } from '@/lib/offline';
-import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/profile';
-import { personName } from '@core/shared-group';
+import { NICKNAME_MAX_LENGTH, nicknameSchema } from '@core/account/profile';
+import { personName } from '@core/groups/shared-group';
 
 import { useProfileActions } from './use-profile-actions';
 

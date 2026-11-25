@@ -1,13 +1,13 @@
-import { noticeOf, type Notice } from '@core/notices';
-import { UNNAMED_PERSON } from '@core/shared-group';
-import { canonicalMember } from '@core/shared-member';
+import { noticeOf, type Notice } from '@core/groups/notices';
+import { UNNAMED_PERSON } from '@core/groups/shared-group';
+import { canonicalMember } from '@core/groups/shared-member';
 import { deletePushSubscription, listPushSubscriptions } from '@server/db/push';
 import { pushTargets } from '@server/push-targets';
 import { readVapidKey } from '@server/vapid';
 import { sendPush } from '@server/web-push';
 
-import type { PushLocale } from '@core/push';
-import type { LedgerEntry } from '@core/shared-entry';
+import type { PushLocale } from '@core/account/push';
+import type { LedgerEntry } from '@core/groups/shared-entry';
 import type { GroupState } from '@server/db/groups';
 import type { AppEnv } from '@server/env';
 

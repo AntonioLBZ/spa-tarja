@@ -4,14 +4,14 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { SharedRowDetails } from '@/features/groups/share/shared-row-details';
 import { useMoney } from '@/lib/amounts';
-import { countedCents, paymentOf } from '@core/counting';
-import { planTotal } from '@core/installments';
+import { countedCents, paymentOf } from '@core/expenses/counting';
+import { planTotal } from '@core/expenses/installments';
 
 import { useShortDate } from './use-short-date';
 
-import type { Expense } from '@core/expense';
-import type { SharedExpenseRow } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedExpenseRow } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './expense-row.css';
 

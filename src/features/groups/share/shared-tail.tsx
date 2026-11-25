@@ -17,9 +17,9 @@ import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { readSharedWith } from '@/lib/offline';
 import { randomSeed } from '@/lib/random';
-import { formatAmountInput, parseAmount } from '@core/money';
-import { SPLIT_MODES } from '@core/shared-entry';
-import { canonicalMember } from '@core/shared-member';
+import { formatAmountInput, parseAmount } from '@core/basics/money';
+import { SPLIT_MODES } from '@core/groups/shared-entry';
+import { canonicalMember } from '@core/groups/shared-member';
 import {
     HUNDRED_PERCENT,
     equalPercents,
@@ -29,13 +29,13 @@ import {
     splitEqually,
     splitExactly,
     unassignedCents,
-} from '@core/split';
+} from '@core/groups/split';
 
 import { groupsFirst, useGroupOptions } from './use-group-options';
 
-import type { Share, SharedEntry, SplitMode } from '@core/shared-entry';
-import type { SharedExpenseEntry } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Share, SharedEntry, SplitMode } from '@core/groups/shared-entry';
+import type { SharedExpenseEntry } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './shared-tail.css';
 

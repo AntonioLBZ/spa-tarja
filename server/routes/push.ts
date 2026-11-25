@@ -1,7 +1,7 @@
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 
-import { pushEndpointSchema, pushSubscriptionSchema } from '@core/push';
+import { pushEndpointSchema, pushSubscriptionSchema } from '@core/account/push';
 import { deletePushSubscription, savePushSubscription } from '@server/db/push';
 import { readVapidKey } from '@server/vapid';
 

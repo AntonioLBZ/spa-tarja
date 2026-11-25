@@ -1,5 +1,5 @@
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // What an entry says, apart from what every new one of a group gets
 type EntryFields = SharedEntry extends infer Entry

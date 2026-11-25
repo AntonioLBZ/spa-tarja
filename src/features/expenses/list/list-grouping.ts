@@ -1,4 +1,4 @@
-import { DEFAULT_LIST_GROUPING, isListGrouping, type ListGrouping } from '@core/expense-list';
+import { DEFAULT_LIST_GROUPING, isListGrouping, type ListGrouping } from '@core/lists/expense-list';
 
 const STORAGE_KEY = 'tarja:list-grouping';
 

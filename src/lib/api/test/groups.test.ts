@@ -15,7 +15,7 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleGroup } from '@/lib/testing/groups';
 import { stubApi } from '@/lib/testing/render-app';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 function open(groups: SharedGroup[] = []) {
     const api = createFakeApi({ groups });

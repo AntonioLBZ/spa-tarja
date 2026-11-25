@@ -6,10 +6,10 @@ import en from '@/assets/locales/en.json';
 import { BUDGETS_KEY, CATEGORIES_KEY, INCOME_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { DEFAULT_CATEGORY_IDS } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS } from '@core/categories/categories';
 
-import type { Budget } from '@core/budget';
-import type { Category } from '@core/category';
+import type { Budget } from '@core/budgets/budget';
+import type { Category } from '@core/categories/category';
 
 const text = en.budgets;
 

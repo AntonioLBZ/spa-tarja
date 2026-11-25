@@ -11,7 +11,12 @@ import { Select } from '@/components/select/select';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useGroupActions } from '@/features/groups/data/use-group-actions';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
-import { SHARED_NAME_MAX_LENGTH, sharedNameSchema, type GroupMember, type SharedGroup } from '@core/shared-group';
+import {
+    SHARED_NAME_MAX_LENGTH,
+    sharedNameSchema,
+    type GroupMember,
+    type SharedGroup,
+} from '@core/groups/shared-group';
 
 import { isOwner } from './is-owner';
 import { isUser } from './is-user';

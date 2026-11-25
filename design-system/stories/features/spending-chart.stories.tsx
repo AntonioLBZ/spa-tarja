@@ -1,7 +1,7 @@
 import { SpendingChart as SpendingChartComponent, type SpendingChartProps } from '@/features/charts/spending-chart';
-import { GRANULARITIES, type Bucket, type Granularity } from '@core/charts';
-import { addDays, startOfWeek } from '@core/date';
-import { shiftMonth } from '@core/month';
+import { addDays, startOfWeek } from '@core/basics/date';
+import { shiftMonth } from '@core/basics/month';
+import { GRANULARITIES, type Bucket, type Granularity } from '@core/reports/charts';
 
 import type { Meta } from '@storybook/react-vite';
 

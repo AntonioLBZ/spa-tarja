@@ -6,8 +6,8 @@ import { useGroupOutbox } from '@/lib/offline';
 
 import { LocalRefusal } from './local-refusal';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // Writing an entry never waits for the network: it is safe on the device, and in the ledger, once this resolves. A group
 // closed for the person, or one the device doesn't hold, is read-only, so the write never reaches the outbox. It rejects

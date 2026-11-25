@@ -8,7 +8,7 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { stubApi } from '@/lib/testing/render-app';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 function expense(id: string, overrides: Partial<Expense> = {}): Expense {
     return {

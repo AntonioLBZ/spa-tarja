@@ -2,8 +2,8 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { isCategoryId } from '@core/category';
-import { expenseIdSchema, expenseInputSchema } from '@core/expense';
+import { isCategoryId } from '@core/categories/category';
+import { expenseIdSchema, expenseInputSchema } from '@core/expenses/expense';
 import { listChanges, upsertExpense } from '@server/db/expenses';
 
 import type { AppEnv } from '@server/env';

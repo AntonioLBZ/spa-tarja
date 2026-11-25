@@ -11,14 +11,14 @@ import { TEST_USER } from '@/lib/testing/fake-auth';
 import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/testing/select';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 import {
     MAX_CLOSED_GROUPS,
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
     type GroupMember,
     type SharedGroup,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.people;

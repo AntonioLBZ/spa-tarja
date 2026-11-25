@@ -1,7 +1,7 @@
 import { toApiError } from './api-error';
 import { api } from './client';
 
-import type { GroupChange, MemberWrite, MySwitches, NewGroup, SharedGroup } from '@core/shared-group';
+import type { GroupChange, MemberWrite, MySwitches, NewGroup, SharedGroup } from '@core/groups/shared-group';
 
 const GROUPS_KEY = ['groups'] as const;
 

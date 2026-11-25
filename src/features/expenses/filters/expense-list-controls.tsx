@@ -10,14 +10,14 @@ import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useGroups } from '@/features/groups/data/use-ledgers';
 import { groupsFirst, useGroupOptions } from '@/features/groups/share/use-group-options';
-import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/expense-list';
+import { JUST_ME, LIST_GROUPINGS, PAID_WITH } from '@core/lists/expense-list';
 
 import { FilterStatus } from './filter-status';
 import { FiltersSheet } from './filters-sheet';
 import { ListSearchField } from './list-search-field';
 
 import type { IconName } from '@/components/icon/icon-paths';
-import type { ListFilters, ListGrouping, PaidWith } from '@core/expense-list';
+import type { ListFilters, ListGrouping, PaidWith } from '@core/lists/expense-list';
 
 import './expense-list-controls.css';
 

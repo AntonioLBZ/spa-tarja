@@ -9,7 +9,7 @@ import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { chosenOption, pickOption } from '@/lib/testing/select';
 import { openAddSheet } from '@/lib/testing/sheet';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const form = en.expenses.form;
 const share = en.groups.share;

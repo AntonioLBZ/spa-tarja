@@ -1,7 +1,7 @@
 import { ApiError, toApiError } from './api-error';
 import { api } from './client';
 
-import type { PushSubscriptionInput } from '@core/push';
+import type { PushSubscriptionInput } from '@core/account/push';
 
 // The public key of the server, which a browser subscribes with
 const fetchPushKey = async (): Promise<string> => {

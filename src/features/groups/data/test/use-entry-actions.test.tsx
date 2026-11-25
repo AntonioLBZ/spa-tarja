@@ -10,7 +10,7 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 async function setup(groups: SharedGroup[], options: Parameters<typeof createFakeApi>[0] = {}) {
     const api = createFakeApi({ groups, ...options });

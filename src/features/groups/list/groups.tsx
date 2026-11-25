@@ -18,7 +18,7 @@ import { usePins } from '@/features/groups/pins/use-pins';
 import { useAmount } from '@/lib/amounts';
 import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
 import { useOnline } from '@/lib/offline';
-import { MAX_PINNED_GROUPS } from '@core/shared-group';
+import { MAX_PINNED_GROUPS } from '@core/groups/shared-group';
 
 import { GroupList, GroupSheet } from './group-list';
 import { ListSection } from './list-section';

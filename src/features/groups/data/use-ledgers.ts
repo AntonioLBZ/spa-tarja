@@ -9,10 +9,10 @@ import { useMemo, useSyncExternalStore } from 'react';
 
 import { groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
 import { RETRY_EVERY_MS, groupEntriesQuery, useGroupOutbox, type PendingEntry } from '@/lib/offline';
-import { upsertById } from '@core/expense-merge';
+import { upsertById } from '@core/expenses/expense-merge';
 
-import type { LedgerEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { LedgerEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const NO_GROUPS: SharedGroup[] = [];
 

@@ -4,7 +4,7 @@ import { api, bindApiUser, fetchAsUser } from '@/lib/api/client';
 import { fetchChanges } from '@/lib/api/expenses';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { stubApi } from '@/lib/testing/render-app';
-import { USER_HEADER } from '@core/account';
+import { USER_HEADER } from '@core/account/account';
 
 const users = (fake: ReturnType<typeof createFakeApi>) => fake.requestUsers.map((entry) => entry.user);
 

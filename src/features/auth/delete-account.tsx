@@ -10,7 +10,7 @@ import { YOUR_DATA_ID } from '@/features/export/your-data';
 import { ApiError, deleteAccount } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { useGroupOutbox, useOnline, useOutbox, useUserData } from '@/lib/offline';
-import { EMAIL_MAX_LENGTH, confirmsEmail } from '@core/account';
+import { EMAIL_MAX_LENGTH, confirmsEmail } from '@core/account/account';
 
 import './delete-account.css';
 

@@ -1,4 +1,4 @@
-import type { Budget, BudgetLimitsInput } from '@core/budget';
+import type { Budget, BudgetLimitsInput } from '@core/budgets/budget';
 
 // One row per user, month and scope: a write replaces the amount, so repeating it changes nothing
 const UPSERT = `

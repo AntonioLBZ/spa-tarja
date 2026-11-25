@@ -1,5 +1,5 @@
-import { categoryNameKey, type Category, type CategoryInput } from '@core/category';
-import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
+import { categoryNameKey, type Category, type CategoryInput } from '@core/categories/category';
+import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/categories/category-style';
 
 // A write either lands, or loses to someone else's id or to another category with the same name
 type SaveResult = { category: Category } | { error: 'id-taken' | 'name-taken' };

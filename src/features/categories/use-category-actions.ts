@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { CATEGORIES_KEY, deleteCategory, putCategory } from '@/lib/api';
 
-import type { Category } from '@core/category';
+import type { Category } from '@core/categories/category';
 
 // Each call waits for the server and then puts its answer in the cache, so the list never needs a refetch
 const useCategoryActions = () => {

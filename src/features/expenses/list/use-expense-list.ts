@@ -7,8 +7,8 @@ import { useGroups } from '@/features/groups/data/use-ledgers';
 import { useGroupTitles } from '@/features/groups/share/use-group-options';
 import { useLocale, useWeekStart } from '@/lib/i18n';
 import { useFadeOut } from '@/lib/motion';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { toDateString } from '@core/date';
+import { toDateString } from '@core/basics/date';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
 import {
     NO_FILTERS,
     activeFilterCount,
@@ -19,12 +19,12 @@ import {
     listItems,
     openingFilters,
     shownExpense,
-} from '@core/expense-list';
+} from '@core/lists/expense-list';
 
 import { readStoredGrouping, storeGrouping } from './list-grouping';
 
-import type { Expense } from '@core/expense';
-import type { ListContext, ListFilters, ListGrouping } from '@core/expense-list';
+import type { Expense } from '@core/expenses/expense';
+import type { ListContext, ListFilters, ListGrouping } from '@core/lists/expense-list';
 
 // How many rows the list draws, and how many more each "Show more" adds
 const PAGE_SIZE = 100;

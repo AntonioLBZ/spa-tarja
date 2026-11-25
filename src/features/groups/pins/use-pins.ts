@@ -3,11 +3,11 @@ import { useState } from 'react';
 import { failureOf, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useGroupActions } from '@/features/groups/data/use-group-actions';
 import { useOnline } from '@/lib/offline';
-import { MAX_PINNED_GROUPS } from '@core/shared-group';
+import { MAX_PINNED_GROUPS } from '@core/groups/shared-group';
 
 import { usePinnedGroups } from './pinned-groups';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 interface Pins {
     // Whether the group shows as pinned: what was asked for until the server answers

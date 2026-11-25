@@ -12,7 +12,7 @@ import {
 import { sampleGroup } from '@/lib/testing/groups';
 import { stubApi } from '@/lib/testing/render-app';
 
-import type { PendingInvitation } from '@core/invitation';
+import type { PendingInvitation } from '@core/groups/invitation';
 
 const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'A'.repeat(43)}`;
 const PENDING: PendingInvitation = { id: TOKEN.slice(0, 36), token: TOKEN, expiresAt: 1_000 };

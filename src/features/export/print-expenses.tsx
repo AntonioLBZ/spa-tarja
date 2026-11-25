@@ -16,9 +16,10 @@ import { useGroupTitles } from '@/features/groups/share/use-group-options';
 import { useMoney } from '@/lib/amounts';
 import { daysCaption } from '@/lib/files';
 import { useLocale } from '@/lib/i18n';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { paymentOf } from '@core/counting';
-import { toDateString } from '@core/date';
+import { toDateString } from '@core/basics/date';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
+import { paymentOf } from '@core/expenses/counting';
+import { isSharedRow } from '@core/groups/shared-expense';
 import {
     JUST_ME,
     NO_FILTERS,
@@ -29,13 +30,12 @@ import {
     listTable,
     openingFilters,
     shownExpense,
-} from '@core/expense-list';
-import { isSharedRow } from '@core/shared-expense';
+} from '@core/lists/expense-list';
 
 import { useExportGroups } from './use-export-groups';
 
-import type { Expense } from '@core/expense';
-import type { ListContext, ListFilters } from '@core/expense-list';
+import type { Expense } from '@core/expenses/expense';
+import type { ListContext, ListFilters } from '@core/lists/expense-list';
 
 import './print-expenses.css';
 

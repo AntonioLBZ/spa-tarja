@@ -1,5 +1,5 @@
 import { CategoryBadge as CategoryBadgeComponent } from '@/features/categories/category-badge';
-import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/category-style';
+import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/categories/category-style';
 
 import type { Meta } from '@storybook/react-vite';
 

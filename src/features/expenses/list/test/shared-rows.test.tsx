@@ -10,10 +10,10 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { pickOption } from '@/lib/testing/select';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
-import type { Expense } from '@core/expense';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { Expense } from '@core/expenses/expense';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const list = en.expenses.list;

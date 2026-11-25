@@ -1,11 +1,11 @@
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { GroupBalances as GroupBalancesComponent } from '@/features/groups/balances/group-balances';
-import { groupDebts } from '@core/group-debts';
+import { groupDebts } from '@core/groups/group-debts';
 import { fn } from 'storybook/test';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 import type { Meta } from '@storybook/react-vite';
 
 import '@/features/groups/balances/settle-up.css';

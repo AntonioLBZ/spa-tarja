@@ -19,17 +19,17 @@ import { useEntryActions } from '@/features/groups/data/use-entry-actions';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { focusHeading } from '@/lib/navigation';
-import { fromDateString } from '@core/date';
-import { shownExpense } from '@core/expense-list';
-import { isSharedRow } from '@core/shared-expense';
+import { fromDateString } from '@core/basics/date';
+import { isSharedRow } from '@core/groups/shared-expense';
+import { shownExpense } from '@core/lists/expense-list';
 
 import { ExpenseRow } from './expense-row';
 import { useExpenseList } from './use-expense-list';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
-import type { Expense } from '@core/expense';
-import type { ListGroup } from '@core/expense-list';
-import type { SharedEntry } from '@core/shared-entry';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { ListGroup } from '@core/lists/expense-list';
 
 import './expense-list.css';
 

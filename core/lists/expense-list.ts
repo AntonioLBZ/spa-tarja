@@ -1,0 +1,268 @@
+import { endOfMonth, type WeekDay } from '@core/basics/date';
+import { monthOf } from '@core/basics/month';
+import { normalizeText } from '@core/basics/text';
+import { countedCents, paymentOf } from '@core/expenses/counting';
+import { collapsePlans, planTotal, type ListItem } from '@core/expenses/installments';
+import { isSharedRow } from '@core/groups/shared-expense';
+import { bucketStart } from '@core/reports/charts';
+
+import { isNarrowing, parseSearch, searchMatches } from './search';
+
+import type { Expense, Payment } from '@core/expenses/expense';
+
+const LIST_GROUPINGS = ['day', 'week', 'month', 'category'] as const;
+
+type ListGrouping = (typeof LIST_GROUPINGS)[number];
+
+const DEFAULT_LIST_GROUPING: ListGrouping = 'day';
+
+// How an expense was paid, or `any`; `plan` is the expenses paid in installments
+const PAID_WITH = ['any', 'direct', 'credit', 'voucher', 'plan'] as const satisfies readonly (
+    Payment | 'any' | 'plan'
+)[];
+
+type PaidWith = (typeof PAID_WITH)[number];
+
+// The value of Shared with that keeps the person's own expenses, apart from the ids of groups, which are UUIDs
+const JUST_ME = 'me';
+
+interface ListFilters {
+    // What was typed in the search
+    query: string;
+    // The category to keep; empty for all of them
+    categoryId: string;
+    // The days the expense was made between, both included; empty leaves that end open
+    from: string;
+    to: string;
+    paidWith: PaidWith;
+    // Who it is shared with: empty for anyone, `JUST_ME` for the person's own expenses, else the id of a group
+    sharedWith: string;
+}
+
+const NO_FILTERS: ListFilters = { query: '', categoryId: '', from: '', to: '', paidWith: 'any', sharedWith: '' };
+
+// What the list opens on: this month, and anything dated later
+const openingFilters = (today: string): ListFilters => {
+    return { ...NO_FILTERS, from: `${monthOf(today)}-01` };
+};
+
+// What the list holds once an expense of the given day is added: the opening range, or the whole month of that day
+// when it is in another month, so the new expense is in the list
+const filtersAfterAdding = (day: string, today: string): ListFilters => {
+    if (monthOf(day) === monthOf(today)) return openingFilters(today);
+    return { ...NO_FILTERS, from: `${monthOf(day)}-01`, to: endOfMonth(day) };
+};
+
+interface ListContext {
+    // The category an expense files under: its own, or the fallback when that category no longer exists
+    categoryOf: (categoryId: string) => string;
+    // The name of a category as the list shows it
+    labelOf: (categoryId: string) => string;
+    // The name of the group or friend a shared row is from, as the list shows it
+    groupNameOf: (groupId: string) => string;
+    // What a search read in each expense, kept between searches. Valid for as long as `labelOf` and `groupNameOf` are.
+    searchTexts?: WeakMap<Expense, string>;
+    // The first day of a week group, Monday when not given (ADR-0039)
+    weekStart?: WeekDay;
+    // The language amounts are typed in, English when not given
+    locale?: string;
+}
+
+interface ListGroup {
+    // The day, the first day of the week or the first of the month; the category id when grouped by category
+    key: string;
+    items: ListItem[];
+    // What the rows add up to, a plan once at its full price
+    totalCents: number;
+}
+
+const isListGrouping = (value: unknown): value is ListGrouping => {
+    return LIST_GROUPINGS.some((grouping) => grouping === value);
+};
+
+// The expense a row shows: the expense itself, or the first part present of a plan
+const shownExpense = (item: ListItem): Expense => {
+    return item.kind === 'plan' ? item.parts[0]! : item.expense;
+};
+
+// What a row adds up to: a plan at its total, a restaurant card expense at your part
+const itemCents = (item: ListItem): number => {
+    return item.kind === 'plan' ? planTotal(item.parts) : countedCents(item.expense);
+};
+
+const newestFirst = (a: Expense, b: Expense): number => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return b.createdAt - a.createdAt;
+};
+
+// The rows of the list before any filter: deleted expenses dropped, the newest day first and, within a day, the
+// latest logged first, with the parts of a plan collapsed into one row
+const listItems = (expenses: readonly Expense[]): ListItem[] => {
+    return collapsePlans(expenses.filter((expense) => expense.deletedAt === null).toSorted(newestFirst));
+};
+
+const searchTextOf = (expense: Expense, ctx: ListContext): string => {
+    const cached = ctx.searchTexts?.get(expense);
+    if (cached !== undefined) return cached;
+    const group = isSharedRow(expense) ? ` ${ctx.groupNameOf(expense.shared.groupId)}` : '';
+    const text = normalizeText(`${expense.text} ${ctx.labelOf(expense.categoryId)}${group}`);
+    ctx.searchTexts?.set(expense, text);
+    return text;
+};
+
+// The amounts a row shows: what it counts (your part, a plan at its total) and the whole that was paid
+const amountsOf = (item: ListItem): number[] => {
+    if (item.kind === 'plan') return [planTotal(item.parts)];
+    const { expense } = item;
+    const paid = isSharedRow(expense) ? expense.shared.totalCents : expense.amountCents;
+    return [countedCents(expense), paid];
+};
+
+const paidWithMatches = (item: ListItem, paidWith: PaidWith): boolean => {
+    if (paidWith === 'any') return true;
+    if (paidWith === 'plan') return item.kind === 'plan';
+    return item.kind === 'single' && paymentOf(item.expense) === paidWith;
+};
+
+// A plan is the person's own, as a shared row never forms one
+const sharedWithMatches = (expense: Expense, sharedWith: string): boolean => {
+    if (sharedWith === '') return true;
+    const groupId = isSharedRow(expense) ? expense.shared.groupId : null;
+    return sharedWith === JUST_ME ? groupId === null : groupId === sharedWith;
+};
+
+// Filters are applied to the row as it is shown, by the day it was made
+const matcher = (filters: ListFilters, ctx: ListContext): ((item: ListItem) => boolean) => {
+    const { categoryId, from, to, paidWith, sharedWith } = filters;
+    const search = parseSearch(filters.query, ctx.locale);
+    const narrowing = isNarrowing(search);
+
+    return (item) => {
+        const expense = shownExpense(item);
+        if (!paidWithMatches(item, paidWith)) return false;
+        if (!sharedWithMatches(expense, sharedWith)) return false;
+        if (categoryId !== '' && ctx.categoryOf(expense.categoryId) !== categoryId) return false;
+        if (from !== '' && expense.date < from) return false;
+        if (to !== '' && expense.date > to) return false;
+        if (!narrowing) return true;
+        return searchMatches(
+            search,
+            () => searchTextOf(expense, ctx),
+            () => amountsOf(item)
+        );
+    };
+};
+
+const keyOf = (expense: Expense, grouping: ListGrouping, ctx: ListContext): string => {
+    if (grouping === 'category') return ctx.categoryOf(expense.categoryId);
+    return bucketStart(expense.date, grouping, ctx.weekStart);
+};
+
+// The rows that pass the filters, in groups. Days, weeks and months come newest first, categories from the biggest
+// subtotal and by id when two tie. The rows keep their order inside a group.
+const groupItems = (
+    items: readonly ListItem[],
+    filters: ListFilters,
+    grouping: ListGrouping,
+    ctx: ListContext
+): ListGroup[] => {
+    const matches = matcher(filters, ctx);
+    const groups = new Map<string, ListGroup>();
+
+    for (const item of items) {
+        if (!matches(item)) continue;
+        const key = keyOf(shownExpense(item), grouping, ctx);
+        let group = groups.get(key);
+        if (!group) {
+            group = { key, items: [], totalCents: 0 };
+            groups.set(key, group);
+        }
+        group.items.push(item);
+        group.totalCents += itemCents(item);
+    }
+
+    const byKey = (a: ListGroup, b: ListGroup) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+    return [...groups.values()].sort(
+        grouping === 'category' ? (a, b) => b.totalCents - a.totalCents || byKey(a, b) : (a, b) => byKey(b, a)
+    );
+};
+
+// What the expense list shows: the expenses the device holds, filtered and grouped. Everything is by the day the
+// expense was made, which is not the day it counts on (ADR-0007).
+const buildList = (
+    expenses: readonly Expense[],
+    filters: ListFilters,
+    grouping: ListGrouping,
+    ctx: ListContext
+): ListGroup[] => {
+    return groupItems(listItems(expenses), filters, grouping, ctx);
+};
+
+interface ListTable {
+    // The rows that pass the filters, the oldest first
+    items: ListItem[];
+    // What they add up to, as the subtotals of the list do
+    totalCents: number;
+}
+
+// The rows of the list in one table to be printed: the same rows, filters and sums as the list, read from the oldest
+const listTable = (items: readonly ListItem[], filters: ListFilters, ctx: ListContext): ListTable => {
+    const groups = groupItems(items, filters, 'day', ctx);
+    return {
+        items: groups.flatMap((group) => group.items).toReversed(),
+        totalCents: groups.reduce((sum, group) => sum + group.totalCents, 0),
+    };
+};
+
+// The first `max` rows of the groups, in order. A group cut short keeps the subtotal of all its rows.
+const limitRows = (groups: readonly ListGroup[], max: number): ListGroup[] => {
+    const limited: ListGroup[] = [];
+    let left = max;
+    for (const group of groups) {
+        if (left <= 0) break;
+        limited.push(group.items.length <= left ? group : { ...group, items: group.items.slice(0, left) });
+        left -= group.items.length;
+    }
+    return limited;
+};
+
+// How many of the filters of the panel are in use: the category, the dates, how it was paid and who it is shared with,
+// one each. The dates are left out when they are the range the list opened with, or when both are empty.
+const activeFilterCount = (filters: ListFilters, opening: ListFilters = NO_FILTERS): number => {
+    const { from, to } = filters;
+    const datesInUse = (from !== '' || to !== '') && (from !== opening.from || to !== opening.to);
+    return [filters.categoryId !== '', datesInUse, filters.paidWith !== 'any', filters.sharedWith !== ''].filter(
+        Boolean
+    ).length;
+};
+
+// Whether the search or any filter narrows the list
+const hasFilters = (filters: ListFilters, opening: ListFilters = NO_FILTERS): boolean => {
+    return isNarrowing(parseSearch(filters.query)) || activeFilterCount(filters, opening) > 0;
+};
+
+export {
+    DEFAULT_LIST_GROUPING,
+    JUST_ME,
+    LIST_GROUPINGS,
+    NO_FILTERS,
+    PAID_WITH,
+    activeFilterCount,
+    buildList,
+    filtersAfterAdding,
+    groupItems,
+    hasFilters,
+    isListGrouping,
+    itemCents,
+    limitRows,
+    listItems,
+    listTable,
+    openingFilters,
+    shownExpense,
+    type ListContext,
+    type ListFilters,
+    type ListGroup,
+    type ListGrouping,
+    type ListTable,
+    type PaidWith,
+};

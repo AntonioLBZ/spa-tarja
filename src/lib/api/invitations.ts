@@ -1,8 +1,8 @@
 import { toApiError } from './api-error';
 import { api } from './client';
 
-import type { InvitationView, PendingInvitation } from '@core/invitation';
-import type { SharedGroup } from '@core/shared-group';
+import type { InvitationView, PendingInvitation } from '@core/groups/invitation';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The person's own links to be friends that are still open, kept in memory only, as changing them needs a connection
 const PENDING_INVITATIONS_KEY = ['pending-invitations'] as const;

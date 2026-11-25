@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { PROFILE_KEY, putProfile } from '@/lib/api';
 
-import type { Profile } from '@core/profile';
+import type { Profile } from '@core/account/profile';
 
 // Waits for the server and then puts its answer in the cache, so the profile never needs a refetch
 const useProfileActions = () => {

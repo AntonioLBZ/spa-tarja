@@ -6,7 +6,7 @@ import { fn } from 'storybook/test';
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 import type { Meta } from '@storybook/react-vite';
 
 const SAVED = sampleExpense('55555555-5555-4555-8555-555555555551', '2026-10-27', {

@@ -1,7 +1,7 @@
 import { toApiError } from './api-error';
 import { api } from './client';
 
-import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
+import type { LedgerEntry, SharedEntry } from '@core/groups/shared-entry';
 
 // Every entry of a group this device knows about, deleted ones included, and the group's cursor of the last change seen
 interface GroupEntriesState {

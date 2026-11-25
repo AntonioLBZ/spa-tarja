@@ -2,7 +2,7 @@ import { createTranslator } from 'use-intl/core';
 
 import { notices as enNotices } from '@/assets/locales/en.json';
 import { notices as esNotices } from '@/assets/locales/es.json';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
 import { wordNotices, type NoticeContext } from './notice-words';
 

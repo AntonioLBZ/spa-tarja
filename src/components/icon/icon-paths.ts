@@ -1,4 +1,4 @@
-import type { CategoryIcon } from '@core/category-style';
+import type { CategoryIcon } from '@core/categories/category-style';
 
 // Icons of the interface. A category can't take them: the picker and the server only know `CATEGORY_ICONS`.
 const UI_ICONS = [

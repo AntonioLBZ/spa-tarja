@@ -18,16 +18,16 @@ import { groupTitle, memberNames } from '@/features/groups/words/member-names';
 import { useAmount } from '@/lib/amounts';
 import { daysCaption, downloadFile } from '@/lib/files';
 import { useLocale } from '@/lib/i18n';
-import { groupCsv, groupFileName, type GroupCsvLabels } from '@core/export';
-import { effectOf, groupTable, type GroupTable } from '@core/group-table';
-import { NO_LEDGER_FILTERS, ledgerFilterCount, ledgerMatcher } from '@core/ledger-list';
-import { canonicalMember } from '@core/shared-member';
-import { normalizeText } from '@core/text';
+import { normalizeText } from '@core/basics/text';
+import { groupCsv, groupFileName, type GroupCsvLabels } from '@core/export/export';
+import { effectOf, groupTable, type GroupTable } from '@core/export/group-table';
+import { canonicalMember } from '@core/groups/shared-member';
+import { NO_LEDGER_FILTERS, ledgerFilterCount, ledgerMatcher } from '@core/lists/ledger-list';
 
 import type { Ledger } from '@/features/groups/data/use-ledgers';
-import type { LedgerContext, LedgerFilters as Filters } from '@core/ledger-list';
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
+import type { LedgerContext, LedgerFilters as Filters } from '@core/lists/ledger-list';
 
 import './group-export.css';
 

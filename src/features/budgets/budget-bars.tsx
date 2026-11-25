@@ -7,7 +7,7 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
 import { useMoney } from '@/lib/amounts';
-import { TOTAL_SCOPE, budgetUses } from '@core/budget';
+import { TOTAL_SCOPE, budgetUses } from '@core/budgets/budget';
 
 import { useBudgets } from './use-budgets';
 

@@ -6,7 +6,7 @@ import { createFakeAuth } from '@/lib/testing/fake-auth';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { useLayoutEffect, useState, type ReactNode } from 'react';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 type FakeApi = ReturnType<typeof createFakeApi>;
 type FakeApiOptions = NonNullable<Parameters<typeof createFakeApi>[0]>;

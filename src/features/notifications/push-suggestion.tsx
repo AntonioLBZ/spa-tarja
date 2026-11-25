@@ -9,7 +9,7 @@ import { answerPushSuggestion, pushSuggestionAnswered } from '@/lib/push';
 
 import { usePush } from './use-push';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './push-suggestion.css';
 

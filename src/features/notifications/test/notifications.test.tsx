@@ -10,7 +10,7 @@ import { installFakePush } from '@/lib/testing/fake-push';
 import { person, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 let push: ReturnType<typeof installFakePush> | null = null;
 

@@ -1,12 +1,12 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_OPEN_GROUPS } from '@core/shared-group';
+import { MAX_OPEN_GROUPS } from '@core/groups/shared-group';
 import { countClosedGroups, readGroup } from '@server/db/groups';
 import { claim, makeGroup, memberNamed } from '@server/testing/groups';
 import { signIn, type TestSession } from '@server/testing/session';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 let ana: TestSession;
 

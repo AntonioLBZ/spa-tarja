@@ -10,13 +10,13 @@ import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/testing/group
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { spokenText } from '@/lib/testing/spoken-text';
-import { INVITATION_DAYS } from '@core/invitation';
-import { formatAmount } from '@core/money';
-import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
+import { formatAmount } from '@core/basics/money';
+import { INVITATION_DAYS } from '@core/groups/invitation';
+import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/groups/shared-group';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { Handler } from '@/lib/testing/render-app';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups;

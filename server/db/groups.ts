@@ -1,6 +1,6 @@
 import { insertPerson, insertPlaceholder, isUniqueViolation, type Person } from '@server/db/members';
 
-import type { GroupClosed, GroupKind, GroupMember, MemberRole, NewGroup, SharedGroup } from '@core/shared-group';
+import type { GroupClosed, GroupKind, GroupMember, MemberRole, NewGroup, SharedGroup } from '@core/groups/shared-group';
 
 interface GroupRow {
     id: string;

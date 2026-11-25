@@ -5,7 +5,7 @@ import { fn } from 'storybook/test';
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 import type { Meta } from '@storybook/react-vite';
 
 import '@/features/expenses/list/expense-list.css';

@@ -1,15 +1,15 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 
 import { ApiError, GROUPS_KEY, fetchEntryChanges, groupEntriesKey, putEntry, type GroupEntriesState } from '@/lib/api';
-import { upsertById } from '@core/expense-merge';
-import { noticesFor } from '@core/notices';
+import { upsertById } from '@core/expenses/expense-merge';
+import { noticesFor } from '@core/groups/notices';
 
 import { emitNotices } from './notices';
 import { inTurn, pushPending } from './sync';
 
 import type { Outbox, PendingEntry } from './outbox';
-import type { LedgerEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { LedgerEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // What a group says no to for good about an entry (ADR-0013): the group is gone or closed, the caller isn't in it, or
 // the entry can't be what it says

@@ -1,6 +1,6 @@
-import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/invitation';
-import { DEFAULT_CURRENCY } from '@core/money';
-import { MAX_OPEN_INVITATIONS } from '@core/shared-group';
+import { DEFAULT_CURRENCY } from '@core/basics/money';
+import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/groups/invitation';
+import { MAX_OPEN_INVITATIONS } from '@core/groups/shared-group';
 
 const DAY = 24 * 60 * 60 * 1000;
 

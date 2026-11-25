@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { BUDGETS_KEY, putBudgets } from '@/lib/api';
 
-import type { Budget, BudgetLimitsInput } from '@core/budget';
+import type { Budget, BudgetLimitsInput } from '@core/budgets/budget';
 
 // Waits for the server and then puts its answer in the cache, so the months never need a refetch
 const useBudgetActions = () => {

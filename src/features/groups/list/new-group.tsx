@@ -24,7 +24,7 @@ import {
     personName,
     sharedNameSchema,
     type SharedGroup,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
 import './new-group.css';
 

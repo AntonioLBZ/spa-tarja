@@ -11,7 +11,7 @@ import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups
 import { useGroupActions } from '@/features/groups/data/use-group-actions';
 import { ListSection } from '@/features/groups/list/list-section';
 import { pendingInvitationsQuery } from '@/lib/api';
-import { INVITATION_DAYS } from '@core/invitation';
+import { INVITATION_DAYS } from '@core/groups/invitation';
 
 import { InvitationLink } from './invitation-link';
 

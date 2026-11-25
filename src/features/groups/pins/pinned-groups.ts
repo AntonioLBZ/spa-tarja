@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useGroups } from '@/features/groups/data/use-ledgers';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The open groups and friends the person pinned to the Expenses screen, in the order they were pinned (ADR-0021)
 const pinnedGroups = (groups: readonly SharedGroup[]): SharedGroup[] => {

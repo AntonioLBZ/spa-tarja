@@ -2,9 +2,9 @@ import { useCallback, useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { useLocale } from '@/lib/i18n';
-import { fromDateString } from '@core/date';
+import { fromDateString } from '@core/basics/date';
 
-import type { Bucket, Granularity } from '@core/charts';
+import type { Bucket, Granularity } from '@core/reports/charts';
 
 const NAMES: Record<Granularity, Intl.DateTimeFormatOptions> = {
     day: { weekday: 'short', month: 'short', day: 'numeric' },

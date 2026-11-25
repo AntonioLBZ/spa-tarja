@@ -12,10 +12,10 @@ import { TEST_USER } from '@/lib/testing/fake-auth';
 import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
-import type { Expense } from '@core/expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.summary;

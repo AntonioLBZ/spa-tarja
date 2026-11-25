@@ -1,7 +1,7 @@
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
-import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/category-style';
+import { CATEGORY_COLORS, CATEGORY_ICONS, type CategoryStyle } from '@core/categories/category-style';
 
 import { CategoryBadge } from './category-badge';
 

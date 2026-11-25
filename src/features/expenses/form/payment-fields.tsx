@@ -3,8 +3,8 @@ import { useTranslations } from 'use-intl';
 
 import { Field } from '@/components/field/field';
 import { Select } from '@/components/select/select';
-import { addMonths } from '@core/date';
-import { PAYMENTS, type Payment } from '@core/expense';
+import { addMonths } from '@core/basics/date';
+import { PAYMENTS, type Payment } from '@core/expenses/expense';
 
 interface PaymentStart {
     payment: Payment;

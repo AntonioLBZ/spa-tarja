@@ -18,9 +18,9 @@ import { useAmount } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useFadeOut } from '@/lib/motion';
 import { useGroupOutbox } from '@/lib/offline';
-import { fromDateString } from '@core/date';
-import { NO_LEDGER_FILTERS, filterLedger, ledgerFilterCount } from '@core/ledger-list';
-import { normalizeText } from '@core/text';
+import { fromDateString } from '@core/basics/date';
+import { normalizeText } from '@core/basics/text';
+import { NO_LEDGER_FILTERS, filterLedger, ledgerFilterCount } from '@core/lists/ledger-list';
 
 import { ledgerEffect } from './ledger-effect';
 import { LedgerFilters } from './ledger-filters';
@@ -28,10 +28,10 @@ import { LedgerRow } from './ledger-row';
 
 import type { SettlementEntry } from '@/features/groups/balances/settle-up';
 import type { Ledger } from '@/features/groups/data/use-ledgers';
-import type { LedgerContext, LedgerFilters as Filters } from '@core/ledger-list';
-import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
-import type { SharedExpenseEntry } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { LedgerEntry, SharedEntry } from '@core/groups/shared-entry';
+import type { SharedExpenseEntry } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
+import type { LedgerContext, LedgerFilters as Filters } from '@core/lists/ledger-list';
 
 import '@/features/expenses/list/expense-list.css';
 import './group-ledger.css';

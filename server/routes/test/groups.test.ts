@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_CLOSED_GROUPS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH, UNNAMED_PERSON } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_OPEN_GROUPS, SHARED_NAME_MAX_LENGTH, UNNAMED_PERSON } from '@core/groups/shared-group';
 import { app } from '@server/app';
 import {
     befriend,

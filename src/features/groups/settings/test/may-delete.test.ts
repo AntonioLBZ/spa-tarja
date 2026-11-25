@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { mayDelete } from '@/features/groups/settings/may-delete';
 import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 
-import type { GroupMember } from '@core/shared-group';
+import type { GroupMember } from '@core/groups/shared-group';
 
 const ana = person('Ana', { role: 'owner' });
 

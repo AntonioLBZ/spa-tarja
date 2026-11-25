@@ -2,7 +2,7 @@ import { betterAuth } from 'better-auth';
 import { testUtils } from 'better-auth/plugins';
 import { env } from 'cloudflare:workers';
 
-import { USER_HEADER } from '@core/account';
+import { USER_HEADER } from '@core/account/account';
 import { app } from '@server/app';
 import { authOptions } from '@server/auth';
 

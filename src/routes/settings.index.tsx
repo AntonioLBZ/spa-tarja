@@ -12,7 +12,7 @@ import { NotificationsSection } from '@/features/notifications/notifications-sec
 import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
 import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
-import { personName } from '@core/shared-group';
+import { personName } from '@core/groups/shared-group';
 
 import './settings.css';
 

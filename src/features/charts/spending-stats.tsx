@@ -4,9 +4,9 @@ import { useTranslations } from 'use-intl';
 import { Card } from '@/components/card/card';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { endOfMonth, fromDateString } from '@core/date';
+import { endOfMonth, fromDateString } from '@core/basics/date';
 
-import type { Range } from '@core/charts';
+import type { Range } from '@core/reports/charts';
 
 import './spending-stats.css';
 

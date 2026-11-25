@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { useLocale } from '@/lib/i18n';
-import { fromDateString } from '@core/date';
+import { fromDateString } from '@core/basics/date';
 
 // One per locale for every row of a list, since making a format costs far more than using it
 const formats = new Map<string, Intl.DateTimeFormat>();

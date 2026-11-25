@@ -2,7 +2,7 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { categoryIdSchema, categoryInputSchema } from '@core/category';
+import { categoryIdSchema, categoryInputSchema } from '@core/categories/category';
 import { deleteCategory, listCategories, saveCategory } from '@server/db/categories';
 
 import type { AppEnv } from '@server/env';

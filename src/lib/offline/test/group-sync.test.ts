@@ -11,8 +11,8 @@ import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { stubApi } from '@/lib/testing/render-app';
 
-import type { Notice } from '@core/notices';
-import type { SharedGroup } from '@core/shared-group';
+import type { Notice } from '@core/groups/notices';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const group = sampleGroup();
 const other = sampleGroup();

@@ -1,10 +1,10 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query';
 
 import { ApiError, EXPENSES_KEY, fetchChanges, putExpense, type ExpensesState } from '@/lib/api';
-import { upsertById } from '@core/expense-merge';
+import { upsertById } from '@core/expenses/expense-merge';
 
 import type { Outbox, OutboxItem } from './outbox';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 // How often to retry while something is waiting to sync, for connections that say they're up but aren't
 const RETRY_EVERY_MS = 30_000;

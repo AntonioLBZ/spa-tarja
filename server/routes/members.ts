@@ -2,7 +2,7 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { memberBalances } from '@core/balance';
+import { memberBalances } from '@core/groups/balance';
 import {
     MAX_CLOSED_GROUPS,
     MAX_OPEN_GROUPS,
@@ -11,7 +11,7 @@ import {
     memberWriteSchema,
     mergeSchema,
     personName,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 import { listLiveEntries } from '@server/db/entries';
 import { closedFor, countClosedGroups, countOpenGroups, manages, readGroup, readSharedGroup } from '@server/db/groups';
 import {

@@ -2,7 +2,7 @@ import { useParams, useSearch } from '@tanstack/react-router';
 
 import { useGroups } from '@/features/groups/data/use-ledgers';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The group of the screen the person is on, the group itself, its settings or its tab on the Expenses screen, while it
 // is open for them

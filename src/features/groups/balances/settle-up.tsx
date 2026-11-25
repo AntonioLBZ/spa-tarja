@@ -13,14 +13,14 @@ import { useEntryActions } from '@/features/groups/data/use-entry-actions';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
 import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { isCalendarDate, toDateString } from '@core/date';
-import { groupDebts } from '@core/group-debts';
-import { formatAmountInput, parseAmount } from '@core/money';
-import { canonicalMember } from '@core/shared-member';
+import { isCalendarDate, toDateString } from '@core/basics/date';
+import { formatAmountInput, parseAmount } from '@core/basics/money';
+import { groupDebts } from '@core/groups/group-debts';
+import { canonicalMember } from '@core/groups/shared-member';
 
-import type { Debt } from '@core/balance';
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { Debt } from '@core/groups/balance';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './settle-up.css';
 

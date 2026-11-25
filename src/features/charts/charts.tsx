@@ -13,7 +13,8 @@ import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
 import { useMoney } from '@/lib/amounts';
 import { categoriesQuery } from '@/lib/api';
 import { useWeekStart } from '@/lib/i18n';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
+import { toDateString } from '@core/basics/date';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
 import {
     GRANULARITIES,
     MAX_BUCKETS,
@@ -26,8 +27,7 @@ import {
     spendingTotal,
     type Granularity,
     type Range,
-} from '@core/charts';
-import { toDateString } from '@core/date';
+} from '@core/reports/charts';
 
 import { CategorySplit } from './category-split';
 import { CountedExpenses } from './counted-expenses';

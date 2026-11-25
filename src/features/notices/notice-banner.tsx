@@ -9,12 +9,12 @@ import { groupTitle, memberNames } from '@/features/groups/words/member-names';
 import { useMoney } from '@/lib/amounts';
 import { GROUPS_KEY } from '@/lib/api';
 import { subscribeNotices, useGroupWatcher } from '@/lib/offline';
-import { canonicalMember } from '@core/shared-member';
+import { canonicalMember } from '@core/groups/shared-member';
 
 import { wordNotices, type NoticeContext } from './notice-words';
 
-import type { Notice } from '@core/notices';
-import type { SharedGroup } from '@core/shared-group';
+import type { Notice } from '@core/groups/notices';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // Tells in a banner the new entries of others that concern the person, wherever the pull that brought them came from,
 // but those of the group whose screen is showing, where the person sees them come in (ADR-0025)

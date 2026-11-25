@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 
 import { useExpenseLedgers } from '@/features/groups/data/use-ledgers';
-import { sharedExpenseRows, type SharedLedger } from '@core/shared-expense';
+import { sharedExpenseRows, type SharedLedger } from '@core/groups/shared-expense';
 
-import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { LedgerEntry, SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The group and the entry a shared row of your expenses is from
 interface SharedRowSource {

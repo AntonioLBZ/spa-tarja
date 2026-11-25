@@ -1,7 +1,7 @@
 import { ApiError } from './api-error';
 import { api } from './client';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 // Every expense this device knows about, deleted ones included, and the cursor of the last change seen
 interface ExpensesState {

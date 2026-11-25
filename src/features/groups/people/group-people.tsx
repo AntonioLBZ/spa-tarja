@@ -9,7 +9,7 @@ import { Select } from '@/components/select/select';
 import { failureOf, failureOfFriend, useFailureWords, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useGroupActions } from '@/features/groups/data/use-group-actions';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
-import { memberBalances } from '@core/balance';
+import { memberBalances } from '@core/groups/balance';
 
 import { isOwner } from './is-owner';
 import { PeopleSheet } from './people-sheet';
@@ -18,7 +18,7 @@ import { PersonSearch, type PersonChoice } from './person-search';
 import { useFriends, type Friend } from './use-friends';
 
 import type { Ledger } from '@/features/groups/data/use-ledgers';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './group-people.css';
 

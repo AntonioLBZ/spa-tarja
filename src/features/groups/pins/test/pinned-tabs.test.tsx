@@ -12,9 +12,9 @@ import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { chosenOption, pickOption } from '@/lib/testing/select';
 import { openAddSheet } from '@/lib/testing/sheet';
 import { stubViewport } from '@/lib/testing/viewport';
-import { MAX_PINNED_GROUPS } from '@core/shared-group';
+import { MAX_PINNED_GROUPS } from '@core/groups/shared-group';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 

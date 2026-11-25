@@ -1,5 +1,5 @@
-import type { Payment } from '@core/expense';
-import type { LedgerEntry, Share, SharedEntry, SharedEntryInput, SplitMode } from '@core/shared-entry';
+import type { Payment } from '@core/expenses/expense';
+import type { LedgerEntry, Share, SharedEntry, SharedEntryInput, SplitMode } from '@core/groups/shared-entry';
 
 type EntryRow = {
     id: string;

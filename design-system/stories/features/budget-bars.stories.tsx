@@ -1,5 +1,5 @@
 import { BudgetBars as BudgetBarsComponent, type BudgetBarsProps } from '@/features/budgets/budget-bars';
-import { TOTAL_SCOPE } from '@core/budget';
+import { TOTAL_SCOPE } from '@core/budgets/budget';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';

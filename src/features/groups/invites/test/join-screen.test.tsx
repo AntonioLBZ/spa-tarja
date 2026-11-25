@@ -10,7 +10,7 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
 import { person, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS } from '@core/groups/shared-group';
 
 import type { Refusal } from '@/lib/testing/fake-groups';
 

@@ -5,7 +5,7 @@ import { fetchBudgets, putBudgets } from '@/lib/api/budgets';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { stubApi } from '@/lib/testing/render-app';
 
-import type { Budget } from '@core/budget';
+import type { Budget } from '@core/budgets/budget';
 
 const food: Budget = { month: '2026-10', scope: 'food', amountCents: 30_000, currency: 'EUR' };
 

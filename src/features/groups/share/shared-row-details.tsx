@@ -2,10 +2,10 @@ import { useTranslations } from 'use-intl';
 
 import { useGroupWords } from '@/features/groups/words/use-group-words';
 import { useMoney } from '@/lib/amounts';
-import { countedCents } from '@core/counting';
+import { countedCents } from '@core/expenses/counting';
 
-import type { SharedExpenseRow } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedExpenseRow } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 interface SharedRowDetailsProps {
     row: SharedExpenseRow;

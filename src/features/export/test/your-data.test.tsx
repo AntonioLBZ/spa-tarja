@@ -12,9 +12,9 @@ import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
-import type { Category } from '@core/category';
-import type { Expense } from '@core/expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Category } from '@core/categories/category';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const BOM = '﻿';
 

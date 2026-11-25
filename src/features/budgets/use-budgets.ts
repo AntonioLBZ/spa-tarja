@@ -3,8 +3,8 @@ import { useMemo } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { budgetsQuery } from '@/lib/api';
-import { TOTAL_SCOPE } from '@core/budget';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
+import { TOTAL_SCOPE } from '@core/budgets/budget';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
 
 // The limits the person set, with what lets them be read: the scopes that exist (the total, then each category in the
 // order of the list) and how an expense is filed, a category that no longer exists reading as the fallback. The rows

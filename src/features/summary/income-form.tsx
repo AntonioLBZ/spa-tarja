@@ -7,11 +7,11 @@ import { Notice } from '@/components/notice/notice';
 import { useAmountPlaceholder } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
-import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/money';
+import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/basics/money';
 
 import { useIncomeActions } from './use-income-actions';
 
-import type { Income } from '@core/income';
+import type { Income } from '@core/expenses/income';
 
 import './income-form.css';
 

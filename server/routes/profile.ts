@@ -1,7 +1,7 @@
 import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 
-import { profileInputSchema } from '@core/profile';
+import { profileInputSchema } from '@core/account/profile';
 import { readProfile, saveProfile } from '@server/db/profile';
 
 import type { AppEnv } from '@server/env';

@@ -12,7 +12,7 @@ import {
     MAX_GROUP_MEMBER_ROWS,
     MAX_GROUP_MEMBERS,
     MAX_OPEN_GROUPS,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
 const text = en.groups.failure;
 

@@ -1,4 +1,4 @@
-import type { Expense, ExpenseInput, Payment } from '@core/expense';
+import type { Expense, ExpenseInput, Payment } from '@core/expenses/expense';
 
 interface ExpenseRow {
     id: string;

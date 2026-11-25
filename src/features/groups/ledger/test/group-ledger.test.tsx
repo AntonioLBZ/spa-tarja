@@ -11,11 +11,11 @@ import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testin
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { optionNames, pickOption } from '@/lib/testing/select';
 import { openAddSheet } from '@/lib/testing/sheet';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { SeededEntry } from '@/lib/testing/fake-groups';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const ledger = en.groups.ledger;

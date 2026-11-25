@@ -13,7 +13,7 @@ import { createPersistOptions } from './persister';
 import { createUserStorage } from './user-storage';
 
 import type { KeyValueStorage } from './storage';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 interface UserData {
     // Deletes what the signed-in user keeps on this device

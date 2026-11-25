@@ -5,7 +5,7 @@ import { ExpenseSheetProvider } from '@/features/expenses/sheet/expense-sheet-st
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 import type { Meta } from '@storybook/react-vite';
 
 const PLAN_ID = '2a8f6a52-6d4a-4f0e-9d7b-3b8f5f5e3c11';

@@ -11,11 +11,11 @@ import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/testing/select';
 import { spokenText } from '@/lib/testing/spoken-text';
-import { toDateString } from '@core/date';
-import { formatAmount } from '@core/money';
+import { toDateString } from '@core/basics/date';
+import { formatAmount } from '@core/basics/money';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups.settle;

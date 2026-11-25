@@ -3,8 +3,8 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import * as v from 'valibot';
 
-import { invitationIdSchema, invitationTokenSchema } from '@core/invitation';
-import { MAX_CLOSED_GROUPS, MAX_FRIENDS, personName } from '@core/shared-group';
+import { invitationIdSchema, invitationTokenSchema } from '@core/groups/invitation';
+import { MAX_CLOSED_GROUPS, MAX_FRIENDS, personName } from '@core/groups/shared-group';
 import { countClosedGroups, countOpenGroups, readSharedGroup } from '@server/db/groups';
 import {
     acceptInvitation,
@@ -20,7 +20,7 @@ import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
 import { NOT_FOUND } from './groups';
 
-import type { InvitationView, PendingInvitation } from '@core/invitation';
+import type { InvitationView, PendingInvitation } from '@core/groups/invitation';
 import type { AppEnv } from '@server/env';
 
 // What holds a link or its token is never kept by a cache on the way

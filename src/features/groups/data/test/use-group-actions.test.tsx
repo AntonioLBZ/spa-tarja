@@ -10,10 +10,10 @@ import { useGroupOutbox } from '@/lib/offline';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderAppHook, stubApi } from '@/lib/testing/render-app';
-import { DEFAULT_CURRENCY } from '@core/money';
+import { DEFAULT_CURRENCY } from '@core/basics/money';
 
-import type { PendingInvitation } from '@core/invitation';
-import type { SharedGroup } from '@core/shared-group';
+import type { PendingInvitation } from '@core/groups/invitation';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 type Actions = ReturnType<typeof useGroupActions>;
 

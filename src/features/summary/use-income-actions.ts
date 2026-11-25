@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { INCOME_KEY, deleteIncome, putIncome } from '@/lib/api';
 
-import type { Income, IncomeInput } from '@core/income';
+import type { Income, IncomeInput } from '@core/expenses/income';
 
 // Each call waits for the server and then puts its answer in the cache, so the months never need a refetch
 const useIncomeActions = () => {

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Icon } from '@/components/icon/icon';
 import { UI_ICONS, type IconName } from '@/components/icon/icon-paths';
-import { CATEGORY_ICONS } from '@core/category-style';
+import { CATEGORY_ICONS } from '@core/categories/category-style';
 
 const ICON_NAMES: readonly IconName[] = [...CATEGORY_ICONS, ...UI_ICONS];
 

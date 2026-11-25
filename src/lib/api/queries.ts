@@ -9,7 +9,7 @@ import { INCOME_KEY, fetchIncome } from './income';
 import { PENDING_INVITATIONS_KEY, fetchPendingInvitations, readInvitation } from './invitations';
 import { PROFILE_KEY, fetchProfile } from './profile';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const healthQuery = () => {
     return queryOptions({

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { MONDAY, type WeekDay } from '@core/date';
+import { MONDAY, type WeekDay } from '@core/basics/date';
 
 interface WeekInfo {
     firstDay: number;

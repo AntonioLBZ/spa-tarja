@@ -8,7 +8,7 @@ import { useGroupOutbox, type PendingEntry, type Rejection } from '@/lib/offline
 
 import { useGroups } from './use-ledgers';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './entry-refusals.css';
 

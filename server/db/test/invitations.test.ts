@@ -5,7 +5,7 @@ import { acceptInvitation } from '@server/db/invitations';
 import { makeGroup } from '@server/testing/groups';
 import { signIn, type TestSession } from '@server/testing/session';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 let ana: TestSession;
 let shared: SharedGroup;

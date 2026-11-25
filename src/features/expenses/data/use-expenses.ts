@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useSyncExternalStore } from 'react';
 
 import { RETRY_EVERY_MS, expensesQuery, useOutbox } from '@/lib/offline';
-import { applyPending } from '@core/expense-merge';
+import { applyPending } from '@core/expenses/expense-merge';
 
 // The expenses as the person sees them: what the server told this device, with their unsynced changes on top
 const useExpenses = () => {

@@ -1,4 +1,4 @@
-import type { Profile, ProfileInput } from '@core/profile';
+import type { Profile, ProfileInput } from '@core/account/profile';
 
 // Only these two columns: the email of the account never leaves the server this way
 const READ = `

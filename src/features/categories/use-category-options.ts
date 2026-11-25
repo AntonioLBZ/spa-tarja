@@ -3,9 +3,9 @@ import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { categoriesQuery } from '@/lib/api';
-import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories/categories';
 
-import type { CategoryStyle } from '@core/category-style';
+import type { CategoryStyle } from '@core/categories/category-style';
 
 interface CategoryOption {
     id: string;

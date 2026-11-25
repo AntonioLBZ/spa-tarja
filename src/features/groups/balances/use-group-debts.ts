@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
-import { groupDebts } from '@core/group-debts';
+import { groupDebts } from '@core/groups/group-debts';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The debts a group's screen shows, worked out once for the balances and for Settle up. While a settlement is being
 // edited the form reads the entries and the debts without it, as it is about to replace it.
