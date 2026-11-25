@@ -5,13 +5,13 @@ import { Field } from '@/components/field/field';
 import { SpokenHint } from '@/components/field/spoken-hint';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
+import { useShortDate } from '@/features/expenses/list/use-short-date';
 import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 import { installmentDates, planBalance, splitEvenly } from '@core/installments';
 import { formatAmountInput, parseAmount } from '@core/money';
 
 import { PaymentFields, type PaymentState } from './payment-fields';
-import { useShortDate } from './use-short-date';
 
 import type { Payment } from '@core/expense';
 

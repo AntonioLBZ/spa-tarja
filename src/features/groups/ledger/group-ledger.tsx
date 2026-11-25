@@ -9,8 +9,8 @@ import { Notice } from '@/components/notice/notice';
 import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
-import { FilterStatus } from '@/features/expenses/filter-status';
+import { FilterStatus } from '@/features/expenses/filters/filter-status';
+import { useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useEntryActions } from '@/features/groups/data/use-entry-actions';
 import { useEntryWords } from '@/features/groups/words/use-entry-words';
@@ -33,7 +33,7 @@ import type { LedgerEntry, SharedEntry } from '@core/shared-entry';
 import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 
-import '@/features/expenses/expense-list.css';
+import '@/features/expenses/list/expense-list.css';
 import './group-ledger.css';
 
 interface GroupLedgerProps {

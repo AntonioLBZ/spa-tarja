@@ -1,6 +1,8 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
+import { useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { useGroups } from '@/features/groups/data/use-ledgers';
 import { useGroupTitles } from '@/features/groups/share/use-group-options';
 import { useLocale, useWeekStart } from '@/lib/i18n';
@@ -19,9 +21,7 @@ import {
     shownExpense,
 } from '@core/expense-list';
 
-import { useExpenseSheet } from './expense-sheet-state';
 import { readStoredGrouping, storeGrouping } from './list-grouping';
-import { useYourExpenses } from './use-your-expenses';
 
 import type { Expense } from '@core/expense';
 import type { ListContext, ListFilters, ListGrouping } from '@core/expense-list';

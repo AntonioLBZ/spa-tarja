@@ -1,6 +1,6 @@
 import { Button } from '@/components/button/button';
 import { ToastProvider } from '@/components/toast/toast';
-import { ExpenseForm as ExpenseFormComponent, type ExpenseFormProps } from '@/features/expenses/expense-form';
+import { ExpenseForm as ExpenseFormComponent, type ExpenseFormProps } from '@/features/expenses/form/expense-form';
 import { fn } from 'storybook/test';
 
 import { AppData, sampleExpense } from './app-data';

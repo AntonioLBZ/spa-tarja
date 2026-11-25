@@ -5,7 +5,7 @@ import { Button } from '@/components/button/button';
 import { ButtonLink } from '@/components/button/button-link';
 import { LiveNotice } from '@/components/notice/live-notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useExpenses } from '@/features/expenses/use-expenses';
+import { useExpenses } from '@/features/expenses/data/use-expenses';
 import { sharedRowsOf } from '@/features/groups/share/use-shared-expense-rows';
 import { budgetsQuery, categoriesQuery, incomeQuery } from '@/lib/api';
 import { downloadFile } from '@/lib/files';

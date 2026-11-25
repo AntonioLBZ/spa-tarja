@@ -7,10 +7,10 @@ import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { canEdit } from '@/features/expenses/data/create-expenses';
 import { namesSomeoneWhoLeft } from '@/features/groups/words/names-someone-who-left';
 import { isSharedRow } from '@core/shared-expense';
 
-import { canEdit } from './create-expenses';
 import { ExpenseItemBody } from './expense-item-body';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';

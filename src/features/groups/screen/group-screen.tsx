@@ -6,7 +6,7 @@ import { LiveNotice } from '@/components/notice/live-notice';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
-import { useExpenseSheet } from '@/features/expenses/expense-sheet-state';
+import { useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { GroupBalances } from '@/features/groups/balances/group-balances';
 import { myBalance } from '@/features/groups/balances/my-balance';
 import { SettleUp, useSettleUp } from '@/features/groups/balances/settle-up';

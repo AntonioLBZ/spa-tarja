@@ -1,8 +1,8 @@
 import { Navigate, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useLayoutEffect } from 'react';
 
-import { ExpenseList } from '@/features/expenses/expense-list';
-import { SyncStatus } from '@/features/expenses/sync-status';
+import { ExpenseList } from '@/features/expenses/list/expense-list';
+import { SyncStatus } from '@/features/expenses/list/sync-status';
 import { EntryRefusals } from '@/features/groups/data/entry-refusals';
 import { useGroups } from '@/features/groups/data/use-ledgers';
 import { usePinnedGroups } from '@/features/groups/pins/pinned-groups';

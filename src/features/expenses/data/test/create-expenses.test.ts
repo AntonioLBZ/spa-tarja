@@ -8,7 +8,7 @@ import {
     restoreExpenses,
     reviseExpenses,
     type Draft,
-} from '@/features/expenses/create-expenses';
+} from '@/features/expenses/data/create-expenses';
 import { addMonths } from '@core/date';
 import { expenseInputSchema, type Expense } from '@core/expense';
 

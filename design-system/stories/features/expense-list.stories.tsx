@@ -1,6 +1,6 @@
 import { ToastProvider } from '@/components/toast/toast';
-import { ExpenseList as ExpenseListComponent } from '@/features/expenses/expense-list';
-import { ExpenseSheetProvider } from '@/features/expenses/expense-sheet-state';
+import { ExpenseList as ExpenseListComponent } from '@/features/expenses/list/expense-list';
+import { ExpenseSheetProvider } from '@/features/expenses/sheet/expense-sheet-state';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';
