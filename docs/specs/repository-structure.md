@@ -17,6 +17,7 @@ public/          static files
     - `basics`: base64url.
     - `db`: the queries of each table and the daily clean-up.
     - `routes`: the routes of each part of the API.
+    - `test`: the tests of `app.ts`, the one file of the root that has them.
     - `testing`: the helpers of the `server` tests; not a test folder.
 - `src/lib` holds only folders, one per subject, each with an `index.ts` that the rest of the app imports (`@/lib/navigation`; `testing` has none, its helpers are imported file by file) and a `test/` folder for its tests ([testing and CI](testing-and-ci.md)); inside a folder, a file reaches its siblings with `./`:
     - `a11y`: how the focus last moved, and a value that waits for the typing to stop.
