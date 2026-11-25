@@ -1,5 +1,7 @@
-/* A new expense comes in from above; a deleted one fades out and moves aside before it goes */
+/* A new expense comes in from above; a deleted one fades out and moves aside before it goes. As an item of the grid of
+   its list it would be as wide as its leader of dots, which has no end, so it may be narrower than its content */
 .expense-item {
+    min-width: 0;
     transition:
         opacity var(--duration-base) var(--ease-enter),
         transform var(--duration-base) var(--ease-enter);
