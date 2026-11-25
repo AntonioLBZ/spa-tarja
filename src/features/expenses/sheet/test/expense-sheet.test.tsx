@@ -9,7 +9,7 @@ import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { openAddSheet } from '@/lib/testing/sheet';
 import { stubViewport } from '@/lib/testing/viewport';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const t = createTranslator({ locale: 'en', messages: en });
 

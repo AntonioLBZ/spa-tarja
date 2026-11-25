@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { canonicalMember } from '@core/shared-member';
+import { canonicalMember } from '@core/groups/shared-member';
 
 import { useGroupWords } from './use-group-words';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // How the screens name an entry of a group: an expense by its text, else its category, and a settlement by who paid
 // whom, the person as "you"

@@ -1,4 +1,4 @@
-import type { Notice } from '@core/notices';
+import type { Notice } from '@core/groups/notices';
 
 type NoticeKey =
     'groupsTitle' | 'expense' | 'untitled' | 'paidYou' | 'youPaid' | 'expenses' | 'entries' | 'entriesInGroups';

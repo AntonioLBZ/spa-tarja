@@ -1,8 +1,8 @@
-import { yourPart } from '@core/shared-expense';
-import { canonicalMember } from '@core/shared-member';
+import { yourPart } from '@core/groups/shared-expense';
+import { canonicalMember } from '@core/groups/shared-member';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // How an entry touches the person: it moves their balance, or it is theirs alone, or they aren't in it
 type LedgerTouch = 'moves' | 'justYou' | 'notIn';

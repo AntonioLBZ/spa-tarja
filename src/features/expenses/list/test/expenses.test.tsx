@@ -16,8 +16,8 @@ import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { optionNames, chosenOption, pickOption } from '@/lib/testing/select';
 import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/testing/sheet';
-import { addMonths } from '@core/date';
-import { expenseInputSchema, type Expense, type Payment } from '@core/expense';
+import { addMonths } from '@core/basics/date';
+import { expenseInputSchema, type Expense, type Payment } from '@core/expenses/expense';
 
 const TODAY = '2026-10-25';
 

@@ -1,7 +1,7 @@
-import { memberBalances } from '@core/balance';
+import { memberBalances } from '@core/groups/balance';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // What the person is owed in a group, positive, or owes, negative
 const myBalance = (group: SharedGroup, entries: readonly SharedEntry[]): number => {

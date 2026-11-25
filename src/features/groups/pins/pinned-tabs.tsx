@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { TabLink } from '@/components/tab/tab-link';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './pinned-tabs.css';
 

@@ -18,13 +18,13 @@ import {
     putMySwitches,
 } from '@/lib/api';
 import { syncGroup, useGroupOutbox } from '@/lib/offline';
-import { upsertById } from '@core/expense-merge';
-import { DEFAULT_CURRENCY } from '@core/money';
+import { DEFAULT_CURRENCY } from '@core/basics/money';
+import { upsertById } from '@core/expenses/expense-merge';
 
 import { LocalRefusal } from './local-refusal';
 
-import type { PendingInvitation } from '@core/invitation';
-import type { GroupChange, MySwitches, SharedGroup } from '@core/shared-group';
+import type { PendingInvitation } from '@core/groups/invitation';
+import type { GroupChange, MySwitches, SharedGroup } from '@core/groups/shared-group';
 
 // A member made by name, with an id made on the device
 interface Placeholder {

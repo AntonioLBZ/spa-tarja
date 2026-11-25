@@ -1,4 +1,4 @@
-import type { Income, IncomeInput } from '@core/income';
+import type { Income, IncomeInput } from '@core/expenses/income';
 
 // One row per user and month: a write replaces the amount, so repeating it changes nothing
 const UPSERT = `

@@ -1,7 +1,7 @@
 import { ApiError, toApiError } from './api-error';
 import { api } from './client';
 
-import type { Income, IncomeInput } from '@core/income';
+import type { Income, IncomeInput } from '@core/expenses/income';
 
 const INCOME_KEY = ['income'] as const;
 

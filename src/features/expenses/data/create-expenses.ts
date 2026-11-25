@@ -1,8 +1,8 @@
-import { paymentOf } from '@core/counting';
-import { installmentDates } from '@core/installments';
-import { DEFAULT_CURRENCY } from '@core/money';
+import { DEFAULT_CURRENCY } from '@core/basics/money';
+import { paymentOf } from '@core/expenses/counting';
+import { installmentDates } from '@core/expenses/installments';
 
-import type { Expense, Payment } from '@core/expense';
+import type { Expense, Payment } from '@core/expenses/expense';
 
 interface Draft {
     categoryId: string;

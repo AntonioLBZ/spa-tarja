@@ -1,8 +1,8 @@
 import { createContext, use, useMemo, useRef, useState, type ReactNode } from 'react';
 
-import type { Expense } from '@core/expense';
-import type { SharedExpenseEntry } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedExpenseEntry } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // What the form copies into a new expense: the expense, or every part of its plan. `serial` tells one press of
 // Duplicate from the next, so pressing it again starts over.

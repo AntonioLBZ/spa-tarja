@@ -15,9 +15,9 @@ import { useAmount, useMoney } from '@/lib/amounts';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
-import { fromDateString, toDateString } from '@core/date';
-import { monthOf, shiftMonth } from '@core/month';
-import { summarizeMonth } from '@core/summary';
+import { fromDateString, toDateString } from '@core/basics/date';
+import { monthOf, shiftMonth } from '@core/basics/month';
+import { summarizeMonth } from '@core/reports/summary';
 
 import { IncomeForm } from './income-form';
 

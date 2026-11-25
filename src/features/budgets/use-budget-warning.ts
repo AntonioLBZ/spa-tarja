@@ -7,13 +7,13 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
-import { TOTAL_SCOPE } from '@core/budget';
-import { budgetWarning } from '@core/budget-warning';
-import { fromDateString, toDateString } from '@core/date';
+import { fromDateString, toDateString } from '@core/basics/date';
+import { TOTAL_SCOPE } from '@core/budgets/budget';
+import { budgetWarning } from '@core/budgets/budget-warning';
 
 import { useBudgets } from './use-budgets';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 // Tells the person, in a toast, what the expenses they have just added did to a month (ADR-0009). It reads the
 // expenses of the render it was made in, which are the ones from before the save, so a call after the save compares

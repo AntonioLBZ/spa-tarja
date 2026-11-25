@@ -1,4 +1,4 @@
-import { splitEqually } from '@core/split';
+import { splitEqually } from '@core/groups/split';
 
 // A seed that gives the cent left of 10.00 split equally among three to the member at the index
 const seedFavouring = (index: number): number => {

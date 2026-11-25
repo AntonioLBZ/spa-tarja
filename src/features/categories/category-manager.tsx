@@ -13,9 +13,9 @@ import { Sheet } from '@/components/sheet/sheet';
 import { ApiError, categoriesQuery } from '@/lib/api';
 import { readDuration } from '@/lib/motion';
 import { useOnline } from '@/lib/offline';
-import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories';
-import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey, type Category } from '@core/category';
-import { DEFAULT_CATEGORY_ICON, nextCategoryColor, type CategoryStyle } from '@core/category-style';
+import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES, FALLBACK_CATEGORY_ID } from '@core/categories/categories';
+import { CATEGORY_NAME_MAX_LENGTH, categoryNameKey, type Category } from '@core/categories/category';
+import { DEFAULT_CATEGORY_ICON, nextCategoryColor, type CategoryStyle } from '@core/categories/category-style';
 
 import { CategoryBadge } from './category-badge';
 import { CategoryRow } from './category-row';

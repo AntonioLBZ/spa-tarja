@@ -9,12 +9,12 @@ import { Notice } from '@/components/notice/notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { canEdit } from '@/features/expenses/data/create-expenses';
 import { namesSomeoneWhoLeft } from '@/features/groups/words/names-someone-who-left';
-import { isSharedRow } from '@core/shared-expense';
+import { isSharedRow } from '@core/groups/shared-expense';
 
 import { ExpenseItemBody } from './expense-item-body';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 import '@/features/groups/ledger/ledger-row.css';
 import './expense-row.css';

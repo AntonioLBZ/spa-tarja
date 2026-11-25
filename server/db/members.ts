@@ -4,7 +4,7 @@ import {
     MAX_PINNED_GROUPS,
     type MemberRole,
     type MySwitches,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
 // Whether the group has room for one more, counted in the same statement that adds them so that adds at the same
 // moment can't pass the limits: the members who haven't left, but for the dummy the new one replaces, and every row

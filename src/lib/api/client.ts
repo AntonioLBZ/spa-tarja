@@ -1,6 +1,6 @@
 import { hc } from 'hono/client';
 
-import { USER_HEADER } from '@core/account';
+import { USER_HEADER } from '@core/account/account';
 
 import type { AppType } from '@server/app';
 

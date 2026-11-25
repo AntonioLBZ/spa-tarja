@@ -17,12 +17,12 @@ import { usePinnedGroups } from '@/features/groups/pins/pinned-groups';
 import { GroupGate } from '@/features/groups/screen/group-gate';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
 import { useOnline } from '@/lib/offline';
-import { MAX_PINNED_GROUPS, SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
+import { MAX_PINNED_GROUPS, SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/groups/shared-group';
 
 import { CloseGroup } from './close-group';
 
 import type { Ledger } from '@/features/groups/data/use-ledgers';
-import type { MySwitches, SharedGroup } from '@core/shared-group';
+import type { MySwitches, SharedGroup } from '@core/groups/shared-group';
 
 import './group-settings.css';
 

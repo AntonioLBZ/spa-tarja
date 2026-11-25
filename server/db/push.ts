@@ -1,4 +1,4 @@
-import { MAX_PUSH_SUBSCRIPTIONS, type PushLocale, type PushSubscriptionInput } from '@core/push';
+import { MAX_PUSH_SUBSCRIPTIONS, type PushLocale, type PushSubscriptionInput } from '@core/account/push';
 
 interface StoredPushSubscription {
     userId: string;

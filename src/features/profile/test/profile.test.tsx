@@ -8,7 +8,7 @@ import es from '@/assets/locales/es.json';
 import { PROFILE_KEY } from '@/lib/api';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { NICKNAME_MAX_LENGTH } from '@core/profile';
+import { NICKNAME_MAX_LENGTH } from '@core/account/profile';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.settings.profile;

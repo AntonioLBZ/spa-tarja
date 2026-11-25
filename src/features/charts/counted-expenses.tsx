@@ -6,13 +6,13 @@ import { CardList } from '@/components/card/card';
 import { Sheet } from '@/components/sheet/sheet';
 import { ExpenseItemBody } from '@/features/expenses/list/expense-item-body';
 import { useMoney } from '@/lib/amounts';
-import { countedOn } from '@core/counting';
-import { isSharedRow } from '@core/shared-expense';
+import { countedOn } from '@core/expenses/counting';
+import { isSharedRow } from '@core/groups/shared-expense';
 
 import { useBucketNames } from './use-bucket-names';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
-import type { CountedGroup, Granularity } from '@core/charts';
+import type { CountedGroup, Granularity } from '@core/reports/charts';
 
 import './counted-expenses.css';
 

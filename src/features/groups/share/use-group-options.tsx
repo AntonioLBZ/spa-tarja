@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Icon } from '@/components/icon/icon';
 import { groupTitle, memberNames } from '@/features/groups/words/member-names';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // The groups before the friends, as the Groups tab lists them
 const groupsFirst = (groups: readonly SharedGroup[]): SharedGroup[] => {

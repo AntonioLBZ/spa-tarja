@@ -2,10 +2,10 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono, type Context } from 'hono';
 import * as v from 'valibot';
 
-import { isDefaultCategoryId } from '@core/categories';
-import { entryIdSchema, sharedEntryInputSchema } from '@core/shared-entry';
-import { groupIdSchema } from '@core/shared-group';
-import { canonicalMember } from '@core/shared-member';
+import { isDefaultCategoryId } from '@core/categories/categories';
+import { entryIdSchema, sharedEntryInputSchema } from '@core/groups/shared-entry';
+import { groupIdSchema } from '@core/groups/shared-group';
+import { canonicalMember } from '@core/groups/shared-member';
 import { listEntryChanges, readEntry, upsertEntry, type StoredEntry } from '@server/db/entries';
 import { closedFor, readGroup, type GroupState } from '@server/db/groups';
 import { notifyEntry } from '@server/push-notices';
@@ -13,7 +13,7 @@ import { notifyEntry } from '@server/push-notices';
 import { DEFAULT_PAGE_SIZE, changesQuery } from './expenses';
 import { CLOSED, NOT_FOUND } from './groups';
 
-import type { LedgerEntry, SharedEntryInput } from '@core/shared-entry';
+import type { LedgerEntry, SharedEntryInput } from '@core/groups/shared-entry';
 import type { AppEnv } from '@server/env';
 
 const groupParam = sValidator('param', v.object({ groupId: groupIdSchema }));

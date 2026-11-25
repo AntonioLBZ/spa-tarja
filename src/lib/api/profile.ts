@@ -1,7 +1,7 @@
 import { ApiError, toApiError } from './api-error';
 import { api } from './client';
 
-import type { Profile, ProfileInput } from '@core/profile';
+import type { Profile, ProfileInput } from '@core/account/profile';
 
 const PROFILE_KEY = ['profile'] as const;
 

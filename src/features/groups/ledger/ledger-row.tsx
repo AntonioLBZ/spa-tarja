@@ -16,9 +16,9 @@ import { useAmount, useMoney } from '@/lib/amounts';
 
 import { ledgerEffect } from './ledger-effect';
 
-import type { LedgerEntry } from '@core/shared-entry';
-import type { SharedExpenseEntry } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { LedgerEntry } from '@core/groups/shared-entry';
+import type { SharedExpenseEntry } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 import type { RefCallback } from 'react';
 
 import '@/features/expenses/list/expense-row.css';

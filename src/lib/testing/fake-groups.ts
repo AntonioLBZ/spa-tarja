@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 
-import { INVITATION_DAYS, type PendingInvitation } from '@core/invitation';
-import { sharedEntryInputSchema, type LedgerEntry, type SharedEntry } from '@core/shared-entry';
+import { INVITATION_DAYS, type PendingInvitation } from '@core/groups/invitation';
+import { sharedEntryInputSchema, type LedgerEntry, type SharedEntry } from '@core/groups/shared-entry';
 import {
     MAX_PINNED_GROUPS,
     groupWriteSchema,
@@ -13,9 +13,9 @@ import {
     type GroupMember,
     type MemberRole,
     type SharedGroup,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
-import type { Profile } from '@core/profile';
+import type { Profile } from '@core/account/profile';
 
 // An answer the fake gives instead of doing what was asked
 interface Refusal {

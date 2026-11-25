@@ -12,7 +12,7 @@ import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const root = document.documentElement;
 

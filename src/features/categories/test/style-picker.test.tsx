@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import { StylePicker } from '@/features/categories/style-picker';
 import { LocaleProvider } from '@/lib/i18n';
-import { CATEGORY_COLORS, CATEGORY_ICONS } from '@core/category-style';
+import { CATEGORY_COLORS, CATEGORY_ICONS } from '@core/categories/category-style';
 
-import type { CategoryStyle } from '@core/category-style';
+import type { CategoryStyle } from '@core/categories/category-style';
 
 function show(value: CategoryStyle, onChange = vi.fn()) {
     render(

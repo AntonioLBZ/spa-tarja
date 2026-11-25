@@ -9,11 +9,11 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
 import { stubLanguages } from '@/lib/testing/languages';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { MAX_BUCKETS } from '@core/charts';
-import { addDays } from '@core/date';
-import { formatAmount } from '@core/money';
+import { addDays } from '@core/basics/date';
+import { formatAmount } from '@core/basics/money';
+import { MAX_BUCKETS } from '@core/reports/charts';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const text = en.charts;
 const t = createTranslator({ locale: 'en', messages: en });

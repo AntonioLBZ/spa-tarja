@@ -1,13 +1,13 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_AMOUNT_CENTS } from '@core/money';
-import { MAX_SHARES, type LedgerEntry } from '@core/shared-entry';
+import { MAX_AMOUNT_CENTS } from '@core/basics/money';
+import { MAX_SHARES, type LedgerEntry } from '@core/groups/shared-entry';
 import { app } from '@server/app';
 import { claim, groupOf, makeGroup, memberNamed, seedEntry, send } from '@server/testing/groups';
 import { signIn, type TestSession } from '@server/testing/session';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 let ana: TestSession;
 let bruno: TestSession;

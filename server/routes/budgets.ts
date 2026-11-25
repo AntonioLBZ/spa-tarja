@@ -2,8 +2,8 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 import * as v from 'valibot';
 
-import { budgetLimitsSchema } from '@core/budget';
-import { monthSchema } from '@core/income';
+import { budgetLimitsSchema } from '@core/budgets/budget';
+import { monthSchema } from '@core/expenses/income';
 import { listBudgets, saveBudgets } from '@server/db/budgets';
 
 import type { AppEnv } from '@server/env';

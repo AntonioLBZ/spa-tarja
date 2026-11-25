@@ -1,0 +1,729 @@
+import { describe, expect, it } from 'vitest';
+
+import { addDays } from '@core/basics/date';
+import {
+    MAX_BUCKETS,
+    bucketCount,
+    bucketStart,
+    categoryTotals,
+    comparison,
+    countedExpenses,
+    defaultRange,
+    niceScale,
+    previousRange,
+    spendingBuckets,
+    spendingTotal,
+} from '@core/reports/charts';
+
+import type { Expense } from '@core/expenses/expense';
+
+function expense(overrides: Partial<Expense> = {}): Expense {
+    return {
+        id: crypto.randomUUID(),
+        categoryId: 'food',
+        text: 'Lunch',
+        amountCents: 1000,
+        currency: 'EUR',
+        date: '2026-10-25',
+        createdAt: 1,
+        updatedAt: 1,
+        deletedAt: null,
+        ...overrides,
+    };
+}
+
+describe('bucketStart', () => {
+    it('is the day itself for days', () => {
+        expect(bucketStart('2026-10-25', 'day')).toBe('2026-10-25');
+    });
+
+    it('is the Monday of the week for weeks', () => {
+        expect(bucketStart('2026-10-25', 'week')).toBe('2026-10-19');
+        expect(bucketStart('2026-10-26', 'week')).toBe('2026-10-26');
+    });
+
+    it('is the first day of the week given for weeks', () => {
+        expect(bucketStart('2026-10-25', 'week', 7)).toBe('2026-10-25');
+        expect(bucketStart('2026-10-24', 'week', 7)).toBe('2026-10-18');
+    });
+
+    it('is the first of the month for months', () => {
+        expect(bucketStart('2026-10-25', 'month')).toBe('2026-10-01');
+        expect(bucketStart('2026-02-01', 'month')).toBe('2026-02-01');
+    });
+});
+
+describe('bucketCount', () => {
+    it('counts the days of the range, both ends in', () => {
+        expect(bucketCount('day', { from: '2026-10-01', to: '2026-10-31' })).toBe(31);
+        expect(bucketCount('day', { from: '2026-10-25', to: '2026-10-25' })).toBe(1);
+    });
+
+    it('counts the weeks the range touches, from the Monday of the first', () => {
+        expect(bucketCount('week', { from: '2026-10-07', to: '2026-10-25' })).toBe(3);
+        expect(bucketCount('week', { from: '2026-10-19', to: '2026-10-25' })).toBe(1);
+        expect(bucketCount('week', { from: '2026-10-25', to: '2026-10-26' })).toBe(2);
+    });
+
+    it('counts the months the range touches', () => {
+        expect(bucketCount('month', { from: '2026-08-15', to: '2026-10-31' })).toBe(3);
+        expect(bucketCount('month', { from: '2026-10-01', to: '2026-10-31' })).toBe(1);
+        expect(bucketCount('month', { from: '2025-11-01', to: '2026-10-25' })).toBe(12);
+    });
+
+    it.each(['day', 'week', 'month'] as const)('is zero when the %s range ends before it begins', (granularity) => {
+        expect(bucketCount(granularity, { from: '2026-10-25', to: '2026-10-24' })).toBe(0);
+    });
+
+    it.each(['day', 'week', 'month'] as const)('says what spendingBuckets builds for %s', (granularity) => {
+        const range = { from: '2026-03-17', to: '2026-10-25' };
+
+        expect(spendingBuckets([], { granularity, range, categoryId: null })).toHaveLength(
+            bucketCount(granularity, range)
+        );
+    });
+});
+
+describe('spendingBuckets', () => {
+    const range = { from: '2026-10-01', to: '2026-10-31' };
+
+    it('has a bucket for every day of the range, empty ones included, oldest first', () => {
+        const buckets = spendingBuckets([expense({ date: '2026-10-02', amountCents: 500 })], {
+            granularity: 'day',
+            range: { from: '2026-10-01', to: '2026-10-03' },
+            categoryId: null,
+        });
+
+        expect(buckets).toEqual([
+            { start: '2026-10-01', totalCents: 0 },
+            { start: '2026-10-02', totalCents: 500 },
+            { start: '2026-10-03', totalCents: 0 },
+        ]);
+    });
+
+    it('adds up what counts on the same day', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ amountCents: 500 }),
+                expense({ amountCents: 250 }),
+                expense({ amountCents: 7, date: '2026-10-24' }),
+            ],
+            { granularity: 'day', range: { from: '2026-10-24', to: '2026-10-25' }, categoryId: null }
+        );
+
+        expect(buckets).toEqual([
+            { start: '2026-10-24', totalCents: 7 },
+            { start: '2026-10-25', totalCents: 750 },
+        ]);
+    });
+
+    it('groups by week, from the Monday, the first week starting where the range begins in its week', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ date: '2026-10-07', amountCents: 100 }),
+                expense({ date: '2026-10-11', amountCents: 200 }),
+                expense({ date: '2026-10-12', amountCents: 400 }),
+                expense({ date: '2026-10-25', amountCents: 800 }),
+            ],
+            { granularity: 'week', range: { from: '2026-10-07', to: '2026-10-25' }, categoryId: null }
+        );
+
+        expect(buckets).toEqual([
+            { start: '2026-10-05', totalCents: 300 },
+            { start: '2026-10-12', totalCents: 400 },
+            { start: '2026-10-19', totalCents: 800 },
+        ]);
+    });
+
+    it('groups by week from the first day given', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ date: '2026-10-10', amountCents: 100 }),
+                expense({ date: '2026-10-11', amountCents: 200 }),
+                expense({ date: '2026-10-17', amountCents: 400 }),
+                expense({ date: '2026-10-18', amountCents: 800 }),
+            ],
+            { granularity: 'week', range: { from: '2026-10-10', to: '2026-10-18' }, categoryId: null, weekStart: 7 }
+        );
+
+        expect(buckets).toEqual([
+            { start: '2026-10-04', totalCents: 100 },
+            { start: '2026-10-11', totalCents: 600 },
+            { start: '2026-10-18', totalCents: 800 },
+        ]);
+    });
+
+    it('groups by month', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ date: '2026-08-31', amountCents: 100 }),
+                expense({ date: '2026-09-01', amountCents: 200 }),
+                expense({ date: '2026-10-31', amountCents: 400 }),
+            ],
+            { granularity: 'month', range: { from: '2026-08-15', to: '2026-10-31' }, categoryId: null }
+        );
+
+        expect(buckets).toEqual([
+            { start: '2026-08-01', totalCents: 100 },
+            { start: '2026-09-01', totalCents: 200 },
+            { start: '2026-10-01', totalCents: 400 },
+        ]);
+    });
+
+    it('leaves out what counts outside the range, both ends being in', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ date: '2026-09-30', amountCents: 1 }),
+                expense({ date: '2026-10-01', amountCents: 2 }),
+                expense({ date: '2026-10-31', amountCents: 4 }),
+                expense({ date: '2026-11-01', amountCents: 8 }),
+            ],
+            { granularity: 'month', range, categoryId: null }
+        );
+
+        expect(buckets).toEqual([{ start: '2026-10-01', totalCents: 6 }]);
+    });
+
+    it('leaves out deleted expenses', () => {
+        const buckets = spendingBuckets([expense({ amountCents: 500 }), expense({ amountCents: 900, deletedAt: 3 })], {
+            granularity: 'month',
+            range,
+            categoryId: null,
+        });
+
+        expect(buckets).toEqual([{ start: '2026-10-01', totalCents: 500 }]);
+    });
+
+    it('counts a deferred expense on the day it is charged', () => {
+        const credit = expense({ date: '2026-09-28', amountCents: 4000, payment: 'credit', chargeDate: '2026-10-05' });
+
+        const buckets = spendingBuckets([credit], {
+            granularity: 'day',
+            range: { from: '2026-09-28', to: '2026-10-05' },
+            categoryId: null,
+        });
+
+        expect(buckets.find((bucket) => bucket.start === '2026-09-28')?.totalCents).toBe(0);
+        expect(buckets.find((bucket) => bucket.start === '2026-10-05')?.totalCents).toBe(4000);
+    });
+
+    it('counts a restaurant card expense on the day it was made, for your part, not on the day it is charged', () => {
+        const dinner = expense({
+            date: '2026-10-12',
+            amountCents: 4000,
+            personalCents: 2000,
+            payment: 'voucher',
+            chargeDate: '2026-11-12',
+        });
+
+        const buckets = spendingBuckets([dinner], {
+            granularity: 'month',
+            range: { from: '2026-10-01', to: '2026-11-30' },
+            categoryId: null,
+        });
+
+        expect(buckets).toEqual([
+            { start: '2026-10-01', totalCents: 2000 },
+            { start: '2026-11-01', totalCents: 0 },
+        ]);
+    });
+
+    it('counts in full, on the day it was made, a restaurant card expense that says nothing about your part', () => {
+        const menu = expense({ date: '2026-09-20', amountCents: 1800, payment: 'voucher', chargeDate: '2026-10-05' });
+
+        const buckets = spendingBuckets([menu], {
+            granularity: 'day',
+            range: { from: '2026-09-20', to: '2026-10-05' },
+            categoryId: null,
+        });
+
+        expect(buckets.find((bucket) => bucket.start === '2026-09-20')?.totalCents).toBe(1800);
+        expect(buckets.find((bucket) => bucket.start === '2026-10-05')?.totalCents).toBe(0);
+    });
+
+    it('can be narrowed to one category', () => {
+        const buckets = spendingBuckets(
+            [
+                expense({ categoryId: 'food', amountCents: 500 }),
+                expense({ categoryId: 'leisure', amountCents: 300 }),
+                expense({ categoryId: 'food', amountCents: 20 }),
+            ],
+            { granularity: 'month', range, categoryId: 'food' }
+        );
+
+        expect(buckets).toEqual([{ start: '2026-10-01', totalCents: 520 }]);
+    });
+
+    it('draws a range of the most it allows, and none for one more bucket', () => {
+        const from = '2026-01-01';
+
+        const allowed = spendingBuckets([], {
+            granularity: 'day',
+            range: { from, to: addDays(from, MAX_BUCKETS - 1) },
+            categoryId: null,
+        });
+        const tooLong = spendingBuckets([], {
+            granularity: 'day',
+            range: { from, to: addDays(from, MAX_BUCKETS) },
+            categoryId: null,
+        });
+
+        expect(allowed).toHaveLength(MAX_BUCKETS);
+        expect(tooLong).toEqual([]);
+    });
+
+    it('has room for a year of days and not for two', () => {
+        expect(bucketCount('day', { from: '2024-01-01', to: '2024-12-31' })).toBeLessThanOrEqual(MAX_BUCKETS);
+        expect(bucketCount('day', { from: '2025-01-01', to: '2026-12-31' })).toBeGreaterThan(MAX_BUCKETS);
+    });
+
+    it('does not try to draw a range that reaches back to the first centuries', () => {
+        const buckets = spendingBuckets([], {
+            granularity: 'day',
+            range: { from: '0202-10-25', to: '2026-10-25' },
+            categoryId: null,
+        });
+
+        expect(buckets).toEqual([]);
+    });
+
+    it.each(['day', 'week', 'month'] as const)(
+        'has no %s buckets when the range ends before it begins',
+        (granularity) => {
+            const buckets = spendingBuckets([expense()], {
+                granularity,
+                range: { from: '2026-10-25', to: '2026-10-24' },
+                categoryId: null,
+            });
+
+            expect(buckets).toEqual([]);
+        }
+    );
+});
+
+describe('spendingTotal', () => {
+    const range = { from: '2026-10-01', to: '2026-10-31' };
+
+    it('adds up everything that counts in the range', () => {
+        const expenses = [
+            expense({ categoryId: 'food', amountCents: 500 }),
+            expense({ categoryId: 'leisure', amountCents: 300 }),
+            expense({ amountCents: 7, date: '2026-09-30' }),
+            expense({ amountCents: 9, deletedAt: 4 }),
+            expense({ amountCents: 800, date: '2026-09-20', payment: 'credit', chargeDate: '2026-10-02' }),
+        ];
+
+        expect(spendingTotal(expenses, { range, categoryId: null })).toBe(1600);
+    });
+
+    it('adds your part of a restaurant card expense, on the day it was made', () => {
+        const expenses = [
+            expense({
+                amountCents: 4000,
+                personalCents: 2000,
+                date: '2026-10-12',
+                payment: 'voucher',
+                chargeDate: '2026-11-12',
+            }),
+            expense({ amountCents: 900, date: '2026-09-28', payment: 'voucher', chargeDate: '2026-10-28' }),
+        ];
+
+        expect(spendingTotal(expenses, { range, categoryId: null })).toBe(2000);
+        expect(spendingTotal(expenses, { range: { from: '2026-09-01', to: '2026-09-30' }, categoryId: null })).toBe(
+            900
+        );
+    });
+
+    it('can be narrowed to one category', () => {
+        const expenses = [
+            expense({ categoryId: 'food', amountCents: 500 }),
+            expense({ categoryId: 'leisure', amountCents: 300 }),
+            expense({ categoryId: 'food', amountCents: 20 }),
+        ];
+
+        expect(spendingTotal(expenses, { range, categoryId: 'food' })).toBe(520);
+        expect(spendingTotal(expenses, { range, categoryId: 'rent' })).toBe(0);
+    });
+
+    it('is zero for nothing, and for a range that ends before it begins', () => {
+        expect(spendingTotal([], { range, categoryId: null })).toBe(0);
+        expect(spendingTotal([expense()], { range: { from: '2026-10-26', to: '2026-10-24' }, categoryId: null })).toBe(
+            0
+        );
+    });
+
+    it('is the same as what the buckets add up to', () => {
+        const expenses = [expense({ amountCents: 500 }), expense({ amountCents: 250, date: '2026-10-03' })];
+
+        const buckets = spendingBuckets(expenses, { granularity: 'week', range, categoryId: null });
+
+        expect(spendingTotal(expenses, { range, categoryId: null })).toBe(
+            buckets.reduce((sum, bucket) => sum + bucket.totalCents, 0)
+        );
+    });
+});
+
+describe('categoryTotals', () => {
+    const range = { from: '2026-10-01', to: '2026-10-31' };
+
+    it('adds up each category, the biggest first', () => {
+        const totals = categoryTotals(
+            [
+                expense({ categoryId: 'leisure', amountCents: 300 }),
+                expense({ categoryId: 'food', amountCents: 500 }),
+                expense({ categoryId: 'leisure', amountCents: 400 }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([
+            { categoryId: 'leisure', totalCents: 700 },
+            { categoryId: 'food', totalCents: 500 },
+        ]);
+    });
+
+    it('breaks a tie by id, so the order never jumps', () => {
+        const totals = categoryTotals(
+            [expense({ categoryId: 'leisure', amountCents: 100 }), expense({ categoryId: 'food', amountCents: 100 })],
+            range
+        );
+
+        expect(totals.map((total) => total.categoryId)).toEqual(['food', 'leisure']);
+    });
+
+    it('counts only what falls in the range, deleted expenses left out, deferred ones where they are charged', () => {
+        const totals = categoryTotals(
+            [
+                expense({ amountCents: 100 }),
+                expense({ amountCents: 200, date: '2026-09-30' }),
+                expense({ amountCents: 400, deletedAt: 1 }),
+                expense({ amountCents: 800, date: '2026-09-20', payment: 'credit', chargeDate: '2026-10-02' }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([{ categoryId: 'food', totalCents: 900 }]);
+    });
+
+    it('counts your part of a restaurant card expense, on the day it was made', () => {
+        const totals = categoryTotals(
+            [
+                expense({
+                    categoryId: 'food',
+                    amountCents: 4000,
+                    personalCents: 2000,
+                    date: '2026-10-12',
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+                expense({ categoryId: 'leisure', amountCents: 2500 }),
+                expense({
+                    categoryId: 'leisure',
+                    amountCents: 700,
+                    date: '2026-09-30',
+                    payment: 'voucher',
+                    chargeDate: '2026-10-30',
+                }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([
+            { categoryId: 'leisure', totalCents: 2500 },
+            { categoryId: 'food', totalCents: 2000 },
+        ]);
+    });
+
+    it('leaves out a category that adds up to nothing, like a restaurant card expense with none of it yours', () => {
+        const totals = categoryTotals(
+            [
+                expense({
+                    categoryId: 'food',
+                    amountCents: 4000,
+                    personalCents: 0,
+                    payment: 'voucher',
+                    chargeDate: '2026-11-12',
+                }),
+            ],
+            range
+        );
+
+        expect(totals).toEqual([]);
+    });
+
+    it('is empty when nothing counts in the range', () => {
+        expect(categoryTotals([], range)).toEqual([]);
+        expect(categoryTotals([expense()], { from: '2026-10-26', to: '2026-10-24' })).toEqual([]);
+    });
+});
+
+describe('countedExpenses', () => {
+    const OCTOBER = { from: '2026-10-01', to: '2026-10-31' };
+
+    it('groups what counts in the range by row, newest first, each row adding up to its column', () => {
+        const a = expense({ id: 'a', amountCents: 300, date: '2026-10-25', createdAt: 1 });
+        const b = expense({ id: 'b', amountCents: 1250, date: '2026-10-24' });
+        const c = expense({ id: 'c', amountCents: 500, date: '2026-10-25', createdAt: 2 });
+
+        const groups = countedExpenses([a, b, c], { granularity: 'day', range: OCTOBER, categoryId: null });
+
+        expect(groups.map((group) => [group.start, group.totalCents, group.expenses.map((item) => item.id)])).toEqual([
+            ['2026-10-25', 800, ['c', 'a']],
+            ['2026-10-24', 1250, ['b']],
+        ]);
+        const columns = spendingBuckets([a, b, c], { granularity: 'day', range: OCTOBER, categoryId: null });
+        for (const group of groups) {
+            expect(columns.find((column) => column.start === group.start)!.totalCents).toBe(group.totalCents);
+        }
+    });
+
+    it('lists an expense on the day it is charged, at what it counts, and only in the category asked for', () => {
+        const credit = expense({ id: 'credit', date: '2026-09-28', payment: 'credit', chargeDate: '2026-10-03' });
+        const voucher = expense({
+            id: 'voucher',
+            amountCents: 4000,
+            personalCents: 1000,
+            date: '2026-10-12',
+            payment: 'voucher',
+            chargeDate: '2026-11-12',
+        });
+        const leisure = expense({ id: 'leisure', categoryId: 'leisure', date: '2026-10-05' });
+
+        const groups = countedExpenses([credit, voucher, leisure], {
+            granularity: 'month',
+            range: OCTOBER,
+            categoryId: 'food',
+        });
+
+        expect(groups).toHaveLength(1);
+        expect(groups[0]!.start).toBe('2026-10-01');
+        expect(groups[0]!.expenses.map((item) => item.id)).toEqual(['voucher', 'credit']);
+        expect(groups[0]!.totalCents).toBe(2000);
+    });
+
+    it('leaves out deleted expenses, those outside the range and those that count nothing', () => {
+        const groups = countedExpenses(
+            [
+                expense({ deletedAt: 5 }),
+                expense({ date: '2026-09-30' }),
+                expense({ amountCents: 4000, personalCents: 0, payment: 'voucher', chargeDate: '2026-11-12' }),
+            ],
+            { granularity: 'day', range: OCTOBER, categoryId: null }
+        );
+
+        expect(groups).toEqual([]);
+    });
+
+    it('groups by the week of the browser', () => {
+        const groups = countedExpenses([expense({ date: '2026-10-25' })], {
+            granularity: 'week',
+            range: OCTOBER,
+            categoryId: null,
+            weekStart: 7,
+        });
+
+        expect(groups[0]!.start).toBe('2026-10-25');
+    });
+});
+
+describe('defaultRange', () => {
+    const today = '2026-10-25';
+
+    it('is the whole month for days, so what is still to be charged in it shows', () => {
+        expect(defaultRange('day', today)).toEqual({ from: '2026-10-01', to: '2026-10-31' });
+        expect(defaultRange('day', '2026-02-03')).toEqual({ from: '2026-02-01', to: '2026-02-28' });
+    });
+
+    it('is twelve weeks counting this one, up to its Sunday, for weeks', () => {
+        expect(defaultRange('week', today)).toEqual({ from: '2026-08-03', to: '2026-10-25' });
+        expect(defaultRange('week', '2026-10-21')).toEqual({ from: '2026-08-03', to: '2026-10-25' });
+    });
+
+    it('is twelve weeks counting this one from the first day given', () => {
+        expect(defaultRange('week', today, 7)).toEqual({ from: '2026-08-09', to: '2026-10-31' });
+    });
+
+    it('is twelve months counting this one, up to its end, for months', () => {
+        expect(defaultRange('month', today)).toEqual({ from: '2025-11-01', to: '2026-10-31' });
+    });
+
+    it('holds fewer buckets than are allowed, whatever the grouping', () => {
+        for (const granularity of ['day', 'week', 'month'] as const) {
+            expect(bucketCount(granularity, defaultRange(granularity, today))).toBeLessThan(MAX_BUCKETS);
+        }
+    });
+});
+
+describe('niceScale', () => {
+    it('stops at the first round amount that holds the biggest value', () => {
+        expect(niceScale(4899)).toEqual({ max: 5000, step: 2500, ticks: [0, 2500, 5000] });
+        expect(niceScale(5001)).toEqual({ max: 6000, step: 2000, ticks: [0, 2000, 4000, 6000] });
+        expect(niceScale(12_000)).toEqual({ max: 15_000, step: 5000, ticks: [0, 5000, 10_000, 15_000] });
+    });
+
+    it('keeps a value that is already round as its top', () => {
+        expect(niceScale(5000)).toEqual({ max: 5000, step: 2500, ticks: [0, 2500, 5000] });
+    });
+
+    it('takes the most ticks when two steps reach the same top', () => {
+        expect(niceScale(10_000)).toEqual({ max: 10_000, step: 2500, ticks: [0, 2500, 5000, 7500, 10_000] });
+    });
+
+    it('steps by whole cents for the smallest amounts', () => {
+        expect(niceScale(1)).toEqual({ max: 2, step: 1, ticks: [0, 1, 2] });
+        expect(niceScale(3)).toEqual({ max: 3, step: 1, ticks: [0, 1, 2, 3] });
+    });
+
+    it('draws one euro when there is nothing to show', () => {
+        expect(niceScale(0)).toEqual({ max: 100, step: 25, ticks: [0, 25, 50, 75, 100] });
+    });
+
+    it('draws one euro for what is not a finite amount', () => {
+        expect(niceScale(Infinity)).toEqual(niceScale(0));
+        expect(niceScale(Number.NaN)).toEqual(niceScale(0));
+        expect(niceScale(-5)).toEqual(niceScale(0));
+    });
+
+    it('rounds a fraction of a cent up to a whole one', () => {
+        expect(niceScale(0.5)).toEqual(niceScale(1));
+        expect(niceScale(4898.2)).toEqual(niceScale(4899));
+    });
+
+    it.each([1, 2, 7, 99, 100, 101, 999, 1001, 2499, 2501, 4899, 33_333, 99_999, 123_456, 7_654_321, 99_999_999_999])(
+        'has 3 to 5 evenly spaced round ticks from 0 to a top that holds %i, at most twice as high',
+        (value) => {
+            const { max, step, ticks } = niceScale(value);
+
+            expect(ticks.length).toBeGreaterThanOrEqual(3);
+            expect(ticks.length).toBeLessThanOrEqual(5);
+            expect(ticks[0]).toBe(0);
+            expect(ticks.at(-1)).toBe(max);
+            expect(ticks.every((tick, index) => tick === index * step)).toBe(true);
+            expect(Number.isInteger(step)).toBe(true);
+            expect([1, 2, 2.5, 5]).toContain(step / 10 ** Math.floor(Math.log10(step)));
+            expect(max).toBeGreaterThanOrEqual(value);
+            expect(max).toBeLessThanOrEqual(2 * value);
+        }
+    );
+});
+
+describe('previousRange', () => {
+    it('is the month before a month, by the calendar', () => {
+        expect(previousRange({ from: '2026-10-01', to: '2026-10-31' })).toEqual({
+            from: '2026-09-01',
+            to: '2026-09-30',
+        });
+        expect(previousRange({ from: '2026-03-01', to: '2026-03-31' })).toEqual({
+            from: '2026-02-01',
+            to: '2026-02-28',
+        });
+        expect(previousRange({ from: '2024-03-01', to: '2024-03-31' })).toEqual({
+            from: '2024-02-01',
+            to: '2024-02-29',
+        });
+    });
+
+    it('is as many months before whole months, over a New Year', () => {
+        expect(previousRange({ from: '2025-12-01', to: '2026-11-30' })).toEqual({
+            from: '2024-12-01',
+            to: '2025-11-30',
+        });
+        expect(previousRange({ from: '2026-01-01', to: '2026-03-31' })).toEqual({
+            from: '2025-10-01',
+            to: '2025-12-31',
+        });
+    });
+
+    it('moves whole months back by months even when they are whole weeks too', () => {
+        expect(previousRange({ from: '2021-02-01', to: '2021-02-28' })).toEqual({
+            from: '2021-01-01',
+            to: '2021-01-31',
+        });
+    });
+
+    it('is as many days before any other range, so whole weeks go back whole weeks', () => {
+        expect(previousRange({ from: '2026-08-03', to: '2026-10-25' })).toEqual({
+            from: '2026-05-11',
+            to: '2026-08-02',
+        });
+        expect(previousRange({ from: '2026-10-07', to: '2026-10-25' })).toEqual({
+            from: '2026-09-18',
+            to: '2026-10-06',
+        });
+        expect(previousRange({ from: '2026-10-25', to: '2026-10-25' })).toEqual({
+            from: '2026-10-24',
+            to: '2026-10-24',
+        });
+    });
+});
+
+describe('comparison', () => {
+    it('compares a month that is over with the month before', () => {
+        expect(comparison({ from: '2026-10-01', to: '2026-10-31' }, '2026-11-05')).toEqual({
+            current: { from: '2026-10-01', to: '2026-10-31' },
+            previous: { from: '2026-09-01', to: '2026-09-30' },
+        });
+    });
+
+    it('compares a month still running with the same days of the month before', () => {
+        expect(comparison({ from: '2026-11-01', to: '2026-11-30' }, '2026-11-25')).toEqual({
+            current: { from: '2026-11-01', to: '2026-11-25' },
+            previous: { from: '2026-10-01', to: '2026-10-25' },
+        });
+    });
+
+    it('stops a shorter month before at its last day', () => {
+        expect(comparison({ from: '2026-03-01', to: '2026-03-31' }, '2026-03-30')).toEqual({
+            current: { from: '2026-03-01', to: '2026-03-30' },
+            previous: { from: '2026-02-01', to: '2026-02-28' },
+        });
+        expect(comparison({ from: '2024-03-01', to: '2024-03-31' }, '2024-03-30')).toEqual({
+            current: { from: '2024-03-01', to: '2024-03-30' },
+            previous: { from: '2024-02-01', to: '2024-02-29' },
+        });
+    });
+
+    it('compares twelve months still running with the twelve before, up to the same day a year back', () => {
+        expect(comparison({ from: '2025-12-01', to: '2026-11-30' }, '2026-11-25')).toEqual({
+            current: { from: '2025-12-01', to: '2026-11-25' },
+            previous: { from: '2024-12-01', to: '2025-11-25' },
+        });
+    });
+
+    it('compares whole weeks still running with as many weeks before, up to the same day of the week', () => {
+        expect(comparison({ from: '2026-09-07', to: '2026-11-29' }, '2026-11-25')).toEqual({
+            current: { from: '2026-09-07', to: '2026-11-25' },
+            previous: { from: '2026-06-15', to: '2026-09-02' },
+        });
+    });
+
+    it('compares any other range with as many days before it, and while running up to as many days in', () => {
+        expect(comparison({ from: '2026-10-07', to: '2026-10-25' }, '2026-10-26')).toEqual({
+            current: { from: '2026-10-07', to: '2026-10-25' },
+            previous: { from: '2026-09-18', to: '2026-10-06' },
+        });
+        expect(comparison({ from: '2026-10-15', to: '2026-11-14' }, '2026-10-20')).toEqual({
+            current: { from: '2026-10-15', to: '2026-10-20' },
+            previous: { from: '2026-09-14', to: '2026-09-19' },
+        });
+    });
+
+    it('treats a range that ends today as over', () => {
+        expect(comparison({ from: '2026-10-01', to: '2026-10-31' }, '2026-10-31')).toEqual({
+            current: { from: '2026-10-01', to: '2026-10-31' },
+            previous: { from: '2026-09-01', to: '2026-09-30' },
+        });
+    });
+
+    it('compares the first day of a running month with the first day of the month before', () => {
+        expect(comparison({ from: '2026-01-01', to: '2026-01-31' }, '2026-01-01')).toEqual({
+            current: { from: '2026-01-01', to: '2026-01-01' },
+            previous: { from: '2025-12-01', to: '2025-12-01' },
+        });
+    });
+
+    it('has nothing to compare for a range that starts after today, or ends before it begins', () => {
+        expect(comparison({ from: '2026-11-01', to: '2026-11-30' }, '2026-10-25')).toBeNull();
+        expect(comparison({ from: '2026-10-25', to: '2026-10-24' }, '2026-10-30')).toBeNull();
+    });
+});

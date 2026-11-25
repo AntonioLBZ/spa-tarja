@@ -20,7 +20,7 @@ import { TEST_USER } from '@/lib/testing/fake-auth';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.settings.account.delete;

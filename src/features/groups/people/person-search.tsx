@@ -8,7 +8,7 @@ import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { useDebouncedValue } from '@/lib/a11y';
 import { useWide } from '@/lib/viewport';
-import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/shared-group';
+import { SHARED_NAME_MAX_LENGTH, sharedNameSchema } from '@core/groups/shared-group';
 
 import { matchesName } from './matches-name';
 

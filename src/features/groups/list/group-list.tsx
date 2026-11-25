@@ -13,7 +13,7 @@ import { useAmount } from '@/lib/amounts';
 
 import type { Ledger } from '@/features/groups/data/use-ledgers';
 import type { Pins } from '@/features/groups/pins/use-pins';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './group-list.css';
 

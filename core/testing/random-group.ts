@@ -1,12 +1,12 @@
-import { DEFAULT_CATEGORY_IDS } from '@core/categories';
-import { addMonths } from '@core/date';
-import { PAYMENTS } from '@core/expense';
-import { SPLIT_MODES, type Share, type SharedEntry, type SplitMode } from '@core/shared-entry';
-import { HUNDRED_PERCENT, splitByPercent, splitEqually, splitExactly } from '@core/split';
+import { addMonths } from '@core/basics/date';
+import { DEFAULT_CATEGORY_IDS } from '@core/categories/categories';
+import { PAYMENTS } from '@core/expenses/expense';
+import { SPLIT_MODES, type Share, type SharedEntry, type SplitMode } from '@core/groups/shared-entry';
+import { HUNDRED_PERCENT, splitByPercent, splitEqually, splitExactly } from '@core/groups/split';
 
 import { memberIdOf, type Random } from './random';
 
-import type { SharedMember } from '@core/shared-member';
+import type { SharedMember } from '@core/groups/shared-member';
 
 interface RandomGroup {
     members: SharedMember[];

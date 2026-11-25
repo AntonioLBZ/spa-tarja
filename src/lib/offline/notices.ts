@@ -1,4 +1,4 @@
-import type { Notice } from '@core/notices';
+import type { Notice } from '@core/groups/notices';
 import type { QueryClient } from '@tanstack/react-query';
 
 type NoticeListener = (notices: readonly Notice[]) => void;

@@ -10,7 +10,7 @@ import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { AppProviders } from '@/providers';
 import { createAppRouter } from '@/router';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 type Handler = (url: URL, init?: RequestInit) => Response | Promise<Response>;
 

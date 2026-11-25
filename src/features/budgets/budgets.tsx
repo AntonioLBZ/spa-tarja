@@ -14,10 +14,10 @@ import { useAmountPlaceholder } from '@/lib/amounts';
 import { incomeQuery } from '@/lib/api';
 import { useLocale } from '@/lib/i18n';
 import { useOnline } from '@/lib/offline';
-import { TOTAL_SCOPE, limitFor, percentOf } from '@core/budget';
-import { fromDateString, toDateString } from '@core/date';
-import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/money';
-import { monthOf, shiftMonth } from '@core/month';
+import { fromDateString, toDateString } from '@core/basics/date';
+import { DEFAULT_CURRENCY, formatAmountInput, parseAmount } from '@core/basics/money';
+import { monthOf, shiftMonth } from '@core/basics/month';
+import { TOTAL_SCOPE, limitFor, percentOf } from '@core/budgets/budget';
 
 import { useBudgetActions } from './use-budget-actions';
 import { useBudgets } from './use-budgets';

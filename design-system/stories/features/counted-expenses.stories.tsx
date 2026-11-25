@@ -2,7 +2,7 @@ import {
     CountedExpenses as CountedExpensesComponent,
     type CountedExpensesProps,
 } from '@/features/charts/counted-expenses';
-import { countedExpenses } from '@core/charts';
+import { countedExpenses } from '@core/reports/charts';
 
 import { AppData, sampleExpense } from './app-data';
 import { CUSTOM_CATEGORIES } from './fixtures';

@@ -1,4 +1,4 @@
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 
 interface NameWords {
     // A member whose name is empty: a person who deleted their account

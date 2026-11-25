@@ -7,7 +7,7 @@ import {
     MAX_GROUP_MEMBER_ROWS,
     MAX_OPEN_GROUPS,
     SHARED_NAME_MAX_LENGTH,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 import {
     befriend,
     groupOf,
@@ -21,7 +21,7 @@ import {
 } from '@server/testing/groups';
 import { signIn, type TestSession } from '@server/testing/session';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 let ana: TestSession;
 let bruno: TestSession;

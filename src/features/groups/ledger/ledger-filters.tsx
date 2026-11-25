@@ -12,12 +12,12 @@ import { FiltersSheet } from '@/features/expenses/filters/filters-sheet';
 import { ListSearchField } from '@/features/expenses/filters/list-search-field';
 import { isUser } from '@/features/groups/people/is-user';
 import { useGroupWords } from '@/features/groups/words/use-group-words';
-import { isDefaultCategoryId } from '@core/categories';
-import { ENTRY_KINDS, NO_LEDGER_FILTERS } from '@core/ledger-list';
+import { isDefaultCategoryId } from '@core/categories/categories';
+import { ENTRY_KINDS, NO_LEDGER_FILTERS } from '@core/lists/ledger-list';
 
 import type { IconName } from '@/components/icon/icon-paths';
-import type { EntryKind, LedgerFilters as Filters } from '@core/ledger-list';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
+import type { EntryKind, LedgerFilters as Filters } from '@core/lists/ledger-list';
 
 const KIND_ICONS: Record<EntryKind, IconName> = {
     all: 'apps',

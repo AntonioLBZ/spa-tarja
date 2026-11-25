@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_CLOSED_GROUPS } from '@core/shared-group';
+import { MAX_CLOSED_GROUPS } from '@core/groups/shared-group';
 import { app } from '@server/app';
 import { countClosedGroups } from '@server/db/groups';
 import {

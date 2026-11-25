@@ -10,10 +10,10 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.groups;

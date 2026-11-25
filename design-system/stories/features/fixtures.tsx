@@ -1,9 +1,9 @@
-import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES } from '@core/categories';
+import { DEFAULT_CATEGORY_IDS, DEFAULT_CATEGORY_STYLES } from '@core/categories/categories';
 import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
-import type { Category } from '@core/category';
-import type { CategoryStyle } from '@core/category-style';
+import type { Category } from '@core/categories/category';
+import type { CategoryStyle } from '@core/categories/category-style';
 
 const CUSTOM_CATEGORIES: readonly Category[] = [
     { id: 'custom-pets', name: 'Pets', color: 'orange', icon: 'pets' },

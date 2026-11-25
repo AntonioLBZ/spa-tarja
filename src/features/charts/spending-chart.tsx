@@ -14,12 +14,12 @@ import { useTranslations } from 'use-intl';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { useAmountPreferences, useMoney } from '@/lib/amounts';
 import { useLocale, useWeekStart } from '@/lib/i18n';
-import { bucketStart, niceScale } from '@core/charts';
-import { DEFAULT_CURRENCY } from '@core/money';
+import { DEFAULT_CURRENCY } from '@core/basics/money';
+import { bucketStart, niceScale } from '@core/reports/charts';
 
 import { useBucketNames } from './use-bucket-names';
 
-import type { Bucket, Granularity } from '@core/charts';
+import type { Bucket, Granularity } from '@core/reports/charts';
 
 import './spending-chart.css';
 

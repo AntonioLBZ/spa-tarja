@@ -1,7 +1,7 @@
 import { ApiError, toApiError } from './api-error';
 import { api } from './client';
 
-import type { Budget, BudgetLimitsInput } from '@core/budget';
+import type { Budget, BudgetLimitsInput } from '@core/budgets/budget';
 
 const BUDGETS_KEY = ['budgets'] as const;
 

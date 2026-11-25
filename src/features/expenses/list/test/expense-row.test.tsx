@@ -6,8 +6,8 @@ import { createFakeAuth } from '@/lib/testing/fake-auth';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { AppProviders } from '@/providers';
 
-import type { Expense } from '@core/expense';
-import type { SharedExpenseRow } from '@core/shared-expense';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedExpenseRow } from '@core/groups/shared-expense';
 
 const lunch: Expense = {
     id: crypto.randomUUID(),

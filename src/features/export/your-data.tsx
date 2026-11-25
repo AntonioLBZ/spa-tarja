@@ -10,7 +10,7 @@ import { sharedRowsOf } from '@/features/groups/share/use-shared-expense-rows';
 import { budgetsQuery, categoriesQuery, incomeQuery } from '@/lib/api';
 import { downloadFile } from '@/lib/files';
 import { useLocale } from '@/lib/i18n';
-import { backupJson, expensesCsv, exportFileName, type CsvLabels } from '@core/export';
+import { backupJson, expensesCsv, exportFileName, type CsvLabels } from '@core/export/export';
 
 import { useExportGroups } from './use-export-groups';
 

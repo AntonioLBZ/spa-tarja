@@ -4,8 +4,8 @@ import { expect } from 'vitest';
 import { app } from '@server/app';
 
 import type { TestSession } from './session';
-import type { PendingInvitation } from '@core/invitation';
-import type { SharedGroup } from '@core/shared-group';
+import type { PendingInvitation } from '@core/groups/invitation';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // A request to the API as that person, with a JSON body when there is one
 const send = async (

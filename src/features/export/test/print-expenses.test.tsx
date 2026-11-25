@@ -8,7 +8,7 @@ import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const t = createTranslator({ locale: 'en', messages: en });
 const text = en.settings.print;

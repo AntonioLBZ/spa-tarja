@@ -6,8 +6,8 @@ import { PERSIST_BUSTER, createPersister, createUserStorage, type PendingEntry }
 import { TEST_USER } from './fake-auth';
 
 import type { KeyValueStorage } from '@/lib/offline';
-import type { SharedEntry } from '@core/shared-entry';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 
 type SharedExpense = Extract<SharedEntry, { kind: 'expense' }>;
 

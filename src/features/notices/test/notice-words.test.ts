@@ -5,7 +5,7 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { wordNotices, type NoticeContext } from '@/features/notices/notice-words';
 
-import type { Notice } from '@core/notices';
+import type { Notice } from '@core/groups/notices';
 
 const t = createTranslator({ locale: 'en', messages: en, namespace: 'notices' });
 

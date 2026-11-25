@@ -10,9 +10,9 @@ import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/testing/sheet';
 
-import type { Budget } from '@core/budget';
-import type { Expense } from '@core/expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Budget } from '@core/budgets/budget';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });
 

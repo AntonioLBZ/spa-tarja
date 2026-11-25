@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { notificationFor, showsNotification } from '@/features/notices/push-worker-logic';
-import { formatAmount } from '@core/money';
+import { formatAmount } from '@core/basics/money';
 
 import type { PushMessage } from '@server/push-notices';
 

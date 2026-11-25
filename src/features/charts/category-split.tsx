@@ -8,8 +8,8 @@ import { CategoryBadge } from '@/features/categories/category-badge';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
 
-import type { CategoryStyle } from '@core/category-style';
-import type { CategoryTotal } from '@core/charts';
+import type { CategoryStyle } from '@core/categories/category-style';
+import type { CategoryTotal } from '@core/reports/charts';
 
 import './category-split.css';
 

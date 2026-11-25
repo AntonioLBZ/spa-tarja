@@ -9,8 +9,8 @@ import {
     reviseExpenses,
     type Draft,
 } from '@/features/expenses/data/create-expenses';
-import { addMonths } from '@core/date';
-import { expenseInputSchema, type Expense } from '@core/expense';
+import { addMonths } from '@core/basics/date';
+import { expenseInputSchema, type Expense } from '@core/expenses/expense';
 
 const NOW = 1_800_000_000_000;
 

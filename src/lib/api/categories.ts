@@ -1,7 +1,7 @@
 import { ApiError, toApiError } from './api-error';
 import { api } from './client';
 
-import type { Category } from '@core/category';
+import type { Category } from '@core/categories/category';
 
 const CATEGORIES_KEY = ['categories'] as const;
 

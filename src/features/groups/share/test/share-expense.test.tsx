@@ -16,10 +16,10 @@ import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { chosenOption, optionNames, pickOption } from '@/lib/testing/select';
 import { openAddSheet, openSplit } from '@/lib/testing/sheet';
 import { spokenText } from '@/lib/testing/spoken-text';
-import { addMonths, toDateString } from '@core/date';
-import { formatAmount } from '@core/money';
+import { addMonths, toDateString } from '@core/basics/date';
+import { formatAmount } from '@core/basics/money';
 
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 vi.mock('@/lib/random', () => ({ randomSeed: vi.fn() }));
 

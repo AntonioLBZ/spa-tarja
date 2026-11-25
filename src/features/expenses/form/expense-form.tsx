@@ -19,19 +19,19 @@ import { useAmountPlaceholder } from '@/lib/amounts';
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { rememberSharedWith } from '@/lib/offline';
-import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories';
-import { toDateString } from '@core/date';
-import { TEXT_MAX_LENGTH, type Payment } from '@core/expense';
-import { formatAmountInput, parseAmount } from '@core/money';
-import { canonicalMember } from '@core/shared-member';
+import { toDateString } from '@core/basics/date';
+import { formatAmountInput, parseAmount } from '@core/basics/money';
+import { FALLBACK_CATEGORY_ID, isDefaultCategoryId } from '@core/categories/categories';
+import { TEXT_MAX_LENGTH, type Payment } from '@core/expenses/expense';
+import { canonicalMember } from '@core/groups/shared-member';
 
 import { usePayment } from './payment-fields';
 import { PersonalTail, usePersonalTail, type TypedParts } from './personal-tail';
 import { useSuggestCategory } from './use-suggest-category';
 
-import type { Expense } from '@core/expense';
-import type { SharedExpenseEntry } from '@core/shared-expense';
-import type { SharedGroup } from '@core/shared-group';
+import type { Expense } from '@core/expenses/expense';
+import type { SharedExpenseEntry } from '@core/groups/shared-expense';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 import './expense-form.css';
 

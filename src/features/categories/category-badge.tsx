@@ -2,7 +2,7 @@ import clsx from 'clsx';
 
 import { Icon } from '@/components/icon/icon';
 
-import type { CategoryStyle } from '@core/category-style';
+import type { CategoryStyle } from '@core/categories/category-style';
 
 import './category-badge.css';
 

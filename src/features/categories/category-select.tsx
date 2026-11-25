@@ -1,9 +1,9 @@
 import { Select } from '@/components/select/select';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
 
 import { CategoryBadge } from './category-badge';
 
-import type { CategoryStyle } from '@core/category-style';
+import type { CategoryStyle } from '@core/categories/category-style';
 import type { ReactNode } from 'react';
 
 interface CategorySelectOption {

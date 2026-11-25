@@ -1,17 +1,17 @@
 import * as v from 'valibot';
 
-import { USER_HEADER, accountDeletionSchema, confirmsEmail } from '@core/account';
-import { categoryNameKey, type Category } from '@core/category';
-import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/category-style';
-import { profileInputSchema, type Profile } from '@core/profile';
+import { USER_HEADER, accountDeletionSchema, confirmsEmail } from '@core/account/account';
+import { profileInputSchema, type Profile } from '@core/account/profile';
+import { categoryNameKey, type Category } from '@core/categories/category';
+import { DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORY_ICON } from '@core/categories/category-style';
 
 import { TEST_USER } from './fake-auth';
 import { createFakeGroups, type FakeGroupsOptions, type FakeGroupsState, type Refusal } from './fake-groups';
 
 import type { Handler } from './render-app';
-import type { Budget, BudgetLimitsInput } from '@core/budget';
-import type { Expense } from '@core/expense';
-import type { Income, IncomeInput } from '@core/income';
+import type { Budget, BudgetLimitsInput } from '@core/budgets/budget';
+import type { Expense } from '@core/expenses/expense';
+import type { Income, IncomeInput } from '@core/expenses/income';
 
 interface FakeApiOptions extends FakeGroupsOptions {
     expenses?: Expense[];

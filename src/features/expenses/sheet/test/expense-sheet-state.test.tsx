@@ -5,7 +5,7 @@ import { ExpenseSheetProvider, useExpenseSheet } from '@/features/expenses/sheet
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const expense = (id: string): Expense => {
     return {

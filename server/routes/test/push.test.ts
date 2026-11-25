@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { MAX_PUSH_SUBSCRIPTIONS } from '@core/push';
+import { MAX_PUSH_SUBSCRIPTIONS } from '@core/account/push';
 import { app } from '@server/app';
 import { send } from '@server/testing/groups';
 import { testVapidKey } from '@server/testing/push';

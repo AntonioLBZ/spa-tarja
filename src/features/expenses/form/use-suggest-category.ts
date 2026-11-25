@@ -2,9 +2,9 @@ import { useCallback, useMemo } from 'react';
 
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
-import { FALLBACK_CATEGORY_ID } from '@core/categories';
-import { suggestCategory } from '@core/classifier';
-import { indexHistory, suggestFromHistory } from '@core/history-suggestion';
+import { FALLBACK_CATEGORY_ID } from '@core/categories/categories';
+import { suggestCategory } from '@core/categories/classifier';
+import { indexHistory, suggestFromHistory } from '@core/categories/history-suggestion';
 
 // The category to suggest for a description: the one the keywords give and, only when they find nothing, the one the
 // person's earlier expenses point to, their part of the shared ones included. Left off, as for an expense that

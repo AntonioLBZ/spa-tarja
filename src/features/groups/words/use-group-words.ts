@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { useMoney } from '@/lib/amounts';
-import { canonicalMember } from '@core/shared-member';
+import { canonicalMember } from '@core/groups/shared-member';
 
 import { groupTitle, memberNames } from './member-names';
 
-import type { Debt } from '@core/balance';
-import type { SharedGroup } from '@core/shared-group';
+import type { Debt } from '@core/groups/balance';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 type ClosedReason = 'deleted' | 'deletedFriend' | 'left';
 

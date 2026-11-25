@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { isInvitationToken } from '@core/invitation';
+import { isInvitationToken } from '@core/groups/invitation';
 import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
 const SECRET = 'a-secret-that-is-long-enough-for-the-tests';

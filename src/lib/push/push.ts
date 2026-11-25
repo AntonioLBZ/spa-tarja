@@ -1,6 +1,6 @@
 import { ApiError, deletePush, fetchPushKey, putPush } from '@/lib/api';
 
-import type { PushLocale, PushSubscriptionInput } from '@core/push';
+import type { PushLocale, PushSubscriptionInput } from '@core/account/push';
 
 // Where this browser stands with push: without it, blocked, never asked, or allowed
 type PushPermission = 'unsupported' | 'denied' | 'default' | 'granted';

@@ -10,7 +10,7 @@ import {
     MAX_OPEN_GROUPS,
     MAX_OPEN_INVITATIONS,
     MAX_PINNED_GROUPS,
-} from '@core/shared-group';
+} from '@core/groups/shared-group';
 
 import { LocalRefusal } from './local-refusal';
 

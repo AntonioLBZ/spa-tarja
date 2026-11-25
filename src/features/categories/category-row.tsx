@@ -8,7 +8,7 @@ import { Notice } from '@/components/notice/notice';
 
 import { CategoryBadge } from './category-badge';
 
-import type { Category } from '@core/category';
+import type { Category } from '@core/categories/category';
 
 import './category-row.css';
 

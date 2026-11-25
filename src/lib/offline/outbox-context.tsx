@@ -1,7 +1,7 @@
 import { createContext, use, type ReactNode } from 'react';
 
 import type { Outbox, PendingEntry } from './outbox';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 const OutboxContext = createContext<Outbox<Expense> | null>(null);
 const GroupOutboxContext = createContext<Outbox<PendingEntry> | null>(null);

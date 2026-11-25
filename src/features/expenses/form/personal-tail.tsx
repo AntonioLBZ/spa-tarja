@@ -8,12 +8,12 @@ import { Select } from '@/components/select/select';
 import { useShortDate } from '@/features/expenses/list/use-short-date';
 import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { installmentDates, planBalance, splitEvenly } from '@core/installments';
-import { formatAmountInput, parseAmount } from '@core/money';
+import { formatAmountInput, parseAmount } from '@core/basics/money';
+import { installmentDates, planBalance, splitEvenly } from '@core/expenses/installments';
 
 import { PaymentFields, type PaymentState } from './payment-fields';
 
-import type { Payment } from '@core/expense';
+import type { Payment } from '@core/expenses/expense';
 
 // A year of monthly payments; the data allows longer plans (core/installments)
 const INSTALLMENT_CHOICES = Array.from({ length: 12 }, (_, index) => index + 1);

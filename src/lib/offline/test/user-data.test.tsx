@@ -14,7 +14,7 @@ import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import type { AuthUser } from '@/lib/auth';
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 import type { PersistedClient } from '@tanstack/react-query-persist-client';
 
 const BEA: AuthUser = { id: 'user-bea', name: 'Bea Ruiz', email: 'bea@example.com' };

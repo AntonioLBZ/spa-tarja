@@ -5,8 +5,8 @@ import { fn } from 'storybook/test';
 
 import { AppData } from './app-data';
 
-import type { LedgerEntry } from '@core/shared-entry';
-import type { GroupMember, SharedGroup } from '@core/shared-group';
+import type { LedgerEntry } from '@core/groups/shared-entry';
+import type { GroupMember, SharedGroup } from '@core/groups/shared-group';
 import type { Meta } from '@storybook/react-vite';
 
 const member = (id: string, name: string, rest: Partial<GroupMember> = {}): GroupMember => ({

@@ -1,7 +1,7 @@
-import { upsertById } from '@core/expense-merge';
+import { upsertById } from '@core/expenses/expense-merge';
 
 import type { KeyValueStorage } from './storage';
-import type { SharedEntry } from '@core/shared-entry';
+import type { SharedEntry } from '@core/groups/shared-entry';
 
 // Where each outbox is stored; the entries of groups have their own, so the stored format of the first never changes
 const OUTBOX_STORAGE_KEY = 'tarja:outbox';

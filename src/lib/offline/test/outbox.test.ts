@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from '@/lib/offline/outbox';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 
-import type { Expense } from '@core/expense';
+import type { Expense } from '@core/expenses/expense';
 
 function expense(id: string, overrides: Partial<Expense> = {}): Expense {
     return {

@@ -1,7 +1,7 @@
-import { canonicalMember } from '@core/shared-member';
+import { canonicalMember } from '@core/groups/shared-member';
 
-import type { SharedEntry } from '@core/shared-entry';
-import type { SharedGroup } from '@core/shared-group';
+import type { SharedEntry } from '@core/groups/shared-entry';
+import type { SharedGroup } from '@core/groups/shared-group';
 
 // Whether an entry names somebody who left the group, as its payer or in a share, a merged placeholder read as its
 // target: the device doesn't offer to edit it, as an edit may not move what that person pays or owes
