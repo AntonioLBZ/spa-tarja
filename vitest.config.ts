@@ -34,7 +34,7 @@ export default defineConfig({
                     name: 'server',
                     testTimeout: 20_000,
                     include: ['server/**/*.test.ts'],
-                    setupFiles: ['server/test/apply-migrations.ts'],
+                    setupFiles: ['server/testing/apply-migrations.ts'],
                 },
             },
             {

@@ -1,0 +1,433 @@
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { useEffect, useRef, useState } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { Dialog } from '@/components/dialog/dialog';
+
+function closeFromTheBrowser() {
+    (screen.getByRole('dialog') as HTMLDialogElement).close();
+}
+
+afterEach(() => {
+    vi.restoreAllMocks();
+});
+
+describe('Dialog', () => {
+    it('stays closed while it is not open', () => {
+        render(
+            <Dialog open={false} title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('is named by its title, a heading, and holds what it is given', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+
+        const dialog = screen.getByRole('dialog', { name: 'Moved' });
+        expect(within(dialog).getByRole('heading', { name: 'Moved', level: 2 })).toBeDefined();
+        expect(within(dialog).getByText('Body')).toBeDefined();
+    });
+
+    it('opens as a modal, which keeps the focus and the keyboard inside', () => {
+        const showModal = vi.spyOn(HTMLDialogElement.prototype, 'showModal');
+
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(showModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('takes the focus itself when it opens, so no action shows a ring nobody asked for', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} actions={<button type="button">Go</button>}>
+                Body
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByRole('dialog'));
+    });
+
+    it('closes when the page stops asking for it, and opens again when it asks again', () => {
+        const { rerender } = render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        rerender(
+            <Dialog open={false} title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        expect(screen.queryByRole('dialog')).toBeNull();
+
+        rerender(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        expect(screen.getByRole('dialog', { name: 'Moved' })).toBeDefined();
+    });
+
+    it('tells the page when the browser closes it, as Escape does', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open title="Moved" onClose={onClose}>
+                Body
+            </Dialog>
+        );
+
+        closeFromTheBrowser();
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets Escape cancel it', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const cancel = new Event('cancel', { cancelable: true });
+
+        screen.getByRole('dialog').dispatchEvent(cancel);
+
+        expect(cancel.defaultPrevented).toBe(false);
+    });
+
+    it('stays open on Escape when it is told it cannot be dismissed', () => {
+        render(
+            <Dialog open title="Moved" dismissible={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const cancel = new Event('cancel', { cancelable: true });
+
+        screen.getByRole('dialog').dispatchEvent(cancel);
+
+        expect(cancel.defaultPrevented).toBe(true);
+    });
+
+    it('closes on a tap on the veil outside the box and tells the page', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open title="Moved" onClose={onClose}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect((dialog as HTMLDialogElement).open).toBe(false);
+    });
+
+    it('stays open for a press that starts inside the box and ends on the veil', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        fireEvent.pointerDown(screen.getByText('Body'));
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+    });
+
+    it('stays open on a tap outside when it is told to, or cannot be dismissed', () => {
+        const { rerender } = render(
+            <Dialog open title="Moved" closeOnOutside={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+        const tapOutside = () => {
+            fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+            fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+        };
+
+        tapOutside();
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+
+        rerender(
+            <Dialog open title="Moved" dismissible={false} onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+        tapOutside();
+        expect((dialog as HTMLDialogElement).open).toBe(true);
+    });
+
+    it('puts its actions apart, after what it holds', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} actions={<button type="button">Go</button>}>
+                Body
+            </Dialog>
+        );
+
+        const dialog = screen.getByRole('dialog');
+        const body = within(dialog).getByText('Body');
+        const go = within(dialog).getByRole('button', { name: 'Go' });
+
+        expect(body.contains(go)).toBe(false);
+        expect(Boolean(body.compareDocumentPosition(go) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    });
+
+    it('leaves no room for actions when it has none', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(screen.getByRole('dialog').querySelector('.dialog__actions')).toBeNull();
+    });
+
+    it('is a plain dialog unless it is a sheet', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog.classList.contains('dialog')).toBe(true);
+        expect(dialog.classList.contains('dialog--sheet')).toBe(false);
+    });
+
+    it('is a sheet when asked', () => {
+        render(
+            <Dialog open variant="sheet" title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(screen.getByRole('dialog').classList.contains('dialog--sheet')).toBe(true);
+    });
+
+    it('is a page with the way back first in its title row and its main action at the end', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog
+                open
+                variant="page"
+                title="Moved"
+                closeLabel="Back"
+                headAction={<button type="button">Save</button>}
+                onClose={onClose}
+            >
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+        const head = dialog.querySelector<HTMLElement>('.dialog__head')!;
+
+        expect(dialog.classList.contains('dialog--page')).toBe(true);
+        expect(head.firstElementChild).toBe(within(dialog).getByRole('button', { name: 'Back' }));
+        expect(head.lastElementChild).toBe(within(dialog).getByRole('button', { name: 'Save' }));
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('has no close button without a label', () => {
+        render(
+            <Dialog open variant="sheet" title="Moved" onClose={vi.fn()}>
+                Body
+            </Dialog>
+        );
+
+        expect(within(screen.getByRole('dialog')).queryByRole('button')).toBeNull();
+    });
+
+    it('closes from its close button and tells the page', () => {
+        const onClose = vi.fn();
+        render(
+            <Dialog open variant="sheet" title="Moved" closeLabel="Close" onClose={onClose}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(dialog.open).toBe(false);
+    });
+
+    it('goes back a step instead of closing, from its close button, Escape and a tap outside', () => {
+        const onClose = vi.fn();
+        const onBack = vi.fn();
+        render(
+            <Dialog open variant="page" title="Moved" closeLabel="Back" onClose={onClose} onBack={onBack}>
+                Body
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog') as HTMLDialogElement;
+        const cancel = new Event('cancel', { cancelable: true });
+
+        fireEvent.click(within(dialog).getByRole('button', { name: 'Back' }));
+        dialog.dispatchEvent(cancel);
+        fireEvent.pointerDown(dialog, { clientX: -10, clientY: -10 });
+        fireEvent.click(dialog, { clientX: -10, clientY: -10 });
+
+        expect(onBack).toHaveBeenCalledTimes(3);
+        expect(cancel.defaultPrevented).toBe(true);
+        expect(onClose).not.toHaveBeenCalled();
+        expect(dialog.open).toBe(true);
+    });
+
+    it('puts the focus on what initialFocus returns', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} initialFocus={() => screen.getByLabelText('Amount')}>
+                <input aria-label="Amount" />
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByLabelText('Amount'));
+    });
+
+    it('keeps the focus on itself when initialFocus returns nothing', () => {
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()} initialFocus={() => null}>
+                <input aria-label="Amount" />
+            </Dialog>
+        );
+
+        expect(document.activeElement).toBe(screen.getByRole('dialog'));
+    });
+
+    it('keeps its content in the page while it is closed', () => {
+        render(
+            <Dialog open={false} variant="sheet" title="Moved" onClose={vi.fn()}>
+                <input aria-label="Amount" defaultValue="12" />
+            </Dialog>
+        );
+
+        expect((screen.getByLabelText('Amount', { selector: 'input' }) as HTMLInputElement).value).toBe('12');
+    });
+
+    it('keeps its buttons working', () => {
+        const onPress = vi.fn();
+        render(
+            <Dialog open title="Moved" onClose={vi.fn()}>
+                <button type="button" onClick={onPress}>
+                    Go
+                </button>
+            </Dialog>
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Go' }));
+
+        expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('is closed by the time the page hands the focus to something behind it', () => {
+        const Row = (props: { open: boolean }) => {
+            const ref = useRef<HTMLButtonElement>(null);
+            useEffect(() => {
+                if (!props.open) ref.current?.focus();
+            }, [props.open]);
+            return <button ref={ref}>Row</button>;
+        };
+        const Page = () => {
+            const [open, setOpen] = useState(true);
+            return (
+                <>
+                    <Row open={open} />
+                    <Dialog open={open} title="Moved" onClose={vi.fn()}>
+                        <button onClick={() => setOpen(false)}>Done</button>
+                    </Dialog>
+                </>
+            );
+        };
+        render(<Page />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Row' }));
+    });
+});
+
+describe('Dialog while what it holds changes size', () => {
+    it('is marked as overflowing only while what it holds is taller than it, so its shadows go once a panel folds', () => {
+        const observed: Array<() => void> = [];
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                constructor(callback: () => void) {
+                    observed.push(callback);
+                }
+                observe() {}
+                disconnect() {}
+            }
+        );
+        let contentHeight = 1200;
+        vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(() => contentHeight);
+        vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(800);
+
+        render(
+            <Dialog open variant="page" title="Add" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+        const dialog = screen.getByRole('dialog');
+
+        expect(dialog.hasAttribute('data-overflow')).toBe(true);
+        contentHeight = 600;
+        observed.forEach((callback) => callback());
+        expect(dialog.hasAttribute('data-overflow')).toBe(false);
+        contentHeight = 900;
+        observed.forEach((callback) => callback());
+        expect(dialog.hasAttribute('data-overflow')).toBe(true);
+        vi.unstubAllGlobals();
+    });
+    it('measures nothing while it is closed, and starts once it opens', () => {
+        const observing = vi.fn();
+        vi.stubGlobal(
+            'ResizeObserver',
+            class {
+                observe() {
+                    observing();
+                }
+                disconnect() {}
+            }
+        );
+        const measured = vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(1200);
+        vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(800);
+
+        const { rerender } = render(
+            <Dialog open={false} variant="sheet" title="Edit" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+
+        expect(measured).not.toHaveBeenCalled();
+        expect(observing).not.toHaveBeenCalled();
+
+        rerender(
+            <Dialog open variant="sheet" title="Edit" onClose={vi.fn()}>
+                <p>Body</p>
+            </Dialog>
+        );
+
+        expect(measured).toHaveBeenCalled();
+        expect(observing).toHaveBeenCalled();
+        expect(screen.getByRole('dialog').hasAttribute('data-overflow')).toBe(true);
+        vi.unstubAllGlobals();
+    });
+});
