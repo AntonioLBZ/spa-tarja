@@ -1,9 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api';
+import { createAuthService } from '@/lib/auth/service';
 import { stubApi } from '@/lib/testing/render-app';
-
-import { createAuthService } from './service';
 
 const ana = { id: 'user-1', name: 'Ana', email: 'ana@example.com' };
 

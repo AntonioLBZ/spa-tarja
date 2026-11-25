@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { detectLocale } from './locale';
+import { detectLocale } from '@/lib/i18n/locale';
 
 describe('detectLocale', () => {
     it('prefers a stored locale over the browser languages', () => {

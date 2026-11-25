@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createFakeApi } from '@/lib/testing/fake-api';
-import { sampleGroup } from '@/lib/testing/groups';
-import { stubApi } from '@/lib/testing/render-app';
-
-import { ApiError } from './api-error';
+import { ApiError } from '@/lib/api/api-error';
 import {
     deleteGroup,
     deleteMember,
@@ -14,7 +10,10 @@ import {
     putGroup,
     putMember,
     putMySwitches,
-} from './groups';
+} from '@/lib/api/groups';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleGroup } from '@/lib/testing/groups';
+import { stubApi } from '@/lib/testing/render-app';
 
 import type { SharedGroup } from '@core/shared-group';
 

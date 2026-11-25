@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { weekStartOf } from './week-start';
+import { weekStartOf } from '@/lib/i18n/week-start';
 
 describe('weekStartOf', () => {
     it('follows the region of the first language', () => {

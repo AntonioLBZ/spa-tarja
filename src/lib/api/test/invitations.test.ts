@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sampleGroup } from '@/lib/testing/groups';
-import { stubApi } from '@/lib/testing/render-app';
-
-import { ApiError } from './api-error';
+import { ApiError } from '@/lib/api/api-error';
 import {
     acceptInvitation,
     declineInvitation,
@@ -11,7 +8,9 @@ import {
     fetchPendingInvitations,
     postInvitation,
     readInvitation,
-} from './invitations';
+} from '@/lib/api/invitations';
+import { sampleGroup } from '@/lib/testing/groups';
+import { stubApi } from '@/lib/testing/render-app';
 
 import type { PendingInvitation } from '@core/invitation';
 

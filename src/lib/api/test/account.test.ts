@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { deleteAccount } from '@/lib/api/account';
+import { ApiError } from '@/lib/api/api-error';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { TEST_USER } from '@/lib/testing/fake-auth';
 import { stubApi } from '@/lib/testing/render-app';
-
-import { deleteAccount } from './account';
-import { ApiError } from './api-error';
 
 function open() {
     const api = createFakeApi();

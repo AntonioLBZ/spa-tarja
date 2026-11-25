@@ -11,7 +11,7 @@ import {
     resolveTheme,
     revealTheme,
     withColorTransition,
-} from './theme';
+} from '@/lib/theme/theme';
 
 const root = document.documentElement;
 

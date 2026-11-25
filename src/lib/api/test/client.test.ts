@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { api, bindApiUser, fetchAsUser } from '@/lib/api/client';
+import { fetchChanges } from '@/lib/api/expenses';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { stubApi } from '@/lib/testing/render-app';
 import { USER_HEADER } from '@core/account';
-
-import { api, bindApiUser, fetchAsUser } from './client';
-import { fetchChanges } from './expenses';
 
 const users = (fake: ReturnType<typeof createFakeApi>) => fake.requestUsers.map((entry) => entry.user);
 

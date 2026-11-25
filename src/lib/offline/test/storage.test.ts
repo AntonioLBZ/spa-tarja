@@ -1,8 +1,8 @@
 import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 
-import { createPersister } from './persister';
-import { idbStorage } from './storage';
+import { createPersister } from '@/lib/offline/persister';
+import { idbStorage } from '@/lib/offline/storage';
 
 describe('idbStorage', () => {
     it('keeps what is set, structured values included', async () => {

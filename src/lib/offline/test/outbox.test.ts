@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from '@/lib/offline/outbox';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
-
-import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';
 
 import type { Expense } from '@core/expense';
 

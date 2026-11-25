@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { forgetSharedWith, readSharedWith, rememberSharedWith } from './shared-with';
+import { forgetSharedWith, readSharedWith, rememberSharedWith } from '@/lib/offline/shared-with';
 
 beforeEach(() => {
     localStorage.clear();

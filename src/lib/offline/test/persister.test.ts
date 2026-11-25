@@ -13,15 +13,14 @@ import {
     invitationQuery,
     pendingInvitationsQuery,
 } from '@/lib/api';
-import { createMemoryStorage } from '@/lib/testing/memory-storage';
-
 import {
     PERSIST_BUSTER,
     PERSIST_EVERY_MS,
     QUERY_CACHE_STORAGE_KEY,
     createPersistOptions,
     createPersister,
-} from './persister';
+} from '@/lib/offline/persister';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 
 const state = { expenses: [], cursor: 7 };
 

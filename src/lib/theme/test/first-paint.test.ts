@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { syncThemeColor } from './theme';
+import { syncThemeColor } from '@/lib/theme/theme';
 
 import html from '/index.html?raw';
 

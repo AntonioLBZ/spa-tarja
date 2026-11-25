@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import { readHomeTab, rememberHomeTab } from '@/lib/offline/home-tab';
+import { readSharedWith, rememberSharedWith } from '@/lib/offline/shared-with';
+import { createUserStorage } from '@/lib/offline/user-storage';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
-
-import { readHomeTab, rememberHomeTab } from './home-tab';
-import { readSharedWith, rememberSharedWith } from './shared-with';
-import { createUserStorage } from './user-storage';
 
 describe('user storage', () => {
     it('keeps what it is given under the user, apart from anyone else', async () => {

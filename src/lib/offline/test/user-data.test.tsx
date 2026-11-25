@@ -4,15 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { EXPENSES_KEY } from '@/lib/api';
+import { PERSIST_BUSTER, createPersister } from '@/lib/offline/persister';
+import { readSharedWith, rememberSharedWith } from '@/lib/offline/shared-with';
+import { createUserStorage } from '@/lib/offline/user-storage';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
 import { leaveCopy as leaveGroupsCopy, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderApp, stubApi } from '@/lib/testing/render-app';
-
-import { PERSIST_BUSTER, createPersister } from './persister';
-import { readSharedWith, rememberSharedWith } from './shared-with';
-import { createUserStorage } from './user-storage';
 
 import type { AuthUser } from '@/lib/auth';
 import type { Expense } from '@core/expense';

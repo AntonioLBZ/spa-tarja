@@ -1,10 +1,9 @@
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { useAmount, useAmountPreferences, useMoney } from '@/lib/amounts/amounts-provider';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { renderAppHook, stubApi } from '@/lib/testing/render-app';
-
-import { useAmount, useAmountPreferences, useMoney } from './amounts-provider';
 
 const render = () => {
     stubApi(createFakeApi().handler);

@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '@/lib/api/api-error';
+import { fetchBudgets, putBudgets } from '@/lib/api/budgets';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { stubApi } from '@/lib/testing/render-app';
-
-import { ApiError } from './api-error';
-import { fetchBudgets, putBudgets } from './budgets';
 
 import type { Budget } from '@core/budget';
 

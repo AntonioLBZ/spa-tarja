@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { fetchEntryChanges, putEntry } from '@/lib/api/group-entries';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { stubApi } from '@/lib/testing/render-app';
-
-import { fetchEntryChanges, putEntry } from './group-entries';
 
 const group = sampleGroup();
 const other = sampleGroup();

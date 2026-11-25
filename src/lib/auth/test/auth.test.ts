@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api';
+import { createAuth } from '@/lib/auth/auth';
+import { readCachedUser, writeCachedUser } from '@/lib/auth/session-cache';
 
-import { createAuth } from './auth';
-import { readCachedUser, writeCachedUser } from './session-cache';
-
-import type { AuthService } from './service';
-import type { AuthUser } from './user';
+import type { AuthService } from '@/lib/auth/service';
+import type { AuthUser } from '@/lib/auth/user';
 
 const ana: AuthUser = { id: 'user-1', name: 'Ana', email: 'ana@example.com' };
 

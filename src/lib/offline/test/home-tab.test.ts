@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createHomeTab, forgetHomeTab, readHomeTab, rememberHomeTab } from './home-tab';
+import { createHomeTab, forgetHomeTab, readHomeTab, rememberHomeTab } from '@/lib/offline/home-tab';
 
 beforeEach(() => {
     localStorage.clear();

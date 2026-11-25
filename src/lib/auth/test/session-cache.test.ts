@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { clearCachedUser, readCachedUser, writeCachedUser } from './session-cache';
+import { clearCachedUser, readCachedUser, writeCachedUser } from '@/lib/auth/session-cache';
 
 const ana = { id: 'user-1', name: 'Ana', email: 'ana@example.com' };
 

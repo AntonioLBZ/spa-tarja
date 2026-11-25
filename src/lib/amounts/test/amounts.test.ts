@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_AMOUNT_PREFERENCES, applyMoneyPalette, readStoredAmounts, storeAmounts } from './amounts';
+import { DEFAULT_AMOUNT_PREFERENCES, applyMoneyPalette, readStoredAmounts, storeAmounts } from '@/lib/amounts/amounts';
 
 const root = document.documentElement;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { invitationPath } from './invitation-path';
+import { invitationPath } from '@/lib/auth/invitation-path';
 
 const TOKEN = `0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f.${'Ab_-'.repeat(10)}xyw`;
 

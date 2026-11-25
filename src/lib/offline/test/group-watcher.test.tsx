@@ -2,12 +2,11 @@ import { focusManager } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { WATCH_EVERY_MS, useGroupWatcher } from '@/lib/offline/group-watcher';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { renderAppHook, stubApi } from '@/lib/testing/render-app';
-
-import { WATCH_EVERY_MS, useGroupWatcher } from './group-watcher';
 
 const group = sampleGroup();
 const other = sampleGroup({ name: 'Porto' });

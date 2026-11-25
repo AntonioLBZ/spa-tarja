@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '@/lib/api/api-error';
+import { fetchProfile, putProfile } from '@/lib/api/profile';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { TEST_USER } from '@/lib/testing/fake-auth';
 import { stubApi } from '@/lib/testing/render-app';
-
-import { ApiError } from './api-error';
-import { fetchProfile, putProfile } from './profile';
 
 function open(nickname: string | null = null) {
     const api = createFakeApi({ nickname });
