@@ -10,7 +10,7 @@ public/          static files
 ```
 
 - `server/` doesn't import from `src/`. `src/` only imports **types** from `@server/*`.
-- `src/lib` holds only folders, one per subject, each with an `index.ts` that the rest of the app imports (`@/lib/navigation`) and a `test/` folder for its tests ([testing and CI](testing-and-ci.md)); inside a folder, a file reaches its siblings with `./`:
+- `src/lib` holds only folders, one per subject, each with an `index.ts` that the rest of the app imports (`@/lib/navigation`; `testing` has none, its helpers are imported file by file) and a `test/` folder for its tests ([testing and CI](testing-and-ci.md)); inside a folder, a file reaches its siblings with `./`:
     - `a11y`: how the focus last moved, and a value that waits for the typing to stop.
     - `amounts`: the cues of an amount the person chose (color, sign, arrow, symbol).
     - `api`: the typed client of `/api`, its calls, the queries and the query client.
