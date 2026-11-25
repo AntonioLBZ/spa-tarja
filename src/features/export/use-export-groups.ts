@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { useGroupTitles } from '@/features/groups/use-group-options';
-import { useGroups, useLedgers } from '@/features/groups/use-ledgers';
+import { useGroups, useLedgers } from '@/features/groups/data/use-ledgers';
+import { useGroupTitles } from '@/features/groups/share/use-group-options';
 
 const WAIT_MS = 10_000;
 

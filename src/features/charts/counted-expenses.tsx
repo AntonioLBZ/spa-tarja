@@ -11,7 +11,7 @@ import { isSharedRow } from '@core/shared-expense';
 
 import { useBucketNames } from './use-bucket-names';
 
-import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
+import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
 import type { CountedGroup, Granularity } from '@core/charts';
 
 import './counted-expenses.css';

@@ -1,0 +1,152 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useTranslations } from 'use-intl';
+
+import { ButtonLink } from '@/components/button/button-link';
+import { Disclosure } from '@/components/disclosure/disclosure';
+import { Icon } from '@/components/icon/icon';
+import { LiveNotice } from '@/components/notice/live-notice';
+import { Notice } from '@/components/notice/notice';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
+import { SentenceWithAmount } from '@/features/amounts/sentence-with-amount';
+import { myBalance } from '@/features/groups/balances/my-balance';
+import { EntryRefusals } from '@/features/groups/data/entry-refusals';
+import { useFailureWords } from '@/features/groups/data/group-failure';
+import { useGroups, useLedgers, type Ledger } from '@/features/groups/data/use-ledgers';
+import { InviteFriend } from '@/features/groups/invites/invite-friend';
+import { usePins } from '@/features/groups/pins/use-pins';
+import { useAmount } from '@/lib/amounts';
+import { GROUPS_KEY, PENDING_INVITATIONS_KEY } from '@/lib/api';
+import { useOnline } from '@/lib/offline';
+import { MAX_PINNED_GROUPS } from '@core/shared-group';
+
+import { GroupList, GroupSheet } from './group-list';
+import { ListSection } from './list-section';
+
+import './groups.css';
+
+interface GroupTotalsProps {
+    ledgers: readonly Ledger[];
+}
+
+// The Groups tab: what the person is owed and owes across their open groups and friends; the groups, with the way to
+// make one, and the friends, with inviting one by a link; and at the end the closed and the archived ones
+const Groups = () => {
+    const t = useTranslations('groups');
+    const online = useOnline();
+    const client = useQueryClient();
+    const { hasData, isError, isWaitingForNetwork } = useGroups();
+    const { ledgers } = useLedgers();
+    const pins = usePins();
+    const failureWords = useFailureWords();
+
+    // Opening the tab reads the groups and the links again, so a link accepted meanwhile is a friend and not a link
+    useEffect(() => {
+        for (const queryKey of [GROUPS_KEY, PENDING_INVITATIONS_KEY]) {
+            void client.invalidateQueries({ queryKey }, { cancelRefetch: false });
+        }
+    }, [client]);
+
+    const open = ledgers.filter((ledger) => ledger.group.closed === null);
+    const groups = open.filter((ledger) => ledger.group.kind === 'group');
+    const friends = open.filter((ledger) => ledger.group.kind === 'direct');
+    const closed = ledgers.filter((ledger) => ledger.group.closed !== null && !ledger.group.archived);
+    const archived = ledgers.filter((ledger) => ledger.group.closed !== null && ledger.group.archived);
+
+    return (
+        <section className="groups">
+            <ScreenTitle>{t('title')}</ScreenTitle>
+            <LiveNotice>{!online && t('offline')}</LiveNotice>
+            <EntryRefusals />
+            <LiveNotice tone="danger">
+                {!hasData && (isError || isWaitingForNetwork) && t('group.loadFailed')}
+            </LiveNotice>
+            {hasData &&
+                (open.length > 0 ? (
+                    <GroupTotals ledgers={open} />
+                ) : (
+                    <Notice tone="quiet">
+                        <span className="groups__empty-line">{t('empty')}</span>
+                        <span className="groups__empty-line">{t('emptyHint')}</span>
+                    </Notice>
+                ))}
+            {pins.full && <p className="hint">{t('edit.pinFull', { max: MAX_PINNED_GROUPS })}</p>}
+            {pins.failure && (
+                <Notice tone="danger" role="alert">
+                    {failureWords(pins.failure)}
+                </Notice>
+            )}
+            <ListSection
+                title={t('lists.groups')}
+                action={
+                    <ButtonLink ghost className="list-section__action" to="/groups/new" aria-label={t('new.title')}>
+                        <Icon name="add" />
+                        {t('lists.new')}
+                    </ButtonLink>
+                }
+            >
+                {groups.length > 0 && <GroupList ledgers={groups} pins={pins} />}
+            </ListSection>
+            <InviteFriend title={t('lists.friends')} disabled={!online}>
+                {friends.length > 0 && <GroupList ledgers={friends} pins={pins} />}
+                {hasData && open.length > 0 && friends.length === 0 && (
+                    <Notice tone="quiet">{t('lists.friendsNone')}</Notice>
+                )}
+            </InviteFriend>
+            {closed.length > 0 && (
+                <Disclosure summary={t('lists.closed')} chevron>
+                    <GroupSheet label={t('lists.closed')} ledgers={closed} />
+                </Disclosure>
+            )}
+            {archived.length > 0 && (
+                <Disclosure summary={t('lists.archived')} chevron>
+                    <GroupSheet label={t('lists.archived')} ledgers={archived} />
+                </Disclosure>
+            )}
+        </section>
+    );
+};
+
+// Each total adds the groups where the person's balance has that sign; a group has the app's currency (ADR-0012).
+// They wait while a group's expenses haven't reached the device, as the sums would leave it out, and say why once
+// those expenses can't be loaded.
+const GroupTotals = (props: GroupTotalsProps) => {
+    const { ledgers } = props;
+    const t = useTranslations('groups');
+    const amount = useAmount();
+
+    const missing = ledgers.filter((ledger) => !ledger.hasData);
+    if (missing.some((ledger) => ledger.isError || ledger.isWaitingForNetwork)) {
+        return <Notice tone="danger">{t('totalsWait')}</Notice>;
+    }
+    if (missing.length > 0) return null;
+
+    const balances = ledgers.map(({ group, entries }) => myBalance(group, entries));
+    const owed = balances.filter((cents) => cents > 0).reduce((sum, cents) => sum + cents, 0);
+    const owe = balances.filter((cents) => cents < 0).reduce((sum, cents) => sum - cents, 0);
+
+    if (owed === 0 && owe === 0) return <Notice>{t('balance.allSettled')}</Notice>;
+
+    return (
+        <div className="groups__totals">
+            {owed > 0 && (
+                <Notice>
+                    <SentenceWithAmount
+                        sentence={(text) => t('balance.owed', { amount: text })}
+                        amount={{ ...amount(owed, undefined, { cues: true }), sign: false }}
+                    />
+                </Notice>
+            )}
+            {owe > 0 && (
+                <Notice>
+                    <SentenceWithAmount
+                        sentence={(text) => t('balance.owe', { amount: text })}
+                        amount={{ ...amount(-owe, undefined, { cues: true }), sign: false }}
+                    />
+                </Notice>
+            )}
+        </div>
+    );
+};
+
+export { Groups };

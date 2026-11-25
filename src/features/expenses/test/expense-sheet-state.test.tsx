@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ExpenseSheetProvider, useExpenseSheet } from '@/features/expenses/expense-sheet-state';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 
-import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
+import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
 
 const expense = (id: string): Expense => {

@@ -1,4 +1,4 @@
-import { useScreenGroup } from '@/features/groups/use-screen-group';
+import { useScreenGroup } from '@/features/groups/screen/use-screen-group';
 
 import { useExpenseSheet } from './expense-sheet-state';
 

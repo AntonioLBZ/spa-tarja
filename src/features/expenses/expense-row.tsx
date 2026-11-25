@@ -7,16 +7,16 @@ import { Button } from '@/components/button/button';
 import { Disclosure } from '@/components/disclosure/disclosure';
 import { Notice } from '@/components/notice/notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { namesSomeoneWhoLeft } from '@/features/groups/names-someone-who-left';
+import { namesSomeoneWhoLeft } from '@/features/groups/words/names-someone-who-left';
 import { isSharedRow } from '@core/shared-expense';
 
 import { canEdit } from './create-expenses';
 import { ExpenseItemBody } from './expense-item-body';
 
-import type { SharedRowSource } from '@/features/groups/use-shared-expense-rows';
+import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
 import type { Expense } from '@core/expense';
 
-import '@/features/groups/ledger-row.css';
+import '@/features/groups/ledger/ledger-row.css';
 import './expense-row.css';
 
 interface ExpenseRowProps {

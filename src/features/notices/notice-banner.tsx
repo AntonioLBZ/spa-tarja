@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { useBanner } from '@/components/banner/banner';
-import { groupTitle, memberNames } from '@/features/groups/member-names';
-import { useScreenGroup } from '@/features/groups/use-screen-group';
+import { useScreenGroup } from '@/features/groups/screen/use-screen-group';
+import { groupTitle, memberNames } from '@/features/groups/words/member-names';
 import { useMoney } from '@/lib/amounts';
 import { GROUPS_KEY } from '@/lib/api';
 import { subscribeNotices, useGroupWatcher } from '@/lib/offline';

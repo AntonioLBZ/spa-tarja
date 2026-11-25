@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { useSharedExpenseRows } from '@/features/groups/use-shared-expense-rows';
+import { useSharedExpenseRows } from '@/features/groups/share/use-shared-expense-rows';
 
 import { useExpenses } from './use-expenses';
 

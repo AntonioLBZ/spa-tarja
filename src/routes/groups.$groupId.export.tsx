@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { GroupExport } from '@/features/groups/group-export';
+import { GroupExport } from '@/features/groups/settings/group-export';
 
 const ExportGroup = () => {
     const { groupId } = Route.useParams();
