@@ -19,12 +19,11 @@ import { NoticeBanner } from '@/features/notices/notice-banner';
 import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
+import { markSwiped, markUndone } from '@/lib/a11y';
 import { isPrerelease } from '@/lib/app-info';
 import {
     backTarget,
     followSlide,
-    markSwiped,
-    markUndone,
     navSection,
     skipNextSlide,
     swipeTarget,

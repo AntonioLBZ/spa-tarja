@@ -12,7 +12,7 @@ import {
     takeArrival,
     takeSwiped,
     takeUndone,
-} from '@/lib/navigation/screen-arrival';
+} from '@/lib/a11y/screen-arrival';
 
 beforeEach(() => {
     vi.useFakeTimers();
