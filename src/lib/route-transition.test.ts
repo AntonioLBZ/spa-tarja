@@ -23,6 +23,7 @@ describe('routeDepth', () => {
         expect(routeDepth('/settings/appearance')).toBe(2);
         expect(routeDepth('/settings/categories')).toBe(2);
         expect(routeDepth('/settings/account')).toBe(2);
+        expect(routeDepth('/settings/account/print')).toBe(3);
         expect(routeDepth('/charts')).toBe(2);
         expect(routeDepth('/budgets')).toBe(2);
     });
@@ -30,6 +31,7 @@ describe('routeDepth', () => {
     it('puts a group above Groups and its settings above the group', () => {
         expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f')).toBe(2);
         expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/edit')).toBe(3);
+        expect(routeDepth('/groups/0b6f3c1e-8d2a-4c5b-9e7f-1a2b3c4d5e6f/export')).toBe(3);
     });
 
     it('puts the page of an invitation level with Groups', () => {
@@ -80,8 +82,13 @@ describe('backTarget', () => {
         expect(backTarget('/groups/new')).toEqual({ to: '/groups' });
     });
 
-    it('leads the settings of a group to the group of the address', () => {
+    it('leads the printable view of the expenses to the account it is reached from', () => {
+        expect(backTarget('/settings/account/print')).toEqual({ to: '/settings/account' });
+    });
+
+    it('leads the settings and the export of a group to the group of the address', () => {
         expect(backTarget(`/groups/${group}/edit`)).toEqual({ to: '/groups/$groupId', params: { groupId: group } });
+        expect(backTarget(`/groups/${group}/export`)).toEqual({ to: '/groups/$groupId', params: { groupId: group } });
     });
 
     it('leads nowhere from the home screen, the tabs, the page of an invitation and a page it does not know', () => {
@@ -91,8 +98,9 @@ describe('backTarget', () => {
     });
 
     it('gives one to every screen deeper than a tab and to no other', () => {
-        const paths = ['/', '/settings', '/summary', '/groups', '/settings/account', '/charts', '/budgets'];
-        paths.push(`/groups/${group}`, `/groups/${group}/edit`, `/join/${group}.token`);
+        const paths = ['/', '/settings', '/summary', '/groups', '/settings/account', '/settings/account/print'];
+        paths.push('/charts', '/budgets');
+        paths.push(`/groups/${group}`, `/groups/${group}/edit`, `/groups/${group}/export`, `/join/${group}.token`);
 
         for (const pathname of paths) {
             expect(backTarget(pathname) !== undefined).toBe(routeDepth(pathname) >= 2);

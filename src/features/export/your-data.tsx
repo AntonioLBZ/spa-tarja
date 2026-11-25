@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
+import { ButtonLink } from '@/components/button/button-link';
 import { LiveNotice } from '@/components/notice/live-notice';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
@@ -33,7 +34,7 @@ const YOUR_DATA_ID = 'your-data';
 
 // All the data as JSON and the expenses as CSV, made on the device from what it holds: the cache with the outbox on top.
 // The JSON holds the groups and only the person's own expenses; the CSV adds their part of the shared ones. Nothing is
-// sent (ADR-0001).
+// sent (ADR-0001). The printable view of the expenses is a page of its own.
 const YourData = () => {
     const t = useTranslations('settings.data');
     const tPayment = useTranslations('expenses.payment');
@@ -84,6 +85,9 @@ const YourData = () => {
                 <Button block disabled={loading} onClick={downloadCsv}>
                     {t('csv')}
                 </Button>
+                <ButtonLink block className="your-data__print" to="/settings/account/print">
+                    {t('print')}
+                </ButtonLink>
             </div>
         </section>
     );

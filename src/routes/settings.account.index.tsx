@@ -22,4 +22,4 @@ const AccountPage = () => {
     );
 };
 
-export const Route = createFileRoute('/settings/account')({ component: AccountPage });
+export const Route = createFileRoute('/settings/account/')({ component: AccountPage });

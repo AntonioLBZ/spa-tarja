@@ -6,8 +6,9 @@ import { isSharedRow } from './shared-expense';
 import type { Budget } from './budget';
 import type { Category } from './category';
 import type { Expense, Payment } from './expense';
+import type { GroupTable } from './group-table';
 import type { Income } from './income';
-import type { LedgerEntry, Share, SplitMode } from './shared-entry';
+import type { LedgerEntry, Share, SharedEntry, SplitMode } from './shared-entry';
 import type { GroupClosed, GroupKind, GroupMember, SharedGroup } from './shared-group';
 
 const BACKUP_APP = 'tarja';
@@ -94,6 +95,22 @@ interface CsvLabels {
     // What the screens call a group or a friend
     groupName: (groupId: string) => string;
 }
+
+// The words of a group's file, in the language of the app
+interface GroupCsvLabels {
+    // Date, text, category, paid by, amount and currency, before a column per member
+    columns: readonly string[];
+    memberName: (memberId: string) => string;
+    // An expense's text, a settlement's "Ana paid Bea"
+    entryText: (entry: SharedEntry) => string;
+    categoryName: (categoryId: string) => string;
+    opening: string;
+    closing: string;
+}
+
+// Characters a file name can't hold on some system, and the invisible ones that would change how it reads
+const UNSAFE_IN_FILE_NAME = /[\\/:*?"<>|\p{Cc}\p{Cf}]+/gu;
+const FILE_NAME_MAX_LENGTH = 60;
 
 const compare = (a: string | number, b: string | number): number => {
     return a < b ? -1 : a > b ? 1 : 0;
@@ -221,13 +238,53 @@ const exportFileName = (now: Date, extension: 'json' | 'csv'): string => {
     return `tarja-${toDateString(now)}.${extension}`;
 };
 
+// A group's table, the same whoever exports it: a row per entry with what it does to each member's balance, signed,
+// between the opening balance (when the range has a first day) and the closing one
+const groupCsv = (table: GroupTable<SharedEntry>, currency: string, locale: string, labels: GroupCsvLabels): string => {
+    const delimiter = delimiterOf(locale);
+    const line = (fields: readonly string[]) => fields.map((field) => quoted(field, delimiter)).join(delimiter);
+    const cents = (value: number | null) => (value === null ? '' : formatAmountInput(value, locale));
+    const balance = (label: string, values: readonly number[]) =>
+        line(['', inert(label), '', '', '', currency, ...values.map(cents)]);
+
+    const rows = table.rows.map(({ entry, cells }) =>
+        line([
+            entry.date,
+            inert(labels.entryText(entry)),
+            entry.kind === 'expense' ? inert(labels.categoryName(entry.categoryId)) : '',
+            inert(labels.memberName(entry.paidBy)),
+            formatAmountInput(entry.amountCents, locale),
+            entry.currency,
+            ...cells.map(cents),
+        ])
+    );
+
+    return `${BOM}${[
+        line([...labels.columns, ...table.columns.map((id) => inert(labels.memberName(id)))]),
+        ...(table.opening ? [balance(labels.opening, table.opening)] : []),
+        ...rows,
+        balance(labels.closing, table.closing),
+    ].join('\r\n')}\r\n`;
+};
+
+// The file of a group: its name as the screens say it, kept to what a file name can hold, and the day of the device
+const groupFileName = (title: string, now: Date): string => {
+    const words = title.replace(UNSAFE_IN_FILE_NAME, ' ').trim().replace(/\s+/g, '-');
+    // By code points, so a character made of two units is never cut in half
+    const name = Array.from(words).slice(0, FILE_NAME_MAX_LENGTH).join('').replace(/-+$/, '');
+    return name === '' ? `tarja-${toDateString(now)}.csv` : `tarja-${name}-${toDateString(now)}.csv`;
+};
+
 export {
     backupJson,
     buildBackup,
     expensesCsv,
     exportFileName,
+    groupCsv,
+    groupFileName,
     type Backup,
     type BackupData,
     type BackupLedger,
     type CsvLabels,
+    type GroupCsvLabels,
 };

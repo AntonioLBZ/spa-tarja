@@ -146,6 +146,7 @@
         "dismiss": "Dismiss"
     },
     "nav": {
+        "account": "Account",
         "add": "Add expense",
         "addWord": "Add",
         "back": "Back to {place}",
@@ -293,7 +294,38 @@
                 "personal": "Your part",
                 "part": "Part",
                 "group": "Group"
-            }
+            },
+            "print": "Printable view"
+        },
+        "print": {
+            "title": "Your expenses",
+            "hint": "Your expenses as the list shows them, in one table to print or save as a PDF.",
+            "print": "Print",
+            "range": {
+                "all": "All your expenses",
+                "from": "From {from}",
+                "to": "Up to {to}",
+                "between": "{from} to {to}"
+            },
+            "search": "“{query}”",
+            "plan": "{parts} payments",
+            "columns": {
+                "date": "Date",
+                "text": "Expense",
+                "category": "Category",
+                "payment": "Payment",
+                "group": "Group",
+                "amount": "Amount"
+            },
+            "total": "Total",
+            "paid": {
+                "direct": "Paid now",
+                "credit": "By credit card",
+                "voucher": "By restaurant card",
+                "plan": "In installments"
+            },
+            "missing": "The expenses of some groups aren't on this device yet, so they are left out of the table and its total.",
+            "loading": "Loading the expenses of your groups so they go in the table…"
         },
         "account": {
             "title": "Account",
@@ -621,7 +653,38 @@
             "save": "Save",
             "pin": "Pin to Expenses",
             "pinHint": "Shows as a tab in Expenses.",
-            "pinFull": "You already have {max} pinned to Expenses. Unpin one to pin another."
+            "pinFull": "You already have {max} pinned to Expenses. Unpin one to pin another.",
+            "export": "Export",
+            "exportHint": "A table of the expenses, to print or open in a spreadsheet.",
+            "exportLink": "See the table"
+        },
+        "export": {
+            "hint": "Every expense and what it does to each person's balance, in one table. Print it, save it as a PDF or open it in a spreadsheet.",
+            "print": "Print",
+            "csv": "Download CSV",
+            "empty": "No expenses to show.",
+            "range": {
+                "all": "All the expenses",
+                "from": "From {from}",
+                "to": "Up to {to}",
+                "between": "{from} to {to}"
+            },
+            "columns": {
+                "date": "Date",
+                "text": "Expense",
+                "category": "Category",
+                "paidBy": "Paid by",
+                "amount": "Amount",
+                "currency": "Currency"
+            },
+            "opening": "Balance before {day}",
+            "closing": "Balance",
+            "total": "Total of these rows",
+            "caption": {
+                "paidBy": "Paid by {name}",
+                "with": "With {name}",
+                "search": "“{query}”"
+            }
         },
         "people": {
             "title": "People",

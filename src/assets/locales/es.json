@@ -146,6 +146,7 @@
         "dismiss": "Cerrar"
     },
     "nav": {
+        "account": "Cuenta",
         "add": "Añadir gasto",
         "addWord": "Añadir",
         "back": "Volver a {place}",
@@ -293,7 +294,38 @@
                 "personal": "Tu parte",
                 "part": "Parte",
                 "group": "Grupo"
-            }
+            },
+            "print": "Vista para imprimir"
+        },
+        "print": {
+            "title": "Tus gastos",
+            "hint": "Tus gastos como los muestra la lista, en una tabla para imprimirla o guardarla como PDF.",
+            "print": "Imprimir",
+            "range": {
+                "all": "Todos tus gastos",
+                "from": "Desde el {from}",
+                "to": "Hasta el {to}",
+                "between": "Del {from} al {to}"
+            },
+            "search": "«{query}»",
+            "plan": "{parts} plazos",
+            "columns": {
+                "date": "Fecha",
+                "text": "Gasto",
+                "category": "Categoría",
+                "payment": "Pago",
+                "group": "Grupo",
+                "amount": "Importe"
+            },
+            "total": "Total",
+            "paid": {
+                "direct": "Pagado al momento",
+                "credit": "Con tarjeta de crédito",
+                "voucher": "Con tarjeta restaurante",
+                "plan": "A plazos"
+            },
+            "missing": "Los gastos de algunos grupos aún no están en este dispositivo, así que faltan en la tabla y en su total.",
+            "loading": "Cargando los gastos de tus grupos para que entren en la tabla…"
         },
         "account": {
             "title": "Cuenta",
@@ -621,7 +653,38 @@
             "save": "Guardar",
             "pin": "Fijar en Gastos",
             "pinHint": "Sale como pestaña en Gastos.",
-            "pinFull": "Ya tienes {max} fijados en Gastos. Desfija uno para fijar otro."
+            "pinFull": "Ya tienes {max} fijados en Gastos. Desfija uno para fijar otro.",
+            "export": "Exportar",
+            "exportHint": "Una tabla de los gastos, para imprimirla o abrirla en una hoja de cálculo.",
+            "exportLink": "Ver la tabla"
+        },
+        "export": {
+            "hint": "Cada gasto y lo que mueve en el saldo de cada persona, en una tabla. Imprímela, guárdala como PDF o ábrela en una hoja de cálculo.",
+            "print": "Imprimir",
+            "csv": "Descargar CSV",
+            "empty": "No hay gastos que mostrar.",
+            "range": {
+                "all": "Todos los gastos",
+                "from": "Desde el {from}",
+                "to": "Hasta el {to}",
+                "between": "Del {from} al {to}"
+            },
+            "columns": {
+                "date": "Fecha",
+                "text": "Gasto",
+                "category": "Categoría",
+                "paidBy": "Pagó",
+                "amount": "Importe",
+                "currency": "Moneda"
+            },
+            "opening": "Saldo antes del {day}",
+            "closing": "Saldo",
+            "total": "Total de estas filas",
+            "caption": {
+                "paidBy": "Pagó {name}",
+                "with": "Con {name}",
+                "search": "«{query}»"
+            }
         },
         "people": {
             "title": "Personas",

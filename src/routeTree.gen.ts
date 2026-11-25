@@ -18,11 +18,13 @@ import { Route as GroupsIndexRouteImport } from './routes/groups.index'
 import { Route as GroupsNewRouteImport } from './routes/groups.new'
 import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
-import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings.appearance'
 import { Route as SettingsCategoriesRouteImport } from './routes/settings.categories'
 import { Route as GroupsGroupIdIndexRouteImport } from './routes/groups.$groupId.index'
 import { Route as GroupsGroupIdEditRouteImport } from './routes/groups.$groupId.edit'
+import { Route as GroupsGroupIdExportRouteImport } from './routes/groups.$groupId.export'
+import { Route as SettingsAccountIndexRouteImport } from './routes/settings.account.index'
+import { Route as SettingsAccountPrintRouteImport } from './routes/settings.account.print'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,11 +71,6 @@ const SettingsIndexRoute = SettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsAccountRoute = SettingsAccountRouteImport.update({
-  id: '/settings/account',
-  path: '/settings/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   id: '/settings/appearance',
   path: '/settings/appearance',
@@ -94,6 +91,21 @@ const GroupsGroupIdEditRoute = GroupsGroupIdEditRouteImport.update({
   path: '/groups/$groupId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GroupsGroupIdExportRoute = GroupsGroupIdExportRouteImport.update({
+  id: '/groups/$groupId/export',
+  path: '/groups/$groupId/export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAccountIndexRoute = SettingsAccountIndexRouteImport.update({
+  id: '/settings/account/',
+  path: '/settings/account/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAccountPrintRoute = SettingsAccountPrintRouteImport.update({
+  id: '/settings/account/print',
+  path: '/settings/account/print',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,13 +115,15 @@ export interface FileRoutesByFullPath {
   '/summary': typeof SummaryRoute
   '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
-  '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/groups/': typeof GroupsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId/export': typeof GroupsGroupIdExportRoute
+  '/settings/account/print': typeof SettingsAccountPrintRoute
   '/groups/$groupId/': typeof GroupsGroupIdIndexRoute
+  '/settings/account/': typeof SettingsAccountIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,13 +133,15 @@ export interface FileRoutesByTo {
   '/summary': typeof SummaryRoute
   '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
-  '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/groups': typeof GroupsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId/export': typeof GroupsGroupIdExportRoute
+  '/settings/account/print': typeof SettingsAccountPrintRoute
   '/groups/$groupId': typeof GroupsGroupIdIndexRoute
+  '/settings/account': typeof SettingsAccountIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,13 +152,15 @@ export interface FileRoutesById {
   '/summary': typeof SummaryRoute
   '/groups/new': typeof GroupsNewRoute
   '/join/$token': typeof JoinTokenRoute
-  '/settings/account': typeof SettingsAccountRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/categories': typeof SettingsCategoriesRoute
   '/groups/': typeof GroupsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/groups/$groupId/edit': typeof GroupsGroupIdEditRoute
+  '/groups/$groupId/export': typeof GroupsGroupIdExportRoute
+  '/settings/account/print': typeof SettingsAccountPrintRoute
   '/groups/$groupId/': typeof GroupsGroupIdIndexRoute
+  '/settings/account/': typeof SettingsAccountIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -154,13 +172,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/groups/new'
     | '/join/$token'
-    | '/settings/account'
     | '/settings/appearance'
     | '/settings/categories'
     | '/groups/'
     | '/settings/'
     | '/groups/$groupId/edit'
+    | '/groups/$groupId/export'
+    | '/settings/account/print'
     | '/groups/$groupId/'
+    | '/settings/account/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,13 +190,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/groups/new'
     | '/join/$token'
-    | '/settings/account'
     | '/settings/appearance'
     | '/settings/categories'
     | '/groups'
     | '/settings'
     | '/groups/$groupId/edit'
+    | '/groups/$groupId/export'
+    | '/settings/account/print'
     | '/groups/$groupId'
+    | '/settings/account'
   id:
     | '__root__'
     | '/'
@@ -186,13 +208,15 @@ export interface FileRouteTypes {
     | '/summary'
     | '/groups/new'
     | '/join/$token'
-    | '/settings/account'
     | '/settings/appearance'
     | '/settings/categories'
     | '/groups/'
     | '/settings/'
     | '/groups/$groupId/edit'
+    | '/groups/$groupId/export'
+    | '/settings/account/print'
     | '/groups/$groupId/'
+    | '/settings/account/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -203,13 +227,15 @@ export interface RootRouteChildren {
   SummaryRoute: typeof SummaryRoute
   GroupsNewRoute: typeof GroupsNewRoute
   JoinTokenRoute: typeof JoinTokenRoute
-  SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsCategoriesRoute: typeof SettingsCategoriesRoute
   GroupsIndexRoute: typeof GroupsIndexRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
   GroupsGroupIdEditRoute: typeof GroupsGroupIdEditRoute
+  GroupsGroupIdExportRoute: typeof GroupsGroupIdExportRoute
+  SettingsAccountPrintRoute: typeof SettingsAccountPrintRoute
   GroupsGroupIdIndexRoute: typeof GroupsGroupIdIndexRoute
+  SettingsAccountIndexRoute: typeof SettingsAccountIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -277,13 +303,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/account': {
-      id: '/settings/account'
-      path: '/settings/account'
-      fullPath: '/settings/account'
-      preLoaderRoute: typeof SettingsAccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/settings/appearance': {
       id: '/settings/appearance'
       path: '/settings/appearance'
@@ -312,6 +331,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsGroupIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/groups/$groupId/export': {
+      id: '/groups/$groupId/export'
+      path: '/groups/$groupId/export'
+      fullPath: '/groups/$groupId/export'
+      preLoaderRoute: typeof GroupsGroupIdExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/account/': {
+      id: '/settings/account/'
+      path: '/settings/account'
+      fullPath: '/settings/account/'
+      preLoaderRoute: typeof SettingsAccountIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/account/print': {
+      id: '/settings/account/print'
+      path: '/settings/account/print'
+      fullPath: '/settings/account/print'
+      preLoaderRoute: typeof SettingsAccountPrintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -323,13 +363,15 @@ const rootRouteChildren: RootRouteChildren = {
   SummaryRoute: SummaryRoute,
   GroupsNewRoute: GroupsNewRoute,
   JoinTokenRoute: JoinTokenRoute,
-  SettingsAccountRoute: SettingsAccountRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsCategoriesRoute: SettingsCategoriesRoute,
   GroupsIndexRoute: GroupsIndexRoute,
   SettingsIndexRoute: SettingsIndexRoute,
   GroupsGroupIdEditRoute: GroupsGroupIdEditRoute,
+  GroupsGroupIdExportRoute: GroupsGroupIdExportRoute,
+  SettingsAccountPrintRoute: SettingsAccountPrintRoute,
   GroupsGroupIdIndexRoute: GroupsGroupIdIndexRoute,
+  SettingsAccountIndexRoute: SettingsAccountIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

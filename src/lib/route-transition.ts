@@ -10,17 +10,19 @@ const DEPTHS: Record<string, number> = {
     '/settings/appearance': 2,
     '/settings/categories': 2,
     '/settings/account': 2,
+    '/settings/account/print': 3,
     '/charts': 2,
     '/budgets': 2,
 };
 
 const GROUP_PATH = /^\/groups\/[^/]+$/;
-const GROUP_SETTINGS_PATH = /^\/groups\/([^/]+)\/edit$/;
+// The settings of a group and its table to export, both reached from the group
+const GROUP_PAGE_PATH = /^\/groups\/([^/]+)\/(?:edit|export)$/;
 
 // The screens of one group, and the page of an invitation, by the shape of their path
 const PATH_DEPTHS: ReadonlyArray<readonly [RegExp, number]> = [
     [GROUP_PATH, 2],
-    [GROUP_SETTINGS_PATH, 3],
+    [GROUP_PAGE_PATH, 3],
     [/^\/join\/[^/]+$/, 1],
 ];
 
@@ -41,6 +43,7 @@ const SECTIONS: Record<string, NavSection> = {
     '/settings/appearance': '/settings',
     '/settings/categories': '/settings',
     '/settings/account': '/settings',
+    '/settings/account/print': '/settings',
 };
 
 const navSection = (pathname: string): NavSection => {
@@ -48,13 +51,15 @@ const navSection = (pathname: string): NavSection => {
     return SECTIONS[pathname] ?? (underGroups ? '/groups' : '/');
 };
 
-type BackTarget = { to: NavSection } | { to: '/groups/$groupId'; params: { groupId: string } };
+type BackTarget = { to: NavSection | '/settings/account' } | { to: '/groups/$groupId'; params: { groupId: string } };
 
 // Where the link back of a screen deeper than a tab leads: its parent, whatever the history, so it is the same after
-// the screen was opened from a link. A group's settings lead to the group; the others to the tab they fall under.
+// the screen was opened from a link. A group's settings and its export lead to the group, the printable view of the
+// expenses to the account; the others to the tab they fall under.
 const backTarget = (pathname: string): BackTarget | undefined => {
     if (routeDepth(pathname) < 2) return undefined;
-    const groupId = GROUP_SETTINGS_PATH.exec(pathname)?.[1];
+    if (pathname === '/settings/account/print') return { to: '/settings/account' };
+    const groupId = GROUP_PAGE_PATH.exec(pathname)?.[1];
     return groupId ? { to: '/groups/$groupId', params: { groupId } } : { to: navSection(pathname) };
 };
 

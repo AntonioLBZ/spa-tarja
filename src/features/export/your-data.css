@@ -12,3 +12,8 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
     justify-self: stretch;
 }
+
+/* The printable view is a page, not a file: a row of its own under the two files */
+.your-data__print {
+    grid-column: 1 / -1;
+}

@@ -83,3 +83,9 @@
     flex: none;
     justify-content: center;
 }
+
+@media print {
+    .banner-region {
+        display: none;
+    }
+}

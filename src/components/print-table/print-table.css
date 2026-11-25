@@ -1,0 +1,71 @@
+/* A table wider than the column scrolls inside its own box, which the keyboard can reach */
+.print-table {
+    overflow-x: auto;
+}
+
+.print-table:focus-visible {
+    outline: var(--focus-width) solid var(--color-border-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.print-table__table {
+    border-collapse: collapse;
+    font-size: var(--font-size-s);
+    min-width: 100%;
+}
+
+.print-table__caption {
+    color: var(--color-content-secondary);
+    padding-bottom: var(--size-2);
+    text-align: start;
+}
+
+.print-table__table th,
+.print-table__table td {
+    border-bottom: var(--size-px) solid var(--color-border-subtle);
+    font-weight: inherit;
+    padding: var(--size-2) var(--size-3);
+    text-align: start;
+    vertical-align: top;
+}
+
+.print-table__table thead th {
+    border-bottom: var(--size-1) solid var(--color-border);
+    color: var(--color-content-secondary);
+    vertical-align: bottom;
+}
+
+.print-table__table .print-table__number {
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    white-space: nowrap;
+}
+
+/* A heading over amounts, which may wrap */
+.print-table__table .print-table__end {
+    text-align: end;
+}
+
+.print-table__date {
+    white-space: nowrap;
+}
+
+.print-table__sum {
+    font-weight: bold;
+}
+
+.print-table__table .print-table__sum--last > * {
+    border-bottom: none;
+    border-top: var(--size-1) solid var(--color-border);
+}
+
+/* On paper the table takes the width of the sheet and a row is never cut between two sheets */
+@media print {
+    .print-table {
+        overflow: visible;
+    }
+
+    .print-table__table tr {
+        break-inside: avoid;
+    }
+}

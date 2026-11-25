@@ -107,3 +107,11 @@
         --duration-reveal: 0ms;
     }
 }
+
+/* Paper is light whatever the theme */
+@media print {
+    :root,
+    :root[data-theme] {
+        color-scheme: light;
+    }
+}

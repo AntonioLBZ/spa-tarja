@@ -25,12 +25,6 @@ When the "+" opens, offer the 3 or 4 texts the person types most, to fill the fo
 
 In the balances of a group, a "Remind" on a debt you are owed sends a Web Push to the debtor, on their devices that allow it. Needs an ADR that refines [ADR-0025](docs/adr/0025-shared-expenses-notify-the-people-they-concern.md): how often one can remind (a limit per pair and day), what the push says, and that it needs a connection.
 
-## 27. Export a group, import, and a printable view
-
-- **Export one group** to CSV, from the group's screen, for people who don't use the app.
-- **Import** a backup (the JSON of the export). Out of scope today ([ADR-0001](docs/adr/0001-scope-of-the-app.md), [ADR-0012](docs/adr/0012-shared-expenses.md)): a new ADR first, deciding what is imported (own expenses, categories, budgets; never groups), and how ids and conflicts are handled.
-- **A printable view**: a new page for a group or for your expenses over a range, laid out for printing or saving as PDF from the browser (`@media print`).
-
 ## 28. Empty states and the first run
 
 Go over what a new person sees on every screen: no expenses, no groups, no friends, no budget, no income. Each empty screen says what it is for and offers the one action that fills it.

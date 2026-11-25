@@ -197,6 +197,22 @@ const buildList = (
     return groupItems(listItems(expenses), filters, grouping, ctx);
 };
 
+interface ListTable {
+    // The rows that pass the filters, the oldest first
+    items: ListItem[];
+    // What they add up to, as the subtotals of the list do
+    totalCents: number;
+}
+
+// The rows of the list in one table to be printed: the same rows, filters and sums as the list, read from the oldest
+const listTable = (items: readonly ListItem[], filters: ListFilters, ctx: ListContext): ListTable => {
+    const groups = groupItems(items, filters, 'day', ctx);
+    return {
+        items: groups.flatMap((group) => group.items).toReversed(),
+        totalCents: groups.reduce((sum, group) => sum + group.totalCents, 0),
+    };
+};
+
 // The first `max` rows of the groups, in order. A group cut short keeps the subtotal of all its rows.
 const limitRows = (groups: readonly ListGroup[], max: number): ListGroup[] => {
     const limited: ListGroup[] = [];
@@ -236,13 +252,16 @@ export {
     groupItems,
     hasFilters,
     isListGrouping,
+    itemCents,
     limitRows,
     listItems,
+    listTable,
     openingFilters,
     shownExpense,
     type ListContext,
     type ListFilters,
     type ListGroup,
     type ListGrouping,
+    type ListTable,
     type PaidWith,
 };

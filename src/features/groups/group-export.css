@@ -1,0 +1,18 @@
+.group-export {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* The actions, and the button of the filters at the end of their row */
+.group-export__controls {
+    align-items: center;
+    display: flex;
+    gap: var(--size-4);
+    justify-content: space-between;
+}
+
+/* The status line takes its own place, or none while it is idle, as if the wrapper that hides it on paper weren't there */
+.group-export__status {
+    display: contents;
+}

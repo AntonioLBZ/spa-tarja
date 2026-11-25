@@ -170,6 +170,7 @@ const BACK_WORDS = {
     '/groups/$groupId': 'group',
     '/summary': 'summary',
     '/settings': 'settings',
+    '/settings/account': 'account',
 } as const satisfies Record<BackTarget['to'], string>;
 
 // The link back to the parent of a screen deeper than a tab, named for the place it leads to
