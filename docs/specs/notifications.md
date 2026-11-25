@@ -10,7 +10,7 @@ How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/002
     - somebody else made: its `createdBy` is not the person's member (`me` of `GET /groups`), so the person's own entries made on another device are not told; an entry whose author deleted their account (no `createdBy`) is told;
     - concerns the person: an expense with a share of theirs, or a settlement they pay (`paidBy`) or are paid (its one share), every member read through `canonicalMember`, so a placeholder merged into them counts as them.
 - **Not told**: an edit or a delete of an entry the device holds, an entry between two other members, and anything brought by the first pull of a group (no pull of it ever went through on the device; a copy kept with a cursor counts as pulled), which would be its whole history. The first entry of a group the device pulled while it was empty is told. What a group wrote while the person was away and is brought by the pull after they come back ([groups](groups.md)) is told, summed up as below.
-- `noticesFor` (`core/notices.ts`) decides it from the entries the device held, the entries a pull brought and the group; it is the one rule, used by the device for the banner and by the server for the push. Your part is the cents of the person's share for an expense, and the amount for a settlement.
+- `noticesFor` (`core/groups/notices.ts`) decides it from the entries the device held, the entries a pull brought and the group; it is the one rule, used by the device for the banner and by the server for the push. Your part is the cents of the person's share for an expense, and the amount for a settlement.
 
 ## The watcher
 
