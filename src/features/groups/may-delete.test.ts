@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
 
 import { mayDelete } from './may-delete';
 

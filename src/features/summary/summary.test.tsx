@@ -7,11 +7,11 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
 import { PERSIST_BUSTER, createPersister, createUserStorage } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
-import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER } from '@/lib/testing/fake-auth';
+import { leaveCopy, person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';

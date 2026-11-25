@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { EXPENSES_KEY, type ExpensesState } from '@/lib/api';
 import { createQueryClient } from '@/lib/query-client';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { stubApi } from '@/lib/testing/render-app';
 
 import { OUTBOX_STORAGE_KEY, createOutbox } from './outbox';
 import { expensesQuery, syncExpenses } from './sync';

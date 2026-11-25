@@ -5,9 +5,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { readCachedUser } from '@/lib/auth';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 function googleButton() {
     return screen.getByRole('button', { name: en.auth.google }) as HTMLButtonElement;

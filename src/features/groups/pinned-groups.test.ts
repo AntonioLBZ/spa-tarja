@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { sampleGroup } from '@/lib/test/groups';
+import { sampleGroup } from '@/lib/testing/groups';
 
 import { pinnedGroups } from './pinned-groups';
 

@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { ApiError } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 import {
     MAX_CLOSED_GROUPS,
     MAX_FRIENDS,

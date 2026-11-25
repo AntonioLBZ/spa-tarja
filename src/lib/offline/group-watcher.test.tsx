@@ -2,10 +2,10 @@ import { focusManager } from '@tanstack/react-query';
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createFakeApi } from '@/lib/test/fake-api';
-import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
 import { WATCH_EVERY_MS, useGroupWatcher } from './group-watcher';
 

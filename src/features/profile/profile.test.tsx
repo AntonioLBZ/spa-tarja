@@ -6,8 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { PROFILE_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { NICKNAME_MAX_LENGTH } from '@core/profile';
 
 const t = createTranslator({ locale: 'en', messages: en });

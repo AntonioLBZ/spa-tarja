@@ -4,11 +4,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { installFakePush } from '@/lib/test/fake-push';
-import { person, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { installFakePush } from '@/lib/testing/fake-push';
+import { person, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import type { SharedGroup } from '@core/shared-group';
 

@@ -3,9 +3,9 @@ import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useGroupOutbox } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
 import { useSharedExpenseRows } from './use-shared-expense-rows';
 

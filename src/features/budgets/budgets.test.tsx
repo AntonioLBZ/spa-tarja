@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { BUDGETS_KEY, CATEGORIES_KEY, INCOME_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { DEFAULT_CATEGORY_IDS } from '@core/categories';
 
 import type { Budget } from '@core/budget';

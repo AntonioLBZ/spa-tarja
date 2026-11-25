@@ -1,6 +1,6 @@
 import { SignInScreen as SignInScreenComponent, type SignInScreenProps } from '@/features/auth/sign-in-screen';
 import { AuthProvider } from '@/lib/auth';
-import { createFakeAuth } from '@/lib/test/fake-auth';
+import { createFakeAuth } from '@/lib/testing/fake-auth';
 import { useState } from 'react';
 
 import type { Meta } from '@storybook/react-vite';

@@ -4,13 +4,13 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { formatAmount } from '@core/money';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { Handler } from '@/lib/test/render-app';
+import type { Handler } from '@/lib/testing/render-app';
 import type { GroupMember, SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });

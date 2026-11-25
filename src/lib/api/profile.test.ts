@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
-import { stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER } from '@/lib/testing/fake-auth';
+import { stubApi } from '@/lib/testing/render-app';
 
 import { ApiError } from './api-error';
 import { fetchProfile, putProfile } from './profile';

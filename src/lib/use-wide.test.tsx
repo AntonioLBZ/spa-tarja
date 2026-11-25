@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { stubViewport } from '@/lib/test/viewport';
+import { stubViewport } from '@/lib/testing/viewport';
 
 import { useWide } from './use-wide';
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api';
-import { stubApi } from '@/lib/test/render-app';
+import { stubApi } from '@/lib/testing/render-app';
 
 import { createAuthService } from './service';
 

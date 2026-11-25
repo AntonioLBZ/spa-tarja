@@ -4,11 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { EXPENSES_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { leaveCopy as leaveGroupsCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { leaveCopy as leaveGroupsCopy, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import { PERSIST_BUSTER, createPersister } from './persister';
 import { readSharedWith, rememberSharedWith } from './shared-with';

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleGroup } from '@/lib/test/groups';
-import { stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleGroup } from '@/lib/testing/groups';
+import { stubApi } from '@/lib/testing/render-app';
 
 import { ApiError } from './api-error';
 import {

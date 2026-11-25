@@ -4,11 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { GROUPS_KEY, deleteMember, groupEntriesKey, type GroupEntriesState } from '@/lib/api';
 import { createUserStorage, useGroupOutbox } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { leaveCopy, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
 import { useLedger, useLedgers } from './use-ledgers';
 

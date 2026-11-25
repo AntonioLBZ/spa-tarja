@@ -3,12 +3,12 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { stubPageScroll } from '@/lib/test/scroll';
-import { openAddSheet } from '@/lib/test/sheet';
-import { stubViewport } from '@/lib/test/viewport';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { stubPageScroll } from '@/lib/testing/scroll';
+import { openAddSheet } from '@/lib/testing/sheet';
+import { stubViewport } from '@/lib/testing/viewport';
 
 const t = createTranslator({ locale: 'en', messages: en });
 

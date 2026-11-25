@@ -5,8 +5,8 @@ import { useEffect, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 import { useGroupOutbox, useOutbox, type KeyValueStorage, type Outbox, type PendingEntry } from '@/lib/offline';
-import { createFakeAuth } from '@/lib/test/fake-auth';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { createFakeAuth } from '@/lib/testing/fake-auth';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { AppProviders } from '@/providers';
 import { createAppRouter } from '@/router';
 

@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import { useRef } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { stubPageScroll, type PageScroll } from '@/lib/test/scroll';
+import { stubPageScroll, type PageScroll } from '@/lib/testing/scroll';
 
 import { useHideOnScroll } from './use-hide-on-scroll';
 

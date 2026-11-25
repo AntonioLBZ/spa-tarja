@@ -4,9 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError, GROUPS_KEY, PENDING_INVITATIONS_KEY, pendingInvitationsQuery } from '@/lib/api';
 import { useGroupOutbox } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 import { DEFAULT_CURRENCY } from '@core/money';
 
 import { LocalRefusal } from './local-refusal';

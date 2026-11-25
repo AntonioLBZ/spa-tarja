@@ -6,11 +6,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { GROUPS_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER } from '@/lib/testing/fake-auth';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { chosenOption, optionNames, pickOption } from '@/lib/testing/select';
 import { formatAmount } from '@core/money';
 import {
     MAX_CLOSED_GROUPS,

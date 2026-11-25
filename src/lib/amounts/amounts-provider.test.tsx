@@ -1,8 +1,8 @@
 import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
 import { useAmount, useAmountPreferences, useMoney } from './amounts-provider';
 

@@ -13,7 +13,7 @@ import {
     invitationQuery,
     pendingInvitationsQuery,
 } from '@/lib/api';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 
 import {
     PERSIST_BUSTER,

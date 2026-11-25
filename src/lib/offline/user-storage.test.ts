@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 
 import { readHomeTab, rememberHomeTab } from './home-tab';
 import { readSharedWith, rememberSharedWith } from './shared-with';

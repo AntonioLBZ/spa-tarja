@@ -3,10 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { GROUPS_KEY, deleteMember, groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
 import { createQueryClient } from '@/lib/query-client';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { stubApi } from '@/lib/testing/render-app';
 
 import { groupEntriesQuery, syncGroup } from './group-sync';
 import { subscribeNotices } from './notices';
