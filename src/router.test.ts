@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { skipNextSlide } from '@/lib/swipe-slide';
+import { skipNextSlide } from '@/lib/navigation';
 
 import { createAppRouter } from './router';
 

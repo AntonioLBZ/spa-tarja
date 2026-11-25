@@ -6,15 +6,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { GROUPS_KEY, groupEntriesKey } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { optionNames, pickOption } from '@/lib/test/select';
-import { openAddSheet } from '@/lib/test/sheet';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { optionNames, pickOption } from '@/lib/testing/select';
+import { openAddSheet } from '@/lib/testing/sheet';
 import { formatAmount } from '@core/money';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { SeededEntry } from '@/lib/test/fake-groups';
+import type { SeededEntry } from '@/lib/testing/fake-groups';
 import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });

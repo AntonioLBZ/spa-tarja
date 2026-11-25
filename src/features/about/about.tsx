@@ -5,8 +5,7 @@ import { useTranslations } from 'use-intl';
 import { CardList, CardTerm } from '@/components/card/card';
 import { PrivacyNotice } from '@/features/auth/privacy-notice';
 import { healthQuery } from '@/lib/api';
-import { REPOSITORY_URL } from '@/lib/repository';
-import { appVersion } from '@/lib/version';
+import { appVersion, REPOSITORY_URL } from '@/lib/app-info';
 
 import './about.css';
 

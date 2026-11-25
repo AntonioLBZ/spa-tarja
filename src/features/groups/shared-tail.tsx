@@ -13,7 +13,7 @@ import { useAmountPlaceholder, useMoney } from '@/lib/amounts';
 import { useUser } from '@/lib/auth';
 import { useLocale } from '@/lib/i18n';
 import { readSharedWith } from '@/lib/offline';
-import { randomSeed } from '@/lib/random-seed';
+import { randomSeed } from '@/lib/random';
 import { formatAmountInput, parseAmount } from '@core/money';
 import { SPLIT_MODES } from '@core/shared-entry';
 import { canonicalMember } from '@core/shared-member';

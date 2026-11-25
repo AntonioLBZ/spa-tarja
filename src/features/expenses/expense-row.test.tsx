@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { createFakeAuth } from '@/lib/test/fake-auth';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { createFakeAuth } from '@/lib/testing/fake-auth';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { AppProviders } from '@/providers';
 
 import { ExpenseRow, type ExpenseRowProps } from './expense-row';

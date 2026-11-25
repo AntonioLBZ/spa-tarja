@@ -33,6 +33,7 @@ export {
 } from './invitations';
 export { PROFILE_KEY, fetchProfile, putProfile } from './profile';
 export { deletePush, fetchPushKey, putPush } from './push';
+export { createQueryClient } from './query-client';
 export {
     budgetsQuery,
     categoriesQuery,

@@ -1,7 +1,6 @@
 import { createRouter, type RouterHistory } from '@tanstack/react-router';
 
-import { slideTypes, type LocationChange } from './lib/route-transition';
-import { takeSkippedSlide } from './lib/swipe-slide';
+import { type LocationChange, slideTypes, takeSkippedSlide } from './lib/navigation';
 import { routeTree } from './routeTree.gen';
 
 const createAppRouter = (history?: RouterHistory) => {

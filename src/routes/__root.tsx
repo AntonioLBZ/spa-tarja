@@ -19,22 +19,23 @@ import { NoticeBanner } from '@/features/notices/notice-banner';
 import { PushSync } from '@/features/notifications/push-sync';
 import { NicknamePrompt } from '@/features/profile/nickname-prompt';
 import { AppUpdate } from '@/features/pwa/app-update';
-import { useLastHomeTab } from '@/lib/offline';
-import { isPrerelease } from '@/lib/prerelease';
+import { isPrerelease } from '@/lib/app-info';
 import {
     backTarget,
-    navSection,
-    swipeTarget,
     type BackTarget,
+    followSlide,
+    markSwiped,
+    markUndone,
+    navSection,
     type NavSection,
+    skipNextSlide,
     type SwipeDirection,
-} from '@/lib/route-transition';
-import { markSwiped, markUndone } from '@/lib/screen-arrival';
-import { followSlide, skipNextSlide } from '@/lib/swipe-slide';
-import { useHideOnScroll } from '@/lib/use-hide-on-scroll';
-import { useScreenArrivals } from '@/lib/use-screen-arrivals';
-import { useSwipe } from '@/lib/use-swipe';
-import { useWide } from '@/lib/use-wide';
+    swipeTarget,
+    useScreenArrivals,
+    useSwipe,
+} from '@/lib/navigation';
+import { useLastHomeTab } from '@/lib/offline';
+import { useHideOnScroll, useWide } from '@/lib/viewport';
 
 import type { MouseEvent, ReactNode } from 'react';
 

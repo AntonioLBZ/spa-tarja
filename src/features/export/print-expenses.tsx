@@ -14,7 +14,7 @@ import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { useGroupTitles } from '@/features/groups/use-group-options';
 import { useExpenseLedgers, useGroups } from '@/features/groups/use-ledgers';
 import { useMoney } from '@/lib/amounts';
-import { daysCaption } from '@/lib/days-caption';
+import { daysCaption } from '@/lib/files';
 import { useLocale } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
 import { paymentOf } from '@core/counting';

@@ -8,7 +8,7 @@ import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useExpenses } from '@/features/expenses/use-expenses';
 import { sharedRowsOf } from '@/features/groups/use-shared-expense-rows';
 import { budgetsQuery, categoriesQuery, incomeQuery } from '@/lib/api';
-import { downloadFile } from '@/lib/download';
+import { downloadFile } from '@/lib/files';
 import { useLocale } from '@/lib/i18n';
 import { backupJson, expensesCsv, exportFileName, type CsvLabels } from '@core/export';
 

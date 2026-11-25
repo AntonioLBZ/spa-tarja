@@ -4,9 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { createFakeAuth } from '@/lib/test/fake-auth';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { createFakeAuth } from '@/lib/testing/fake-auth';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 const LOCALES = [
     { name: 'en', messages: en },

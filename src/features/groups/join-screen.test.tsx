@@ -6,13 +6,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import indexHtml from '/index.html?raw';
 
 import en from '@/assets/locales/en.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { person, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { person, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS } from '@core/shared-group';
 
-import type { Refusal } from '@/lib/test/fake-groups';
+import type { Refusal } from '@/lib/testing/fake-groups';
 
 const t = createTranslator({ locale: 'en', messages: en });
 

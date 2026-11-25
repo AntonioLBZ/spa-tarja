@@ -5,17 +5,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { GROUPS_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { spokenText } from '@/lib/test/spoken-text';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { leaveCopy, person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { spokenText } from '@/lib/testing/spoken-text';
 import { INVITATION_DAYS } from '@core/invitation';
 import { formatAmount } from '@core/money';
 import { MAX_CLOSED_GROUPS, MAX_GROUP_MEMBERS, MAX_OPEN_GROUPS } from '@core/shared-group';
 
 import type { PendingEntry } from '@/lib/offline';
-import type { Handler } from '@/lib/test/render-app';
+import type { Handler } from '@/lib/testing/render-app';
 import type { SharedGroup } from '@core/shared-group';
 
 const t = createTranslator({ locale: 'en', messages: en });

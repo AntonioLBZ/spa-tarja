@@ -7,21 +7,21 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { CATEGORIES_KEY, GROUPS_KEY, groupEntriesKey } from '@/lib/api';
 import { rememberSharedWith } from '@/lib/offline';
-import { randomSeed } from '@/lib/random-seed';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER, createFakeAuth } from '@/lib/test/fake-auth';
-import { seedFavouring } from '@/lib/test/favouring-seed';
-import { person, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { chosenOption, optionNames, pickOption } from '@/lib/test/select';
-import { openAddSheet, openSplit } from '@/lib/test/sheet';
-import { spokenText } from '@/lib/test/spoken-text';
+import { randomSeed } from '@/lib/random';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER, createFakeAuth } from '@/lib/testing/fake-auth';
+import { seedFavouring } from '@/lib/testing/favouring-seed';
+import { person, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { chosenOption, optionNames, pickOption } from '@/lib/testing/select';
+import { openAddSheet, openSplit } from '@/lib/testing/sheet';
+import { spokenText } from '@/lib/testing/spoken-text';
 import { addMonths, toDateString } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { SharedGroup } from '@core/shared-group';
 
-vi.mock('@/lib/random-seed', () => ({ randomSeed: vi.fn() }));
+vi.mock('@/lib/random', () => ({ randomSeed: vi.fn() }));
 
 const t = createTranslator({ locale: 'en', messages: en });
 const form = en.expenses.form;

@@ -5,10 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { BUDGETS_KEY, EXPENSES_KEY, GROUPS_KEY, INCOME_KEY, groupEntriesKey } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/test/sheet';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { closeSheet, ensureAddSheet, openAddSheet } from '@/lib/testing/sheet';
 
 import type { Budget } from '@core/budget';
 import type { Expense } from '@core/expense';

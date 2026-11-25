@@ -4,10 +4,10 @@ import { createTranslator } from 'use-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { openAddSheet } from '@/lib/test/sheet';
-import { stubViewport } from '@/lib/test/viewport';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { openAddSheet } from '@/lib/testing/sheet';
+import { stubViewport } from '@/lib/testing/viewport';
 
 import type { Expense } from '@core/expense';
 

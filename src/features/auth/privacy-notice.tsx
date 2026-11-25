@@ -3,7 +3,7 @@ import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
-import { CONTACT_EMAIL, CONTACT_MAILTO } from '@/lib/contact';
+import { CONTACT_EMAIL, CONTACT_MAILTO } from '@/lib/app-info';
 
 import './privacy-notice.css';
 

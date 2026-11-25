@@ -6,10 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { GROUPS_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
-import { pickOption } from '@/lib/test/select';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
+import { pickOption } from '@/lib/testing/select';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';

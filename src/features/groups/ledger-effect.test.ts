@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
+import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/testing/groups';
 
 import { ledgerEffect } from './ledger-effect';
 

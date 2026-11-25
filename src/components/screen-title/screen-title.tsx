@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 
 import { useAnnounce } from '@/components/announcer/announcer';
-import { sayWhenSwipeIsDecided, showHeading, takeArrival } from '@/lib/screen-arrival';
+import { sayWhenSwipeIsDecided, showHeading, takeArrival } from '@/lib/navigation';
 
 import './screen-title.css';
 

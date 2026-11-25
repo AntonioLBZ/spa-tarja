@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sampleGroup } from '@/lib/test/groups';
+import { sampleGroup } from '@/lib/testing/groups';
 
 import { newEntry, type EntryFields } from './new-entry';
 

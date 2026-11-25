@@ -3,9 +3,9 @@ import { act, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useGroupOutbox } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderAppHook, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderAppHook, stubApi } from '@/lib/testing/render-app';
 
 import { LocalRefusal } from './local-refusal';
 import { useEntryActions } from './use-entry-actions';

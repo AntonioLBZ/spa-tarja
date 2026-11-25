@@ -1,11 +1,11 @@
 import { AuthGate } from './features/auth/auth-gate';
+import { useFocusSource } from './lib/a11y';
 import { AmountsProvider } from './lib/amounts';
 import { AuthProvider, type Auth } from './lib/auth';
 import { LocaleProvider } from './lib/i18n';
 import { UserDataProvider, type KeyValueStorage } from './lib/offline';
 import { ThemeProvider } from './lib/theme';
-import { useFocusSource } from './lib/use-focus-source';
-import { useOnScreenKeyboard } from './lib/use-on-screen-keyboard';
+import { useOnScreenKeyboard } from './lib/viewport';
 
 import type { ReactNode } from 'react';
 

@@ -14,7 +14,7 @@ import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups
 import { useEntryActions } from '@/features/groups/use-entry-actions';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { focusHeading } from '@/lib/screen-arrival';
+import { focusHeading } from '@/lib/navigation';
 import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { isSharedRow } from '@core/shared-expense';

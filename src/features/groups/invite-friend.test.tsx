@@ -4,8 +4,8 @@ import { createTranslator } from 'use-intl';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 import { INVITATION_DAYS, type PendingInvitation } from '@core/invitation';
 import { MAX_OPEN_INVITATIONS } from '@core/shared-group';
 

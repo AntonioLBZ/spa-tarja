@@ -3,9 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
 import { BUDGETS_KEY, EXPENSES_KEY, INCOME_KEY } from '@/lib/api';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { person, sampleEntry, sampleGroup } from '@/lib/test/groups';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { person, sampleEntry, sampleGroup } from '@/lib/testing/groups';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import type { Budget } from '@core/budget';
 import type { Category } from '@core/category';

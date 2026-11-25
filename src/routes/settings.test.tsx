@@ -6,10 +6,10 @@ import en from '@/assets/locales/en.json';
 import es from '@/assets/locales/es.json';
 import { readCachedUser } from '@/lib/auth';
 import { PERSIST_BUSTER, createUserStorage } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { TEST_USER } from '@/lib/test/fake-auth';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
-import { renderApp, stubApi } from '@/lib/test/render-app';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { TEST_USER } from '@/lib/testing/fake-auth';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
+import { renderApp, stubApi } from '@/lib/testing/render-app';
 
 import type { PendingEntry } from '@/lib/offline';
 import type { Expense } from '@core/expense';

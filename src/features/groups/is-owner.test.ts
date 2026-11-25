@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { person, sampleGroup } from '@/lib/test/groups';
+import { person, sampleGroup } from '@/lib/testing/groups';
 
 import { isOwner } from './is-owner';
 

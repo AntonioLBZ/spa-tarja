@@ -2,9 +2,9 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createContext, use, useEffect, useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 
 import { bindApiUser } from '@/lib/api';
+import { createQueryClient } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { forgetPushInBrowser } from '@/lib/push';
-import { createQueryClient } from '@/lib/query-client';
 
 import { createHomeTab, type HomeTab } from './home-tab';
 import { GROUP_OUTBOX_STORAGE_KEY, OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from './outbox';

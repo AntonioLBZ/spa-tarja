@@ -1,9 +1,9 @@
 import { AuthGate } from '@/features/auth/auth-gate';
 import { AuthProvider } from '@/lib/auth';
 import { UserDataProvider } from '@/lib/offline';
-import { createFakeApi } from '@/lib/test/fake-api';
-import { createFakeAuth } from '@/lib/test/fake-auth';
-import { createMemoryStorage } from '@/lib/test/memory-storage';
+import { createFakeApi } from '@/lib/testing/fake-api';
+import { createFakeAuth } from '@/lib/testing/fake-auth';
+import { createMemoryStorage } from '@/lib/testing/memory-storage';
 import { useLayoutEffect, useState, type ReactNode } from 'react';
 
 import type { Expense } from '@core/expense';
