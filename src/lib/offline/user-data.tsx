@@ -1,8 +1,7 @@
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createContext, use, useEffect, useLayoutEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 
-import { bindApiUser } from '@/lib/api';
-import { createQueryClient } from '@/lib/api';
+import { bindApiUser, createQueryClient } from '@/lib/api';
 import { useAuth, useUser } from '@/lib/auth';
 import { forgetPushInBrowser } from '@/lib/push';
 

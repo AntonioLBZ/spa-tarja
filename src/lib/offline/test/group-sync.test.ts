@@ -1,8 +1,14 @@
 import { QueryObserver } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { GROUPS_KEY, deleteMember, groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
-import { createQueryClient } from '@/lib/api';
+import {
+    GROUPS_KEY,
+    createQueryClient,
+    deleteMember,
+    groupEntriesKey,
+    groupsQuery,
+    type GroupEntriesState,
+} from '@/lib/api';
 import { groupEntriesQuery, syncGroup } from '@/lib/offline/group-sync';
 import { subscribeNotices } from '@/lib/offline/notices';
 import { GROUP_OUTBOX_STORAGE_KEY, createOutbox, type PendingEntry } from '@/lib/offline/outbox';

@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
 import { useKeyboardFocus } from '@/lib/a11y';
-import { readDuration, type SwipeSide, useSwipeAway } from '@/lib/motion';
+import { readDuration, useSwipeAway, type SwipeSide } from '@/lib/motion';
 
 import type { IconName } from '@/components/icon/icon-paths';
 
