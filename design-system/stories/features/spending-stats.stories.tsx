@@ -11,7 +11,7 @@ const Story: Meta<SpendingStatsProps> = {
         today: '2026-10-29',
         compared: {
             current: { from: '2026-10-01', to: '2026-10-29' },
-            previous: { from: '2026-09-02', to: '2026-09-30' },
+            previous: { from: '2026-09-01', to: '2026-09-29' },
             currentCents: 84210,
             previousCents: 76000,
         },

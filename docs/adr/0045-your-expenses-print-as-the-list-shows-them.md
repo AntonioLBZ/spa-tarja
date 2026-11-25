@@ -1,11 +1,11 @@
-# ADR-0044: Your expenses print as the list shows them
+# ADR-0045: Your expenses print as the list shows them
 
 - Status: Proposed
 - Date: 2026-11-24
 
 ## Context
 
-A group prints as one table, the same for everyone ([ADR-0043](0043-a-group-is-exported-as-one-table-the-same-for-everyone.md)). The owner wants the same for a person's own expenses, from the account, next to downloading the data. The CSV there lists each part of a plan as a row of its own and is made for a spreadsheet; the list collapses a plan into one row at its full price on the day it was made and adds up by the day made ([the expense list](../specs/expense-list.md)).
+A group prints as one table, the same for everyone ([ADR-0044](0044-a-group-is-exported-as-one-table-the-same-for-everyone.md)). The owner wants the same for a person's own expenses, from the account, next to downloading the data. The CSV there lists each part of a plan as a row of its own and is made for a spreadsheet; the list collapses a plan into one row at its full price on the day it was made and adds up by the day made ([the expense list](../specs/expense-list.md)).
 
 ## Decision
 

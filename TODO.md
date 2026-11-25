@@ -17,10 +17,6 @@ The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/001
 
 An optional free text on an expense. Analyse before building: where it shows (list row, detail, search), whether shared entries get one too (today their text is empty for settlements), what the export carries, and the length limit. The migration only adds a column.
 
-## 23. Compare months in the Summary
-
-A line in the Summary that compares the month so far with the same days of the month before ("15 % more than October at this point"). The charts already compare spans (`comparison`, `previousRange`): reuse it.
-
 ## 25. Frequent expenses (analysis, likely dropped)
 
 When the "+" opens, offer the 3 or 4 texts the person types most, to fill the form in one press. Not recurring expenses ([ADR-0010](docs/adr/0010-edit-duplicate-and-delete-expenses.md)). Analyse whether it earns its place in the form; the owner will probably drop it.
@@ -32,6 +28,10 @@ In the balances of a group, a "Remind" on a debt you are owed sends a Web Push t
 ## 28. Empty states and the first run
 
 Go over what a new person sees on every screen: no expenses, no groups, no friends, no budget, no income. Each empty screen says what it is for and offers the one action that fills it.
+
+## 32. Pick several categories
+
+A shared control to pick several categories at once, a list of checkboxes with the icon and the name of each, to take the place of the category `Select` of the list filters and of the one-at-a-time pick of the split of the charts ([ADR-0043](docs/adr/0043-the-charts-pick-a-category-from-the-split-and-list-what-they-count.md)). The filter of the list becomes a set of categories; the ledger of a group, which picks among the default ones, could use it too.
 
 ## 18. More locales
 

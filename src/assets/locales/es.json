@@ -110,6 +110,7 @@
             "pending": "Sin sincronizar",
             "charged": "{payment}, se carga el {date}",
             "plan": "{parts} pagos, hasta el {date}",
+            "part": "Pago {part} de {parts}",
             "paid": "Pagaste {total}",
             "youPaid": "Pagaste",
             "youPaidTotal": "Pagaste {total}",
@@ -901,8 +902,6 @@
             "week": "Semana",
             "month": "Mes"
         },
-        "category": "Categoría",
-        "allCategories": "Todas las categorías",
         "from": "Desde",
         "to": "Hasta",
         "resetRange": "Restablecer fechas",
@@ -911,7 +910,13 @@
         "spendingTitle": "Gasto",
         "weekOf": "Semana del {date}",
         "total": "Total",
+        "totalIn": "Total en {category}",
         "byCategory": "Por categoría",
+        "pickHint": "Toca una categoría para ver solo sus gastos; tócala de nuevo para verlas todas.",
+        "picked": "{category}: {total} en total",
+        "pickedAll": "Todas las categorías: {total} en total",
+        "expensesTitle": "Gastos",
+        "showMore": "Mostrar más",
         "empty": "No hay gastos en este periodo.",
         "amount": "Importe",
         "showNumbers": "Ver las cifras",
@@ -925,7 +930,7 @@
         "vsPrevious": "{change} frente a {period}",
         "vsPreviousSoFar": "{change}, {current} frente a {period}",
         "noPrevious": "No hubo gastos en el periodo anterior ({period}) con los que comparar.",
-        "noPreviousSoFar": "{current} frente a {period}: sin gastos en los días anteriores."
+        "noPreviousSoFar": "{current} frente a {period}: sin gastos entonces."
     },
     "nicknamePrompt": {
         "title": "¿Cómo quieres que te vean tus amigos?",

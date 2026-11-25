@@ -66,7 +66,7 @@ interface BalanceRowProps {
 type TableWords = ReturnType<typeof useTableWords>;
 
 // A group's entries as a table, the same whoever exports it: a column per person with what each entry does to their
-// balance, to print, save as a PDF or download as CSV (ADR-0043)
+// balance, to print, save as a PDF or download as CSV (ADR-0044)
 const GroupExport = (props: GroupExportProps) => {
     const { groupId } = props;
 
