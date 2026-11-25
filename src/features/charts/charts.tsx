@@ -1,17 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'use-intl';
 
+import { useAnnounce } from '@/components/announcer/announcer';
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { Field } from '@/components/field/field';
-import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
-import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
+import { useMoney } from '@/lib/amounts';
 import { categoriesQuery } from '@/lib/api';
 import { useWeekStart } from '@/lib/i18n';
 import { FALLBACK_CATEGORY_ID } from '@core/categories';
@@ -21,6 +20,7 @@ import {
     bucketCount,
     categoryTotals,
     comparison,
+    countedExpenses,
     defaultRange,
     spendingBuckets,
     spendingTotal,
@@ -30,6 +30,7 @@ import {
 import { toDateString } from '@core/date';
 
 import { CategorySplit } from './category-split';
+import { CountedExpenses } from './counted-expenses';
 import { SpendingChart } from './spending-chart';
 import { SpendingStats } from './spending-stats';
 
@@ -40,10 +41,13 @@ type Problem = 'rangeInvalid' | 'rangeTooLong';
 const Charts = () => {
     const t = useTranslations('charts');
     const id = useId();
-    const { expenses } = useYourExpenses();
+    const { expenses, pendingIds, sourceOf } = useYourExpenses();
     const { options, labelOf, styleOf } = useCategoryOptions();
     const categories = useQuery(categoriesQuery());
     const weekStart = useWeekStart();
+    const announce = useAnnounce();
+    const money = useMoney();
+    const totalRef = useRef<HTMLParagraphElement>(null);
 
     const [today] = useState(() => toDateString(new Date()));
     const [granularity, setGranularity] = useState<Granularity>('day');
@@ -82,17 +86,28 @@ const Charts = () => {
         [filed, granularity, range, filter, weekStart]
     );
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
-    // Two spans as long as each other, in the same category: the range, or its days up to today, and the span before
+    // The range, or its days up to today, and the same span of the calendar before it, in the same category
     const compared = useMemo(() => {
-        const spans = comparison(granularity, range, today, weekStart);
+        const spans = comparison(range, today);
         if (spans === null) return null;
         return {
             ...spans,
             currentCents: spendingTotal(filed, { range: spans.current, categoryId: filter }),
             previousCents: spendingTotal(filed, { range: spans.previous, categoryId: filter }),
         };
-    }, [filed, granularity, range, today, filter, weekStart]);
+    }, [filed, range, today, filter]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
+    const counted = useMemo(
+        () => countedExpenses(filed, { granularity, range, categoryId: filter, weekStart }),
+        [filed, granularity, range, filter, weekStart]
+    );
+
+    // Pressing a row of the split changes the numbers above it, out of sight on a phone, so the new total is said
+    const pick = (picked: string | null) => {
+        setCategoryId(picked ?? '');
+        const total = money(spendingTotal(filed, { range, categoryId: picked }));
+        announce(picked === null ? t('pickedAll', { total }) : t('picked', { category: labelOf(picked), total }));
+    };
 
     return (
         <section className="charts">
@@ -105,17 +120,6 @@ const Charts = () => {
                 value={granularity}
                 onChange={setGranularity}
             />
-
-            <Field label={t('category')}>
-                {(control) => (
-                    <CategorySelect
-                        {...control}
-                        options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
-                        value={categoryId}
-                        onChange={setCategoryId}
-                    />
-                )}
-            </Field>
 
             <DateRangeFields
                 from={range.from}
@@ -142,6 +146,8 @@ const Charts = () => {
                     compared={compared}
                     partial={compared !== null && compared.current.to !== range.to}
                     today={today}
+                    category={filter === null ? undefined : labelOf(filter)}
+                    totalRef={totalRef}
                 />
             )}
             {problem === null && (
@@ -152,12 +158,26 @@ const Charts = () => {
                     category={filter === null ? null : labelOf(filter)}
                 />
             )}
-            {problem !== 'rangeInvalid' &&
-                (totals.length > 0 ? (
-                    <CategorySplit totals={totals} labelOf={labelOf} styleOf={styleOf} />
-                ) : (
-                    <Notice tone="quiet">{t('empty')}</Notice>
-                ))}
+            {problem !== 'rangeInvalid' && totals.length === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
+            {problem !== 'rangeInvalid' && (totals.length > 0 || filter !== null) && (
+                <CategorySplit
+                    totals={totals}
+                    labelOf={labelOf}
+                    styleOf={styleOf}
+                    picked={filter}
+                    onPick={pick}
+                    onEmptied={() => totalRef.current?.focus()}
+                />
+            )}
+            {problem !== 'rangeInvalid' && counted.length > 0 && (
+                <CountedExpenses
+                    key={`${granularity} ${range.from} ${range.to} ${filter}`}
+                    groups={counted}
+                    granularity={granularity}
+                    pendingIds={pendingIds}
+                    sourceOf={sourceOf}
+                />
+            )}
         </section>
     );
 };

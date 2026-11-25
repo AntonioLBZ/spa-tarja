@@ -9,10 +9,8 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { stubLanguages } from '@/lib/test/languages';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
-import { DEFAULT_CATEGORY_IDS } from '@core/categories';
 import { MAX_BUCKETS } from '@core/charts';
-import { addDays, daysBetween, fromDateString } from '@core/date';
+import { addDays } from '@core/date';
 import { formatAmount } from '@core/money';
 
 import type { Expense } from '@core/expense';
@@ -105,8 +103,12 @@ function readout() {
     return document.getElementById(plot().getAttribute('aria-describedby')!)!;
 }
 
+function totalLine() {
+    return document.querySelector('.spending-stats__total')!;
+}
+
 function changeLine() {
-    return screen.getByText(text.total).closest('p')!.nextElementSibling!;
+    return totalLine().nextElementSibling!;
 }
 
 function period(from: Date, to: Date, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }) {
@@ -120,6 +122,16 @@ const percent = (share: number) =>
 
 function breakdown() {
     return within(screen.getByRole('list', { name: text.byCategory })).getAllByRole('listitem');
+}
+
+function splitRow(name: string) {
+    return within(screen.getByRole('list', { name: text.byCategory })).getByRole('button', {
+        name: new RegExp(`^${name}`),
+    });
+}
+
+function pick(name: string) {
+    fireEvent.click(splitRow(name));
 }
 
 function groupBy(label: string) {
@@ -156,7 +168,7 @@ describe('spending by day', () => {
         await open([expense({ amountCents: 1800, date: '2026-09-20', payment: 'credit', chargeDate: '2026-10-28' })]);
 
         expect(rowOf('Oct 28').textContent).toContain('€18.00');
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€18.00');
+        expect(totalLine().textContent).toContain('€18.00');
     });
 
     it('names each day with its weekday, and the year only when the range needs it', async () => {
@@ -197,7 +209,7 @@ describe('spending by day', () => {
     it('says the total of the period, deleted expenses and other months left out', async () => {
         await open();
 
-        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€89.49');
+        expect(totalLine().textContent).toContain('€89.49');
     });
 
     it('draws a column for every day, as a share of the top of the scale, and none for an empty day', async () => {
@@ -430,7 +442,7 @@ describe('reading a column', () => {
         await open();
         fireEvent.click(slots()[24]!);
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
         expect(readout().textContent).toBe(
             t('charts.readoutCategory', { label: 'Sun, Oct 25', category: en.categories.food, amount: '€3.00' })
@@ -566,15 +578,15 @@ describe('the text alternative', () => {
 
 describe('the stat row', () => {
     const SO_FAR = period(new Date(2026, 9, 1), new Date(2026, 9, 25));
-    const DAYS_BEFORE = period(new Date(2026, 8, 6), new Date(2026, 8, 30));
+    const SAME_DAYS = period(new Date(2026, 8, 1), new Date(2026, 8, 25));
     const monthsOf = (from: Date, to: Date) => period(from, to, { month: 'short', year: 'numeric' });
 
-    it('compares a running range up to today with as many days before it, naming both sides', async () => {
-        await open();
+    it('compares a running month up to today with the same days of the month before, naming both sides', async () => {
+        await open([...EXPENSES, expense({ amountCents: 700, date: '2026-09-10' })]);
 
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€89.49');
+        expect(totalLine().textContent).toContain('€89.49');
         expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPreviousSoFar', { change: percent(8249 / 700), current: SO_FAR, period: DAYS_BEFORE })}`
+            `↑${t('charts.vsPreviousSoFar', { change: percent(8249 / 700), current: SO_FAR, period: SAME_DAYS })}`
         );
         expect(changeLine().querySelector('[aria-hidden="true"]')!.textContent).toBe('↑');
     });
@@ -584,16 +596,16 @@ describe('the stat row', () => {
         await open([
             expense({ amountCents: 500, date: '2026-10-02' }),
             expense({ amountCents: 4000, date: '2026-10-20' }),
-            expense({ amountCents: 1000, date: '2026-09-29' }),
+            expense({ amountCents: 1000, date: '2026-09-02' }),
             expense({ amountCents: 7000, date: '2026-09-10' }),
         ]);
 
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€45.00');
+        expect(totalLine().textContent).toContain('€45.00');
         expect(changeLine().textContent).toBe(
             `↓${t('charts.vsPreviousSoFar', {
                 change: percent(-0.5),
                 current: period(new Date(2026, 9, 1), new Date(2026, 9, 3)),
-                period: period(new Date(2026, 8, 28), new Date(2026, 8, 30)),
+                period: period(new Date(2026, 8, 1), new Date(2026, 8, 3)),
             })}`
         );
     });
@@ -644,7 +656,7 @@ describe('the stat row', () => {
         );
     });
 
-    it('compares the days of a running range by month, not whole months', async () => {
+    it('compares twelve running months with the twelve before, up to the same day a year back', async () => {
         await open();
 
         groupBy(text.group.month);
@@ -653,17 +665,17 @@ describe('the stat row', () => {
         expect(changeLine().textContent).toBe(
             t('charts.noPreviousSoFar', {
                 current: period(new Date(2025, 10, 1), new Date(2026, 9, 25), withYear),
-                period: period(new Date(2024, 10, 7), new Date(2025, 9, 31), withYear),
+                period: period(new Date(2024, 10, 1), new Date(2025, 9, 25), withYear),
             })
         );
     });
 
     it('compares the same category on both sides', async () => {
-        await open();
+        await open([...EXPENSES, expense({ amountCents: 700, date: '2026-09-10' })]);
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€15.50');
+        expect(totalLine().textContent).toContain('€15.50');
         expect(changeLine().textContent).toContain(percent(850 / 700));
     });
 
@@ -674,7 +686,7 @@ describe('the stat row', () => {
         ]);
 
         expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: DAYS_BEFORE })}`
+            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: SAME_DAYS })}`
         );
     });
 
@@ -696,9 +708,9 @@ describe('the stat row', () => {
             }),
         ]);
 
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€10.00');
+        expect(totalLine().textContent).toContain('€10.00');
         expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: DAYS_BEFORE })}`
+            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: SAME_DAYS })}`
         );
     });
 
@@ -709,7 +721,7 @@ describe('the stat row', () => {
         ]);
 
         expect(changeLine().textContent).toBe(
-            `↓${t('charts.vsPreviousSoFar', { change: percent(-0.5), current: SO_FAR, period: DAYS_BEFORE })}`
+            `↓${t('charts.vsPreviousSoFar', { change: percent(-0.5), current: SO_FAR, period: SAME_DAYS })}`
         );
     });
 
@@ -720,7 +732,7 @@ describe('the stat row', () => {
         ]);
 
         expect(changeLine().textContent).toBe(
-            t('charts.vsPreviousSoFar', { change: percent(0), current: SO_FAR, period: DAYS_BEFORE })
+            t('charts.vsPreviousSoFar', { change: percent(0), current: SO_FAR, period: SAME_DAYS })
         );
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
     });
@@ -728,9 +740,9 @@ describe('the stat row', () => {
     it('says when there is nothing to compare with, and which days it looked at', async () => {
         await open();
 
-        pickOption(text.category, en.categories.leisure);
+        pick(en.categories.leisure);
 
-        expect(changeLine().textContent).toBe(t('charts.noPreviousSoFar', { current: SO_FAR, period: DAYS_BEFORE }));
+        expect(changeLine().textContent).toBe(t('charts.noPreviousSoFar', { current: SO_FAR, period: SAME_DAYS }));
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
     });
 
@@ -761,7 +773,7 @@ describe('the stat row', () => {
 
         dates('2026-11-01', '2026-11-30');
 
-        expect(screen.getByText(text.total).closest('p')!.nextElementSibling).toBeNull();
+        expect(totalLine().nextElementSibling).toBeNull();
     });
 
     it('is not there when the dates are refused', async () => {
@@ -769,7 +781,7 @@ describe('the stat row', () => {
 
         dates('2026-10-25', '2026-10-24');
 
-        expect(screen.queryByText(text.total)).toBeNull();
+        expect(document.querySelector('.spending-stats__total')).toBeNull();
         expect(document.querySelector('.spending-stats')).toBeNull();
     });
 
@@ -779,11 +791,10 @@ describe('the stat row', () => {
         dates('2020-01-01', '2026-10-31');
 
         const withYear = { month: 'short', day: 'numeric', year: 'numeric' } as const;
-        const days = daysBetween('2020-01-01', '2026-10-25') + 1;
         expect(changeLine().textContent).toBe(
             t('charts.noPreviousSoFar', {
                 current: period(new Date(2020, 0, 1), new Date(2026, 9, 25), withYear),
-                period: period(fromDateString(addDays('2020-01-01', -days)), new Date(2019, 11, 31), withYear),
+                period: period(new Date(2013, 2, 1), new Date(2019, 11, 25), withYear),
             })
         );
     });
@@ -1053,36 +1064,125 @@ describe('by category', () => {
     });
 });
 
-describe('the category filter', () => {
-    it('starts at every category and lists the built-in ones and the custom ones', async () => {
-        const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
-        await open(EXPENSES, { categories: [gym] });
-
-        expect(chosenOption(text.category)).toBe(text.allCategories);
-        expect(optionNames(text.category)).toEqual([
-            text.allCategories,
-            en.categories.other,
-            ...DEFAULT_CATEGORY_IDS.filter((id) => id !== 'other').map((id) => en.categories[id]),
-            'Gym',
-        ]);
-    });
-
-    it('narrows the bars and the total to one category', async () => {
+describe('picking a category from the split', () => {
+    it('has no list of categories among the filters', async () => {
         await open();
 
-        pickOption(text.category, en.categories.food);
+        expect(screen.queryByRole('combobox')).toBeNull();
+        expect(screen.getByText(text.pickHint)).toBeDefined();
+    });
 
+    it('makes each row of the split a toggle, none pressed at first', async () => {
+        await open();
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(splitRow(en.categories.groceries).getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('narrows the bars and the total to the category pressed, and names it', async () => {
+        await open();
+
+        pick(en.categories.food);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('true');
         expect(rowOf('Oct 25').textContent).toContain('€3.00');
         expect(rowOf('Oct 24').textContent).toContain('€12.50');
-        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€15.50');
+        const total = screen.getByText(t('charts.totalIn', { category: en.categories.food })).closest('p')!;
+        expect(total.textContent).toContain('€15.50');
+    });
+
+    it('lets go of the category when its row is pressed again', async () => {
+        await open();
+
+        pick(en.categories.food);
+        pick(en.categories.food);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(totalLine().textContent).toContain('€89.49');
+    });
+
+    it('moves to another category when another row is pressed', async () => {
+        await open();
+
+        pick(en.categories.food);
+        pick(en.categories.leisure);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(splitRow(en.categories.leisure).getAttribute('aria-pressed')).toBe('true');
+        expect(
+            screen.getByText(t('charts.totalIn', { category: en.categories.leisure })).closest('p')!.textContent
+        ).toContain('€28.00');
     });
 
     it('leaves the split by category alone', async () => {
         await open();
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
         expect(breakdown()).toHaveLength(3);
+    });
+
+    it('keeps the picked category at zero, last, when the new range has none of it, so it can be let go of', async () => {
+        await open();
+        pick(en.categories.leisure);
+
+        dates('2026-10-24', '2026-10-25');
+
+        expect(breakdown()).toHaveLength(3);
+        expect(breakdown().at(-1)!.textContent).toContain(en.categories.leisure);
+        expect(breakdown().at(-1)!.textContent).toContain('€0.00');
+        expect(document.querySelectorAll('.category-split__segment')).toHaveLength(2);
+
+        pick(en.categories.leisure);
+
+        expect(breakdown()).toHaveLength(2);
+    });
+
+    it('moves the focus to the first row that stays when a picked row at zero goes away', async () => {
+        await open();
+        pick(en.categories.leisure);
+        dates('2026-10-24', '2026-10-25');
+        splitRow(en.categories.leisure).focus();
+
+        pick(en.categories.leisure);
+
+        expect(document.activeElement).toBe(splitRow(en.categories.groceries));
+    });
+
+    it('moves the focus to the total when the picked row at zero was the last one', async () => {
+        await open();
+        pick(en.categories.food);
+        dates('2026-10-11', '2026-10-12');
+        splitRow(en.categories.food).focus();
+
+        pick(en.categories.food);
+
+        expect(screen.queryByRole('list', { name: text.byCategory })).toBeNull();
+        expect(document.activeElement).toBe(totalLine());
+    });
+
+    it('says the new total when a category is picked or let go of', async () => {
+        await open();
+        const status = () => [...document.querySelectorAll('[role="status"]')].map((region) => region.textContent);
+
+        pick(en.categories.food);
+        await waitFor(() =>
+            expect(status()).toContain(t('charts.picked', { category: en.categories.food, total: '€15.50' }))
+        );
+
+        pick(en.categories.food);
+        await waitFor(() => expect(status()).toContain(t('charts.pickedAll', { total: '€89.49' })));
+    });
+
+    it('keeps the picked category when nothing at all was spent in the new range', async () => {
+        await open();
+        pick(en.categories.food);
+
+        dates('2026-10-11', '2026-10-12');
+
+        expect(screen.getByText(text.empty)).toBeDefined();
+        expect(breakdown()).toHaveLength(1);
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('true');
     });
 });
 
@@ -1109,7 +1209,7 @@ describe('the dates', () => {
         dates('2026-10-24', '2026-10-25');
 
         expect(rows()).toHaveLength(2);
-        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€61.49');
+        expect(totalLine().textContent).toContain('€61.49');
     });
 
     it('can reach back to other months', async () => {
@@ -1153,7 +1253,7 @@ describe('the dates', () => {
         expect(chart()).toBeNull();
         expect(screen.queryByRole('button', { name: text.showNumbers })).toBeNull();
         expect(screen.queryByRole('list', { name: text.byCategory })).toBeNull();
-        expect(screen.queryByText(text.total)).toBeNull();
+        expect(document.querySelector('.spending-stats__total')).toBeNull();
         expect(screen.queryByText(text.empty)).toBeNull();
         expect(screen.getByLabelText(text.from).getAttribute('aria-invalid')).toBe('true');
     });
@@ -1243,7 +1343,7 @@ describe('the dates', () => {
         expect(message.textContent).toBe(text.rangeTooLong);
         expect(chart()).toBeNull();
         expect(screen.queryByRole('button', { name: text.showNumbers })).toBeNull();
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€96.49');
+        expect(totalLine().textContent).toContain('€96.49');
         expect(breakdown()).toHaveLength(3);
         expect(screen.getByLabelText(text.from).getAttribute('aria-invalid')).toBe('true');
         expect(screen.getByLabelText(text.from).getAttribute('aria-describedby')).toBe(message.id);
@@ -1332,14 +1432,14 @@ describe('in Spanish', () => {
 
         expect(screen.getByText(/dom, 25 oct/)).toBeDefined();
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.week }));
-        expect(screen.getByText(tEs('charts.weekOf', { date: '19 oct' }))).toBeDefined();
+        expect(screen.getAllByText(tEs('charts.weekOf', { date: '19 oct' })).length).toBeGreaterThan(0);
         fireEvent.click(screen.getByRole('radio', { name: es.charts.group.month }));
-        expect(screen.getByText(/octubre de 2026/)).toBeDefined();
+        expect(screen.getAllByText(/octubre de 2026/).length).toBeGreaterThan(0);
         expect(screen.getAllByText(formatAmount(8949, 'EUR', 'es').replace(/\s/g, ' ')).length).toBeGreaterThan(0);
     });
 
     it('reads a column and the change the Spanish way', async () => {
-        stubApi(createFakeApi({ expenses: EXPENSES }).handler);
+        stubApi(createFakeApi({ expenses: [...EXPENSES, expense({ amountCents: 700, date: '2026-09-10' })] }).handler);
         renderApp({ path: '/charts' });
         await screen.findByRole('heading', { name: es.charts.title });
         await waitFor(() => expect(slots()[24]).toBeDefined());
@@ -1358,7 +1458,7 @@ describe('in Spanish', () => {
                     signDisplay: 'exceptZero',
                 }).format(8249 / 700),
                 current: days.formatRange(new Date(2026, 9, 1), new Date(2026, 9, 25)),
-                period: days.formatRange(new Date(2026, 8, 6), new Date(2026, 8, 30)),
+                period: days.formatRange(new Date(2026, 8, 1), new Date(2026, 8, 25)),
             })}`
         );
     });
@@ -1378,6 +1478,165 @@ describe('your part of the shared expenses', () => {
         });
 
         await waitFor(() => expect(rowOf('Oct 24').textContent).toContain('€20.00'));
-        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€20.00');
+        expect(totalLine().textContent).toContain('€20.00');
+    });
+});
+
+describe('the expenses the chart counts', () => {
+    function section() {
+        return screen.getByRole('heading', { name: text.expensesTitle, level: 2 }).closest('section')!;
+    }
+
+    function tickets() {
+        return [...section().querySelectorAll('.sheet')].map((sheet) => ({
+            label: sheet.querySelector('h3')!.textContent,
+            rows: [...sheet.querySelectorAll('li')].map((row) => row.textContent),
+            total: sheet.querySelector('.counted-expenses__subtotal')!.textContent,
+        }));
+    }
+
+    it('lists them under the chart on a ticket per row, newest first, each adding up to its column', async () => {
+        await open();
+
+        expect(tickets().map((ticket) => [ticket.label, ticket.total])).toEqual([
+            ['Sun, Oct 25', '€48.99'],
+            ['Sat, Oct 24', '€12.50'],
+            ['Sat, Oct 10', '€20.00'],
+            ['Fri, Oct 2', '€8.00'],
+        ]);
+        expect(rowOf('Oct 25').textContent).toContain('€48.99');
+        expect(tickets()[0]!.rows).toHaveLength(2);
+    });
+
+    it('lists a credit card expense on the day it is charged, saying the day it was made', async () => {
+        await open();
+
+        const credit = tickets().find((ticket) => ticket.label === 'Fri, Oct 2')!;
+        expect(credit.rows[0]).toContain('Sep 20');
+        expect(credit.rows[0]).toContain('€8.00');
+    });
+
+    it('lists only the category picked', async () => {
+        await open();
+
+        pick(en.categories.food);
+
+        expect(tickets().map((ticket) => ticket.total)).toEqual(['€3.00', '€12.50']);
+    });
+
+    it('groups them by week and by month, saying the day each was made', async () => {
+        await open();
+
+        groupBy(text.group.month);
+
+        expect(tickets().map((ticket) => ticket.label)).toEqual(['October 2026', 'September 2026']);
+        expect(tickets()[1]!.rows[0]).toContain('Sep 30');
+    });
+
+    it('shows a part of a plan as the part it is', async () => {
+        const plan = { id: crypto.randomUUID(), part: 3, parts: 12 };
+        await open([
+            expense({
+                text: 'Laptop',
+                amountCents: 4000,
+                date: '2026-10-05',
+                payment: 'credit',
+                chargeDate: '2026-10-05',
+                plan,
+            }),
+        ]);
+
+        expect(tickets()[0]!.rows[0]).toContain(t('expenses.list.part', { part: 3, parts: 12 }));
+    });
+
+    it('opens nothing: the rows only read', async () => {
+        await open();
+
+        expect(within(section()).queryAllByRole('button')).toHaveLength(0);
+    });
+
+    it('lists your part of a shared expense with its group, and never a settlement', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const bea = person('Bea');
+        const group = sampleGroup({ members: [ana, bea], me: ana.id });
+        await open([], {
+            groups: [group],
+            entries: [
+                sampleEntry(group, { paidBy: bea.id, date: '2026-10-24' }),
+                sampleSettlement(group, ana.id, bea.id, 2000),
+            ],
+        });
+
+        await waitFor(() => expect(tickets()).toHaveLength(1));
+        expect(tickets()[0]!.rows).toHaveLength(1);
+        expect(tickets()[0]!.rows[0]).toContain(group.name);
+    });
+
+    it('draws a hundred rows, and Show more brings the next ones and takes the focus to the first of them', async () => {
+        await open(
+            Array.from({ length: 130 }, (_, index) =>
+                expense({ amountCents: 100, date: '2026-10-20', createdAt: 1_000 + index, text: `Item ${index}` })
+            )
+        );
+
+        expect(tickets()[0]!.rows).toHaveLength(100);
+        expect(tickets()[0]!.total).toBe('€130.00');
+
+        fireEvent.click(within(section()).getByRole('button', { name: text.showMore }));
+
+        expect(tickets()[0]!.rows).toHaveLength(130);
+        expect(document.activeElement!.textContent).toContain('Item 29');
+        expect(within(section()).queryByRole('button', { name: text.showMore })).toBeNull();
+    });
+
+    it('is not there when nothing was spent or the dates are refused', async () => {
+        await open();
+
+        dates('2026-10-11', '2026-10-12');
+        expect(screen.queryByRole('heading', { name: text.expensesTitle })).toBeNull();
+
+        dates('2026-10-25', '2026-10-24');
+        expect(screen.queryByRole('heading', { name: text.expensesTitle })).toBeNull();
+    });
+
+    it('starts over at a hundred rows when the category changes', async () => {
+        await open(
+            Array.from({ length: 260 }, (_, index) =>
+                expense({ amountCents: 100, date: '2026-10-20', createdAt: 1_000 + index, text: `Item ${index}` })
+            )
+        );
+        fireEvent.click(within(section()).getByRole('button', { name: text.showMore }));
+        expect(tickets()[0]!.rows).toHaveLength(200);
+
+        pick(en.categories.food);
+
+        expect(tickets()[0]!.rows).toHaveLength(100);
+    });
+
+    it('stays for a range too long to draw', async () => {
+        await open();
+
+        dates('2020-01-01', '2026-10-31');
+
+        expect(chart()).toBeNull();
+        expect(tickets().length).toBeGreaterThan(0);
+    });
+
+    it('files an expense whose category is gone under the fallback, as the split does', async () => {
+        await open([expense({ categoryId: 'gone-category', amountCents: 800, date: '2026-10-20' })]);
+
+        await waitFor(() => expect(breakdown()[0]!.textContent).toContain(en.categories.other));
+        expect(tickets()[0]!.rows[0]).toContain(en.categories.other);
+        expect(tickets()[0]!.total).toBe('€8.00');
+    });
+
+    it('says who paid a shared expense', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const bea = person('Bea');
+        const group = sampleGroup({ members: [ana, bea], me: ana.id });
+        await open([], { groups: [group], entries: [sampleEntry(group, { paidBy: bea.id, date: '2026-10-24' })] });
+
+        await waitFor(() => expect(tickets()).toHaveLength(1));
+        expect(tickets()[0]!.rows[0]).toContain('Bea');
     });
 });
