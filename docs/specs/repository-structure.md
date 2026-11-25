@@ -55,7 +55,7 @@ public/          static files
         - `lists`: what the list of expenses and the ledger of a group filter, group and add up, and the search.
         - `reports`: what the summary and the charts add up.
         - `groups`: groups, members, entries, your part of a shared expense, the split, the balances, the debts shown, the notices and invitations.
-        - `account`: the limits of an account, the nickname and the push subscriptions.
+        - `account`: deleting an account and the header that names its user, the nickname and the push subscriptions.
         - `export`: the JSON and CSV files and the table of a group.
         - `testing`: the random inputs of the tests; not a test folder.
 - `wrangler.jsonc` sets `run_worker_first: ["/api/*"]` and `not_found_handling: "single-page-application"`: any path that isn't `/api/*` or a file falls back to `index.html`, and an unknown `/api/…` answers 404 from the Worker.
