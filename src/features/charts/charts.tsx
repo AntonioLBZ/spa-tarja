@@ -84,14 +84,14 @@ const Charts = () => {
     const total = useMemo(() => spendingTotal(filed, { range, categoryId: filter }), [filed, range, filter]);
     // Two spans as long as each other, in the same category: the range, or its days up to today, and the span before
     const compared = useMemo(() => {
-        const spans = comparison(granularity, range, today, weekStart);
+        const spans = comparison(range, today);
         if (spans === null) return null;
         return {
             ...spans,
             currentCents: spendingTotal(filed, { range: spans.current, categoryId: filter }),
             previousCents: spendingTotal(filed, { range: spans.previous, categoryId: filter }),
         };
-    }, [filed, granularity, range, today, filter, weekStart]);
+    }, [filed, range, today, filter]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
 
     return (

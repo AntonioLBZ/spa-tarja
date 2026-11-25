@@ -862,7 +862,7 @@
         "vsPrevious": "{change} vs. {period}",
         "vsPreviousSoFar": "{change}, {current} vs. {period}",
         "noPrevious": "Nothing spent in the previous period ({period}) to compare with.",
-        "noPreviousSoFar": "{current} vs. {period}: nothing spent in the days before."
+        "noPreviousSoFar": "{current} vs. {period}: nothing spent then."
     },
     "nicknamePrompt": {
         "title": "What should your friends call you?",

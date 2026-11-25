@@ -117,42 +117,46 @@ const defaultRange = (granularity: Granularity, today: string, weekStart: WeekDa
     return { from: `${shiftMonth(monthOf(today), -11)}-01`, to: endOfMonth(today) };
 };
 
-// What a range is compared with: as many buckets again, ending the day before its first bucket starts. Days give the
-// same number of days, weeks whole weeks and months whole months.
-const previousRange = (granularity: Granularity, range: Range, weekStart: WeekDay = MONDAY): Range => {
-    const first = bucketStart(range.from, granularity, weekStart);
-    return {
-        from: nextBucket(first, granularity, -bucketCount(granularity, range, weekStart)),
-        to: addDays(first, -1),
-    };
-};
-
-// The days a total is compared on, and the earlier span it is compared with
+// The span of a range and the earlier one it is compared with, both from their start up to the same point
 interface Comparison {
     current: Range;
     previous: Range;
 }
 
-// What the total of a range is compared with, always over spans as long as each other. A range of whole buckets that
-// has ended compares with as many buckets before it; any other that has ended, with as many days before it. One still
-// running is compared from its start up to today, with as many days before its start; one that hasn't started, or
-// that ends before it begins, has nothing to compare.
-const comparison = (
-    granularity: Granularity,
-    range: Range,
-    today: string,
-    weekStart: WeekDay = MONDAY
-): Comparison | null => {
-    if (range.from > range.to || range.from > today) return null;
-    const ended = range.to <= today;
-    const whole =
-        bucketStart(range.from, granularity, weekStart) === range.from &&
-        addDays(nextBucket(bucketStart(range.to, granularity, weekStart), granularity), -1) === range.to;
-    if (ended && whole) return { current: range, previous: previousRange(granularity, range, weekStart) };
+// How many calendar months a range of whole months spans; null for any other range
+const wholeMonths = (range: Range): number | null => {
+    if (!range.from.endsWith('-01') || range.to !== endOfMonth(range.to)) return null;
+    const index = (day: string) => Number(day.slice(0, 4)) * 12 + Number(day.slice(5, 7));
+    return index(range.to) - index(range.from) + 1;
+};
 
-    const current = ended ? range : { from: range.from, to: today };
-    const days = daysBetween(current.from, current.to) + 1;
-    return { current, previous: { from: addDays(current.from, -days), to: addDays(current.from, -1) } };
+// The same span of the calendar right before a range: September for October, the twelve months before twelve months,
+// and as many days before any other range, so whole weeks go back whole weeks
+const previousRange = (range: Range): Range => {
+    const months = wholeMonths(range);
+    const from =
+        months === null
+            ? addDays(range.from, -(daysBetween(range.from, range.to) + 1))
+            : addMonths(range.from, -months);
+    return { from, to: addDays(range.from, -1) };
+};
+
+// What the total of a range is compared with: the same span of the calendar right before it (ADR-0045). A range still
+// running is compared from its start up to today, and the earlier span up to the same point: the same day of the month
+// (or the last one of a shorter month) for months, as many days in for any other. One that hasn't started, or that ends
+// before it begins, has nothing to compare.
+const comparison = (range: Range, today: string): Comparison | null => {
+    if (range.from > range.to || range.from > today) return null;
+    const previous = previousRange(range);
+    if (range.to <= today) return { current: range, previous };
+
+    const months = wholeMonths(range);
+    const sameDay =
+        months === null ? addDays(previous.from, daysBetween(range.from, today)) : addMonths(today, -months);
+    return {
+        current: { from: range.from, to: today },
+        previous: { from: previous.from, to: sameDay < previous.to ? sameDay : previous.to },
+    };
 };
 
 interface Scale {
