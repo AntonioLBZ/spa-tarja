@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { MAX_PUSH_SUBSCRIPTIONS } from '@core/push';
 import { app } from '@server/app';
-import { send } from '@server/test/groups';
-import { testVapidKey } from '@server/test/push';
-import { signIn, type TestSession } from '@server/test/session';
+import { send } from '@server/testing/groups';
+import { testVapidKey } from '@server/testing/push';
+import { signIn, type TestSession } from '@server/testing/session';
 
 let ana: TestSession;
 let bruno: TestSession;

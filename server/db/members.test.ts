@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { addFriend, leaveGroup, mergeMember, reopenMember } from '@server/db/members';
-import { makeGroup, memberNamed } from '@server/test/groups';
-import { signIn, type TestSession } from '@server/test/session';
+import { makeGroup, memberNamed } from '@server/testing/groups';
+import { signIn, type TestSession } from '@server/testing/session';
 
 let ana: TestSession;
 let bruno: TestSession;

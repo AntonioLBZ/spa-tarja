@@ -1,6 +1,8 @@
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
+import { memberIdOf, seededRandom, type Random } from '@core/testing/random';
+
 import { MAX_AMOUNT_CENTS } from './money';
 import { sharedEntryInputSchema, type Share } from './shared-entry';
 import {
@@ -14,7 +16,6 @@ import {
     unassignedCents,
     type MemberPercent,
 } from './split';
-import { memberIdOf, seededRandom, type Random } from './test/random';
 
 const CASES = 2000;
 

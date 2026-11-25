@@ -5,8 +5,8 @@ import { ENDED_INVITATION_DAYS, INVITATION_DAYS, isInvitationToken, type Pending
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_GROUPS, MAX_OPEN_INVITATIONS } from '@core/shared-group';
 import { app } from '@server/app';
 import { signInvitation } from '@server/invitation-token';
-import { befriend, groupOf, listGroups, makeGroup, memberNamed, seedClosedGroups, send } from '@server/test/groups';
-import { sentAs, signIn, type TestSession } from '@server/test/session';
+import { befriend, groupOf, listGroups, makeGroup, memberNamed, seedClosedGroups, send } from '@server/testing/groups';
+import { sentAs, signIn, type TestSession } from '@server/testing/session';
 
 const DAY = 24 * 60 * 60 * 1000;
 

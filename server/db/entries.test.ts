@@ -6,8 +6,8 @@ import { sharedEntryInputSchema, type SharedEntryInput } from '@core/shared-entr
 import { readEntry, upsertEntry } from '@server/db/entries';
 import { deleteGroup } from '@server/db/groups';
 import { leaveGroup } from '@server/db/members';
-import { claim, makeGroup, memberNamed } from '@server/test/groups';
-import { signIn, type TestSession } from '@server/test/session';
+import { claim, makeGroup, memberNamed } from '@server/testing/groups';
+import { signIn, type TestSession } from '@server/testing/session';
 
 import type { SharedGroup } from '@core/shared-group';
 

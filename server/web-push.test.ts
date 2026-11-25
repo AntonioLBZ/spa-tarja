@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { fromBase64Url, toBase64Url } from '@server/base64url';
-import { testVapidKey } from '@server/test/push';
+import { testVapidKey } from '@server/testing/push';
 import { readVapidKey } from '@server/vapid';
 
 import { encryptPayload, sendPush, vapidAuthorization } from './web-push';

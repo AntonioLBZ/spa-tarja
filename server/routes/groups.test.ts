@@ -14,8 +14,8 @@ import {
     seedClosedGroups,
     seedEntry,
     send,
-} from '@server/test/groups';
-import { signIn, type TestSession } from '@server/test/session';
+} from '@server/testing/groups';
+import { signIn, type TestSession } from '@server/testing/session';
 
 let ana: TestSession;
 let bruno: TestSession;

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { NICKNAME_MAX_LENGTH } from '@core/profile';
 import { app } from '@server/app';
-import { signIn, type TestSession } from '@server/test/session';
+import { signIn, type TestSession } from '@server/testing/session';
 
 let session: TestSession;
 

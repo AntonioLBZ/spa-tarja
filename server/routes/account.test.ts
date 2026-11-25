@@ -14,8 +14,8 @@ import {
     seedClosedGroups,
     seedEntry,
     send,
-} from '@server/test/groups';
-import { cachedSession, sentAs, signIn, signInAgain, type TestSession } from '@server/test/session';
+} from '@server/testing/groups';
+import { cachedSession, sentAs, signIn, signInAgain, type TestSession } from '@server/testing/session';
 
 // Where each table keeps the user a row belongs to
 const OWN_ROWS = [

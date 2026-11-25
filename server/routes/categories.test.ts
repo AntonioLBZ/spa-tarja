@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { signIn, type TestSession } from '@server/test/session';
+import { signIn, type TestSession } from '@server/testing/session';
 
 interface CategoryBody {
     id: string;

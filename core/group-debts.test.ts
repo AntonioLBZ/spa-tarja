@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { seededRandom } from '@core/testing/random';
+import { mergeMember, randomGroup } from '@core/testing/random-group';
+
 import { memberBalances, pairwiseDebts, type Debt } from './balance';
 import { groupDebts } from './group-debts';
 import { simplifyDebts } from './simplify';
-import { seededRandom } from './test/random';
-import { mergeMember, randomGroup } from './test/random-group';
 
 import type { SharedEntry } from './shared-entry';
 import type { SharedMember } from './shared-member';

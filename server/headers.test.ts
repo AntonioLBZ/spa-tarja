@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
 import { withSecurityHeaders } from '@server/headers';
-import { send } from '@server/test/groups';
-import { ORIGIN, signIn, type TestSession } from '@server/test/session';
+import { send } from '@server/testing/groups';
+import { ORIGIN, signIn, type TestSession } from '@server/testing/session';
 
 const SECURITY = {
     'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'",

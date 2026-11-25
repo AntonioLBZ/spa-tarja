@@ -1,11 +1,12 @@
 import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
+import { seededRandom } from '@core/testing/random';
+import { mergeMember, randomGroup } from '@core/testing/random-group';
+
 import { memberBalances, pairwiseDebts, type Debt, type MemberBalance } from './balance';
 import { sharedEntryInputSchema, type SharedEntry } from './shared-entry';
 import { canonicalMember, type SharedMember } from './shared-member';
-import { seededRandom } from './test/random';
-import { mergeMember, randomGroup } from './test/random-group';
 
 const GROUPS = 500;
 

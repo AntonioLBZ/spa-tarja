@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { makeGroup } from '@server/test/groups';
-import { ORIGIN, signIn, type TestSession } from '@server/test/session';
+import { makeGroup } from '@server/testing/groups';
+import { ORIGIN, signIn, type TestSession } from '@server/testing/session';
 
 const SIBLING = 'https://evil.albz.app';
 

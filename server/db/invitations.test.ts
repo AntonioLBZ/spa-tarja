@@ -2,8 +2,8 @@ import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { acceptInvitation } from '@server/db/invitations';
-import { makeGroup } from '@server/test/groups';
-import { signIn, type TestSession } from '@server/test/session';
+import { makeGroup } from '@server/testing/groups';
+import { signIn, type TestSession } from '@server/testing/session';
 
 import type { SharedGroup } from '@core/shared-group';
 

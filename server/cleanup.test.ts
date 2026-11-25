@@ -6,8 +6,8 @@ import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/invitation';
 import { app } from '@server/app';
 import { dailyCleanup } from '@server/cleanup';
 import worker from '@server/index';
-import { makeGroup, seedEntry } from '@server/test/groups';
-import { ORIGIN, signIn, signInAgain, type TestSession } from '@server/test/session';
+import { makeGroup, seedEntry } from '@server/testing/groups';
+import { ORIGIN, signIn, signInAgain, type TestSession } from '@server/testing/session';
 
 const DAY = 24 * 60 * 60 * 1000;
 

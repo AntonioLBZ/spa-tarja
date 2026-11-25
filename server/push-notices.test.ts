@@ -3,9 +3,9 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { app } from '@server/app';
-import { befriend, claim, makeGroup, memberNamed, send } from '@server/test/groups';
-import { testBrowser, testVapidKey, type TestBrowser } from '@server/test/push';
-import { signIn, type TestSession } from '@server/test/session';
+import { befriend, claim, makeGroup, memberNamed, send } from '@server/testing/groups';
+import { testBrowser, testVapidKey, type TestBrowser } from '@server/testing/push';
+import { signIn, type TestSession } from '@server/testing/session';
 
 let ana: TestSession;
 let bruno: TestSession;

@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { seededRandom } from '@core/testing/random';
+import { mergeMember, randomGroup } from '@core/testing/random-group';
+
 import { memberBalances, type MemberBalance } from './balance';
 import { simplifyDebts } from './simplify';
-import { seededRandom } from './test/random';
-import { mergeMember, randomGroup } from './test/random-group';
 
 const GROUPS = 1000;
 

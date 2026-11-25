@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { seededRandom } from '@core/testing/random';
+import { mergeMember, randomGroup } from '@core/testing/random-group';
+
 import { TOTAL_SCOPE, spentFor } from './budget';
 import { budgetWarning } from './budget-warning';
 import { spendingTotal } from './charts';
@@ -7,8 +10,6 @@ import { countedCents, countedOn, paidBackCents, voucherIncomeOn } from './count
 import { NO_FILTERS, buildList, type ListContext } from './expense-list';
 import { sharedExpenseRows, yourPart, type SharedExpenseEntry, type SharedLedger } from './shared-expense';
 import { summarizeMonth } from './summary';
-import { seededRandom } from './test/random';
-import { mergeMember, randomGroup } from './test/random-group';
 
 import type { Expense, Payment } from './expense';
 import type { SharedEntry } from './shared-entry';
