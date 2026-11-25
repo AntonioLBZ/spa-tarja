@@ -27,7 +27,7 @@ interface CountedExpensesProps {
 }
 
 // What the chart counts, expense by expense, on a ticket for each of its rows that has any, the total of each ticket
-// being its column (ADR-0045). The rows only read: what is done to an expense is done in the list.
+// being its column (ADR-0043). The rows only read: what is done to an expense is done in the list.
 const CountedExpenses = (props: CountedExpensesProps) => {
     const { groups, granularity, pendingIds, sourceOf } = props;
     const t = useTranslations('charts');

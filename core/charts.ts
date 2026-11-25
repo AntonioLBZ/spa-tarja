@@ -174,7 +174,7 @@ const previousRange = (range: Range): Range => {
     return { from, to: addDays(range.from, -1) };
 };
 
-// What the total of a range is compared with: the same span of the calendar right before it (ADR-0045). A range still
+// What the total of a range is compared with: the same span of the calendar right before it (ADR-0043). A range still
 // running is compared from its start up to today, and the earlier span up to the same point: the same day of the month
 // (or the last one of a shorter month) for months, as many days in for any other. One that hasn't started, or that ends
 // before it begins, has nothing to compare.

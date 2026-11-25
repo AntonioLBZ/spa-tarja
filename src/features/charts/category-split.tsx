@@ -26,7 +26,7 @@ interface CategorySplitProps {
 // What each category took: one strip cut into a segment per category in its color, and under it a row for each with
 // its icon and name (the color alone says nothing), its amount and its share. The biggest comes first, and the ones
 // that took the same go in the order of the names that are read. Pressing a row picks its category, and pressing it again
-// lets go of it (ADR-0045). The picked one stays at the end, at zero, when it took nothing.
+// lets go of it (ADR-0043). The picked one stays at the end, at zero, when it took nothing.
 const CategorySplit = (props: CategorySplitProps) => {
     const { totals, labelOf, styleOf, picked, onPick } = props;
     const t = useTranslations('charts');
