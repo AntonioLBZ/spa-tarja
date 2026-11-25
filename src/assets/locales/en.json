@@ -850,6 +850,8 @@
         "totalIn": "Total in {category}",
         "byCategory": "By category",
         "pickHint": "Tap a category to see only its spending, and again to see them all.",
+        "picked": "{category}: {total} in total",
+        "pickedAll": "Every category: {total} in total",
         "expensesTitle": "Expenses",
         "showMore": "Show more",
         "empty": "Nothing spent in this period.",

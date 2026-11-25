@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type Ref } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Card } from '@/components/card/card';
@@ -10,7 +10,7 @@ import type { Range } from '@core/charts';
 
 import './spending-stats.css';
 
-// Two spans as long as each other and what the same category took in each
+// Two spans of the calendar, the range and the one before it, and what the same category took in each
 interface ComparedTotals {
     current: Range;
     previous: Range;
@@ -26,18 +26,20 @@ interface SpendingStatsProps {
     // Whether the current span is only part of the range, the days up to today
     partial: boolean;
     today: string;
-    // The name of the category the total is narrowed to, or null for all of them
-    category: string | null;
+    // The name of the category the total is narrowed to, if any
+    category?: string;
+    // The line of the total, which can take the focus
+    totalRef?: Ref<HTMLParagraphElement>;
 }
 
 const MONTHS: Intl.DateTimeFormatOptions = { month: 'short', year: 'numeric' };
 const DAYS: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
 const DAYS_WITH_YEAR: Intl.DateTimeFormatOptions = { ...DAYS, year: 'numeric' };
 
-// The total of the range and how it changed against an earlier span of the same length: an arrow and a signed share,
-// never a color
+// The total of the range and how it changed against the same span of the calendar before it: an arrow and a signed
+// share, never a color
 const SpendingStats = (props: SpendingStatsProps) => {
-    const { totalCents, compared, partial, today, category } = props;
+    const { totalCents, compared, partial, today, category, totalRef } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
     const money = useMoney();
@@ -86,8 +88,8 @@ const SpendingStats = (props: SpendingStatsProps) => {
 
     return (
         <Card className="spending-stats">
-            <p className="spending-stats__total">
-                <span>{category === null ? t('total') : t('totalIn', { category })}</span>
+            <p className="spending-stats__total" ref={totalRef} tabIndex={-1}>
+                <span className="spending-stats__label">{category ? t('totalIn', { category }) : t('total')}</span>
                 <strong>{money(totalCents)}</strong>
             </p>
             {line && (

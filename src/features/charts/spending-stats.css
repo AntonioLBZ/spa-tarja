@@ -11,6 +11,11 @@
     margin: 0;
 }
 
+.spending-stats__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .spending-stats__arrow {
     color: var(--color-content-primary);
     font-weight: 700;

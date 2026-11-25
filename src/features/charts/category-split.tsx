@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, useRef, type CSSProperties } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Card, CardList } from '@/components/card/card';
@@ -21,6 +21,8 @@ interface CategorySplitProps {
     picked: string | null;
     // Picks a category, or null to go back to all of them
     onPick: (id: string | null) => void;
+    // Takes the focus when the row that had it goes away with nothing left to take it
+    onEmptied: () => void;
 }
 
 // What each category took: one strip cut into a segment per category in its color, and under it a row for each with
@@ -28,10 +30,11 @@ interface CategorySplitProps {
 // that took the same go in the order of the names that are read. Pressing a row picks its category, and pressing it again
 // lets go of it (ADR-0043). The picked one stays at the end, at zero, when it took nothing.
 const CategorySplit = (props: CategorySplitProps) => {
-    const { totals, labelOf, styleOf, picked, onPick } = props;
+    const { totals, labelOf, styleOf, picked, onPick, onEmptied } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
     const money = useMoney();
+    const root = useRef<HTMLDivElement>(null);
 
     const percent = useMemo(
         () => new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }),
@@ -55,8 +58,20 @@ const CategorySplit = (props: CategorySplitProps) => {
     }, [totals, picked, labelOf, locale]);
     const drawn = segments.filter((segment) => segment.share > 0);
 
+    // A picked row at zero goes away when it is let go of, so the focus moves to the first row that stays
+    const press = (categoryId: string, isPicked: boolean, totalCents: number) => {
+        if (isPicked && totalCents === 0) {
+            const next = root.current?.querySelector<HTMLButtonElement>(
+                '.category-split__row:not(.category-split__row--picked) .category-split__pick'
+            );
+            if (next) next.focus();
+            else onEmptied();
+        }
+        onPick(isPicked ? null : categoryId);
+    };
+
     return (
-        <div className="category-split">
+        <div className="category-split" ref={root}>
             <div className="category-split__strip" aria-hidden="true">
                 {drawn.map((segment) => {
                     const segmentClsx = clsx(
@@ -92,7 +107,7 @@ const CategorySplit = (props: CategorySplitProps) => {
                                 aria-pressed={isPicked}
                                 className="category-split__pick"
                                 type="button"
-                                onClick={() => onPick(isPicked ? null : segment.categoryId)}
+                                onClick={() => press(segment.categoryId, isPicked, segment.totalCents)}
                             >
                                 <span className="category-split__name">
                                     <CategoryBadge style={styleOf(segment.categoryId)} />

@@ -1138,6 +1138,42 @@ describe('picking a category from the split', () => {
         expect(breakdown()).toHaveLength(2);
     });
 
+    it('moves the focus to the first row that stays when a picked row at zero goes away', async () => {
+        await open();
+        pick(en.categories.leisure);
+        dates('2026-10-24', '2026-10-25');
+        splitRow(en.categories.leisure).focus();
+
+        pick(en.categories.leisure);
+
+        expect(document.activeElement).toBe(splitRow(en.categories.groceries));
+    });
+
+    it('moves the focus to the total when the picked row at zero was the last one', async () => {
+        await open();
+        pick(en.categories.food);
+        dates('2026-10-11', '2026-10-12');
+        splitRow(en.categories.food).focus();
+
+        pick(en.categories.food);
+
+        expect(screen.queryByRole('list', { name: text.byCategory })).toBeNull();
+        expect(document.activeElement).toBe(totalLine());
+    });
+
+    it('says the new total when a category is picked or let go of', async () => {
+        await open();
+        const status = () => [...document.querySelectorAll('[role="status"]')].map((region) => region.textContent);
+
+        pick(en.categories.food);
+        await waitFor(() =>
+            expect(status()).toContain(t('charts.picked', { category: en.categories.food, total: '€15.50' }))
+        );
+
+        pick(en.categories.food);
+        await waitFor(() => expect(status()).toContain(t('charts.pickedAll', { total: '€89.49' })));
+    });
+
     it('keeps the picked category when nothing at all was spent in the new range', async () => {
         await open();
         pick(en.categories.food);
@@ -1561,5 +1597,46 @@ describe('the expenses the chart counts', () => {
 
         dates('2026-10-25', '2026-10-24');
         expect(screen.queryByRole('heading', { name: text.expensesTitle })).toBeNull();
+    });
+
+    it('starts over at a hundred rows when the category changes', async () => {
+        await open(
+            Array.from({ length: 260 }, (_, index) =>
+                expense({ amountCents: 100, date: '2026-10-20', createdAt: 1_000 + index, text: `Item ${index}` })
+            )
+        );
+        fireEvent.click(within(section()).getByRole('button', { name: text.showMore }));
+        expect(tickets()[0]!.rows).toHaveLength(200);
+
+        pick(en.categories.food);
+
+        expect(tickets()[0]!.rows).toHaveLength(100);
+    });
+
+    it('stays for a range too long to draw', async () => {
+        await open();
+
+        dates('2020-01-01', '2026-10-31');
+
+        expect(chart()).toBeNull();
+        expect(tickets().length).toBeGreaterThan(0);
+    });
+
+    it('files an expense whose category is gone under the fallback, as the split does', async () => {
+        await open([expense({ categoryId: 'gone-category', amountCents: 800, date: '2026-10-20' })]);
+
+        await waitFor(() => expect(breakdown()[0]!.textContent).toContain(en.categories.other));
+        expect(tickets()[0]!.rows[0]).toContain(en.categories.other);
+        expect(tickets()[0]!.total).toBe('€8.00');
+    });
+
+    it('says who paid a shared expense', async () => {
+        const ana = person('Ana', { role: 'owner' });
+        const bea = person('Bea');
+        const group = sampleGroup({ members: [ana, bea], me: ana.id });
+        await open([], { groups: [group], entries: [sampleEntry(group, { paidBy: bea.id, date: '2026-10-24' })] });
+
+        await waitFor(() => expect(tickets()).toHaveLength(1));
+        expect(tickets()[0]!.rows[0]).toContain('Bea');
     });
 });
