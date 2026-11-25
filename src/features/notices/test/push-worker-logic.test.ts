@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { notificationFor, showsNotification } from '@/features/notices/push-worker-logic';
 import { formatAmount } from '@core/basics/money';
 
-import type { PushMessage } from '@server/push-notices';
+import type { PushMessage } from '@server/push/push-notices';
 
 const CHROME =
     'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Mobile Safari/537.36';

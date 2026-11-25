@@ -1,6 +1,6 @@
-import { toBase64Url } from '@server/base64url';
-import { readVapidKey } from '@server/vapid';
-import { contentKeys, ecdhSecret } from '@server/web-push';
+import { toBase64Url } from '@server/basics/base64url';
+import { readVapidKey } from '@server/push/vapid';
+import { contentKeys, ecdhSecret } from '@server/push/web-push';
 
 // A key of the server made for a test, as the secret holds it, and its public key
 const testVapidKey = async (): Promise<{ jwk: string; publicKey: string }> => {

@@ -5,6 +5,7 @@ import * as v from 'valibot';
 
 import { invitationIdSchema, invitationTokenSchema } from '@core/groups/invitation';
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS, personName } from '@core/groups/shared-group';
+import { readInvitationToken, signInvitation } from '@server/auth/invitation-token';
 import { countClosedGroups, countOpenGroups, readSharedGroup } from '@server/db/groups';
 import {
     acceptInvitation,
@@ -16,7 +17,6 @@ import {
     revokeInvitation,
 } from '@server/db/invitations';
 import { readProfile } from '@server/db/profile';
-import { readInvitationToken, signInvitation } from '@server/invitation-token';
 
 import { NOT_FOUND } from './groups';
 

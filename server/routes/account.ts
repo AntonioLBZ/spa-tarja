@@ -2,9 +2,9 @@ import { sValidator } from '@hono/standard-validator';
 import { Hono } from 'hono';
 
 import { accountDeletionSchema, confirmsEmail } from '@core/account/account';
-import { createAuth } from '@server/auth';
+import { createAuth } from '@server/auth/auth';
+import { UNAUTHORIZED } from '@server/auth/user';
 import { deleteAccount, readEmail } from '@server/db/account';
-import { UNAUTHORIZED } from '@server/user';
 
 import type { AppEnv } from '@server/env';
 

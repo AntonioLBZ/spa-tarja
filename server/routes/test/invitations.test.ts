@@ -9,7 +9,7 @@ import {
 } from '@core/groups/invitation';
 import { MAX_CLOSED_GROUPS, MAX_FRIENDS, MAX_OPEN_GROUPS, MAX_OPEN_INVITATIONS } from '@core/groups/shared-group';
 import { app } from '@server/app';
-import { signInvitation } from '@server/invitation-token';
+import { signInvitation } from '@server/auth/invitation-token';
 import { befriend, groupOf, listGroups, makeGroup, memberNamed, seedClosedGroups, send } from '@server/testing/groups';
 import { sentAs, signIn, type TestSession } from '@server/testing/session';
 

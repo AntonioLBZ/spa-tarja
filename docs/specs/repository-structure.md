@@ -10,6 +10,15 @@ public/          static files
 ```
 
 - `server/` doesn't import from `src/`. `src/` only imports **types** from `@server/*`.
+- `server/` holds at its root only the entry (`index.ts`), the app and its routes chained (`app.ts`), the bindings (`env.ts`) and the types of the secrets (`secrets.d.ts`); the rest is in folders, imported by path (`@server/auth/user`):
+    - `auth`: Better Auth, the user of a request and the signed token of an invitation link.
+    - `security`: the headers of every answer and the refusal of a write from another origin.
+    - `push`: what a new entry pushes, to which devices, and the VAPID and Web Push code that sends it.
+    - `basics`: base64url.
+    - `db`: the queries of each table and the daily clean-up.
+    - `routes`: the routes of each part of the API.
+    - `test`: the tests of `app.ts`, the one file of the root that has them.
+    - `testing`: the helpers of the `server` tests; not a test folder.
 - `src/lib` holds only folders, one per subject, each with an `index.ts` that the rest of the app imports (`@/lib/navigation`; `testing` has none, its helpers are imported file by file) and a `test/` folder for its tests ([testing and CI](testing-and-ci.md)); inside a folder, a file reaches its siblings with `./`:
     - `a11y`: how the focus last moved, and a value that waits for the typing to stop.
     - `amounts`: the cues of an amount the person chose (color, sign, arrow, symbol).

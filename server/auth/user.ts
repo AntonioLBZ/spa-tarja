@@ -1,7 +1,8 @@
 import { createMiddleware } from 'hono/factory';
 
 import { USER_HEADER } from '@core/account/account';
-import { createAuth } from '@server/auth';
+
+import { createAuth } from './auth';
 
 import type { AppEnv } from '@server/env';
 

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, describe, expect, it } from 'vitest';
 
-const { SECURITY_HEADERS } = (await import(new URL('../../server/headers.ts', import.meta.url).href)) as {
+const { SECURITY_HEADERS } = (await import(new URL('../../server/security/headers.ts', import.meta.url).href)) as {
     SECURITY_HEADERS: readonly (readonly [string, string])[];
 };
 
