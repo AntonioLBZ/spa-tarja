@@ -1,6 +1,6 @@
 # ADR-0044: A group is exported as one table, the same for everyone
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-24
 
 ## Context

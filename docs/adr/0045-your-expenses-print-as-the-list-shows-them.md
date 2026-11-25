@@ -1,6 +1,6 @@
 # ADR-0045: Your expenses print as the list shows them
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-11-24
 
 ## Context
