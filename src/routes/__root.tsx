@@ -22,17 +22,17 @@ import { AppUpdate } from '@/features/pwa/app-update';
 import { isPrerelease } from '@/lib/app-info';
 import {
     backTarget,
-    type BackTarget,
     followSlide,
     markSwiped,
     markUndone,
     navSection,
-    type NavSection,
     skipNextSlide,
-    type SwipeDirection,
     swipeTarget,
     useScreenArrivals,
     useSwipe,
+    type BackTarget,
+    type NavSection,
+    type SwipeDirection,
 } from '@/lib/navigation';
 import { useLastHomeTab } from '@/lib/offline';
 import { useHideOnScroll, useWide } from '@/lib/viewport';

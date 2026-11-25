@@ -13,7 +13,7 @@ import {
 
 import { Button } from '@/components/button/button';
 import { Icon } from '@/components/icon/icon';
-import { readDuration, type SwipeSide, useSwipeAway } from '@/lib/motion';
+import { readDuration, useSwipeAway, type SwipeSide } from '@/lib/motion';
 
 import './banner.css';
 

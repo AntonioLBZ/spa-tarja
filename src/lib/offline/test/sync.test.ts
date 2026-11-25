@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { EXPENSES_KEY, type ExpensesState } from '@/lib/api';
-import { createQueryClient } from '@/lib/api';
+import { EXPENSES_KEY, createQueryClient, type ExpensesState } from '@/lib/api';
 import { OUTBOX_STORAGE_KEY, createOutbox } from '@/lib/offline/outbox';
 import { expensesQuery, syncExpenses } from '@/lib/offline/sync';
 import { createFakeApi } from '@/lib/testing/fake-api';
