@@ -9,8 +9,6 @@ import { createFakeApi } from '@/lib/test/fake-api';
 import { person, sampleEntry, sampleGroup, sampleSettlement } from '@/lib/test/groups';
 import { stubLanguages } from '@/lib/test/languages';
 import { renderApp, stubApi } from '@/lib/test/render-app';
-import { optionNames, chosenOption, pickOption } from '@/lib/test/select';
-import { DEFAULT_CATEGORY_IDS } from '@core/categories';
 import { MAX_BUCKETS } from '@core/charts';
 import { addDays } from '@core/date';
 import { formatAmount } from '@core/money';
@@ -105,8 +103,12 @@ function readout() {
     return document.getElementById(plot().getAttribute('aria-describedby')!)!;
 }
 
+function totalLine() {
+    return document.querySelector('.spending-stats__total')!;
+}
+
 function changeLine() {
-    return screen.getByText(text.total).closest('p')!.nextElementSibling!;
+    return totalLine().nextElementSibling!;
 }
 
 function period(from: Date, to: Date, options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }) {
@@ -120,6 +122,16 @@ const percent = (share: number) =>
 
 function breakdown() {
     return within(screen.getByRole('list', { name: text.byCategory })).getAllByRole('listitem');
+}
+
+function splitRow(name: string) {
+    return within(screen.getByRole('list', { name: text.byCategory })).getByRole('button', {
+        name: new RegExp(`^${name}`),
+    });
+}
+
+function pick(name: string) {
+    fireEvent.click(splitRow(name));
 }
 
 function groupBy(label: string) {
@@ -430,7 +442,7 @@ describe('reading a column', () => {
         await open();
         fireEvent.click(slots()[24]!);
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
         expect(readout().textContent).toBe(
             t('charts.readoutCategory', { label: 'Sun, Oct 25', category: en.categories.food, amount: '€3.00' })
@@ -661,9 +673,9 @@ describe('the stat row', () => {
     it('compares the same category on both sides', async () => {
         await open([...EXPENSES, expense({ amountCents: 700, date: '2026-09-10' })]);
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
-        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€15.50');
+        expect(totalLine().textContent).toContain('€15.50');
         expect(changeLine().textContent).toContain(percent(850 / 700));
     });
 
@@ -728,7 +740,7 @@ describe('the stat row', () => {
     it('says when there is nothing to compare with, and which days it looked at', async () => {
         await open();
 
-        pickOption(text.category, en.categories.leisure);
+        pick(en.categories.leisure);
 
         expect(changeLine().textContent).toBe(t('charts.noPreviousSoFar', { current: SO_FAR, period: SAME_DAYS }));
         expect(changeLine().querySelector('[aria-hidden="true"]')).toBeNull();
@@ -1052,36 +1064,89 @@ describe('by category', () => {
     });
 });
 
-describe('the category filter', () => {
-    it('starts at every category and lists the built-in ones and the custom ones', async () => {
-        const gym = { id: crypto.randomUUID(), name: 'Gym', color: 'blue', icon: 'fitness_center' } as const;
-        await open(EXPENSES, { categories: [gym] });
-
-        expect(chosenOption(text.category)).toBe(text.allCategories);
-        expect(optionNames(text.category)).toEqual([
-            text.allCategories,
-            en.categories.other,
-            ...DEFAULT_CATEGORY_IDS.filter((id) => id !== 'other').map((id) => en.categories[id]),
-            'Gym',
-        ]);
-    });
-
-    it('narrows the bars and the total to one category', async () => {
+describe('picking a category from the split', () => {
+    it('has no list of categories among the filters', async () => {
         await open();
 
-        pickOption(text.category, en.categories.food);
+        expect(screen.queryByRole('combobox')).toBeNull();
+        expect(screen.getByText(text.pickHint)).toBeDefined();
+    });
 
+    it('makes each row of the split a toggle, none pressed at first', async () => {
+        await open();
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(splitRow(en.categories.groceries).getAttribute('aria-pressed')).toBe('false');
+    });
+
+    it('narrows the bars and the total to the category pressed, and names it', async () => {
+        await open();
+
+        pick(en.categories.food);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('true');
         expect(rowOf('Oct 25').textContent).toContain('€3.00');
         expect(rowOf('Oct 24').textContent).toContain('€12.50');
-        expect(screen.getByText(text.total).closest('p, div, li')!.textContent).toContain('€15.50');
+        const total = screen.getByText(t('charts.totalIn', { category: en.categories.food })).closest('p')!;
+        expect(total.textContent).toContain('€15.50');
+    });
+
+    it('lets go of the category when its row is pressed again', async () => {
+        await open();
+
+        pick(en.categories.food);
+        pick(en.categories.food);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(screen.getByText(text.total).closest('p')!.textContent).toContain('€89.49');
+    });
+
+    it('moves to another category when another row is pressed', async () => {
+        await open();
+
+        pick(en.categories.food);
+        pick(en.categories.leisure);
+
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('false');
+        expect(splitRow(en.categories.leisure).getAttribute('aria-pressed')).toBe('true');
+        expect(
+            screen.getByText(t('charts.totalIn', { category: en.categories.leisure })).closest('p')!.textContent
+        ).toContain('€28.00');
     });
 
     it('leaves the split by category alone', async () => {
         await open();
 
-        pickOption(text.category, en.categories.food);
+        pick(en.categories.food);
 
         expect(breakdown()).toHaveLength(3);
+    });
+
+    it('keeps the picked category at zero, last, when the new range has none of it, so it can be let go of', async () => {
+        await open();
+        pick(en.categories.leisure);
+
+        dates('2026-10-24', '2026-10-25');
+
+        expect(breakdown()).toHaveLength(3);
+        expect(breakdown().at(-1)!.textContent).toContain(en.categories.leisure);
+        expect(breakdown().at(-1)!.textContent).toContain('€0.00');
+        expect(document.querySelectorAll('.category-split__segment')).toHaveLength(2);
+
+        pick(en.categories.leisure);
+
+        expect(breakdown()).toHaveLength(2);
+    });
+
+    it('keeps the picked category when nothing at all was spent in the new range', async () => {
+        await open();
+        pick(en.categories.food);
+
+        dates('2026-10-11', '2026-10-12');
+
+        expect(screen.getByText(text.empty)).toBeDefined();
+        expect(breakdown()).toHaveLength(1);
+        expect(splitRow(en.categories.food).getAttribute('aria-pressed')).toBe('true');
     });
 });
 

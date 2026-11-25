@@ -838,8 +838,6 @@
             "week": "Semana",
             "month": "Mes"
         },
-        "category": "Categoría",
-        "allCategories": "Todas las categorías",
         "from": "Desde",
         "to": "Hasta",
         "resetRange": "Restablecer fechas",
@@ -848,7 +846,9 @@
         "spendingTitle": "Gasto",
         "weekOf": "Semana del {date}",
         "total": "Total",
+        "totalIn": "Total en {category}",
         "byCategory": "Por categoría",
+        "pickHint": "Toca una categoría para ver solo sus gastos, y otra vez para verlas todas.",
         "empty": "No hay gastos en este periodo.",
         "amount": "Importe",
         "showNumbers": "Ver las cifras",

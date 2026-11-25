@@ -838,8 +838,6 @@
             "week": "Week",
             "month": "Month"
         },
-        "category": "Category",
-        "allCategories": "All categories",
         "from": "From",
         "to": "To",
         "resetRange": "Reset dates",
@@ -848,7 +846,9 @@
         "spendingTitle": "Spending",
         "weekOf": "Week of {date}",
         "total": "Total",
+        "totalIn": "Total in {category}",
         "byCategory": "By category",
+        "pickHint": "Tap a category to see only its spending, and again to see them all.",
         "empty": "Nothing spent in this period.",
         "amount": "Amount",
         "showNumbers": "Show the numbers",

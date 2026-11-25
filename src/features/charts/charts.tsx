@@ -5,11 +5,8 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { DateRangeFields } from '@/components/date-range-fields/date-range-fields';
-import { Field } from '@/components/field/field';
-import { Icon } from '@/components/icon/icon';
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
-import { CategorySelect } from '@/features/categories/category-select';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
 import { useYourExpenses } from '@/features/expenses/use-your-expenses';
 import { categoriesQuery } from '@/lib/api';
@@ -106,17 +103,6 @@ const Charts = () => {
                 onChange={setGranularity}
             />
 
-            <Field label={t('category')}>
-                {(control) => (
-                    <CategorySelect
-                        {...control}
-                        options={[{ id: '', label: t('allCategories'), icon: <Icon name="apps" /> }, ...options]}
-                        value={categoryId}
-                        onChange={setCategoryId}
-                    />
-                )}
-            </Field>
-
             <DateRangeFields
                 from={range.from}
                 to={range.to}
@@ -142,6 +128,7 @@ const Charts = () => {
                     compared={compared}
                     partial={compared !== null && compared.current.to !== range.to}
                     today={today}
+                    category={filter === null ? null : labelOf(filter)}
                 />
             )}
             {problem === null && (
@@ -152,12 +139,16 @@ const Charts = () => {
                     category={filter === null ? null : labelOf(filter)}
                 />
             )}
-            {problem !== 'rangeInvalid' &&
-                (totals.length > 0 ? (
-                    <CategorySplit totals={totals} labelOf={labelOf} styleOf={styleOf} />
-                ) : (
-                    <Notice tone="quiet">{t('empty')}</Notice>
-                ))}
+            {problem !== 'rangeInvalid' && totals.length === 0 && <Notice tone="quiet">{t('empty')}</Notice>}
+            {problem !== 'rangeInvalid' && (totals.length > 0 || filter !== null) && (
+                <CategorySplit
+                    totals={totals}
+                    labelOf={labelOf}
+                    styleOf={styleOf}
+                    picked={filter}
+                    onPick={(id) => setCategoryId(id ?? '')}
+                />
+            )}
         </section>
     );
 };

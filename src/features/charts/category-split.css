@@ -71,11 +71,20 @@
     transform: translateX(-50%);
 }
 
+/* The whole row is the button that picks its category; the card keeps its padding, the button fills it */
 .category-split__row {
+    padding-block: 0;
+}
+
+/* A control with a look of its own: no notch, since the card under it already has its edge */
+.category-split__pick {
     align-items: center;
+    border-width: 0;
     display: grid;
     gap: var(--size-3);
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr auto auto 1.5rem;
+    inline-size: 100%;
+    padding: var(--size-2) 0;
 }
 
 .category-split__name {
@@ -83,6 +92,17 @@
     display: flex;
     gap: var(--size-2);
     min-width: 0;
+}
+
+@media (hover: hover) {
+    .category-split__pick:hover .category-split__label {
+        text-decoration: underline;
+    }
+}
+
+/* The picked row is told by shape: its name in bold and a check at the end */
+.category-split__row--picked .category-split__label {
+    font-weight: 700;
 }
 
 .category-split__amount {
@@ -93,4 +113,8 @@
     color: var(--color-content-secondary);
     min-width: 4ch;
     text-align: end;
+}
+
+.category-split__mark {
+    display: flex;
 }

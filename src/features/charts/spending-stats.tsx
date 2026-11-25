@@ -26,6 +26,8 @@ interface SpendingStatsProps {
     // Whether the current span is only part of the range, the days up to today
     partial: boolean;
     today: string;
+    // The name of the category the total is narrowed to, or null for all of them
+    category: string | null;
 }
 
 const MONTHS: Intl.DateTimeFormatOptions = { month: 'short', year: 'numeric' };
@@ -35,7 +37,7 @@ const DAYS_WITH_YEAR: Intl.DateTimeFormatOptions = { ...DAYS, year: 'numeric' };
 // The total of the range and how it changed against an earlier span of the same length: an arrow and a signed share,
 // never a color
 const SpendingStats = (props: SpendingStatsProps) => {
-    const { totalCents, compared, partial, today } = props;
+    const { totalCents, compared, partial, today, category } = props;
     const t = useTranslations('charts');
     const { locale } = useLocale();
     const money = useMoney();
@@ -85,7 +87,7 @@ const SpendingStats = (props: SpendingStatsProps) => {
     return (
         <Card className="spending-stats">
             <p className="spending-stats__total">
-                <span>{t('total')}</span>
+                <span>{category === null ? t('total') : t('totalIn', { category })}</span>
                 <strong>{money(totalCents)}</strong>
             </p>
             {line && (
