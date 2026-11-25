@@ -18,6 +18,7 @@ import {
     bucketCount,
     categoryTotals,
     comparison,
+    countedExpenses,
     defaultRange,
     spendingBuckets,
     spendingTotal,
@@ -27,6 +28,7 @@ import {
 import { toDateString } from '@core/date';
 
 import { CategorySplit } from './category-split';
+import { CountedExpenses } from './counted-expenses';
 import { SpendingChart } from './spending-chart';
 import { SpendingStats } from './spending-stats';
 
@@ -37,7 +39,7 @@ type Problem = 'rangeInvalid' | 'rangeTooLong';
 const Charts = () => {
     const t = useTranslations('charts');
     const id = useId();
-    const { expenses } = useYourExpenses();
+    const { expenses, pendingIds, sourceOf } = useYourExpenses();
     const { options, labelOf, styleOf } = useCategoryOptions();
     const categories = useQuery(categoriesQuery());
     const weekStart = useWeekStart();
@@ -90,6 +92,10 @@ const Charts = () => {
         };
     }, [filed, range, today, filter]);
     const totals = useMemo(() => categoryTotals(filed, range), [filed, range]);
+    const counted = useMemo(
+        () => countedExpenses(filed, { granularity, range, categoryId: filter, weekStart }),
+        [filed, granularity, range, filter, weekStart]
+    );
 
     return (
         <section className="charts">
@@ -147,6 +153,15 @@ const Charts = () => {
                     styleOf={styleOf}
                     picked={filter}
                     onPick={(id) => setCategoryId(id ?? '')}
+                />
+            )}
+            {problem !== 'rangeInvalid' && counted.length > 0 && (
+                <CountedExpenses
+                    key={`${granularity} ${range.from} ${range.to} ${filter}`}
+                    groups={counted}
+                    granularity={granularity}
+                    pendingIds={pendingIds}
+                    sourceOf={sourceOf}
                 />
             )}
         </section>

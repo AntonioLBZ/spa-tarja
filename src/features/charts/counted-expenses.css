@@ -1,0 +1,38 @@
+.counted-expenses {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
+/* The foot of a ticket, as in the list: a dashed rule and the total, which is the column of that row */
+.counted-expenses__total {
+    border-block-start: var(--size-px) dashed var(--color-border);
+    color: var(--color-content-secondary);
+    display: flex;
+    font-size: var(--font-size-s);
+    font-weight: 700;
+    gap: var(--size-2);
+    margin: 0;
+    padding-block-start: var(--size-3);
+}
+
+.counted-expenses__total-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.counted-expenses__total-label::after {
+    content: ' ' var(--leader-dots) / '';
+}
+
+.counted-expenses__subtotal {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.counted-expenses__more {
+    justify-self: start;
+}

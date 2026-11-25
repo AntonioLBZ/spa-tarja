@@ -6,6 +6,7 @@ import {
     bucketStart,
     categoryTotals,
     comparison,
+    countedExpenses,
     defaultRange,
     niceScale,
     previousRange,
@@ -453,6 +454,75 @@ describe('categoryTotals', () => {
     it('is empty when nothing counts in the range', () => {
         expect(categoryTotals([], range)).toEqual([]);
         expect(categoryTotals([expense()], { from: '2026-10-26', to: '2026-10-24' })).toEqual([]);
+    });
+});
+
+describe('countedExpenses', () => {
+    const OCTOBER = { from: '2026-10-01', to: '2026-10-31' };
+
+    it('groups what counts in the range by row, newest first, each row adding up to its column', () => {
+        const a = expense({ id: 'a', amountCents: 300, date: '2026-10-25', createdAt: 1 });
+        const b = expense({ id: 'b', amountCents: 1250, date: '2026-10-24' });
+        const c = expense({ id: 'c', amountCents: 500, date: '2026-10-25', createdAt: 2 });
+
+        const groups = countedExpenses([a, b, c], { granularity: 'day', range: OCTOBER, categoryId: null });
+
+        expect(groups.map((group) => [group.start, group.totalCents, group.expenses.map((item) => item.id)])).toEqual([
+            ['2026-10-25', 800, ['c', 'a']],
+            ['2026-10-24', 1250, ['b']],
+        ]);
+        const columns = spendingBuckets([a, b, c], { granularity: 'day', range: OCTOBER, categoryId: null });
+        for (const group of groups) {
+            expect(columns.find((column) => column.start === group.start)!.totalCents).toBe(group.totalCents);
+        }
+    });
+
+    it('lists an expense on the day it is charged, at what it counts, and only in the category asked for', () => {
+        const credit = expense({ id: 'credit', date: '2026-09-28', payment: 'credit', chargeDate: '2026-10-03' });
+        const voucher = expense({
+            id: 'voucher',
+            amountCents: 4000,
+            personalCents: 1000,
+            date: '2026-10-12',
+            payment: 'voucher',
+            chargeDate: '2026-11-12',
+        });
+        const leisure = expense({ id: 'leisure', categoryId: 'leisure', date: '2026-10-05' });
+
+        const groups = countedExpenses([credit, voucher, leisure], {
+            granularity: 'month',
+            range: OCTOBER,
+            categoryId: 'food',
+        });
+
+        expect(groups).toHaveLength(1);
+        expect(groups[0]!.start).toBe('2026-10-01');
+        expect(groups[0]!.expenses.map((item) => item.id)).toEqual(['voucher', 'credit']);
+        expect(groups[0]!.totalCents).toBe(2000);
+    });
+
+    it('leaves out deleted expenses, those outside the range and those that count nothing', () => {
+        const groups = countedExpenses(
+            [
+                expense({ deletedAt: 5 }),
+                expense({ date: '2026-09-30' }),
+                expense({ amountCents: 4000, personalCents: 0, payment: 'voucher', chargeDate: '2026-11-12' }),
+            ],
+            { granularity: 'day', range: OCTOBER, categoryId: null }
+        );
+
+        expect(groups).toEqual([]);
+    });
+
+    it('groups by the week of the browser', () => {
+        const groups = countedExpenses([expense({ date: '2026-10-25' })], {
+            granularity: 'week',
+            range: OCTOBER,
+            categoryId: null,
+            weekStart: 7,
+        });
+
+        expect(groups[0]!.start).toBe('2026-10-25');
     });
 });
 

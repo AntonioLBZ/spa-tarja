@@ -96,6 +96,39 @@ const spendingTotal = (expenses: readonly Expense[], options: { range: Range; ca
         .reduce((sum, expense) => sum + countedCents(expense), 0);
 };
 
+// The expenses that make up a row of a chart, and what they add up to: the column of that row
+interface CountedGroup {
+    // The first day of the row
+    start: string;
+    totalCents: number;
+    expenses: Expense[];
+}
+
+// What the chart counts, expense by expense, in a group for each row that has any: the rows newest first and, inside
+// each, the expenses by the day they count on and then the newest made first. Something that counts nothing is left out.
+const countedExpenses = (
+    expenses: readonly Expense[],
+    options: { granularity: Granularity; range: Range; categoryId: string | null; weekStart?: WeekDay }
+): CountedGroup[] => {
+    const { granularity, range, categoryId, weekStart = MONDAY } = options;
+    const counted = inRange(expenses, range)
+        .filter((expense) => (categoryId === null || expense.categoryId === categoryId) && countedCents(expense) > 0)
+        .sort((a, b) => countedOn(b).localeCompare(countedOn(a)) || b.createdAt - a.createdAt);
+
+    const groups: CountedGroup[] = [];
+    for (const expense of counted) {
+        const start = bucketStart(countedOn(expense), granularity, weekStart);
+        let group = groups.at(-1);
+        if (group?.start !== start) {
+            group = { start, totalCents: 0, expenses: [] };
+            groups.push(group);
+        }
+        group.totalCents += countedCents(expense);
+        group.expenses.push(expense);
+    }
+    return groups;
+};
+
 // What each category took in the range, the biggest first and by name when they tie; one that took nothing is left out
 const categoryTotals = (expenses: readonly Expense[], range: Range): CategoryTotal[] => {
     const totals = new Map<string, number>();
@@ -196,6 +229,7 @@ export {
     bucketStart,
     categoryTotals,
     comparison,
+    countedExpenses,
     defaultRange,
     niceScale,
     previousRange,
@@ -203,6 +237,7 @@ export {
     spendingTotal,
     type Bucket,
     type CategoryTotal,
+    type CountedGroup,
     type Granularity,
     type Range,
 };
