@@ -6,7 +6,7 @@ import { formatAmount } from '@core/basics/money';
 
 import { wordNotices, type NoticeContext } from './notice-words';
 
-import type { PushMessage } from '@server/push-notices';
+import type { PushMessage } from '@server/push/push-notices';
 
 // Only the copy of the notices, so the script doesn't carry the whole app's
 const MESSAGES = { en: { notices: enNotices }, es: { notices: esNotices } };

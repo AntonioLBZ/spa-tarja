@@ -1,4 +1,4 @@
-import { purgeEndedInvitations } from '@server/db/invitations';
+import { purgeEndedInvitations } from './invitations';
 
 // How many rows the daily clean-up deleted from each table
 interface CleanupCounts {

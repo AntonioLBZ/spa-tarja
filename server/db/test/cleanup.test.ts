@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/groups/invitation';
 import { app } from '@server/app';
-import { dailyCleanup } from '@server/cleanup';
+import { dailyCleanup } from '@server/db/cleanup';
 import worker from '@server/index';
 import { makeGroup, seedEntry } from '@server/testing/groups';
 import { ORIGIN, signIn, signInAgain, type TestSession } from '@server/testing/session';

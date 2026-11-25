@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { app } from '@server/app';
-import { withSecurityHeaders } from '@server/headers';
+import { withSecurityHeaders } from '@server/security/headers';
 import { send } from '@server/testing/groups';
 import { ORIGIN, signIn, type TestSession } from '@server/testing/session';
 

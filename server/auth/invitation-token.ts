@@ -1,5 +1,5 @@
 import { isInvitationToken } from '@core/groups/invitation';
-import { fromBase64Url, toBase64Url } from '@server/base64url';
+import { fromBase64Url, toBase64Url } from '@server/basics/base64url';
 
 const encoder = new TextEncoder();
 

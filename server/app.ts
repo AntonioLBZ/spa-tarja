@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 
-import { createAuth } from '@server/auth';
-import { withSecurityHeaders } from '@server/headers';
-import { withOwnOrigin } from '@server/origin';
-import { withUser } from '@server/user';
+import { createAuth } from '@server/auth/auth';
+import { withUser } from '@server/auth/user';
+import { withSecurityHeaders } from '@server/security/headers';
+import { withOwnOrigin } from '@server/security/origin';
 
 import { accountRoutes } from './routes/account';
 import { budgetsRoutes } from './routes/budgets';

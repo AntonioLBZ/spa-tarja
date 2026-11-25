@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { fromBase64Url, toBase64Url } from '@server/base64url';
+import { fromBase64Url, toBase64Url } from '@server/basics/base64url';
 
 // The private key the server signs pushes with (RFC 8292), kept as a JWK in one secret, so the public key is read from
 // it and can't drift from it

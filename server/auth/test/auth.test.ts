@@ -4,7 +4,7 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { app } from '@server/app';
-import { authOptions } from '@server/auth';
+import { authOptions } from '@server/auth/auth';
 import { befriend, makeGroup, send } from '@server/testing/groups';
 import { ORIGIN, cachedSession, sentAs, signIn, type TestSession } from '@server/testing/session';
 

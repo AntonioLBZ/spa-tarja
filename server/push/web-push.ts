@@ -1,6 +1,6 @@
-import { fromBase64Url, toBase64Url } from '@server/base64url';
+import { fromBase64Url, toBase64Url } from '@server/basics/base64url';
 
-import type { VapidKey } from '@server/vapid';
+import type { VapidKey } from './vapid';
 
 // A subscription of a browser: its address and its keys, base64url
 interface PushTarget {

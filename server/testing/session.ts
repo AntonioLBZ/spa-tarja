@@ -4,7 +4,7 @@ import { env } from 'cloudflare:workers';
 
 import { USER_HEADER } from '@core/account/account';
 import { app } from '@server/app';
-import { authOptions } from '@server/auth';
+import { authOptions } from '@server/auth/auth';
 
 // What `app.request('/api/...')` uses as its origin
 const ORIGIN = 'http://localhost';

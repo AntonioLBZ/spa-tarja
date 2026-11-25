@@ -3,7 +3,7 @@ import { Hono } from 'hono';
 
 import { pushEndpointSchema, pushSubscriptionSchema } from '@core/account/push';
 import { deletePushSubscription, savePushSubscription } from '@server/db/push';
-import { readVapidKey } from '@server/vapid';
+import { readVapidKey } from '@server/push/vapid';
 
 import type { AppEnv } from '@server/env';
 

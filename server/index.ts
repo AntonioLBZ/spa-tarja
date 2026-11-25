@@ -1,5 +1,5 @@
 import { app } from './app';
-import { dailyCleanup } from './cleanup';
+import { dailyCleanup } from './db/cleanup';
 
 // The requests go to the API; the Cron Trigger of production runs the clean-up once a day
 const worker = {

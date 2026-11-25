@@ -2,9 +2,10 @@ import { noticeOf, type Notice } from '@core/groups/notices';
 import { UNNAMED_PERSON } from '@core/groups/shared-group';
 import { canonicalMember } from '@core/groups/shared-member';
 import { deletePushSubscription, listPushSubscriptions } from '@server/db/push';
-import { pushTargets } from '@server/push-targets';
-import { readVapidKey } from '@server/vapid';
-import { sendPush } from '@server/web-push';
+
+import { pushTargets } from './push-targets';
+import { readVapidKey } from './vapid';
+import { sendPush } from './web-push';
 
 import type { PushLocale } from '@core/account/push';
 import type { LedgerEntry } from '@core/groups/shared-entry';

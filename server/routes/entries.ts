@@ -8,7 +8,7 @@ import { groupIdSchema } from '@core/groups/shared-group';
 import { canonicalMember } from '@core/groups/shared-member';
 import { listEntryChanges, readEntry, upsertEntry, type StoredEntry } from '@server/db/entries';
 import { closedFor, readGroup, type GroupState } from '@server/db/groups';
-import { notifyEntry } from '@server/push-notices';
+import { notifyEntry } from '@server/push/push-notices';
 
 import { DEFAULT_PAGE_SIZE, changesQuery } from './expenses';
 import { CLOSED, NOT_FOUND } from './groups';

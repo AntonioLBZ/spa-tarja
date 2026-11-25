@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fromBase64Url, toBase64Url } from '@server/base64url';
+import { fromBase64Url, toBase64Url } from '@server/basics/base64url';
+import { readVapidKey } from '@server/push/vapid';
+import { encryptPayload, sendPush, vapidAuthorization } from '@server/push/web-push';
 import { testVapidKey } from '@server/testing/push';
-import { readVapidKey } from '@server/vapid';
-import { encryptPayload, sendPush, vapidAuthorization } from '@server/web-push';
 
 const RFC = {
     plaintext: 'When I grow up, I want to be a watermelon',

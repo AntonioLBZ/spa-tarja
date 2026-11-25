@@ -2,7 +2,7 @@
 import { notificationFor, showsNotification } from './push-worker-logic';
 
 import type { NoticeContext } from './notice-words';
-import type { PushMessage } from '@server/push-notices';
+import type { PushMessage } from '@server/push/push-notices';
 
 // The little of the service worker's world this script uses, which the types of a page don't describe
 interface WindowClient {

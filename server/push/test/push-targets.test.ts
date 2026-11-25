@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { pushTargets } from '@server/push-targets';
+import { pushTargets } from '@server/push/push-targets';
 
 const device = (userId: string, n: number) => ({ userId, endpoint: `https://fcm.googleapis.com/${userId}/${n}` });
 
