@@ -1,6 +1,5 @@
+import { beginSwipe, decideSwipe } from '@/lib/a11y';
 import { readDuration } from '@/lib/motion';
-
-import { beginSwipe, decideSwipe } from './screen-arrival';
 
 import type { SwipeDrag } from './use-swipe';
 

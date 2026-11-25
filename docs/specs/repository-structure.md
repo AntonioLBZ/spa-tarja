@@ -20,7 +20,7 @@ public/          static files
     - `test`: the tests of `app.ts`, the one file of the root that has them.
     - `testing`: the helpers of the `server` tests; not a test folder.
 - `src/lib` holds only folders, one per subject, each with an `index.ts` that the rest of the app imports (`@/lib/navigation`; `testing` has none, its helpers are imported file by file) and a `test/` folder for its tests ([testing and CI](testing-and-ci.md)); inside a folder, a file reaches its siblings with `./`:
-    - `a11y`: how the focus last moved, and a value that waits for the typing to stop.
+    - `a11y`: how the focus last moved, what a heading does when its screen arrives (take the focus or say its text), and a value that waits for the typing to stop.
     - `amounts`: the cues of an amount the person chose (color, sign, arrow, symbol).
     - `api`: the typed client of `/api`, its calls, the queries and the query client.
     - `app-info`: the version of the build, whether it is the prerelease, the repository and the contact.
@@ -28,7 +28,7 @@ public/          static files
     - `files`: a file handed to the person, and the words of a range of days.
     - `i18n`: the locale, its messages and the first day of the week.
     - `motion`: the duration tokens read from CSS, a fade-out, and a toast or banner swiped away.
-    - `navigation`: the slide of a change of screen, the swipe between screens and what a heading does when its screen arrives.
+    - `navigation`: the slide of a change of screen, the swipe between screens and how a screen was reached.
     - `offline`: the outboxes, the sync, the persisted cache and the per-user storage.
     - `push`: the subscription of the device to Web Push and when it is suggested.
     - `random`: a random seed.

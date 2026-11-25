@@ -2,8 +2,8 @@ import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
+import { beginSwipe, decideSwipe, markSwiped, markUndone } from '@/lib/a11y/screen-arrival';
 import { GROUPS_KEY } from '@/lib/api';
-import { beginSwipe, decideSwipe, markSwiped, markUndone } from '@/lib/navigation/screen-arrival';
 import { createFakeApi } from '@/lib/testing/fake-api';
 import { person, sampleGroup } from '@/lib/testing/groups';
 import { renderApp, stubApi } from '@/lib/testing/render-app';

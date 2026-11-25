@@ -16,9 +16,9 @@ import { ExpenseListControls } from '@/features/expenses/filters/expense-list-co
 import { useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useEntryActions } from '@/features/groups/data/use-entry-actions';
+import { focusHeading } from '@/lib/a11y';
 import { useMoney } from '@/lib/amounts';
 import { useLocale } from '@/lib/i18n';
-import { focusHeading } from '@/lib/navigation';
 import { fromDateString } from '@core/basics/date';
 import { isSharedRow } from '@core/groups/shared-expense';
 import { shownExpense } from '@core/lists/expense-list';

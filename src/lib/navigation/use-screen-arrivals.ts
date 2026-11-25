@@ -1,7 +1,7 @@
 import { useRouter } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
-import { expectArrival, takeSwiped, takeUndone } from './screen-arrival';
+import { expectArrival, takeSwiped, takeUndone } from '@/lib/a11y';
 
 // The focus stays on a control of the navigation that is always in the page (the bar, the header, the tabs of
 // Expenses), which is a place of its own
