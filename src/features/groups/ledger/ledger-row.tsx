@@ -21,7 +21,7 @@ import type { SharedExpenseEntry } from '@core/shared-expense';
 import type { SharedGroup } from '@core/shared-group';
 import type { RefCallback } from 'react';
 
-import '@/features/expenses/expense-row.css';
+import '@/features/expenses/list/expense-row.css';
 import './ledger-row.css';
 
 interface LedgerRowProps {

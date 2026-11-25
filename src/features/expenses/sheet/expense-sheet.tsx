@@ -7,9 +7,9 @@ import { Button } from '@/components/button/button';
 import { Dialog } from '@/components/dialog/dialog';
 import { Icon } from '@/components/icon/icon';
 import { useToast } from '@/components/toast/toast';
+import { ExpenseForm } from '@/features/expenses/form/expense-form';
 import { useWide } from '@/lib/viewport';
 
-import { ExpenseForm } from './expense-form';
 import { useExpenseSheet } from './expense-sheet-state';
 
 import './expense-sheet.css';

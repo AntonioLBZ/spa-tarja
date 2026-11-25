@@ -8,7 +8,7 @@ import { Field, FieldBox } from '@/components/field/field';
 import { SpokenHint } from '@/components/field/spoken-hint';
 import { Notice } from '@/components/notice/notice';
 import { Select } from '@/components/select/select';
-import { PaymentFields, type PaymentState } from '@/features/expenses/payment-fields';
+import { PaymentFields, type PaymentState } from '@/features/expenses/form/payment-fields';
 import { newEntry } from '@/features/groups/data/new-entry';
 import { useGroups } from '@/features/groups/data/use-ledgers';
 import { useGroupWords } from '@/features/groups/words/use-group-words';

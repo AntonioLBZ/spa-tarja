@@ -9,7 +9,7 @@ import { DateRangeFields } from '@/components/date-range-fields/date-range-field
 import { Notice } from '@/components/notice/notice';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
-import { useYourExpenses } from '@/features/expenses/use-your-expenses';
+import { useYourExpenses } from '@/features/expenses/data/use-your-expenses';
 import { useMoney } from '@/lib/amounts';
 import { categoriesQuery } from '@/lib/api';
 import { useWeekStart } from '@/lib/i18n';

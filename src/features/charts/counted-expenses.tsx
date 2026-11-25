@@ -4,7 +4,7 @@ import { useTranslations } from 'use-intl';
 import { Button } from '@/components/button/button';
 import { CardList } from '@/components/card/card';
 import { Sheet } from '@/components/sheet/sheet';
-import { ExpenseItemBody } from '@/features/expenses/expense-item-body';
+import { ExpenseItemBody } from '@/features/expenses/list/expense-item-body';
 import { useMoney } from '@/lib/amounts';
 import { countedOn } from '@core/counting';
 import { isSharedRow } from '@core/shared-expense';

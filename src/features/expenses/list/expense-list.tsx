@@ -10,6 +10,10 @@ import { Sheet } from '@/components/sheet/sheet';
 import { useToast } from '@/components/toast/toast';
 import { CategoryBadge } from '@/features/categories/category-badge';
 import { useCategoryOptions } from '@/features/categories/use-category-options';
+import { restoreExpenses } from '@/features/expenses/data/create-expenses';
+import { useSaveExpense } from '@/features/expenses/data/use-save-expense';
+import { ExpenseListControls } from '@/features/expenses/filters/expense-list-controls';
+import { useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { failureOf, useFailureWords, type GroupFailure } from '@/features/groups/data/group-failure';
 import { useEntryActions } from '@/features/groups/data/use-entry-actions';
 import { useMoney } from '@/lib/amounts';
@@ -19,12 +23,8 @@ import { fromDateString } from '@core/date';
 import { shownExpense } from '@core/expense-list';
 import { isSharedRow } from '@core/shared-expense';
 
-import { restoreExpenses } from './create-expenses';
-import { ExpenseListControls } from './expense-list-controls';
 import { ExpenseRow } from './expense-row';
-import { useExpenseSheet } from './expense-sheet-state';
 import { useExpenseList } from './use-expense-list';
-import { useSaveExpense } from './use-save-expense';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';
 import type { Expense } from '@core/expense';

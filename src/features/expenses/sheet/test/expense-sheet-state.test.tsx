@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { ExpenseSheetProvider, useExpenseSheet } from '@/features/expenses/expense-sheet-state';
+import { ExpenseSheetProvider, useExpenseSheet } from '@/features/expenses/sheet/expense-sheet-state';
 import { sampleEntry, sampleGroup } from '@/lib/testing/groups';
 
 import type { SharedRowSource } from '@/features/groups/share/use-shared-expense-rows';

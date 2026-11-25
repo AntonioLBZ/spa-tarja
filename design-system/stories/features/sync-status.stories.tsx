@@ -1,4 +1,4 @@
-import { SyncStatus as SyncStatusComponent } from '@/features/expenses/sync-status';
+import { SyncStatus as SyncStatusComponent } from '@/features/expenses/list/sync-status';
 import { useOutbox } from '@/lib/offline';
 import { onlineManager } from '@tanstack/react-query';
 import { useEffect } from 'react';
