@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Dialog
+
+A box with the notch, centered over the page, over a veil of the page's own color. It is the native `<dialog>` opened as a modal: the page behind stays still and inert, the focus stays inside and Escape closes it. It holds its `title`, what it is given and, under that, its `actions`.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+For what has to be read before going on and has nothing to do with the screen under it: deleting the account, the privacy notice. Its actions are ghost buttons, since there is no L inside an L. The dialog takes the focus when it opens, not its first action. It stays in the page while closed, so what was typed in it survives. `dismissible` off keeps Escape from closing it while something is being sent.
+
+## Sheet
+
+The form of a task done apart from the screen: Edit, Duplicate, Settle up, the filters. Below 40 rem it is anchored to the bottom edge, as wide as the screen; from 40 rem it is the centered dialog. Its title row can end with a close button (`closeLabel`), and its actions stay stuck to its foot while what it holds scrolls under them. `closeOnOutside` off keeps a tap outside from closing a form that would lose what was typed.
+
+<Canvas of={Examples.Sheet} />
+
+## Page
+
+The add form on a phone: below 40 rem it takes the whole screen, its title row stuck to the top with the way back first (named by `closeLabel`) and `headAction`, the main action of the form, last. From 40 rem it is the centered dialog.
+
+<Canvas of={Examples.Page} />
+
+## Props
+
+<ArgTypes of={Examples} />

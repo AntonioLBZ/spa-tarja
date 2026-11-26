@@ -11,24 +11,26 @@ import './dialog.css';
 interface DialogProps {
     open: boolean;
     title: string;
-    // A sheet holds the form of a task: anchored to the bottom of a phone, the dialog itself from 40 rem. A page is a
-    // sheet that takes the whole screen of a phone, with the way back at the start of its title row (ADR-0026)
+    /**
+     * A sheet holds the form of a task: anchored to the bottom of a phone, the dialog itself from 40 rem. A page is a
+     * sheet that takes the whole screen of a phone, with the way back at the start of its title row (ADR-0026)
+     */
     variant?: 'dialog' | 'sheet' | 'page';
-    // Names the button that closes it, which ends its title row; without it there is none
+    /** Names the button that closes it, which ends its title row; without it there is none */
     closeLabel?: string;
-    // Where the focus goes once it is open; the dialog itself when it returns nothing
+    /** Where the focus goes once it is open; the dialog itself when it returns nothing */
     initialFocus?: () => HTMLElement | null;
-    // False while Escape must not close it, as when something is being sent from inside it
+    /** False while Escape must not close it, as when something is being sent from inside it */
     dismissible?: boolean;
-    // False for a form that closing would end, so a stray tap on the veil loses nothing
+    /** False for a form that closing would end, so a stray tap on the veil loses nothing */
     closeOnOutside?: boolean;
-    // The browser closed it, as Escape does
+    /** The browser closed it, as Escape does */
     onClose: () => void;
-    // While set, the close button, Escape and a tap outside go back a step instead of closing it
+    /** While set, the close button, Escape and a tap outside go back a step instead of closing it */
     onBack?: () => void;
-    // Ghost buttons or links, apart under what it holds
+    /** Ghost buttons or links, apart under what it holds */
     actions?: ReactNode;
-    // The main action of a page, which ends its title row
+    /** The main action of a page, which ends its title row */
     headAction?: ReactNode;
     children: ReactNode;
 }

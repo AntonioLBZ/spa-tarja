@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# SyncStatus
+
+The state of the outbox, over the list of expenses: being offline, how many expenses wait to be sent and, when the server refused some for good, how many, with Dismiss.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It takes no props: it reads the connection and the outbox of the person. Being offline and what waits are quiet `LiveNotice`s, so what comes and goes is announced.
+
+## Refused
+
+What the server refused is an error, until it is dismissed.
+
+<Canvas of={Examples.Refused} />
+
+## Props
+
+<ArgTypes of={Examples} />

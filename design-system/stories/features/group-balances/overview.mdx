@@ -1,0 +1,35 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# GroupBalances
+
+The balances of a group, on a `Sheet` labelled Balances: a folded row per person after their net balance, the person's own first, and under it the debts that make it up, as short sentences from their side, each with its Settle up. Amounts take the cues the person allows, the arrow included.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`GroupView` works out `debts` once (`groupDebts`) and feeds them here and to Settle up, so the hint "After this" is what the balances will show. `action` puts Settle up at the end of the label row; `onSettle` takes a debt to settle from its line.
+
+## Simplified debts
+
+With the group's switch on, the fewest payments instead of pair by pair. It is a view: no entry changes.
+
+<Canvas of={Examples.Simplified} />
+
+## Nothing to settle
+
+<Canvas of={Examples.Settled} />
+
+## A closed group
+
+Without `onSettle` no line offers Settle up.
+
+<Canvas of={Examples.Closed} />
+
+## Props
+
+<ArgTypes of={Examples} />

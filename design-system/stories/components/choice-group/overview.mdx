@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# ChoiceGroup
+
+A fieldset with its legend and one radio per option, drawn as one joined box: a thick edge on the left for the whole group, a thick cut under each option, the checked one filled with the accent. The options share one width and fill their row, as many to a row as fit, and go one under the other when the widest word doesn't fit twice.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+A choice among a few options that all show at once: the language, the theme, the currency symbol. The options keep the order they are given in, so the one that differs goes last. A longer list is a `Select`; a yes or no is a `Checkbox`.
+
+## Tabs
+
+Words in one row, the checked one in ink with the ink bar under it, as the pinned tabs, with no box: For, at the top of the add form. The legend is hidden from sight and still names the group.
+
+<Canvas of={Examples.Tabs} />
+
+## Swatch
+
+Cells that hold what they are given, an icon, instead of a word, each named by its label: the icon of a category.
+
+<Canvas of={Examples.Swatch} />
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -6,9 +6,9 @@ import type { ReactNode } from 'react';
 import './print-table.css';
 
 interface PrintTableProps {
-    // What the table holds, in words: it names the box that scrolls and is printed above the table
+    /** What the table holds, in words: it names the box that scrolls and is printed above the table */
     caption: string;
-    // The head and the body of the table, with the classes of the cells below
+    /** The head and the body of the table, with the classes of the cells below */
     children: ReactNode;
     className?: string;
 }

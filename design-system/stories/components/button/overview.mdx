@@ -1,0 +1,68 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Button
+
+A box with the notch drawn as it is used: at rest only its bottom edge, the left edge growing to half the height on hover and to the whole height while pressed, which makes the L. On a touch screen a button at rest is its bottom line alone.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Every action of the app that isn't a link to a screen. It is `type="button"` unless it submits. A link that looks like a button is a `ButtonLink`; a control with a look of its own is a raw `<button>`.
+
+## Primary
+
+The accent fill, for the main action of a form.
+
+<Canvas of={Examples.Primary} />
+
+## Danger
+
+Both edges and the text in `--color-danger`, for what deletes.
+
+<Canvas of={Examples.Danger} />
+
+## Ghost
+
+The text alone, underlined, with no box and no padding at the sides, for an action inside another edge or on paper: the actions under an open expense, the Undo of a toast. It goes with the default and `danger` variants, never with `primary` or `pressed`.
+
+<Canvas of={Examples.Ghost} />
+
+## Block
+
+As wide as its row, for a button that stands alone in its section, so its bottom edge runs from side to side.
+
+<Canvas of={Examples.Block} />
+
+## Small
+
+The text in `--font-size-s`, for the actions among the words of the header.
+
+<Canvas of={Examples.Small} />
+
+## Glyph
+
+A box that holds only a symbol, centered; it needs an `aria-label`. A `badge` puts a short mark in its corner, hidden from assistive technology, so the label says it too: the number of filters on.
+
+<Canvas of={Examples.Glyph} />
+
+## Pressed
+
+A toggle that is on: filled with the accent, keeping the whole L, with `aria-pressed`.
+
+<Canvas of={Examples.Pressed} />
+
+## Disabled
+
+The same whatever the variant: no fill, secondary text and the notch in the hairline color.
+
+<Canvas of={Examples.Disabled} />
+
+## Props
+
+<ArgTypes of={Examples} />

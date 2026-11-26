@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Banner
+
+The notice of something that happened elsewhere, a shared expense somebody added, shaped like the banner of a system notification. It drops in from the top, over the header: a title and a message that together open what it is about, and a button that clears it away.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`BannerProvider` goes once above the routes, so a banner survives a change of screen, and `useBanner` gives `show` and `dismiss`. One at a time: what `show` gets while one shows replaces its text and starts its count again. It goes by itself after 8 s, held while the pointer is over it or the focus inside; a swipe to a side or up, or Escape, clears it. It never takes the focus, and its `role="status"` region is always in the page, so what comes in is announced. Here the frame stands for the page, since the banner sits on its top edge.
+
+## Props
+
+<ArgTypes of={Examples} />

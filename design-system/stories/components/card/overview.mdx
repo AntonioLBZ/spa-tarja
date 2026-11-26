@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Card
+
+A row drawn as its bottom edge alone, a thick ink line, with the padding of a row above and below and none at the sides. It has no left edge and no L, at rest or on hover, since a card isn't a control.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+A row of a list: a budget, a category of the charts, a group. What goes inside it is up to the screen. Several go in a `CardList`; a row that opens is a `Disclosure` on a `Sheet` instead. A `Button` in a card sits into its padding, so the row is no taller than the touch target.
+
+## Linked
+
+Its one link covers the whole card, and the focus ring of the link goes round the card: the pages of the settings, the groups.
+
+<Canvas of={Examples.Linked} />
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import './notice.css';
 
 interface NoticeProps {
-    // Ink for information, the danger color for errors, a hairline for what is only background
+    /** Ink for information, the danger color for errors, a hairline for what is only background */
     tone?: 'info' | 'danger' | 'quiet';
     role?: 'alert' | 'status';
     id?: string;

@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# ButtonLink
+
+A link that looks like a `Button`, typed like the router's `Link`, so `to` is checked against the routes. It takes the same `variant`, `ghost`, `block`, `glyph` and `small`; a `glyph` one needs an `aria-label`.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+For what leads to another screen but stands where a button would. The looks are those of `Button`.
+
+## The link back
+
+Ghost and small, the link back in the header of a phone.
+
+<Canvas of={Examples.Back} />
+
+## Props
+
+<ArgTypes of={Examples} />

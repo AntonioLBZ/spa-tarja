@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# MonthSwitch
+
+The name of a month between two arrow buttons, previous and next, its first letter in capital. The name is a `role="status"`, always in the page, so the new month is read after a press.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+For the screens that show one month at a time, the Summary and the budgets. The month is the state of the screen, never part of the URL. `labels` names the two buttons.
+
+## Props
+
+<ArgTypes of={Examples} />

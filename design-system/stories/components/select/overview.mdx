@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Select
+
+A field that picks one option from a list. It is a native `<select>`: where the browser lets a select be styled its list draws the icon of each option, and elsewhere the list is the system's own and shows the names alone. The field shows the icon of the chosen option everywhere.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The only way to pick one among several in a form, so no feature styles a `<select>` of its own nor builds a list by hand. It goes inside a `Field`, which gives it its `id`, `aria-describedby` and `aria-invalid`; its label is always up, since a select always holds a value. `ref` reaches the field, for a screen that puts the focus on it.
+
+## Without icons
+
+A list whose options have no icon leaves no gap. When only some have one, the others keep its place, so the names line up.
+
+<Canvas of={Examples.NoIcons} />
+
+## Disabled
+
+Like any other disabled field: the hairline at the bottom, the label and the text in secondary ink.
+
+<Canvas of={Examples.Disabled} />
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 interface CategorySelectOption {
     id: string;
     label: string;
-    // An option with no style, like "All categories", has no badge: the icon given, if any
+    /** An option with no style, like "All categories", has no badge: the icon given, if any */
     style?: CategoryStyle;
     icon?: ReactNode;
 }

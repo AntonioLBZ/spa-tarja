@@ -1,0 +1,41 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# SpendingChart
+
+Spending over time, in the charts: a column for each day, week or month on a round scale, the biggest and today's marked by shape, a readout of the column picked by a tap or the arrow keys, and the numbers in a table under Show the numbers for whoever can't see the columns.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`buckets` are the totals of the range, from `@core/reports/charts`, grouped by `granularity`. `today` marks today's column.
+
+## By week and by month
+
+<Canvas of={Examples.ByWeek} />
+
+<Canvas of={Examples.ByMonth} />
+
+## A few columns
+
+With few columns each is wide. Up to 60 stand apart, a quarter of their slot; more touch and read as a silhouette.
+
+<Canvas of={Examples.AFew} />
+
+## Nothing spent
+
+<Canvas of={Examples.NothingSpent} />
+
+## Narrowed to a category
+
+`category` names the category the buckets are narrowed to, which the readout says.
+
+<Canvas of={Examples.Category} />
+
+## Props
+
+<ArgTypes of={Examples} />

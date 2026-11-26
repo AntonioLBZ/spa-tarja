@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Toast
+
+A message that goes away by itself, floating at the bottom: a flat box filled with ink, the one message that is filled, with no notch. The time left is the fill itself: over the 8 s the ink drains from right to left. The message sits at the left and the actions at the right, on one row at every width.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`ToastProvider` sits in the root layout, so a toast survives a change of screen, and `useToast` gives `show`, `dismiss`, `pin` and `unpin`. It is for the result of something the person can take back, with its action (Undo after Delete), and for a warning that needs no answer (a budget crossed). Errors stay `Notice`s. One at a time: a new one replaces the one showing. Hovering it, the focus inside or dragging it pauses the count; one with an action waits while the keyboard is what last moved the focus. A swipe to a side or down, Escape or the dismiss button clears it. Here the frame stands for the page, since the toast sits on its bottom edge.
+
+## Something done
+
+A bare check mark in front of the message, for what was done.
+
+<Canvas of={Examples.Done} />
+
+## Pinned
+
+For a message that has to be answered, so it stays until it is: the notice of a new version. All ink, nothing draining, no dismiss button, and Escape doesn't close it; a swipe gives the answer it names. It sits above the other toast, so an Undo never covers it.
+
+<Canvas of={Examples.Pinned} />
+
+## Props
+
+<ArgTypes of={Examples} />

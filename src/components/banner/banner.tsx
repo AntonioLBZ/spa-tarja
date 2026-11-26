@@ -26,9 +26,9 @@ const SWIPED_TO: readonly SwipeSide[] = ['left', 'right', 'up'];
 interface BannerOptions {
     title: string;
     message: string;
-    // Opens what the banner is about
+    /** Opens what the banner is about */
     onOpen: () => void;
-    // Called once when it goes, however it goes, but not when a new text takes its place
+    /** Called once when it goes, however it goes, but not when a new text takes its place */
     onGone?: () => void;
 }
 
@@ -53,7 +53,7 @@ interface BannerBoxProps {
 }
 
 interface BannerProviderProps {
-    // Names the button that clears the banner away
+    /** Names the button that clears the banner away */
     dismissLabel: string;
     children: ReactNode;
 }

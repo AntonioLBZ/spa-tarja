@@ -1,0 +1,35 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# SignInScreen
+
+What anybody not signed in sees: the brand, Sign in with Google, a line on what Google shares and the privacy notice. There is no guest mode.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`AuthGate` shows it in place of the app, inside the `AuthProvider` it signs in through.
+
+## Unreachable
+
+The server can't be reached, so the session can't be asked: it says so, and the button tries again.
+
+<Canvas of={Examples.Unreachable} />
+
+## After deleting the account
+
+`deleted` says the account was just deleted on this device.
+
+<Canvas of={Examples.Deleted} />
+
+When the device couldn't delete its copy of the data, it says how to clear it.
+
+<Canvas of={Examples.DeletedNotCleared} />
+
+## Props
+
+<ArgTypes of={Examples} />

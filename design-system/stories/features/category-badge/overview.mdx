@@ -1,0 +1,31 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CategoryBadge
+
+The icon of a category in its color. The name always goes next to it: the color alone says nothing.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Wherever a category is named: the rows of the list and of a ledger, the budgets, the split of the charts, the category `Select` and the categories screen.
+
+## The colors
+
+The seven that stand out and gray, the plain look of Other.
+
+<Canvas of={Examples.Colors} />
+
+## The icons
+
+In the order the picker shows them.
+
+<Canvas of={Examples.Icons} />
+
+## Props
+
+<ArgTypes of={Examples} />

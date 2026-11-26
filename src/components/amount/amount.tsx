@@ -5,15 +5,17 @@ import { Icon } from '@/components/icon/icon';
 import './amount.css';
 
 interface AmountProps {
-    // The amount as the app writes it, with its symbol and without a sign
+    /** The amount as the app writes it, with its symbol and without a sign */
     text: string;
-    // Which way it goes from the side of whoever its line is about: it adds to their balance or takes from it
+    /** Which way it goes from the side of whoever its line is about: it adds to their balance or takes from it */
     direction?: 'in' | 'out';
-    // The cues of that direction, each on its own; none shows without a direction
+    /** Paints it in the amount colors; nothing without a direction */
     color?: boolean;
+    /** Puts + or − before it, hidden from assistive technology; nothing without a direction */
     sign?: boolean;
+    /** Puts an arrow up or down before it; nothing without a direction */
     arrow?: boolean;
-    // Read the sign aloud, where no words around the amount say which way it goes
+    /** Reads the sign aloud, where no words around the amount say which way it goes */
     spokenSign?: boolean;
     className?: string;
 }

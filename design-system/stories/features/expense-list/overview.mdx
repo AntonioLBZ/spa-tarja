@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# ExpenseList
+
+The Expenses screen: the search and the filters button over the person's expenses, grouped by the day they were made, each day on a `Sheet` with its total. A row opens to Edit, Duplicate and Delete; a plan of installments is one row at its full price.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It reads the person's expenses, their part of the shared ones and their categories. It goes under a `ToastProvider` (the Undo of a delete) and the `ExpenseSheetProvider` (Edit and Duplicate open in the sheet of the add form). `titleHidden` keeps its title for assistive technology alone while the pinned groups are tabs over it.
+
+## Empty
+
+<Canvas of={Examples.Empty} />
+
+## Props
+
+<ArgTypes of={Examples} />

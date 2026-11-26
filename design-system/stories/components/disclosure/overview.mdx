@@ -1,0 +1,60 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Disclosure
+
+A toggle and the panel it opens under it, with `aria-expanded` on the toggle. The toggle draws its notch as it is used: closed, its bottom edge alone; the left edge grows to half the height on hover and to the whole height while pressed and while open. The panel comes in with a fade and a short shift.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+What can stay folded until somebody asks for it: the numbers of a chart, the closed and archived groups, the rows that open on a `Sheet` (which keep their own look). It keeps its own state from `defaultOpen`, or is controlled with `open` and `onOpenChange`. `keepMounted` keeps a closed panel in the page, hidden, so what was typed in it survives. `chevron` ends the toggle with an arrow that turns half a turn when open.
+
+## Open
+
+<Canvas of={Examples.Open} />
+
+## Align to the top
+
+The chevron on the first line of the summary, however tall the row grows: the expenses and the rows of a ledger.
+
+<Canvas of={Examples.AlignTop} />
+
+## Wide chevron
+
+The chevron in the middle of a column as wide as a touch target, so what ends the summary lines up with the icon buttons of the panel: the balances of a group.
+
+<Canvas of={Examples.WideChevron} />
+
+## In a form
+
+A row among the fields of a form, as tall as a `Field`, its summary in bold. `hint` says what the panel holds while it is closed, wrapping under the summary when it doesn't fit: More options of the add form.
+
+<Canvas of={Examples.InForm} />
+
+## One line
+
+The summary and the hint on one line, the hint cut with an ellipsis: the Split toggle of the add form.
+
+<Canvas of={Examples.OneLine} />
+
+## In a heading
+
+The toggle inside an `h2` or `h3`, for a disclosure that titles a section. The heading keeps the size of the text around it.
+
+<Canvas of={Examples.Heading} />
+
+## Disabled
+
+The hairline at the bottom and no left edge.
+
+<Canvas of={Examples.Disabled} />
+
+## Props
+
+<ArgTypes of={Examples} />

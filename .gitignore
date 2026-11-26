@@ -29,5 +29,4 @@ pnpm-debug.log*
 
 # AI
 .claude/
-.agents/
 skills-lock.json

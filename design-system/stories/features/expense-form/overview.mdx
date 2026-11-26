@@ -1,0 +1,43 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# ExpenseForm
+
+The form of an expense: For (Just me or Shared) in tabs, the amount, the text and the category, and folded under More options the day, the payment and the installments; a shared one adds Split, with who it is with, who paid and who is in. The category is suggested from the text and the history.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It lives in the sheet the "+" opens (`ExpenseSheet`), whose foot holds the button that sends it, named by the form's `id`; here a button under the form stands for it. Add is never off: pressing it marks each problem on its field and focuses the first. `onAdded` gets the day of a new expense, and `onDone` follows an edit or a copy.
+
+## Editing
+
+`editing` takes the expense, or every part of its plan, and the button saves it.
+
+<Canvas of={Examples.Editing} />
+
+## Duplicating
+
+`copying` starts a new expense from a saved one.
+
+<Canvas of={Examples.Copying} />
+
+## On the screen of a group
+
+`group` is the group of the screen: the expense is shared there, with nothing to choose.
+
+<Canvas of={Examples.InAGroup} />
+
+## Starting shared
+
+`startGroup` starts it shared with a group or friend the person can still change.
+
+<Canvas of={Examples.StartsShared} />
+
+## Props
+
+<ArgTypes of={Examples} />

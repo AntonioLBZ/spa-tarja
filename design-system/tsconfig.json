@@ -19,9 +19,9 @@
         "paths": {
             "@/*": ["../src/*"],
             "@core/*": ["../core/*"],
-            "@server/*": ["../server/*"]
+            "@server/*": ["../server/*"],
+            "@stories/*": ["./stories/*"]
         }
     },
-    // Not just ".storybook": Vite resolves the paths of a file only if the include matches it, and a bare dot folder is skipped
     "include": [".storybook/**/*", "stories", "../worker-configuration.d.ts", "../server/secrets.d.ts"]
 }

@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Checkbox
+
+A square box with its label, for a yes or no. The box has the notch and sits on `--color-bg-secondary` like a field; checked, it fills with the accent and shows a check. The whole row is the target, and a native checkbox under the box keeps the keyboard, the focus ring and the screen reader.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+A switch of the settings or of a group, and who is in a shared expense. Several in a list are `--size-2` apart. A choice among several is a `ChoiceGroup` or a `Select`.
+
+## With a hint
+
+`hint` goes under the label, like the hint of a `Field`.
+
+<Canvas of={Examples.Hint} />
+
+## Disabled
+
+While it can't be changed, as the notifications offline.
+
+<Canvas of={Examples.Disabled} />
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Actions
+
+A row of actions, buttons or links, `--size-4` apart, that wraps onto as many lines as it needs. It draws nothing of its own: the look is the actions'.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Use it for the actions under an open expense, a category or a person, the foot of a `Dialog` and the choices of a screen. A row whose boxes share its width, like Settle up, is not an `Actions`.
+
+## With links
+
+The same row holds links, as the links to Budgets and Charts at the foot of Summary.
+
+<Canvas of={Examples.Links} />
+
+## Props
+
+<ArgTypes of={Examples} />

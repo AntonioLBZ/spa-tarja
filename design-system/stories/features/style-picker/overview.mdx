@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# StylePicker
+
+Picks the color and the icon of a category: two `ChoiceGroup`s of swatches. Each color is shown on the current icon and each icon in the current color, so every option reads as the result of choosing it.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The look of a category the person makes or edits, under its name on the categories screen.
+
+## Props
+
+<ArgTypes of={Examples} />

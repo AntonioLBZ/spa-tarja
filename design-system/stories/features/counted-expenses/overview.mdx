@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CountedExpenses
+
+What the charts count, expense by expense, at the foot of the charts: a ticket for each row of the chart that has any, its total being that column. The rows only read: what is done to an expense is done in the list. They come 100 at a time, with Show more.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`groups` comes from `countedExpenses` (`@core/reports/charts`) with the range, the grouping and the category the chart has. An expense counts on the day it is charged, so a card payment made in September shows in October. `pendingIds` marks what waits in the outbox, and `sourceOf` names the group of a shared row.
+
+## By month
+
+The tickets follow the rows of the chart: by day, by week or by month.
+
+<Canvas of={Examples.ByMonth} />
+
+## Props
+
+<ArgTypes of={Examples} />

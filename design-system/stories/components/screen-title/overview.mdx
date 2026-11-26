@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# ScreenTitle
+
+The `h1` of a screen, the one place that names it. It sets the title of the page to "&lt;heading&gt; – Tarja", and when its screen has just opened it takes the focus, with no ring and no scroll, or says its text through the `Announcer`, as the way the screen was reached asks. Nothing happens at the first load.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Every screen has one, and never a bare `<h1>`; the brand is not a heading. A screen reached from a `nav`, by a swipe or through the history keeps the focus where it was and says the screen; any other change moves the focus to the title.
+
+## Props
+
+<ArgTypes of={Examples} />

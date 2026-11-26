@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# DateRangeFields
+
+The From and To fields of a range of days, each a `Field`, side by side while both fit and one under the other on a narrow phone. A day counts only between 2000 and 2099: what doesn't make a day yet, as a year being typed, stays in the field without reaching the screen, and leaving the field puts the last good day back.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The range of the charts and the From and To of the list filters, of a group's ledger and of the printable views. `onChange` gets the end that changed and its day.
+
+## Allow empty
+
+Either field can be cleared, for a range that may be open at one end, as the filters.
+
+<Canvas of={Examples.AllowEmpty} />
+
+## Invalid
+
+`invalid` and `describedBy` tie both fields to one message, which the screen shows once, for both of them.
+
+<Canvas of={Examples.Invalid} />
+
+## Props
+
+<ArgTypes of={Examples} />

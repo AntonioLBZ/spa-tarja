@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# CardTerm
+
+A card that names a value: the term at the start in secondary text, the value at the end, on one line while they fit.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It goes in a `CardList` with `as="dl"`, as the rows of the Summary and of About.
+
+## Strong
+
+The term and the value in ink and bold, for the row that sums up the others: Left in the Summary.
+
+<Canvas of={Examples.Strong} />
+
+## Props
+
+<ArgTypes of={Examples} />

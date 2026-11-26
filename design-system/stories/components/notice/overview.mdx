@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Notice
+
+A message set apart by a thick left edge, a paragraph that holds only the text.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+A message that is on screen from its first paint, with no role. One that comes and goes while the person looks at it is a `LiveNotice`; one that goes away by itself is a `Toast`. No feature draws a left-border message of its own.
+
+## Danger
+
+`--color-danger`, for errors. An error that shows up after an action takes `role="alert"`.
+
+<Canvas of={Examples.Danger} />
+
+## Quiet
+
+A hairline and secondary text, for what is only background, as an empty list.
+
+<Canvas of={Examples.Quiet} />
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -8,19 +8,21 @@ import './field.css';
 // What the control must spread on its element to be wired to the label, the hint and the error
 interface FieldControl {
     id: string;
-    // Never empty, so the box can tell an empty field from a filled one and keep the label in the middle while it is
-    // empty: blank, or the example the field was given
+    /**
+     * Never empty, so the box can tell an empty field from a filled one and keep the label in the middle while it is
+     * empty: blank, or the example the field was given
+     */
     placeholder: string;
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
 }
 
 interface FieldBoxProps {
-    // The label, floating inside the box; a box without one holds a control named elsewhere
+    /** The label, floating inside the box; a box without one holds a control named elsewhere */
     label?: ReactNode;
-    // Drawn at the start of the box, before the label and the text
+    /** Drawn at the start of the box, before the label and the text */
     icon?: ReactNode;
-    // Short text after what is typed, such as the unit it is in
+    /** Short text after what is typed, such as the unit it is in */
     suffix?: ReactNode;
     children: ReactNode;
 }
@@ -55,19 +57,21 @@ const FieldBox = (props: FieldBoxProps) => {
 interface FieldProps {
     label: ReactNode;
     hint?: ReactNode;
-    // Shown under the control as an alert. `null` or `false` mean no problem yet, and the control says it is valid;
-    // leave it out for a control that cannot be invalid.
+    /**
+     * Shown under the control as an alert. `null` or `false` mean no problem yet, and the control says it is valid;
+     * leave it out for a control that cannot be invalid.
+     */
     error?: ReactNode;
-    // Ids of elements outside the field that also describe the control, such as a message shared by several fields
+    /** Ids of elements outside the field that also describe the control, such as a message shared by several fields */
     describedBy?: string;
     icon?: ReactNode;
     suffix?: ReactNode;
-    // An example of what goes in, shown only while the field is empty and the label is up
+    /** An example of what goes in, shown only while the field is empty and the label is up */
     placeholder?: string;
-    // Buttons beside the box, such as the Save of a field that is a form of its own
+    /** Buttons beside the box, such as the Save of a field that is a form of its own */
     actions?: ReactNode;
     className?: string;
-    // Renders the control, which spreads `control` on the element the label points at
+    /** Renders the control, which spreads `control` on the element the label points at */
     children: (control: FieldControl) => ReactNode;
 }
 

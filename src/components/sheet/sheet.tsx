@@ -5,15 +5,15 @@ import type { ReactNode, Ref } from 'react';
 import './sheet.css';
 
 interface SheetProps {
-    // Centered in capitals over a dashed rule; a sheet without one has no heading
+    /** Centered in capitals over a dashed rule; a sheet without one has no heading */
     label?: ReactNode;
-    // The heading that holds the label
+    /** The heading that holds the label */
     level?: 'h2' | 'h3';
     className?: string;
     labelClassName?: string;
-    // Lets the screen put the focus on the label when what had it is gone, as a row that was removed
+    /** Lets the screen put the focus on the label when what had it is gone, as a row that was removed */
     labelRef?: Ref<HTMLHeadingElement>;
-    // A small ghost button at the end of the row of the label, which stays centered
+    /** A small ghost button at the end of the row of the label, which stays centered */
     action?: ReactNode;
     children: ReactNode;
 }

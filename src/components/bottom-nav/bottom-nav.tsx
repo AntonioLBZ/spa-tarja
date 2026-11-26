@@ -20,19 +20,19 @@ interface BottomNavItem {
 
 // A button among the links, not a destination: it does something, and is never the current one
 interface BottomNavAction {
-    // Names the button for assistive technology; it holds the word that shows
+    /** Names the button for assistive technology; it holds the word that shows */
     label: string;
-    // Under the icon, as the links have theirs
+    /** Under the icon, as the links have theirs */
     word: string;
     icon: IconName;
     onPress: () => void;
 }
 
 interface BottomNavProps {
-    // Names the navigation for assistive technology
+    /** Names the navigation for assistive technology */
     label: string;
     items: readonly BottomNavItem[];
-    // Drawn in the middle of the items
+    /** Drawn in the middle of the items */
     action?: BottomNavAction;
 }
 

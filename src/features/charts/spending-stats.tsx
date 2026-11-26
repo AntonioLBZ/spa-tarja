@@ -19,16 +19,16 @@ interface ComparedTotals {
 }
 
 interface SpendingStatsProps {
-    // The total of the whole range
+    /** The total of the whole range */
     totalCents: number;
-    // Null when there is nothing to compare, for a range that starts after today
+    /** Null when there is nothing to compare, for a range that starts after today */
     compared: ComparedTotals | null;
-    // Whether the current span is only part of the range, the days up to today
+    /** Whether the current span is only part of the range, the days up to today */
     partial: boolean;
     today: string;
-    // The name of the category the total is narrowed to, if any
+    /** The name of the category the total is narrowed to, if any */
     category?: string;
-    // The line of the total, which can take the focus
+    /** The line of the total, which can take the focus */
     totalRef?: Ref<HTMLParagraphElement>;
 }
 

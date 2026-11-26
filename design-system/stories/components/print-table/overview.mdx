@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# PrintTable
+
+A table made to be read and printed, under its caption: a hairline under each row, the head in secondary text over an ink rule, the amounts at the end in tabular digits that never wrap. Wider than the column, it scrolls sideways in its own box, which the keyboard reaches and the caption names. On paper it takes the width of the sheet and never cuts a row between two sheets.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The table of a group and the printable view of the person's expenses. The page brings the head and the rows, and the cells take its classes: `print-table__number` for an amount, `print-table__end` for a heading over amounts, `print-table__date` for a day, `print-table__sum` for a row of sums in bold and `print-table__sum--last` for the last one, ruled off above.
+
+## Props
+
+<ArgTypes of={Examples} />

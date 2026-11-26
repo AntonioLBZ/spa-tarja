@@ -1,0 +1,62 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Field
+
+A box that holds the label and the control and, under it, a hint and the error, tied together for assistive technology. The box draws its notch as it is used: at rest its bottom edge alone, the left edge growing to half the height on hover and to the whole height while it has the focus. The label floats: in the middle of the box while the field is empty and idle, small at its top once it has the focus or a value.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Every text field of the app, and a `Select`. The control is a function of `control`, which it spreads on its element: the `id` the label points at, a blank placeholder, `aria-describedby` and `aria-invalid`. Fields in a form are `--size-4` apart. A `ChoiceGroup` has its own legend and stays outside.
+
+## Hint
+
+Under the box, in secondary text.
+
+<Canvas of={Examples.Hint} />
+
+## Error
+
+Both edges in `--color-danger`, and the message right under the field, as an alert, so it is never at the bottom of the form.
+
+<Canvas of={Examples.Invalid} />
+
+## Placeholder
+
+An example of what goes in, shown only while the field is empty and the label is up, never instead of the label: every amount field shows zero as the locale types it.
+
+<Canvas of={Examples.Placeholder} />
+
+## Icon
+
+An icon at the start of the box, in secondary ink: the magnifying glass of the search.
+
+<Canvas of={Examples.WithIcon} />
+
+## Suffix
+
+A short text after what is typed, the unit it is in. It isn't read out, so the name of the control says the unit too.
+
+<Canvas of={Examples.Suffix} />
+
+## Actions
+
+Buttons beside the box, their bottom edges in line with it, for a field that is a form of its own: the income.
+
+<Canvas of={Examples.Actions} />
+
+## FieldBox
+
+The same box with no label in it, `--size-touch` tall, for a control named elsewhere: the part of each person in a shared expense.
+
+<Canvas of={Examples.Box} />
+
+## Props
+
+<ArgTypes of={Examples} />

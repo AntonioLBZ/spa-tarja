@@ -6,16 +6,16 @@ import './card.css';
 
 interface CardProps {
     as?: 'div' | 'li';
-    // Its one link covers the whole card, and the ring of the link goes round the card
+    /** Its one link covers the whole card, and the ring of the link goes round the card */
     linked?: boolean;
     className?: string;
     children: ReactNode;
 }
 
 interface CardTermProps {
-    // What the value is
+    /** What the value is */
     term: ReactNode;
-    // In ink and bold, for the row that sums up the others
+    /** In ink and bold, for the row that sums up the others */
     strong?: boolean;
     className?: string;
     children: ReactNode;
@@ -23,9 +23,9 @@ interface CardTermProps {
 
 interface CardListProps {
     as?: 'ul' | 'ol' | 'dl';
-    // Cards that touch, for a list whose rows are far enough apart by themselves
+    /** Cards that touch, for a list whose rows are far enough apart by themselves */
     flush?: boolean;
-    // The name of a list with no heading of its own, for assistive technology
+    /** The name of a list with no heading of its own, for assistive technology */
     label?: string;
     className?: string;
     children: ReactNode;

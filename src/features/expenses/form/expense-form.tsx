@@ -39,31 +39,31 @@ import './expense-form.css';
 type ForWhom = 'me' | 'shared';
 
 interface ExpenseFormProps {
-    // The id of the form, which the button that sends it names from the foot of the sheet around it
+    /** The id of the form, which the button that sends it names from the foot of the sheet around it */
     id: string;
-    // Its name, which the sheet around it (ExpenseSheet) shows too
+    /** Its name, which the sheet around it (ExpenseSheet) shows too */
     title: string;
-    // The group of the screen the form is on, where the expense is shared with nothing to choose
+    /** The group of the screen the form is on, where the expense is shared with nothing to choose */
     group?: SharedGroup;
-    // Where a new expense starts shared, a group or friend the person can still change; without it, it starts as Just me
+    /** Where a new expense starts shared, a group or friend the person can still change; without it, it starts as Just me */
     startGroup?: SharedGroup;
-    // The expense, or every part of its plan, to change; without it the form adds a new one
+    /** The expense, or every part of its plan, to change; without it the form adds a new one */
     editing?: readonly Expense[] | null;
-    // The expense, or every part of its plan, to start a new one from
+    /** The expense, or every part of its plan, to start a new one from */
     copying?: readonly Expense[] | null;
-    // A shared expense of the group to change, or to start a new one from
+    /** A shared expense of the group to change, or to start a new one from */
     editingEntry?: SharedExpenseEntry | null;
     copyingEntry?: SharedExpenseEntry | null;
-    // After an edit or a copy is saved or cancelled
+    /** After an edit or a copy is saved or cancelled */
     onDone?: () => void;
-    // Called once a new expense is saved, not an edit, with the day it was made
+    /** Called once a new expense is saved, not an edit, with the day it was made */
     onAdded?: (day: string) => void;
 }
 
 interface StartingFields {
     amount: string;
     text: string;
-    // The category an edited expense was saved with
+    /** The category an edited expense was saved with */
     categoryId: string | null;
     date: string;
     payment: Payment;

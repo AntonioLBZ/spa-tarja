@@ -18,13 +18,13 @@ import './group-balances.css';
 
 interface GroupBalancesProps {
     group: SharedGroup;
-    // Deleted ones included, which count for nothing
+    /** Deleted ones included, which count for nothing */
     entries: readonly SharedEntry[];
-    // The debts the group shows, pair by pair or simplified
+    /** The debts the group shows, pair by pair or simplified */
     debts: readonly Debt[];
-    // Takes a debt to settle up; without it, as in a closed group, no line offers it
+    /** Takes a debt to settle up; without it, as in a closed group, no line offers it */
     onSettle?: (debt: Debt) => void;
-    // Settle up, at the end of the row of the label (ADR-0041)
+    /** Settle up, at the end of the row of the label (ADR-0041) */
     action?: ReactNode;
 }
 

@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Account
+
+The person signed in, on Settings → Account: their name and email, Sign out and Delete account.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It takes no props: it shows whoever is signed in. Delete account opens a `Dialog` where the email is typed to confirm.
+
+## Props
+
+<ArgTypes of={Examples} />

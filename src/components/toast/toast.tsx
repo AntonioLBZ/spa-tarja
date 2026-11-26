@@ -37,25 +37,25 @@ interface ToastAction {
 
 interface ToastOptions {
     message: string;
-    // A bare mark in front of the message, for something that was done
+    /** A bare mark in front of the message, for something that was done */
     icon?: IconName;
-    // What the person can do about it, when there is something to do
+    /** What the person can do about it, when there is something to do */
     action?: ToastAction;
 }
 
 interface PinnedToastOptions {
     message: string;
-    // The answers to it: it stays until one of them is chosen
+    /** The answers to it: it stays until one of them is chosen */
     actions: readonly ToastAction[];
-    // The answer a swipe gives; without it the toast is not swiped away (ADR-0037)
+    /** The answer a swipe gives; without it the toast is not swiped away (ADR-0037) */
     onSwipeAway?: () => void;
 }
 
 interface ToastApi {
-    // Shows the toast, replacing the one that is showing
+    /** Shows the toast, replacing the one that is showing */
     show: (options: ToastOptions) => void;
     dismiss: () => void;
-    // Shows the one that stays until it is answered, above the other one, replacing only another pinned toast
+    /** Shows the one that stays until it is answered, above the other one, replacing only another pinned toast */
     pin: (options: PinnedToastOptions) => void;
     unpin: () => void;
 }
@@ -66,7 +66,7 @@ interface ShownToast {
     icon?: IconName;
     actions: readonly ToastAction[];
     onSwipeAway?: () => void;
-    // Fading out, about to go
+    /** Fading out, about to go */
     leaving: boolean;
 }
 
@@ -78,7 +78,7 @@ interface ToastBoxProps {
 }
 
 interface ToastProviderProps {
-    // Names the button that clears a toast away; a pinned toast has none
+    /** Names the button that clears a toast away; a pinned toast has none */
     dismissLabel: string;
     children: ReactNode;
 }

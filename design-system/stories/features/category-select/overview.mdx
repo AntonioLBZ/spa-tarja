@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CategorySelect
+
+A `Select` of categories, each with its badge. All categories stays on top and the fallback, Other, follows it, so a new expense starts on it and a native list opens scrolled to the option chosen.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The category of the add form, and the category filter of the list and of a group's ledger. It goes in a `Field`, like any `Select`; the options are the default categories and the person's own, named in the chosen language.
+
+## All categories
+
+A filter puts an option with no category first.
+
+<Canvas of={Examples.All} />
+
+## Props
+
+<ArgTypes of={Examples} />

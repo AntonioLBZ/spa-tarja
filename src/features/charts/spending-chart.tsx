@@ -38,7 +38,7 @@ interface SpendingChartProps {
     buckets: readonly Bucket[];
     granularity: Granularity;
     today: string;
-    // The name of the category the buckets are narrowed to, if any
+    /** The name of the category the buckets are narrowed to, if any */
     category: string | null;
 }
 

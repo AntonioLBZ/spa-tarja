@@ -1,0 +1,31 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CategorySplit
+
+What each category took in the charts: one strip cut into a segment per category in its color, and under it a row for each with its badge, name, amount and share. The biggest comes first.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Under the chart of Spending. Each row is a toggle that picks its category, one at a time, and narrows the chart to it; pressing it again lets go. `onEmptied` takes the focus when the row that had it goes away with nothing left to take it.
+
+## Picked
+
+The picked row is pressed, and the others stay to pick another.
+
+<Canvas of={Examples.Picked} />
+
+## Picked with nothing spent
+
+A picked category the range has none of stays at the end, at zero.
+
+<Canvas of={Examples.PickedAtZero} />
+
+## Props
+
+<ArgTypes of={Examples} />

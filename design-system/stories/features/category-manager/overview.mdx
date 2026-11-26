@@ -1,0 +1,25 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CategoryManager
+
+The categories screen, Settings → Categories: the field that makes a new category with its look, the person's own categories, which open with Edit and Delete, and the built-in ones, which can't be changed, each on a `Sheet`.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It takes no props: it reads the person's categories. Making, editing and deleting one needs a connection.
+
+## None of their own
+
+Only the built-in categories, under the field of a new one.
+
+<Canvas of={Examples.NoneOfTheirOwn} />
+
+## Props
+
+<ArgTypes of={Examples} />

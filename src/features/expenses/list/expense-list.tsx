@@ -34,7 +34,7 @@ import type { ListGroup } from '@core/lists/expense-list';
 import './expense-list.css';
 
 interface ExpenseListProps {
-    // Read only by assistive technology, when the tabs of the pinned groups say it (ADR-0021)
+    /** Read only by assistive technology, when the tabs of the pinned groups say it (ADR-0021) */
     titleHidden?: boolean;
 }
 

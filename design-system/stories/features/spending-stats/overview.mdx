@@ -1,0 +1,41 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# SpendingStats
+
+The line of the total of the charts, over the chart: what the range took and how it compares with the span before, by the calendar ("1–29 Oct vs. 1–29 Sep").
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`totalCents` is the total of the range and `compared` the two spans side by side. The total can take the focus (`totalRef`), as when a pick of the split changes it.
+
+## Less than before
+
+<Canvas of={Examples.Less} />
+
+## A running span
+
+`partial` says the current span counts only the days up to today.
+
+<Canvas of={Examples.Partial} />
+
+## Nothing to compare
+
+`compared` is `null` for a range that starts after today.
+
+<Canvas of={Examples.NotCompared} />
+
+## Narrowed to a category
+
+`category` names the category the total is narrowed to.
+
+<Canvas of={Examples.Category} />
+
+## Props
+
+<ArgTypes of={Examples} />

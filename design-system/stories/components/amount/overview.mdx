@@ -1,0 +1,44 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Amount
+
+Money as the app writes it, with up to three cues of which way it goes from the side of whoever its line is about: the amount colors, a sign and an arrow. Digits are tabular and the amount never wraps.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Use it for money that goes one way or the other: the balances and the ledger of a group, the Left of the summary and the sentences of a balance. The screen says which cues it wants and the person's settings say which they allow (`useAmount`); the component reads no setting itself. Never in the list of expenses, the budgets or the charts, where every amount goes the same way.
+
+## With an arrow
+
+The arrow goes up for what adds to a balance and down for what takes from it, at the size of the text. It shows only in the balances of a group.
+
+<Canvas of={Examples.Arrow} />
+
+## Color alone
+
+In a sentence the words already say which way it goes, so the amount keeps only its color.
+
+<Canvas of={Examples.ColorAlone} />
+
+## No direction
+
+Without a direction no cue shows, whatever is asked: a settlement in the ledger of a group.
+
+<Canvas of={Examples.Neutral} />
+
+## The palette for color blindness
+
+A blue and an orange instead of the green and the red, picked in Settings → Amounts. The app sets `data-money-palette="color-blind"` on `<html>`; the example sets it around each amount.
+
+<Canvas of={Examples.ColorBlind} />
+
+## Props
+
+<ArgTypes of={Examples} />

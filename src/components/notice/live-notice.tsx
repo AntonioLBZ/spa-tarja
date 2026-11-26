@@ -3,7 +3,7 @@ import { Notice, type NoticeProps } from './notice';
 import type { ReactNode } from 'react';
 
 interface LiveNoticeProps extends Omit<NoticeProps, 'role' | 'children'> {
-    // The message, or nothing while there is none to say
+    /** The message, or nothing while there is none to say */
     children?: ReactNode;
 }
 

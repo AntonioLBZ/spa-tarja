@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# TabLink
+
+A tab that leads to a screen, typed like the router's `Link`: a word with no box and no notch, the current one in ink with an ink bar under it and `aria-current`, the others in secondary text.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The pinned groups over the Expenses screen. A tab that is a choice rather than a screen is an option of a `ChoiceGroup` with `tabs`, which draws the same look.
+
+## A long name
+
+The row never wraps: a long name is cut with an ellipsis when the row is short. Here the row is narrowed as the screen narrows it.
+
+<Canvas of={Examples.LongName} />
+
+## Props
+
+<ArgTypes of={Examples} />

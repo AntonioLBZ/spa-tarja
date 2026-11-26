@@ -3,7 +3,9 @@ import clsx from 'clsx';
 import './brand.css';
 
 interface BrandProps {
+    /** `header` in the header, `hero` over the sign-in screen */
     size?: 'header' | 'hero';
+    /** Adds `-pre`, on the prerelease Worker */
     prerelease?: boolean;
 }
 

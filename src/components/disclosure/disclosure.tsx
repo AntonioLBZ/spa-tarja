@@ -7,30 +7,30 @@ import './disclosure.css';
 
 interface DisclosureProps {
     as?: 'li' | 'div' | 'section';
-    // Puts the toggle in a heading of that level, for a disclosure that titles a section
+    /** Puts the toggle in a heading of that level, for a disclosure that titles a section */
     heading?: 'h2' | 'h3';
-    // What the toggle shows
+    /** What the toggle shows */
     summary: ReactNode;
-    // What the panel holds, said in the toggle after the summary while it is closed
+    /** What the panel holds, said in the toggle after the summary while it is closed */
     hint?: ReactNode;
-    // A row among the fields of a form: as tall as a field, its summary in bold
+    /** A row among the fields of a form: as tall as a field, its summary in bold */
     inForm?: boolean;
-    // Keeps the summary and the hint on one line, the hint cut with an ellipsis, instead of putting it under
+    /** Keeps the summary and the hint on one line, the hint cut with an ellipsis, instead of putting it under */
     oneLine?: boolean;
-    // The id of what says, elsewhere on the page, what the panel holds
+    /** The id of what says, elsewhere on the page, what the panel holds */
     describedBy?: string;
-    // Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen`
+    /** Controlled when given; otherwise the disclosure keeps its own state, starting from `defaultOpen` */
     open?: boolean;
     defaultOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
     disabled?: boolean;
-    // Keeps the panel in the page, hidden, while it is closed, so what was typed in it survives
+    /** Keeps the panel in the page, hidden, while it is closed, so what was typed in it survives */
     keepMounted?: boolean;
-    // A chevron at the end of the toggle, a half turn when open
+    /** A chevron at the end of the toggle, a half turn when open */
     chevron?: boolean;
-    // Where the toggle lines up what it holds and the chevron: in the middle, or on the first line of a tall row
+    /** Where the toggle lines up what it holds and the chevron: in the middle, or on the first line of a tall row */
     align?: 'center' | 'top';
-    // The chevron in the middle of a column as wide as a touch target, with no gap before it
+    /** The chevron in the middle of a column as wide as a touch target, with no gap before it */
     wideChevron?: boolean;
     toggleRef?: Ref<HTMLButtonElement>;
     className?: string;

@@ -1,0 +1,55 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# ExpenseRow
+
+An expense of the list, a line of the ticket of its day: its category badge, its text and its amount, and under them a quiet line with its category, how it was paid and when it is charged. Pressing it opens Edit, Duplicate and Delete under it.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+One per expense in the `CardList` of a day on its `Sheet`. `expenses` is the expense, or every part of its plan, so Edit and Delete always get the whole of it. `source` names the group of a row that is the person's part of a shared expense.
+
+## Without text
+
+The name of the category stands in for it, and the quiet line goes.
+
+<Canvas of={Examples.NoText} />
+
+## On a credit card
+
+The quiet line says the card and the day it is charged, the day it counts.
+
+<Canvas of={Examples.Credit} />
+
+## On a restaurant card
+
+The amount is the person's part, what counts, and the quiet line says what the card paid.
+
+<Canvas of={Examples.RestaurantCard} />
+
+## In installments
+
+A plan is one row at its full price, with how many payments and until when (`isPlan`).
+
+<Canvas of={Examples.Installments} />
+
+## With the day
+
+`showDate` starts the quiet line with the day it was made, for a list that isn't grouped by day.
+
+<Canvas of={Examples.ShowDate} />
+
+## Not synced yet
+
+`pending` marks an expense that waits in the outbox.
+
+<Canvas of={Examples.Pending} />
+
+## Props
+
+<ArgTypes of={Examples} />

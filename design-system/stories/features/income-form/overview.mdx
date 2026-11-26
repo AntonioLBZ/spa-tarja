@@ -1,0 +1,23 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# IncomeForm
+
+The income of a month, on the Summary: one `Field` named after the month with Save beside it, and Remove once the month has one. Saving and removing need a connection.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`month` and `monthName` are the month of the Summary; `income` is what that month holds, `undefined` for none. The field starts again from it whenever it changes: another month, a save, a removal.
+
+## With an income
+
+<Canvas of={Examples.Set} />
+
+## Props
+
+<ArgTypes of={Examples} />

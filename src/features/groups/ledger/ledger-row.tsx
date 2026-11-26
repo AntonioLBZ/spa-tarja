@@ -27,17 +27,17 @@ import './ledger-row.css';
 interface LedgerRowProps {
     group: SharedGroup;
     entry: LedgerEntry;
-    // Not on the server yet
+    /** Not on the server yet */
     pending: boolean;
-    // Deleted a moment ago, fading out
+    /** Deleted a moment ago, fading out */
     leaving: boolean;
-    // The day it was made, said first in the details, for a ledger that isn't by day
+    /** The day it was made, said first in the details, for a ledger that isn't by day */
     date?: string;
-    // Without them, as in a closed group, the row has nothing to open
+    /** Without them, as in a closed group, the row has nothing to open */
     onEdit?: (entry: LedgerEntry) => void;
     onDuplicate?: (entry: SharedExpenseEntry) => void;
     onDelete?: (entry: LedgerEntry) => void;
-    // What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open
+    /** What takes the focus when the row is to have it: its toggle, or the row when it has nothing to open */
     focusRef?: RefCallback<HTMLElement>;
 }
 

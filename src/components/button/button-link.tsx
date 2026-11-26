@@ -8,12 +8,15 @@ import type { ComponentPropsWithRef, ReactElement } from 'react';
 import './button.css';
 
 interface ButtonAnchorProps extends ComponentPropsWithRef<'a'> {
+    /** `primary` for the main action of a form, `danger` for what deletes */
     variant?: ButtonVariant;
+    /** Holds only a symbol; it needs an `aria-label` */
     glyph?: boolean;
-    // Text only, for a link on paper or inside another edge
+    /** Text only, for a link on paper or inside another edge */
     ghost?: boolean;
+    /** As wide as its row */
     block?: boolean;
-    // In the size of the words of the header
+    /** In the size of the words of the header */
     small?: boolean;
 }
 

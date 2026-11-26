@@ -1,0 +1,31 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# CategoryRow
+
+A category the person made, a row on the sheet "Yours" of the categories screen: its badge and its name. Pressing it opens Edit and Delete under it; Delete asks first, and says where its expenses go (`fallbackLabel`).
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+One per category of the person's own, in a `CardList` with `flush` on a `Sheet`. Edit loads the category into the form that adds one; `onDelete` resolves whether it went.
+
+## A long name
+
+The name wraps between words, and the chevron stays on its first line.
+
+<Canvas of={Examples.LongName} />
+
+## Disabled
+
+Offline: nothing can change without a connection.
+
+<Canvas of={Examples.Disabled} />
+
+## Props
+
+<ArgTypes of={Examples} />

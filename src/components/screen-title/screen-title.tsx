@@ -9,7 +9,7 @@ import './screen-title.css';
 const APP_NAME = 'Tarja';
 
 interface ScreenTitleProps {
-    // The name of the screen: the text of the heading, and the title of the page ahead of the name of the app
+    /** The name of the screen: the text of the heading, and the title of the page ahead of the name of the app */
     children: string;
     className?: string;
 }

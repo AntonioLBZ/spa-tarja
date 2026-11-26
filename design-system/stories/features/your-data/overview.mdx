@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# YourData
+
+The section Your data of Settings → Account: download what the device holds as JSON or CSV, and open the printable view of the person's expenses.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+It takes no props: it exports the expenses, categories, income, budgets and groups the device holds. Import stays out of the app.
+
+## Props
+
+<ArgTypes of={Examples} />

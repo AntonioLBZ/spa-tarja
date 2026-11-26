@@ -1,0 +1,19 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# BudgetBars
+
+How much of each limit a month has used, on the Summary: the total first, then each category that has a limit, a bar under the words. A limit passed shows its share and its bar in `--color-danger`; it only warns, it never blocks.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`month` is the month of the Summary, `YYYY-MM`. The limits are read as that month holds them: the row of the latest month up to it. A month with no limit draws nothing.
+
+## Props
+
+<ArgTypes of={Examples} />

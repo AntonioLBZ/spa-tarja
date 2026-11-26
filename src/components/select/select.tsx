@@ -9,21 +9,21 @@ import './select.css';
 interface SelectOption<Value extends string> {
     value: Value;
     label: string;
-    // Drawn before the name. The options of a list that has none keep its place, so the names line up.
+    /** Drawn before the name. The options of a list that has none keep its place, so the names line up. */
     icon?: ReactNode;
 }
 
 interface SelectProps<Value extends string> {
-    // Of the field, which a `<label htmlFor>` points at
+    /** Of the field, which a `<label htmlFor>` points at */
     id: string;
     options: readonly SelectOption<Value>[];
     value: Value;
     onChange: (value: Value) => void;
-    // Of the field, from a `Field` around it
+    /** Of the field, from a `Field` around it */
     'aria-describedby'?: string;
     'aria-invalid'?: boolean;
     disabled?: boolean;
-    // The field, for a screen that puts the focus on it
+    /** The field, for a screen that puts the focus on it */
     ref?: Ref<HTMLSelectElement>;
 }
 

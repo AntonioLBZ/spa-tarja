@@ -10,15 +10,17 @@ type ButtonVariant = 'default' | 'primary' | 'danger';
 type GlyphName = { glyph: true; 'aria-label': string } | { glyph?: false };
 
 type ButtonProps = ComponentPropsWithRef<'button'> & {
+    /** `primary` for the main action of a form, `danger` for what deletes */
     variant?: ButtonVariant;
-    // Text only, for an action inside another edge or on paper
+    /** Text only, for an action inside another edge or on paper */
     ghost?: boolean;
-    // As wide as its row, which gives its bottom edge the tail of the L
+    /** As wide as its row, which gives its bottom edge the tail of the L */
     block?: boolean;
-    // In the size of the words of the header
+    /** In the size of the words of the header */
     small?: boolean;
+    /** A toggle that is on: the accent fill and `aria-pressed` */
     pressed?: boolean;
-    // A short mark in the corner of a glyph box, hidden from assistive technology: the name has to say it
+    /** A short mark in the corner of a glyph box, hidden from assistive technology: the name has to say it */
     badge?: ReactNode;
 } & GlyphName;
 

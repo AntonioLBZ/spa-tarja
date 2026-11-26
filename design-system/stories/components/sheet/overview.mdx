@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Sheet
+
+A sheet of paper, like a receipt: `--color-bg-secondary`, closed by a double rule, under a label centered in capitals over a dashed rule. The label is an `h2`, or an `h3` with `level`.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+What goes on it is up to the screen: the expenses of a day with their total, the categories, the balances and the ledger of a group. A `Disclosure` on a sheet has no notch on its toggle. `labelRef` lets the screen put the focus on the label when the row that had it is gone, as a person removed from a group.
+
+## Without a label
+
+Neither the heading nor the dashed rule: the ledger of a group in the order the entries were added.
+
+<Canvas of={Examples.NoLabel} />
+
+## With an action
+
+A small ghost button at the end of the row of the label, the label staying centered: Settle up on the balances of a group.
+
+<Canvas of={Examples.Action} />
+
+## Props
+
+<ArgTypes of={Examples} />

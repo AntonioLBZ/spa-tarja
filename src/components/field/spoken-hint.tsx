@@ -1,7 +1,7 @@
 import { useDebouncedValue } from '@/lib/a11y';
 
 interface SpokenHintProps {
-    // The hint, or false while there is none
+    /** The hint, or false while there is none */
     children?: string | boolean;
 }
 

@@ -14,10 +14,10 @@ import './category-row.css';
 
 interface CategoryRowProps {
     category: Category;
-    // Nothing can change without a connection
+    /** Nothing can change without a connection */
     disabled: boolean;
     fallbackLabel: string;
-    // Loads the category into the form that adds one
+    /** Loads the category into the form that adds one */
     onEdit: () => void;
     onDelete: () => Promise<boolean>;
     toggleRef?: Ref<HTMLButtonElement>;

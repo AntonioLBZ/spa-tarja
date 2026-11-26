@@ -16,10 +16,10 @@ interface DateRangeFieldsProps {
     from: string;
     to: string;
     labels: Record<DateEdge, string>;
-    // A whole day for the end that changed, or an empty string when `allowEmpty` lets it be cleared
+    /** A whole day for the end that changed, or an empty string when `allowEmpty` lets it be cleared */
     onChange: (edge: DateEdge, day: string) => void;
     allowEmpty?: boolean;
-    // Both fields share the message that explains it, which the screen shows once
+    /** Both fields share the message that explains it, which the screen shows once */
     invalid?: boolean;
     describedBy?: string;
 }

@@ -17,11 +17,11 @@ interface CategorySplitProps {
     totals: readonly CategoryTotal[];
     labelOf: (id: string) => string;
     styleOf: (id: string) => CategoryStyle;
-    // The category the chart is narrowed to, or null for all of them
+    /** The category the chart is narrowed to, or null for all of them */
     picked: string | null;
-    // Picks a category, or null to go back to all of them
+    /** Picks a category, or null to go back to all of them */
     onPick: (id: string | null) => void;
-    // Takes the focus when the row that had it goes away with nothing left to take it
+    /** Takes the focus when the row that had it goes away with nothing left to take it */
     onEmptied: () => void;
 }
 

@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# SpokenHint
+
+A quiet hint that changes with every key. It shows at once, like the hint of a `Field`, and is read out once the typing pauses, from a status that stays in the page.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+What follows what is typed, as what is left of an amount to split, which would interrupt every key if it were read at once. Its children are the hint, or `false` while there is none.
+
+## Props
+
+<ArgTypes of={Examples} />

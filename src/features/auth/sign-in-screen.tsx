@@ -22,7 +22,7 @@ const cameBackFailed = (): boolean => {
 
 interface SignInScreenProps {
     unreachable: boolean;
-    // The account was just deleted from this device
+    /** The account was just deleted from this device */
     deleted: DeletedAccount | null;
 }
 

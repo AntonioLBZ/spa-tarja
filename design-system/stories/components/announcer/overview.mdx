@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# Announcer
+
+A polite status, always in the page and hidden on screen, through which anything says a message that has no place of its own. It draws nothing: the message is read by a screen reader and shown nowhere.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+`AnnouncerProvider` goes once around the app, and `useAnnounce` gives the function that says a message: a screen that just opened, something done with no toast. The region is emptied before each message, so the same message said twice in a row is read twice. Without a provider it says nothing, as on the sign-in screen. A message with a place on screen is a `LiveNotice` instead.
+
+## Props
+
+<ArgTypes of={Examples} />

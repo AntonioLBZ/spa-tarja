@@ -6,7 +6,7 @@ import './checkbox.css';
 
 interface CheckboxProps {
     label: ReactNode;
-    // Under the label, like the hint of a field
+    /** Under the label, like the hint of a field */
     hint?: ReactNode;
     checked: boolean;
     disabled?: boolean;

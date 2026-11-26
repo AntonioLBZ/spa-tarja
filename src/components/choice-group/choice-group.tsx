@@ -7,9 +7,9 @@ import './choice-group.css';
 
 interface ChoiceOption<Value extends string> {
     value: Value;
-    // The text of the option, and its name for assistive technology when it is a swatch
+    /** The text of the option, and its name for assistive technology when it is a swatch */
     label: string;
-    // What a swatch shows in place of the label
+    /** What a swatch shows in place of the label */
     content?: ReactNode;
 }
 
@@ -18,9 +18,9 @@ interface ChoiceGroupProps<Value extends string> {
     name: string;
     options: readonly ChoiceOption<Value>[];
     value: Value;
-    // Cells that hold what they are given, like an icon, instead of a word
+    /** Cells that hold what they are given, like an icon, instead of a word */
     swatch?: boolean;
-    // Words in a row, the checked one underlined, with the legend hidden from sight (ADR-0034)
+    /** Words in a row, the checked one underlined, with the legend hidden from sight (ADR-0034) */
     tabs?: boolean;
     onChange: (value: Value) => void;
 }

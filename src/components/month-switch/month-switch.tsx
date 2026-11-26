@@ -3,9 +3,9 @@ import { Button } from '@/components/button/button';
 import './month-switch.css';
 
 interface MonthSwitchProps {
-    // The month as the screen says it, such as "October 2026"
+    /** The month as the screen says it, such as "October 2026" */
     monthName: string;
-    // The accessible names of the two buttons
+    /** The accessible names of the two buttons */
     labels: { previous: string; next: string };
     onPrevious: () => void;
     onNext: () => void;

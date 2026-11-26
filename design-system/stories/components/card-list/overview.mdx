@@ -1,0 +1,32 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# CardList
+
+Cards stacked one under another, `--size-2` apart. A list drawn with no marker loses its semantics in Safari, so it says it is a list.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+Any list of rows: the budgets, the categories of the charts, the groups. Its cards are `Card as="li"`. `label` names a list that has no heading of its own, for assistive technology.
+
+## Flush
+
+The cards touch, for a list whose rows are already far enough apart, as the expenses of a day on their sheet.
+
+<Canvas of={Examples.Flush} />
+
+## A description list
+
+As `dl` it holds `CardTerm`s, each naming a value: the Summary, About.
+
+<Canvas of={Examples.Terms} />
+
+## Props
+
+<ArgTypes of={Examples} />

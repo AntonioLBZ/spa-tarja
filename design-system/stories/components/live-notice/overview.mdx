@@ -1,0 +1,20 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# LiveNotice
+
+A `Notice` that comes and goes, inside a `role="status"` region that is always in the page. A live region that arrives already filled is announced inconsistently, so only what is inside it changes. Empty, it takes no room.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+A line that comes and goes while the person looks at it: being offline, a failed load, a copied link. Its children are the message, or nothing while there is none to say. A message that is on screen from its first paint is a plain `Notice`; one with no place on screen is said through the `Announcer`. It takes the `tone` of a `Notice`.
+
+## Props
+
+<ArgTypes of={Examples} />

@@ -1,0 +1,26 @@
+import { ArgTypes, Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+import * as PlaygroundStories from './playground.stories';
+
+<Meta of={PlaygroundStories} name="Overview" />
+
+# BottomNav
+
+The tab bar of a phone, fixed at the bottom: equal links, each an icon over its word, and in the middle the "+", a flat accent square over its word. The current link has an ink bar along its top edge.
+
+## Usage
+
+<Canvas of={Examples.Basic} sourceState="shown" />
+
+The destinations below 40 rem: Expenses, Groups, Summary and Settings, with the "+" that adds an expense as its `action`. It is hidden from 40 rem up, where the header holds them, and while a text field or a `Select` outside a dialog has the focus. Where the text is larger a word wraps and the bar grows; it writes the height it has into `--bottom-nav-height`, which the page and the toast keep clear of. Here the frame stands for the screen, since the bar sits on its bottom edge.
+
+## No current tab
+
+On a screen that isn't one of the destinations, as a deeper screen of the settings, no link is current.
+
+<Canvas of={Examples.NoneCurrent} />
+
+## Props
+
+<ArgTypes of={Examples} />

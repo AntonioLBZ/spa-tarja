@@ -1,0 +1,47 @@
+/* A box that holds what sits on a fixed edge: `contain` makes it the box such an element is placed in */
+.sample-frame {
+    background: var(--color-bg-primary);
+    block-size: 12rem;
+    border: var(--size-px) solid var(--color-border-subtle);
+    contain: layout paint;
+    inline-size: 100%;
+    overflow: hidden;
+}
+
+.story-stack {
+    display: grid;
+    gap: var(--size-4);
+}
+
+.story-row {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-4);
+}
+
+/* Room under a list that opens over the page */
+.story-room {
+    min-block-size: 22rem;
+}
+
+.story-narrow {
+    inline-size: 20rem;
+    max-inline-size: 100%;
+}
+
+/* A row of tabs as the pinned groups draw it, narrow enough for a long name to be cut */
+.story-tabs {
+    display: flex;
+    gap: var(--size-4);
+    max-inline-size: 20rem;
+}
+
+.story-tabs > :first-child {
+    flex-shrink: 0;
+}
+
+/* A paragraph with no margin, as the first and last thing in a box */
+.story-flush {
+    margin: 0;
+}

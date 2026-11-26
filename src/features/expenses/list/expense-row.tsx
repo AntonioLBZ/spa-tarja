@@ -20,21 +20,21 @@ import '@/features/groups/ledger/ledger-row.css';
 import './expense-row.css';
 
 interface ExpenseRowProps {
-    // The expense, or every part of its plan
+    /** The expense, or every part of its plan */
     expenses: readonly Expense[];
     isPlan: boolean;
-    // Not on the server yet
+    /** Not on the server yet */
     pending: boolean;
-    // Deleted a moment ago, fading out
+    /** Deleted a moment ago, fading out */
     leaving: boolean;
-    // Starts the details with the day it was made, for a list that is not grouped by day
+    /** Starts the details with the day it was made, for a list that is not grouped by day */
     showDate?: boolean;
-    // The group and the entry of a row that is your part of a shared expense
+    /** The group and the entry of a row that is your part of a shared expense */
     source?: SharedRowSource;
     onEdit: (expenses: readonly Expense[]) => void;
     onDuplicate: (expenses: readonly Expense[]) => void;
     onDelete: (expenses: readonly Expense[]) => void;
-    // What takes the focus back once an edit of the expense is over: its toggle, or the row when it has nothing to open
+    /** What takes the focus back once an edit of the expense is over: its toggle, or the row when it has nothing to open */
     toggleRef?: RefCallback<HTMLElement>;
 }
 
