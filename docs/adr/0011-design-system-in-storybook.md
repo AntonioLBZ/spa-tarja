@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-10-29
 tags: [design, architecture]
 specs: [testing-and-ci.md]
-summary: 'Storybook in the workspace folder `design-system/`, local only; no story or Storybook dependency in `src/`.'
+summary: 'The design system is a local Storybook in design-system/; nothing of it in src/.'
 ---
 
 # ADR-0011: The design system is shown in Storybook, in a workspace folder of its own

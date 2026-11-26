@@ -2,7 +2,7 @@
 tags: [navigation, design, motion]
 adrs: [ADR-0016, ADR-0017, ADR-0018, ADR-0035, ADR-0036]
 code: [src/components/bottom-nav/, src/lib/navigation/]
-summary: 'The tab bar of phones below 40 rem: its five columns and the "+" in the middle, its shadow while content scrolls under it, and the swipe between the screens of a section.'
+summary: 'The tab bar of phones, its +, its shadow and the swipe between screens.'
 ---
 
 # Bottom navigation

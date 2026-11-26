@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-15
 tags: [ledger]
 specs: [shared-expenses.md]
-summary: 'A row of a group''s ledger looks like a row of the expense list, its one amount what the entry does to your balance (an `Amount` with color and sign, no arrow; a settlement shows its amount neutral, no color and no sign), the quiet line under the name who paid the whole, or "Just you" / "Not in it" with no amount; the day total is your net of its expenses; one sentence for screen readers; opening an expense shows its breakdown before Edit, Duplicate and Delete; personal rows unchanged.'
+summary: 'A ledger row looks like a list row: its amount is what the entry does to your balance, its quiet line who paid.'
 ---
 
 # ADR-0030: A ledger row says who paid and what it does to you

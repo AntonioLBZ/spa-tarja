@@ -4,7 +4,7 @@ date: 2026-11-01
 supersedes: [ADR-0001]
 tags: [groups, balances, scope]
 specs: [balances.md, expense-counting.md, groups.md, header.md, shared-expenses.md]
-summary: 'Groups are ledgers shared by members (users or placeholders), a friend is a group of two, your part is what counts and settlements count for nobody (the payer may have used a credit or restaurant card), a deleted group deletes no expense (it closes, can be archived, and a per-person switch decides if it shows in your expenses), only default categories, debts shown pair by pair with simplifying as a group switch; supersedes ADR-0001.'
+summary: 'Groups are ledgers shared by users and dummies; your part counts, settlements count for nobody; a deleted group only closes.'
 ---
 
 # ADR-0012: Shared expenses: a group is a ledger its members share

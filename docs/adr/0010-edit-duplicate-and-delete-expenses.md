@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-10-29
 tags: [expenses]
 specs: [expenses.md, shared-expenses.md]
-summary: 'No confirmation on Delete (Undo instead); Edit and Duplicate replace a half typed expense; no recurring expenses.'
+summary: 'Delete has Undo instead of a confirmation; Edit and Duplicate replace a half-typed expense; no recurring expenses.'
 ---
 
 # ADR-0010: Edit, duplicate and delete an expense without asking

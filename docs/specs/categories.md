@@ -2,7 +2,7 @@
 tags: [categories]
 adrs: [ADR-0006]
 code: [core/categories/, src/features/categories/, server/routes/categories.ts]
-summary: 'The default categories (read-only), custom ones (created, edited and deleted with a connection), the suggestion of a category from the text and the history, and the categories screen.'
+summary: 'Default and custom categories, the suggestion of one from the text and the history, the categories screen.'
 ---
 
 # Categories

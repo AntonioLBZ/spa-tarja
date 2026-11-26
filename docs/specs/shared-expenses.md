@@ -2,7 +2,7 @@
 tags: [groups, ledger, expenses]
 adrs: [ADR-0004, ADR-0006, ADR-0010, ADR-0012, ADR-0013, ADR-0026, ADR-0030, ADR-0034, ADR-0041, ADR-0042]
 code: [core/groups/split.ts, core/groups/shared-expense.ts, src/features/groups/share/, src/features/groups/ledger/]
-summary: 'The entries of a group: the split in cents, the shared part of the add form, the ledger and its rows, editing and deleting an entry, and your part of a shared expense in your own lists.'
+summary: 'The entries of a group: the split in cents, the shared form, the ledger and your part in your own lists.'
 ---
 
 # Shared expenses

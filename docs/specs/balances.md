@@ -2,7 +2,7 @@
 tags: [balances, groups]
 adrs: [ADR-0012, ADR-0016, ADR-0026, ADR-0028, ADR-0029, ADR-0041]
 code: [core/groups/balance.ts, core/groups/simplify.ts, core/groups/group-debts.ts, src/features/groups/balances/]
-summary: 'Who owes whom in a group: the balance of each member, the debts pair by pair or simplified, the sheet of the balances folded by net balance, and Settle up with its "After this" hint.'
+summary: 'Who owes whom in a group, pair by pair or simplified, the balances sheet and Settle up.'
 ---
 
 # Balances and settling up

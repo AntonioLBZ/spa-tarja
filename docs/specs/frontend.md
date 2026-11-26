@@ -1,7 +1,7 @@
 ---
 tags: [architecture, a11y, navigation]
 code: [src/routes/, src/lib/, src/components/]
-summary: 'The conventions of the client: the router and the query client, the providers, screen titles and the focus on a change of screen, live regions, i18n and the shared components.'
+summary: 'Client conventions: router, query client, providers, screen titles and focus, live regions, i18n, shared components.'
 ---
 
 # Frontend

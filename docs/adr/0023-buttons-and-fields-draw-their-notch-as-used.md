@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-13
 tags: [design]
 specs: [expense-list.md]
-summary: 'A `Button` rests as its bottom edge alone, the left edge grows to half the height on hover and to the whole height while pressed (the L), danger in `--color-danger` on both edges; a field does the same with the focus (and while a `Select` is open), the ring only when the focus came from the keyboard, and its label floats inside a 3.5 rem box; refines the notch rule of the design document.'
+summary: 'A Button rests as its bottom edge and grows its left edge on hover and press; a field does the same with the focus.'
 ---
 
 # ADR-0023: Buttons and fields draw their notch as they are used

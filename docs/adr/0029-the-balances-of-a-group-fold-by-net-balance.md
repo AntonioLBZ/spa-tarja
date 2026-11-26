@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-15
 tags: [balances]
 specs: [balances.md]
-summary: 'One folded row per person after their net balance, yours first and open, the lines under it as short sentences from their side that add up to it, each debt with a Settle up (a ghost `payments` icon) on both of its lines, the settled at the foot; "Everyone''s balance" goes.'
+summary: 'The balances of a group are one folded row per person by net balance, its debts as sentences with a Settle up each.'
 ---
 
 # ADR-0029: The balances of a group fold by each person's net balance

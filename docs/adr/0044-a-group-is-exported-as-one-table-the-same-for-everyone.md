@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-24
 tags: [export, groups]
 specs: [export.md]
-summary: 'A group''s table, the same whoever makes it (no "your part", no "You", no payment method), a column per person with what each entry does to their balance, settlements signed in it, an opening balance with a From and the closing one, a "Total of these rows" instead when a filter narrows more than the days; a page `/groups/$groupId/export` from the group''s settings with the ledger''s filters sheet (ADR-0042), Print (the browser''s, `@media print`) and Download CSV of the same table; import stays out (ADR-0012).'
+summary: 'A group exports as one table, the same for everyone, a column per person, to print or download as CSV.'
 ---
 
 # ADR-0044: A group is exported as one table, the same for everyone

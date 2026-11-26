@@ -4,7 +4,7 @@ date: 2026-11-21
 refines: [ADR-0015]
 tags: [deploy]
 specs: [repository-structure.md, testing-and-ci.md]
-summary: 'A push to `main` deploys production (migrations, deploy, GitHub Release) only when no release `vX.Y.Z` exists yet for the `version` of `package.json`; any other push to `main` runs the checks and deploys nothing, never the prerelease; releasing is still one `chore: release x.y.z` commit; refines ADR-0015.'
+summary: 'A push to main deploys production only when its version has no release yet; releasing is one release commit.'
 ---
 
 # ADR-0040: Production deploys only a new version

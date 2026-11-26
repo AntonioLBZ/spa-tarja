@@ -4,7 +4,7 @@ date: 2026-11-21
 refines: [ADR-0029]
 tags: [balances, ledger]
 specs: [balances.md, shared-expenses.md]
-summary: 'Every row of a group''s balances starts folded, the person''s own too; Settle up is a small ghost `payments` action at the end of the label row of the balances (`Sheet` `action`), not a block button; the order of the ledger is tabs (`ChoiceGroup` `tabs`) at the end of the row of "Expenses"; refines ADR-0029.'
+summary: 'Every balance row starts folded; Settle up is a small action of the balances; the order of the ledger is tabs.'
 ---
 
 # ADR-0041: The screen of a group leads to its expenses

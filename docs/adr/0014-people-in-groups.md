@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-01
 tags: [people, groups, privacy]
 specs: [authentication.md, groups.md, invitations.md, settings.md]
-summary: 'Invitations are links to be friends only, and a friend exists only from an accepted link (nobody makes one by typing a name, a dummy lives only inside a group, and there is no invitation for a dummy), a non-unique nickname your friends see and no lookup of people; groups hold dummies and friends; merging a dummy into a real member; deleting an account; a privacy notice.'
+summary: 'Friends only from an accepted invitation link, dummies only inside a group, nicknames, no lookup of people, account deletion.'
 ---
 
 # ADR-0014: People: nicknames, friends by invitation link, merging a dummy and deleting an account

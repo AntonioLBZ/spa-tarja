@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-15
 tags: [settings, navigation]
 specs: [settings.md]
-summary: "`/settings` holds the language, three link cards together (Appearance, Categories, Account), each its title and a chevron on one line with a short line under it, outside the card (for Account the person's name and email), Notifications and About Tarja; `/settings/appearance` the theme and Amounts with a live sample, `/settings/categories` the categories (`/categories` redirects there), `/settings/account` the nickname, Your data, Sign out and Delete account; the way back is the header's."
+summary: 'The settings split into pages: Appearance, Categories and Account, linked from /settings.'
 ---
 
 # ADR-0032: Settings split into pages

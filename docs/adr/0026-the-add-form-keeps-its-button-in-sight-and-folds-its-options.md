@@ -4,7 +4,7 @@ date: 2026-11-14
 refines: [ADR-0016, ADR-0024]
 tags: [expenses, design]
 specs: [balances.md, expenses.md, shared-expenses.md]
-summary: 'Below 40 rem the add form takes the whole screen (`Dialog` variant `page`) with the way back (`chevron_left`) first in its stuck, edge to edge title row and a ghost `check` named Add or Save last, no Cancel; from 40 rem the floating dialog with the main button stuck to its foot; the day, the payment and the installments (shared: the day and How you paid) fold under a "More options" disclosure whose toggle says the day and the payment; Add is never off: pressing it marks each problem on its field and focuses the first, opening More options when needed; closing drops what was typed, so every "+" starts empty and a tap outside doesn''t close it; refines ADR-0016 and ADR-0024.'
+summary: 'Below 40 rem the add form takes the whole screen with Add always in sight; the secondary fields fold under More options.'
 ---
 
 # ADR-0026: The add form keeps its button in sight and folds its options

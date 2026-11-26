@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-10-25
 tags: [categories]
 specs: [categories.md, shared-expenses.md]
-summary: 'Default categories are read-only, custom ones can be created, edited and deleted; an expense is never refused for its category.'
+summary: 'Default categories are read-only, custom ones are editable; an expense is never refused for its category.'
 ---
 
 # ADR-0006: Read-only default categories, and no expense refused for its category

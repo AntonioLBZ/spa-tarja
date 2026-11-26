@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-10-29
 tags: [budgets]
 specs: [budgets.md]
-summary: 'A limit warns inside the app and never blocks.'
+summary: 'A budget limit warns inside the app and never blocks.'
 ---
 
 # ADR-0009: Budgets warn inside the app and never block

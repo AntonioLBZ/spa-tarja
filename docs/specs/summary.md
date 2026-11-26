@@ -2,7 +2,7 @@
 tags: [summary]
 adrs: [ADR-0028, ADR-0033]
 code: [core/reports/, src/features/summary/]
-summary: 'The summary of a month: income, the restaurant card, what others paid back, spent and left, the income form and the bars of the limits, with your part of the shared expenses and no settlement.'
+summary: 'The summary of a month: income, spent and left, the income form and the bars of the budgets.'
 ---
 
 # Summary

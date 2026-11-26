@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-15
 tags: [design]
 specs: [settings.md, summary.md]
-summary: 'Every `Card` is its bottom edge alone (`--size-1`, `--color-border`), no left edge, at rest and always, no L on hover, no padding at the sides; the focus ring stays; refines the notch rule of DESIGN.md as it applies to cards, beside ADR-0023.'
+summary: 'Every Card is its bottom edge alone: no left edge and no L on hover.'
 ---
 
 # ADR-0033: A card is its bottom edge

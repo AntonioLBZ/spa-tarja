@@ -4,7 +4,7 @@ date: 2026-11-23
 refines: [ADR-0024, ADR-0041]
 tags: [ledger, filters]
 specs: [export.md, shared-expenses.md]
-summary: 'One ghost `search` button at the end of the row of "Expenses" of a group, after the order tabs, opens the filters sheet of the list with the search first, Type (everything, expenses, settlements), the default categories, From and To empty, Paid by and With (paid or has a share); the status line under the title only while something narrows it; no Group by; Recently added becomes "Recent"; refines ADR-0024 and ADR-0041.'
+summary: 'The ledger of a group is searched and filtered from one button that opens the filters sheet.'
 ---
 
 # ADR-0042: The ledger of a group is searched and filtered from one button

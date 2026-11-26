@@ -2,7 +2,7 @@
 tags: [data]
 adrs: [ADR-0004]
 code: [db/migrations/, server/db/]
-summary: 'The D1 schema table by table: ids, timestamps, the `seq` cursor, soft deletes, the shared tables and the indexes.'
+summary: 'The D1 schema: tables, ids, timestamps, the seq cursor, soft deletes and indexes.'
 ---
 
 # Data model

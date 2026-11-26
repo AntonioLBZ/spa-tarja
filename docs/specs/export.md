@@ -2,7 +2,7 @@
 tags: [export]
 adrs: [ADR-0001, ADR-0042, ADR-0044, ADR-0045]
 code: [core/export/, src/features/export/, src/features/groups/settings/]
-summary: 'The JSON and CSV files of your data, the table of one group to print or download, and the printable view of your own expenses; there is no import.'
+summary: 'The JSON and CSV files, the table of a group to print or download, and the printable view of your expenses.'
 ---
 
 # Exporting your data

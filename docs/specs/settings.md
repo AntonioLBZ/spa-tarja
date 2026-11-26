@@ -2,7 +2,7 @@
 tags: [settings, privacy]
 adrs: [ADR-0014, ADR-0028, ADR-0032, ADR-0033, ADR-0045]
 code: [src/routes/settings.index.tsx, src/features/about/, src/features/amounts/]
-summary: 'The settings and their pages: language, Appearance (theme, Amounts), Categories, Account (nickname, Your data, Sign out, Delete account), Notifications, About and the privacy notice.'
+summary: 'The settings pages: language, appearance, categories, account, notifications, about and the privacy notice.'
 ---
 
 # Settings

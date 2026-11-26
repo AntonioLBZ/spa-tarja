@@ -2,7 +2,7 @@
 tags: [architecture, deploy]
 adrs: [ADR-0015, ADR-0040]
 code: [package.json, wrangler.jsonc, vite.config.ts, .github/workflows/]
-summary: 'The layout and what each folder holds, the import rules, the design system package, production and the prerelease, how a release goes out, versions and the dependency policy.'
+summary: 'The layout, the import rules, production and the prerelease, releases, versions and dependencies.'
 ---
 
 # Repository structure

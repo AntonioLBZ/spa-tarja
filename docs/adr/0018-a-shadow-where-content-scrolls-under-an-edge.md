@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-12
 tags: [design]
 specs: [bottom-navigation.md, header.md]
-summary: 'The second use of the one shadow: a soft shadow cast by the bottom bar of a phone and the sticky header, only while content is scrolled under them, a semantic `--color-shadow`; refines the flat-colors rule of the design document.'
+summary: 'A soft shadow under the header and over the bottom bar, only while content scrolls beneath them.'
 ---
 
 # ADR-0018: A shadow where content scrolls under an edge

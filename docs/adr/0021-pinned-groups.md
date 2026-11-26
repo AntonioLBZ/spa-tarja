@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-11-12
 tags: [groups, navigation]
 specs: [expense-list.md, groups.md, notifications.md]
-summary: 'A person pins up to two open groups or friends, kept on the server on their member and needing a connection; they become tabs in the title of the Expenses screen (underlined words, no notch, no wrap, ellipsis), a tab shows the group''s own screen and the "+" starts there; pinned from the group''s settings and from a pin on its card in Groups.'
+summary: 'Up to two open groups or friends can be pinned as tabs of the Expenses screen; pinning needs a connection.'
 ---
 
 # ADR-0021: Pinned groups

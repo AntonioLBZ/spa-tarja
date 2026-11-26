@@ -2,7 +2,7 @@
 tags: [architecture, deploy]
 adrs: [ADR-0011, ADR-0015, ADR-0040]
 code: [vitest.config.ts, src/lib/testing/, server/testing/, docs/test/, .github/workflows/ci.yml]
-summary: 'The four Vitest projects and their helpers, where a test sits, the pre-commit hook, CI and the deploy jobs.'
+summary: 'The Vitest projects and their helpers, where tests sit, the pre-commit hook, CI and the deploy jobs.'
 ---
 
 # Testing and CI

@@ -90,6 +90,7 @@ describe('the ADRs', () => {
             expect(isDay(fields.date)).toBe(true);
             expect(typeof fields.summary === 'string' && fields.summary.length > 0).toBe(true);
             expect(isQuoted(raw.summary)).toBe(true);
+            expect(String(fields.summary).length).toBeLessThanOrEqual(125);
             expect(list(fields.tags).length).toBeGreaterThan(0);
             expect(list(fields.tags).filter((tag) => !tags.includes(tag))).toEqual([]);
             expect(list(fields.specs).filter((spec) => !specs.includes(spec))).toEqual([]);
@@ -130,6 +131,7 @@ describe('the specs', () => {
         expect(Object.keys(fields).filter((key) => !['tags', 'adrs', 'code', 'summary'].includes(key))).toEqual([]);
         expect(typeof fields.summary === 'string' && fields.summary.length > 0).toBe(true);
         expect(isQuoted(raw.summary)).toBe(true);
+        expect(String(fields.summary).length).toBeLessThanOrEqual(125);
         expect(list(fields.tags).length).toBeGreaterThan(0);
         expect(list(fields.tags).filter((tag) => !tags.includes(tag))).toEqual([]);
         expect(body).toMatch(/^# .+/);

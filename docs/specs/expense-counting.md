@@ -2,7 +2,7 @@
 tags: [counting]
 adrs: [ADR-0012]
 code: [core/expenses/counting.ts, core/expenses/]
-summary: 'What counts in a month and on which day: credit card charges, the restaurant card and your part, installments, income derived and never stored, and your part of a shared expense.'
+summary: 'What counts in a month and on which day: cards, installments, income and your part of shared expenses.'
 ---
 
 # When an expense counts

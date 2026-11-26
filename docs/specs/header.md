@@ -2,7 +2,7 @@
 tags: [navigation, design]
 adrs: [ADR-0012, ADR-0015, ADR-0017, ADR-0018]
 code: [src/routes/__root.tsx, src/lib/viewport/]
-summary: 'The sticky header: the logo, the destinations and "Add expense" from 40 rem, hiding on scroll, its shadow, and how the prerelease names itself.'
+summary: 'The sticky header: logo, destinations, Add expense, hiding on scroll and the name of the prerelease.'
 ---
 
 # Header

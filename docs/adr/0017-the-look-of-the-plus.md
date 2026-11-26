@@ -4,7 +4,7 @@ date: 2026-11-12
 refines: [ADR-0016]
 tags: [navigation, design]
 specs: [bottom-navigation.md, expenses.md, header.md]
-summary: 'The "+" of the phone bar is a flat accent square over the word "Add" in the middle of five equal columns, the one box with no notch; from 40 rem there is no floating button, the header holds a text action "Add expense" next to Expenses; refines ADR-0016.'
+summary: 'The + of the phone bar is a flat accent square over Add; from 40 rem the header has an Add expense action.'
 ---
 
 # ADR-0017: The look of the "+"

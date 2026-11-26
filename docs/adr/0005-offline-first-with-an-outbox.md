@@ -3,7 +3,7 @@ status: Accepted
 date: 2026-10-25
 tags: [sync, data]
 specs: [offline-sync.md]
-summary: 'Client UUIDs, idempotent `PUT`, soft deletes, the outbox, last write wins, the `seq` cursor.'
+summary: 'Client UUIDs, idempotent PUT, soft deletes, an outbox, last write wins and a seq cursor.'
 ---
 
 # ADR-0005: Offline-first, with an outbox for expenses
