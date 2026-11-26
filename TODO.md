@@ -2,11 +2,11 @@
 
 Items build on each other in the order they appear below. Delete an item when it is done and its docs are updated; the numbers stay.
 
-## 17. Revisar junto al owner los componentes, a11y y diseño
+## 17. Review the components, accessibility and design with the owner
 
-El owner pedirá cambios en diferentes componentes llegado el momento, ir de la mano paso a paso.
+The owner will ask for changes to different components when the time comes; go step by step with them.
 
-Los componentes que sean el "mismo" pero diferente, reusar el mismo pero con diferentes size o variants.
+Components that are the "same" but different become one component with sizes or variants.
 
 The design system is in Storybook now (`pnpm storybook`, [ADR-0011](docs/adr/0011-design-system-in-storybook.md)): the stories and their accessibility panel are where to start. What is left of this item, with the owner. Done on 2026-11-01: the update toast, the swatch pickers, the rings of `ChoiceGroup`, `Select` and `Dialog`, the ghost buttons, the hints and the categories screen on sheets.
 
