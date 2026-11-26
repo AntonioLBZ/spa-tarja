@@ -33,7 +33,7 @@ summary: 'What the spec covers, in a line.'
 ```
 
 - `summary` is quoted, in the quotes Prettier picks (single, with a quote inside written twice, or double, with `\"` inside), and says the what, never the why: the why is in the body.
-- `adrs` of a spec is every ADR its body links to, and only those. `code` holds paths that exist, a folder ending in `/`; it is how a file of code leads to its doc (`grep -l 'src/lib/offline/' docs/specs/*.md`).
+- `adrs` of a spec is every ADR its body links to, and only those; each link names the ADR's file exactly. `code` holds paths that exist, a folder ending in `/` and only a folder; it is how a file of code leads to its doc (`grep -l 'src/lib/offline/' docs/specs/*.md`).
 - A new ADR or spec takes its tags from the list below; a new tag is added to the list first.
 
 ## Tags

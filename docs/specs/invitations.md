@@ -1,7 +1,7 @@
 ---
 tags: [people, privacy]
 adrs: [ADR-0014, ADR-0020, ADR-0038]
-code: [server/routes/invitations.ts, server/auth/invitation-token.ts, src/features/groups/invites/]
+code: [server/routes/invitations.ts, src/features/groups/invites/, src/features/profile/, core/account/profile.ts]
 summary: 'Invitation links to become friends (signed, one use, `410 gone`), the join page, the nickname and the first name by default, and the nickname prompt after sign-in.'
 ---
 

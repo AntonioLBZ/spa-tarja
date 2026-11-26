@@ -1,7 +1,7 @@
 ---
 tags: [sync, data]
 adrs: [ADR-0013, ADR-0025, ADR-0037]
-code: [src/lib/offline/, server/routes/expenses.ts, server/routes/entries.ts]
+code: [src/lib/offline/, src/features/groups/data/, server/routes/expenses.ts, server/routes/entries.ts]
 summary: 'The offline model: the persisted cache, the outbox of expenses and the one of shared entries, idempotent writes, last write wins, the `seq` cursors, refusals and what needs a connection.'
 ---
 

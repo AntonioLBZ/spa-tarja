@@ -8,9 +8,9 @@ description: Find the ADRs and specs of Tarja that bear on a task, by topic, by 
 The decisions are in `docs/adr/`, how things behave in `docs/specs/`, the look in `design-system/DESIGN.md`. Each ADR and spec opens with a front matter (`docs/README.md` has its keys and the list of tags), so the search reads that and never the bodies. Run from the root of the repository:
 
 ```bash
-node .agents/skills/find-docs/find.mjs                    # every ADR and spec, a line of summary each
-node .agents/skills/find-docs/find.mjs 16                 # ADR-0016: what it refines and what refines it, its specs
-node .agents/skills/find-docs/find.mjs src/lib/offline    # the specs whose `code` holds that path, the closest first, and their ADRs
+node .agents/skills/find-docs/find.mjs                    # every ADR and spec, a short summary each
+node .agents/skills/find-docs/find.mjs 16                 # ADR-0016: what it refines and what refines it, its specs (a spec that links to it or one it names)
+node .agents/skills/find-docs/find.mjs src/lib/offline    # the specs whose `code` holds that path (a root file too: wrangler.jsonc), the closest first, and their ADRs
 node .agents/skills/find-docs/find.mjs swipe toast        # tags, titles and summaries that hold every word
 node .agents/skills/find-docs/find.mjs --all theme        # the same, with the superseded and rejected ADRs
 ```

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Searches the front matter of the ADRs and the specs. Run from the root of the repository.
-//   node .agents/skills/find-docs/find.mjs                  every ADR and spec, one line each
+//   node .agents/skills/find-docs/find.mjs                  every ADR and spec, a short summary each
 //   node .agents/skills/find-docs/find.mjs ADR-0016 | 16    one ADR, what changes it and the specs that describe it
 //   node .agents/skills/find-docs/find.mjs src/lib/offline  the specs whose code holds that path, and their ADRs
 //   node .agents/skills/find-docs/find.mjs groups balance   the files whose tags or summary hold every word
@@ -49,12 +49,23 @@ const adrs = load('docs/adr', 'adr').map((adr) => ({ ...adr, id: `ADR-${adr.name
 const specs = load('docs/specs', 'spec');
 const list = (value) => (Array.isArray(value) ? value : []);
 
-const line = (doc) => {
+const SHORT = 160;
+
+const line = (doc, short = false) => {
     const tags = list(doc.tags).join(',');
-    if (doc.kind === 'spec') return `${doc.path}  [${tags}]\n    ${doc.summary}`;
+    const summary = short && doc.summary.length > SHORT ? `${doc.summary.slice(0, SHORT - 1)}…` : doc.summary;
+    if (doc.kind === 'spec') return `${doc.path}  [${tags}]\n    ${summary}`;
     const status = doc.status === 'Superseded' ? `Superseded by ${doc.superseded_by}` : doc.status;
-    return `${doc.path}  (${status}) [${tags}]\n    ${doc.summary}`;
+    return `${doc.path}  (${status}) [${tags}]\n    ${summary}`;
 };
+
+// An ADR and a spec are joined when the spec links to the ADR or the ADR names the spec
+const specsOf = (adr) =>
+    specs
+        .filter((spec) => list(spec.adrs).includes(adr.id) || list(adr.specs).includes(spec.name))
+        .map((spec) => spec.name);
+const adrsOf = (spec) =>
+    adrs.filter((adr) => list(spec.adrs).includes(adr.id) || list(adr.specs).includes(spec.name)).map((adr) => adr.id);
 
 const args = process.argv.slice(2);
 const all = args.includes('--all');
@@ -69,12 +80,11 @@ const showAdr = (adr) => {
     if (list(adr.supersedes).length) console.log(`    supersedes: ${list(adr.supersedes).join(', ')}`);
     if (refinedBy.length) console.log(`    refined by: ${refinedBy.join(', ')}  <- read these too, they change it`);
     if (supersededBy.length) console.log(`    superseded by: ${supersededBy.join(', ')}`);
-    const describedIn = specs.filter((spec) => list(spec.adrs).includes(adr.id)).map((spec) => spec.name);
-    if (describedIn.length) console.log(`    specs that link to it: ${describedIn.join(', ')}`);
+    if (specsOf(adr).length) console.log(`    specs: ${specsOf(adr).join(', ')}`);
 };
 
 if (words.length === 0) {
-    for (const doc of [...adrs, ...specs]) console.log(line(doc));
+    for (const doc of [...adrs, ...specs]) console.log(line(doc, true));
     process.exit(0);
 }
 
@@ -90,8 +100,11 @@ if (number) {
     process.exit(0);
 }
 
-if (words.length === 1 && query.includes('/')) {
-    const path = query.replace(/^\.\//, '');
+const path = query.replace(/^\.\//, '');
+const isPath =
+    words.length === 1 &&
+    (path.includes('/') || specs.some((spec) => list(spec.code).some((code) => code.startsWith(path))));
+if (isPath) {
     const depth = (spec) =>
         Math.max(
             0,
@@ -103,7 +116,7 @@ if (words.length === 1 && query.includes('/')) {
     if (matches.length === 0) console.log(`No spec names ${path} in its code; try a word of what it does.`);
     for (const spec of matches) {
         console.log(line(spec));
-        if (list(spec.adrs).length) console.log(`    adrs: ${list(spec.adrs).join(', ')}`);
+        if (adrsOf(spec).length) console.log(`    adrs: ${adrsOf(spec).join(', ')}`);
     }
     process.exit(0);
 }

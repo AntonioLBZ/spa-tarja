@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
@@ -26,17 +26,26 @@ const parseValue = (raw: string): string | string[] => {
 
 const splitFrontMatter = (text: string) => {
     const match = /^---\n([\s\S]*?)\n---\n\n/.exec(text);
-    if (!match) return { frontMatter: null, body: text };
+    if (!match) return { frontMatter: null, raw: {} as Record<string, string>, body: text };
     const frontMatter: FrontMatter = {};
+    const raw: Record<string, string> = {};
     for (const line of match[1].split('\n')) {
         const pair = /^([a-z_]+): (.+)$/.exec(line);
         if (!pair) throw new Error(`Not a line of front matter: ${line}`);
+        raw[pair[1]] = pair[2];
         frontMatter[pair[1]] = parseValue(pair[2]);
     }
-    return { frontMatter, body: text.slice(match[0].length) };
+    return { frontMatter, raw, body: text.slice(match[0].length) };
 };
 
 const list = (value: string | string[] | undefined) => (Array.isArray(value) ? value : []);
+
+const isQuoted = (raw: string | undefined) => /^'.*'$|^".*"$/.test(raw ?? '');
+
+const isDay = (value: string | string[] | undefined) =>
+    typeof value === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(value) &&
+    new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
 
 const adrs = filesIn('docs/adr', /^\d{4}-.*\.md$/);
 const specs = filesIn('docs/specs', /\.md$/);
@@ -57,26 +66,37 @@ describe('the ADRs', () => {
         expect(adrs.map((name) => Number(name.slice(0, 4)))).toEqual(adrs.map((_, position) => position + 1));
     });
 
-    it.each(adrFiles)('$name has its front matter and is headed with its number', ({ name, frontMatter, body }) => {
-        expect(frontMatter).not.toBeNull();
-        const fields = frontMatter ?? {};
-        expect(
-            Object.keys(fields).filter(
-                (key) =>
-                    !['status', 'superseded_by', 'date', 'supersedes', 'refines', 'tags', 'specs', 'summary'].includes(
-                        key
-                    )
-            )
-        ).toEqual([]);
-        expect(fields.status).toMatch(/^(Accepted|Rejected|Proposed|Superseded)$/);
-        expect(fields.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-        expect(typeof fields.summary === 'string' && fields.summary.length > 0).toBe(true);
-        expect(list(fields.tags).length).toBeGreaterThan(0);
-        expect(list(fields.tags).filter((tag) => !tags.includes(tag))).toEqual([]);
-        expect(list(fields.specs).filter((spec) => !specs.includes(spec))).toEqual([]);
-        expect(body).toMatch(new RegExp(`^# ${idOf(name)}: .+`));
-        expect(body).not.toMatch(/^- (Status|Date): /m);
-    });
+    it.each(adrFiles)(
+        '$name has its front matter and is headed with its number',
+        ({ name, frontMatter, raw, body }) => {
+            expect(frontMatter).not.toBeNull();
+            const fields = frontMatter ?? {};
+            expect(
+                Object.keys(fields).filter(
+                    (key) =>
+                        ![
+                            'status',
+                            'superseded_by',
+                            'date',
+                            'supersedes',
+                            'refines',
+                            'tags',
+                            'specs',
+                            'summary',
+                        ].includes(key)
+                )
+            ).toEqual([]);
+            expect(fields.status).toMatch(/^(Accepted|Rejected|Proposed|Superseded)$/);
+            expect(isDay(fields.date)).toBe(true);
+            expect(typeof fields.summary === 'string' && fields.summary.length > 0).toBe(true);
+            expect(isQuoted(raw.summary)).toBe(true);
+            expect(list(fields.tags).length).toBeGreaterThan(0);
+            expect(list(fields.tags).filter((tag) => !tags.includes(tag))).toEqual([]);
+            expect(list(fields.specs).filter((spec) => !specs.includes(spec))).toEqual([]);
+            expect(body).toMatch(new RegExp(`^# ${idOf(name)}: .+`));
+            expect(body).not.toMatch(/^- (Status|Date): /m);
+        }
+    );
 
     it.each(adrFiles)('$name names only older ADRs that exist', ({ name, frontMatter }) => {
         const named = [...list(frontMatter?.supersedes), ...list(frontMatter?.refines)];
@@ -104,11 +124,12 @@ describe('the ADRs', () => {
 });
 
 describe('the specs', () => {
-    it.each(specFiles)('$name has its front matter', ({ frontMatter, body }) => {
+    it.each(specFiles)('$name has its front matter', ({ frontMatter, raw, body }) => {
         expect(frontMatter).not.toBeNull();
         const fields = frontMatter ?? {};
         expect(Object.keys(fields).filter((key) => !['tags', 'adrs', 'code', 'summary'].includes(key))).toEqual([]);
         expect(typeof fields.summary === 'string' && fields.summary.length > 0).toBe(true);
+        expect(isQuoted(raw.summary)).toBe(true);
         expect(list(fields.tags).length).toBeGreaterThan(0);
         expect(list(fields.tags).filter((tag) => !tags.includes(tag))).toEqual([]);
         expect(body).toMatch(/^# .+/);
@@ -117,11 +138,22 @@ describe('the specs', () => {
     it.each(specFiles)('$name lists every ADR it links to, and only those', ({ frontMatter, body }) => {
         const linked = [...new Set([...body.matchAll(/adr\/(\d{4})-/g)].map((match) => `ADR-${match[1]}`))].sort();
         expect([...list(frontMatter?.adrs)].sort()).toEqual(linked);
+        expect(list(frontMatter?.adrs).filter((id) => !adrIds.includes(id))).toEqual([]);
+    });
+
+    it.each(specFiles)('$name links to ADRs by their exact file name', ({ body }) => {
+        const files = [...body.matchAll(/adr\/(\d{4}-[^)#\s]*\.md)/g)].map((match) => match[1]);
+        expect(files.filter((file) => !adrs.includes(file))).toEqual([]);
     });
 
     it.each(specFiles)('$name points only at code that exists', ({ frontMatter }) => {
         const code = list(frontMatter?.code);
         expect(code.length).toBeGreaterThan(0);
         expect(code.filter((path) => !existsSync(repoPath(path)))).toEqual([]);
+        expect(
+            code.filter(
+                (path) => existsSync(repoPath(path)) && statSync(repoPath(path)).isDirectory() !== path.endsWith('/')
+            )
+        ).toEqual([]);
     });
 });
