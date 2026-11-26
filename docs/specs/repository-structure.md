@@ -1,3 +1,10 @@
+---
+tags: [architecture, deploy]
+adrs: [ADR-0015, ADR-0040]
+code: [package.json, wrangler.jsonc, vite.config.ts, .github/workflows/]
+summary: 'The layout and what each folder holds, the import rules, the design system package, production and the prerelease, how a release goes out, versions and the dependency policy.'
+---
+
 # Repository structure
 
 ```
@@ -7,6 +14,8 @@ db/              D1 SQL migrations (db/migrations)
 core/            pure logic shared by client and server
 design-system/   Storybook and the stories of the components (a pnpm workspace package)
 public/          static files
+docs/            the ADRs, the specs and the tests of the docs and the deploy configuration
+.agents/skills/  the skills of the project for coding agents (component-docs, find-docs)
 ```
 
 - `server/` doesn't import from `src/`. `src/` only imports **types** from `@server/*`.

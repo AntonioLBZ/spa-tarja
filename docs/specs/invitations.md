@@ -1,3 +1,10 @@
+---
+tags: [people, privacy]
+adrs: [ADR-0014, ADR-0020, ADR-0038]
+code: [server/routes/invitations.ts, server/auth/invitation-token.ts, src/features/groups/invites/]
+summary: 'Invitation links to become friends (signed, one use, `410 gone`), the join page, the nickname and the first name by default, and the nickname prompt after sign-in.'
+---
+
 # Invitations and nicknames
 
 The decision is in [ADR-0014](../adr/0014-people-in-groups.md), amended at the owner's request (2026-11-06) so that a friend who uses the app is invited directly, with no dummy first, and so that a friend exists only from an accepted link: nobody is made a friend by typing a name, and a dummy lives only inside a group. Everything here needs a connection ([offline sync](offline-sync.md)). Friends, adding people to a group and merging a dummy are in [groups](groups.md); deleting an account is in [authentication](authentication.md).

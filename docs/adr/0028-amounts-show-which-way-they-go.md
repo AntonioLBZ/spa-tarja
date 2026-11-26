@@ -1,7 +1,13 @@
-# ADR-0028: Amounts show which way they go
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0012]
+tags: [balances, design, settings]
+specs: [balances.md, groups.md, settings.md, summary.md]
+summary: 'A shared `Amount` can show color (`--color-money-in`/`-out`), a sign and an arrow, each switchable in Settings → Amounts (all on), with a palette for color blindness; the arrow only in the balances of a group; the person picks the symbol of the currency, drawn only, never converted; replaces the no-color rule for debts and refines ADR-0012.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0028: Amounts show which way they go
 
 ## Context
 

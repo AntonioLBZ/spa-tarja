@@ -1,7 +1,12 @@
-# ADR-0007: What counts in a month is worked out in one place, and derived, not stored
+---
+status: Accepted
+date: 2026-10-25
+tags: [counting]
+specs: [expense-counting.md]
+summary: 'The day an expense counts on, income derived and never stored, the list by the day made.'
+---
 
-- Status: Accepted
-- Date: 2026-10-25
+# ADR-0007: What counts in a month is worked out in one place, and derived, not stored
 
 ## Context
 

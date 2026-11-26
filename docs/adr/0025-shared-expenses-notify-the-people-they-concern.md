@@ -1,7 +1,13 @@
-# ADR-0025: Shared expenses notify the people they concern
+---
+status: Accepted
+date: 2026-11-14
+refines: [ADR-0013]
+tags: [notifications, groups, privacy]
+specs: [notifications.md, offline-sync.md]
+summary: "A new entry somebody else made that concerns you (a share of yours, a settlement you pay or are paid) is told, never edits, deletes or a first pull; in the app a `Banner` from the top that goes by itself, fed by a watcher that asks `GET /groups` every 60 s while the page is visible and pulls the groups whose `seq` moved; with the app closed Web Push, a switch per device in the settings (suggested once on a group's screen), sent by the server on a create only, hand-written RFC 8291/8292 over Web Crypto; refines ADR-0013."
+---
 
-- Status: Accepted
-- Date: 2026-11-14
+# ADR-0025: Shared expenses notify the people they concern
 
 ## Context
 

@@ -1,7 +1,12 @@
-# ADR-0037: A toast or a banner is swiped away
+---
+status: Accepted
+date: 2026-11-17
+tags: [motion, notifications]
+specs: [notifications.md, offline-sync.md]
+summary: "The toast that goes by itself is swiped away to a side or down, the banner to a side or up, past a third of the width or half the height, the drag keeping its first axis and holding the count; a pinned toast too when it names what a swipe answers (the new version's: Later); the toast stays at the bottom, near the thumb, and keeps the mark, the message and the actions on one row; one `useSwipeAway`."
+---
 
-- Status: Accepted
-- Date: 2026-11-17
+# ADR-0037: A toast or a banner is swiped away
 
 ## Context
 

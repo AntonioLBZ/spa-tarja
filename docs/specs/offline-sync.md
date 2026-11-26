@@ -1,3 +1,10 @@
+---
+tags: [sync, data]
+adrs: [ADR-0013, ADR-0025, ADR-0037]
+code: [src/lib/offline/, server/routes/expenses.ts, server/routes/entries.ts]
+summary: 'The offline model: the persisted cache, the outbox of expenses and the one of shared entries, idempotent writes, last write wins, the `seq` cursors, refusals and what needs a connection.'
+---
+
 # Offline strategy
 
 - **Shell**: PWA with `vite-plugin-pwa` (Workbox, `generateSW`) precaching the app. Navigations fall back to `index.html` except `/api/*`. Updates use `registerType: 'prompt'`: the new version waits until the user accepts it, so it never reloads the app halfway through an expense. The page registers the service worker as it starts, before the session is known. The browser looks for a new version on its own when a page opens (Chromium about 2 s after, whatever the page asks), but never when an installed app is brought back from the background, so the page asks for one each time it comes back to the screen. The offer is a pinned toast ([`DESIGN.md`](../../design-system/DESIGN.md#components)) shown as soon as a new version is found, whatever the data is doing, before it has downloaded: installing it means fetching every changed file of the precache, which takes seconds on a phone. While it downloads the toast says so and offers only Later; once the new version is waiting it offers Update too. Swiping it away to a side or down is Later ([ADR-0037](../adr/0037-a-toast-or-a-banner-is-swiped-away.md)). A download that fails takes the toast away, and Later during the download holds until another version is found. Only an update is told: the first install, with no version running yet, is not. One found while nobody is signed in waits for the sign-in. Icons are generated from `public/favicon.svg` with `pnpm pwa:icons`.

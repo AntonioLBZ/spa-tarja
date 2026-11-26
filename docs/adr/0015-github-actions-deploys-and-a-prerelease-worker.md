@@ -1,7 +1,13 @@
-# ADR-0015: GitHub Actions deploys, and a prerelease Worker for branches
+---
+status: Accepted
+date: 2026-11-09
+supersedes: [ADR-0002]
+tags: [deploy]
+specs: [authentication.md, header.md, repository-structure.md, testing-and-ci.md]
+summary: 'GitHub Actions deploys a push to `main` that passes CI, migrations first (Cloudflare has no Git connection: tried, one connection deploys one Worker); a push to any branch other than `main` deploys a second Worker, `tarja-prerelease` at `tarja-prerelease.albz.app`, with its own D1, secrets and Google client; supersedes ADR-0002.'
+---
 
-- Status: Accepted
-- Date: 2026-11-09
+# ADR-0015: GitHub Actions deploys, and a prerelease Worker for branches
 
 ## Context
 

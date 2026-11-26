@@ -1,3 +1,10 @@
+---
+tags: [notifications, privacy]
+adrs: [ADR-0021, ADR-0025, ADR-0037]
+code: [core/groups/notices.ts, server/push/, src/features/notices/, src/features/notifications/, src/lib/push/]
+summary: 'What is told of a shared expense somebody else added: the watcher, the banner, Web Push with its per-device switch, the push worker and their privacy.'
+---
+
 # Notifications
 
 How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/0025-shared-expenses-notify-the-people-they-concern.md)): a banner in the window that is open, and a system notification with the app closed.

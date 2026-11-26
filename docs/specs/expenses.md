@@ -1,3 +1,10 @@
+---
+tags: [expenses]
+adrs: [ADR-0010, ADR-0016, ADR-0017, ADR-0026, ADR-0034]
+code: [src/features/expenses/form/, src/features/expenses/sheet/, src/features/expenses/data/]
+summary: 'Adding, editing, duplicating and deleting an expense: the add form in its sheet, its fields and More options, the payment and installments, the checks on Add, and Delete with Undo.'
+---
+
 # Expenses
 
 ## Rules

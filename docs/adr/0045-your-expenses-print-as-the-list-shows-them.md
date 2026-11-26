@@ -1,7 +1,12 @@
-# ADR-0045: Your expenses print as the list shows them
+---
+status: Accepted
+date: 2026-11-24
+tags: [export, list]
+specs: [export.md, settings.md]
+summary: "A printable view of the person's own expenses at `/settings/account/print`, from Your data: the list's rows (a plan once at full price, the person's part of a shared one, no settlement) in one table oldest first with a Total, the list's search and filters without Group by, opening on this month, Print only; shares `PrintTable` with the table of a group."
+---
 
-- Status: Accepted
-- Date: 2026-11-24
+# ADR-0045: Your expenses print as the list shows them
 
 ## Context
 

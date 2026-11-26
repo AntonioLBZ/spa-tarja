@@ -1,7 +1,12 @@
-# ADR-0031: The disclosure toggle draws its notch as it is used
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0023]
+tags: [design]
+summary: 'A `Disclosure` toggle with the default look rests as its bottom edge alone, grows the left edge to half the height on hover while closed and to the whole height while pressed and while open; the rows on a sheet keep their own look; refines ADR-0023.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0031: The disclosure toggle draws its notch as it is used
 
 ## Context
 

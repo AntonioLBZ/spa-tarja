@@ -1,7 +1,13 @@
-# ADR-0036: The swiped screen follows the finger
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0035]
+tags: [navigation, motion]
+specs: [bottom-navigation.md]
+summary: 'The new screen opens as soon as the finger goes clearly sideways and its view transition is held, the finger setting how far it has gone; let go of, it goes on (decelerating) or back, the old screen reopened from the history under the picture with no slide; no library; without view transitions or with reduced motion, the change on release of ADR-0035; refines ADR-0035.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0036: The swiped screen follows the finger
 
 ## Context
 

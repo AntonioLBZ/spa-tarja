@@ -1,7 +1,12 @@
-# ADR-0035: A swipe moves between screens
+---
+status: Accepted
+date: 2026-11-15
+tags: [navigation, motion]
+specs: [bottom-navigation.md]
+summary: 'Below 40 rem a swipe across the screen of a section goes to its neighbour along one strip (Expenses, its pinned tabs, Groups, Summary, Settings), counted when the finger lifts (30 % of the width or a flick, mostly sideways), back to Expenses on the tab shown last; never from a deeper screen, the outer 24 px, a field, a dialog, a box that scrolls sideways or `data-no-swipe`; the main area is `touch-action: pan-y pinch-zoom`.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0035: A swipe moves between screens
 
 ## Context
 

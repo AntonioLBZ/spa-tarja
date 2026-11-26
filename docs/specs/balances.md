@@ -1,3 +1,10 @@
+---
+tags: [balances, groups]
+adrs: [ADR-0012, ADR-0016, ADR-0026, ADR-0028, ADR-0029, ADR-0041]
+code: [core/groups/balance.ts, core/groups/simplify.ts, core/groups/group-debts.ts, src/features/groups/balances/]
+summary: 'Who owes whom in a group: the balance of each member, the debts pair by pair or simplified, the sheet of the balances folded by net balance, and Settle up with its "After this" hint.'
+---
+
 # Balances and settling up
 
 Each group keeps its own account. The decision is in [ADR-0012](../adr/0012-shared-expenses.md); the entries it is made from are in [shared expenses](shared-expenses.md).

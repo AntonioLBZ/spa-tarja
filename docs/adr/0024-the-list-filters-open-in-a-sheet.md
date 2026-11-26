@@ -1,7 +1,13 @@
-# ADR-0024: The list filters open in a sheet
+---
+status: Accepted
+date: 2026-11-13
+refines: [ADR-0016]
+tags: [filters, list, design]
+specs: [expense-list.md]
+summary: 'The list filters open in a sheet at every width from a ghost `filter_list` icon button at the right of the search, its count in a corner so the icon never moves, applied live with "Showing x of y" inside, Clear filters and Close stuck to its foot (no ×, no Done); a tap outside closes any dialog that loses nothing (not Edit, Duplicate or Settle up); refines ADR-0016.'
+---
 
-- Status: Accepted
-- Date: 2026-11-13
+# ADR-0024: The list filters open in a sheet
 
 ## Context
 

@@ -1,7 +1,13 @@
-# ADR-0016: Forms for a task open in a sheet
+---
+status: Accepted
+date: 2026-11-10
+refines: [ADR-0010]
+tags: [expenses, navigation, design]
+specs: [balances.md, bottom-navigation.md, expenses.md]
+summary: 'A form for a task (adding, editing and duplicating an expense, settling up) opens in a sheet, a bottom sheet on phones and a centered dialog from 40 rem, one `Dialog` variant; a "+" adds an expense from any screen and inside an open group starts it there; the logo and Expenses only navigate; refines ADR-0010.'
+---
 
-- Status: Accepted
-- Date: 2026-11-10
+# ADR-0016: Forms for a task open in a sheet
 
 ## Context
 

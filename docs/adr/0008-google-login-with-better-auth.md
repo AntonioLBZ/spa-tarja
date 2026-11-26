@@ -1,7 +1,12 @@
-# ADR-0008: Google login only, through Better Auth
+---
+status: Accepted
+date: 2026-10-25
+tags: [auth]
+specs: [authentication.md]
+summary: 'Google only, no own passwords, Better Auth on Hono; no guest mode.'
+---
 
-- Status: Accepted
-- Date: 2026-10-25
+# ADR-0008: Google login only, through Better Auth
 
 ## Context
 

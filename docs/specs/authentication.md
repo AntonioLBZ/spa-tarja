@@ -1,3 +1,10 @@
+---
+tags: [auth, privacy]
+adrs: [ADR-0014, ADR-0015]
+code: [server/auth/, server/security/, src/lib/auth/, src/features/auth/, public/_headers]
+summary: 'Better Auth with Google only, sessions and their cookie, the user of a request (`withUser`, `X-Tarja-User`), the refusal of a write from another origin, the security headers and the policy of the pages, the daily clean-up, the local data of each user, the privacy notice and deleting an account.'
+---
+
 # Authentication
 
 Google OAuth, no own passwords, through Better Auth mounted on Hono at `/api/auth/*`. Better Auth takes the D1 binding directly. It needs the `nodejs_als` compatibility flag (it uses `AsyncLocalStorage`).

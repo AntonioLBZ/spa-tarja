@@ -1,7 +1,13 @@
-# ADR-0020: The first name by default, and a prompt for the nickname
+---
+status: Accepted
+date: 2026-11-12
+refines: [ADR-0014]
+tags: [people]
+specs: [invitations.md]
+summary: 'Without a nickname a person is shown by the first word of the name of their Google account, worked out, never stored; the app asks for the nickname in a sheet, empty and skippable, right after each sign-in while there is none, and stores no skip; refines ADR-0014.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0020: The first name by default, and a prompt for the nickname
 
 ## Context
 

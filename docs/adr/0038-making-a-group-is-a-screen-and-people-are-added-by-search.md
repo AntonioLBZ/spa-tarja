@@ -1,7 +1,13 @@
-# ADR-0038: Making a group is a screen, and people are added by a search
+---
+status: Accepted
+date: 2026-11-17
+refines: [ADR-0016, ADR-0014]
+tags: [groups, people, navigation]
+specs: [groups.md, invitations.md]
+summary: 'The action of a section of Groups sits at the end of its heading ("New", "Invite"), never as a row; making a group is the screen `/groups/new`, not a sheet; people are added by one search in a sheet, the same on the new group and in a group''s People: the friends whose name holds what is typed (ignoring case and accents) first, then "Add “X” by name" for a dummy, rows to press, no combobox; In place of a dummy is a step of adding a friend there; refines ADR-0016 and ADR-0014.'
+---
 
-- Status: Accepted
-- Date: 2026-11-17
+# ADR-0038: Making a group is a screen, and people are added by a search
 
 ## Context
 

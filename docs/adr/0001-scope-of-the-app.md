@@ -1,7 +1,13 @@
-# ADR-0001: Scope: what is left out, and export only
+---
+status: Superseded
+superseded_by: ADR-0012
+date: 2026-10-25
+tags: [scope, export, groups]
+specs: [export.md]
+summary: 'Out of scope (importing a backup, shared expenses, several currencies); export only, no import; no PWA shortcuts.'
+---
 
-- Status: Superseded by ADR-0012
-- Date: 2026-10-25
+# ADR-0001: Scope: what is left out, and export only
 
 ## Context
 

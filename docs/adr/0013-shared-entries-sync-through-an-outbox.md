@@ -1,7 +1,12 @@
-# ADR-0013: Shared entries sync through an outbox; the shape of a group needs a connection
+---
+status: Accepted
+date: 2026-11-01
+tags: [sync, groups]
+specs: [offline-sync.md, shared-expenses.md]
+summary: 'Shared entries use a second outbox with a per-group `seq`; making and changing groups, members, invitations and the nickname need a connection.'
+---
 
-- Status: Accepted
-- Date: 2026-11-01
+# ADR-0013: Shared entries sync through an outbox; the shape of a group needs a connection
 
 ## Context
 

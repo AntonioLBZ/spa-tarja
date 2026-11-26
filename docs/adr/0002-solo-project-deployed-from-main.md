@@ -1,7 +1,13 @@
-# ADR-0002: Work on `main`, and deploy every push that passes CI
+---
+status: Superseded
+superseded_by: ADR-0015
+date: 2026-10-25
+tags: [deploy]
+specs: [repository-structure.md]
+summary: 'No feature branches or pull requests; a push to `main` that passes CI is deployed, migrations first.'
+---
 
-- Status: Superseded by ADR-0015
-- Date: 2026-10-25
+# ADR-0002: Work on `main`, and deploy every push that passes CI
 
 ## Context
 

@@ -1,7 +1,12 @@
-# ADR-0043: The charts pick a category from the split and list what they count
+---
+status: Proposed
+date: 2026-11-25
+tags: [charts]
+specs: [charts.md]
+summary: 'The comparison of the charts follows the calendar (whole months with as many months before, any other range with as many days, and a running one up to the same day: "1–25 Nov vs. 1–25 Oct"); the category `Select` of the charts goes and each row of the split is a toggle that picks its category, one at a time, the picked one kept at zero when the range has none of it and named in the stat row; a section "Expenses" at the foot lists what the chart counts, a ticket per row of the chart adding up to its column, the rows read only, 100 at a time.'
+---
 
-- Status: Proposed
-- Date: 2026-11-25
+# ADR-0043: The charts pick a category from the split and list what they count
 
 ## Context
 

@@ -1,7 +1,12 @@
-# ADR-0027: One app color, gray
+---
+status: Accepted
+date: 2026-11-15
+tags: [design, settings]
+specs: [settings.md]
+summary: 'The accent is gray, always; the App color choice and the other presets go, and a stored `tarja:accent` is ignored and removed.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0027: One app color, gray
 
 ## Context
 

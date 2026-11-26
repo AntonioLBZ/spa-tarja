@@ -1,7 +1,12 @@
-# ADR-0039: The week starts where the browser says
+---
+status: Accepted
+date: 2026-11-19
+tags: [list, charts]
+specs: [charts.md, expense-list.md]
+summary: "The first day of the week comes from the browser's preferred language (`Intl.Locale` week info), Monday when it can't tell; no setting; it shapes only the week groups of the list and the week rows of the charts."
+---
 
-- Status: Accepted
-- Date: 2026-11-19
+# ADR-0039: The week starts where the browser says
 
 ## Context
 

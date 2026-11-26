@@ -1,3 +1,10 @@
+---
+tags: [export]
+adrs: [ADR-0001, ADR-0042, ADR-0044, ADR-0045]
+code: [core/export/, src/features/export/, src/features/groups/settings/]
+summary: 'The JSON and CSV files of your data, the table of one group to print or download, and the printable view of your own expenses; there is no import.'
+---
+
 # Exporting your data
 
 Settings offers a JSON file with all your data and a CSV file with the expenses (export only, no import for now: [ADR-0001](../adr/0001-scope-of-the-app.md)). Both are built on the device from what it already holds, the persisted cache with the outbox on top (`applyPending`), so they work offline and send nothing to the server. Settings reads the expenses, the categories, the income and the budgets like any other screen does, so a device that never opened the summary still has its income and its budgets in the JSON; a device that has never heard from the server exports only what is waiting in its outbox. Deleted expenses are left out, and the logic is pure, in `core/export/export.ts`.

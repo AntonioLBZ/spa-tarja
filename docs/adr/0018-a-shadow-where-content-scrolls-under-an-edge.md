@@ -1,7 +1,12 @@
-# ADR-0018: A shadow where content scrolls under an edge
+---
+status: Accepted
+date: 2026-11-12
+tags: [design]
+specs: [bottom-navigation.md, header.md]
+summary: 'The second use of the one shadow: a soft shadow cast by the bottom bar of a phone and the sticky header, only while content is scrolled under them, a semantic `--color-shadow`; refines the flat-colors rule of the design document.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0018: A shadow where content scrolls under an edge
 
 ## Context
 

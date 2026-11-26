@@ -1,7 +1,11 @@
-# ADR-0019: The toast drains
+---
+status: Accepted
+date: 2026-11-12
+tags: [design, motion]
+summary: 'The time left of a toast is its fill, the ink draining from right to left; as wide as its column; a bare check mark in front when it reports something done; refines the `Toast` of DESIGN.md.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0019: The toast drains
 
 ## Context
 

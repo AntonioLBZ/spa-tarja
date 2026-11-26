@@ -1,7 +1,14 @@
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0026]
+tags: [expenses, groups]
+specs: [expenses.md, shared-expenses.md]
+summary: 'For (Just me / Shared) is the first row of the add form, underlined-word tabs like the pinned ones, still a radio group (`ChoiceGroup` variant `tabs`); With goes first inside Split; its summary is two short lines at the end of the row of the tabs ("With Flat" / "Equally among 3"), describing the Split toggle, whose toggle says who paid after the word while closed, on one line, cut with an ellipsis ("Split · Paid by you"), with no icon; no group is guessed (the screen''s, else the last used, else the only one, else nothing chosen and Split opens; Add marks With); your own member first in Paid by and Who''s in; a sheet''s edge shadows are drawn only while its content overflows (`data-overflow`, kept by a `ResizeObserver`); refines ADR-0026.'
+---
+
 # ADR-0034: The add form chooses who it is for in tabs
 
-- Status: Accepted
-- Date: 2026-11-15
 - Amended: 2026-11-17, by the owner: who paid moved from the summary beside the tabs into the toggle of Split.
 
 ## Context
