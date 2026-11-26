@@ -1,7 +1,8 @@
 import js from '@eslint/js';
 import prettierConfig from 'eslint-config-prettier/flat';
-import importPlugin from 'eslint-plugin-import';
+import { createNodeResolver, importX } from 'eslint-plugin-import-x';
 import reactHooks from 'eslint-plugin-react-hooks';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -55,16 +56,13 @@ export default defineConfig([
     },
     {
         files: ['**/*.{ts,tsx}'],
-        plugins: { import: importPlugin },
+        plugins: { 'import-x': importX },
         settings: {
-            'import/resolver': {
-                typescript: { alwaysTryTypes: true },
-                node: true,
-            },
+            'import-x/resolver-next': [createTypeScriptImportResolver({ alwaysTryTypes: true }), createNodeResolver()],
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'error',
-            'import/order': [
+            'import-x/order': [
                 'error',
                 {
                     groups: ['builtin', 'external', 'internal', ['parent', 'sibling'], 'index', 'object', 'type'],
@@ -72,7 +70,7 @@ export default defineConfig([
                     alphabetize: { order: 'asc', caseInsensitive: true },
                 },
             ],
-            'import/no-restricted-paths': [
+            'import-x/no-restricted-paths': [
                 'error',
                 {
                     zones: [
