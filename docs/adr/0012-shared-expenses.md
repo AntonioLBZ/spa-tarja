@@ -1,7 +1,13 @@
-# ADR-0012: Shared expenses: a group is a ledger its members share
+---
+status: Accepted
+date: 2026-11-01
+supersedes: [ADR-0001]
+tags: [groups, balances, scope]
+specs: [balances.md, expense-counting.md, groups.md, header.md, shared-expenses.md]
+summary: 'Groups are ledgers shared by users and dummies; your part counts, settlements count for nobody; a deleted group only closes.'
+---
 
-- Status: Accepted
-- Date: 2026-11-01
+# ADR-0012: Shared expenses: a group is a ledger its members share
 
 ## Context
 

@@ -1,7 +1,12 @@
-# ADR-0029: The balances of a group fold by each person's net balance
+---
+status: Accepted
+date: 2026-11-15
+tags: [balances]
+specs: [balances.md]
+summary: 'The balances of a group are one folded row per person by net balance, its debts as sentences with a Settle up each.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0029: The balances of a group fold by each person's net balance
 
 ## Context
 

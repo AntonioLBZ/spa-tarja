@@ -1,7 +1,12 @@
-# ADR-0005: Offline-first, with an outbox for expenses
+---
+status: Accepted
+date: 2026-10-25
+tags: [sync, data]
+specs: [offline-sync.md]
+summary: 'Client UUIDs, idempotent PUT, soft deletes, an outbox, last write wins and a seq cursor.'
+---
 
-- Status: Accepted
-- Date: 2026-10-25
+# ADR-0005: Offline-first, with an outbox for expenses
 
 ## Context
 

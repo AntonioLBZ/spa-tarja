@@ -1,7 +1,13 @@
-# ADR-0024: The list filters open in a sheet
+---
+status: Accepted
+date: 2026-11-13
+refines: [ADR-0016]
+tags: [filters, list, design]
+specs: [expense-list.md]
+summary: 'The list filters open in a sheet from an icon button by the search, applied live; a tap outside closes what loses nothing.'
+---
 
-- Status: Accepted
-- Date: 2026-11-13
+# ADR-0024: The list filters open in a sheet
 
 ## Context
 

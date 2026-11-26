@@ -1,7 +1,12 @@
-# ADR-0018: A shadow where content scrolls under an edge
+---
+status: Accepted
+date: 2026-11-12
+tags: [design]
+specs: [bottom-navigation.md, header.md]
+summary: 'A soft shadow under the header and over the bottom bar, only while content scrolls beneath them.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0018: A shadow where content scrolls under an edge
 
 ## Context
 

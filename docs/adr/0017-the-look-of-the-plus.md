@@ -1,7 +1,13 @@
-# ADR-0017: The look of the "+"
+---
+status: Accepted
+date: 2026-11-12
+refines: [ADR-0016]
+tags: [navigation, design]
+specs: [bottom-navigation.md, expenses.md, header.md]
+summary: 'The + of the phone bar is a flat accent square over Add; from 40 rem the header has an Add expense action.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0017: The look of the "+"
 
 ## Context
 

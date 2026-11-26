@@ -1,3 +1,10 @@
+---
+tags: [list, filters]
+adrs: [ADR-0021, ADR-0023, ADR-0024, ADR-0039]
+code: [core/lists/expense-list.ts, src/features/expenses/list/, src/features/expenses/filters/]
+summary: 'The expense list by the day made: search, filters, groups by day and week, subtotals and plans.'
+---
+
 # The expense list
 
 ## Rules

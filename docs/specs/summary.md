@@ -1,3 +1,10 @@
+---
+tags: [summary]
+adrs: [ADR-0028, ADR-0033]
+code: [core/reports/, src/features/summary/]
+summary: 'The summary of a month: income, spent and left, the income form and the bars of the budgets.'
+---
+
 # Summary
 
 - `/summary`, linked from the header, shows one month at a time. It opens on the current month, whose name sits between two arrow buttons (previous and next, at least `--size-touch` wide); the month isn't in the URL.

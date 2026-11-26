@@ -1,7 +1,12 @@
-# ADR-0035: A swipe moves between screens
+---
+status: Accepted
+date: 2026-11-15
+tags: [navigation, motion]
+specs: [bottom-navigation.md]
+summary: 'Below 40 rem a sideways swipe moves between the screens of a section: Expenses, its tabs, Groups, Summary, Settings.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0035: A swipe moves between screens
 
 ## Context
 

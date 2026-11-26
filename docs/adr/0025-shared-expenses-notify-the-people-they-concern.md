@@ -1,7 +1,13 @@
-# ADR-0025: Shared expenses notify the people they concern
+---
+status: Accepted
+date: 2026-11-14
+refines: [ADR-0013]
+tags: [notifications, groups, privacy]
+specs: [notifications.md, offline-sync.md]
+summary: 'A new entry that concerns you is told: a banner in the app fed by a 60 s watcher, and Web Push with the app closed.'
+---
 
-- Status: Accepted
-- Date: 2026-11-14
+# ADR-0025: Shared expenses notify the people they concern
 
 ## Context
 

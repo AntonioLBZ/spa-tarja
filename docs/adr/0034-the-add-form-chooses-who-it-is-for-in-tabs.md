@@ -1,7 +1,14 @@
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0026]
+tags: [expenses, groups]
+specs: [expenses.md, shared-expenses.md]
+summary: 'The add form starts with For (Just me / Shared) as tabs; With goes first in Split; no group is guessed when unclear.'
+---
+
 # ADR-0034: The add form chooses who it is for in tabs
 
-- Status: Accepted
-- Date: 2026-11-15
 - Amended: 2026-11-17, by the owner: who paid moved from the summary beside the tabs into the toggle of Split.
 
 ## Context

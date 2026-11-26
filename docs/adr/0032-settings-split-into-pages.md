@@ -1,7 +1,12 @@
-# ADR-0032: Settings split into pages
+---
+status: Accepted
+date: 2026-11-15
+tags: [settings, navigation]
+specs: [settings.md]
+summary: 'The settings split into pages: Appearance, Categories and Account, linked from /settings.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0032: Settings split into pages
 
 ## Context
 

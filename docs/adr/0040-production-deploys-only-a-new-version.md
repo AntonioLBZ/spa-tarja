@@ -1,7 +1,13 @@
-# ADR-0040: Production deploys only a new version
+---
+status: Accepted
+date: 2026-11-21
+refines: [ADR-0015]
+tags: [deploy]
+specs: [repository-structure.md, testing-and-ci.md]
+summary: 'A push to main deploys production only when its version has no release yet; releasing is one release commit.'
+---
 
-- Status: Accepted
-- Date: 2026-11-21
+# ADR-0040: Production deploys only a new version
 
 ## Context
 

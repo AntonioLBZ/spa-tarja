@@ -1,7 +1,13 @@
-# ADR-0036: The swiped screen follows the finger
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0035]
+tags: [navigation, motion]
+specs: [bottom-navigation.md]
+summary: 'A swiped screen follows the finger through a held view transition and goes on or back when let go.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0036: The swiped screen follows the finger
 
 ## Context
 

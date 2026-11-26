@@ -25,4 +25,4 @@ pnpm build
 
 GitHub Actions deploys a push to `main` that passes the checks and carries a new version (a `version` in `package.json` with no GitHub Release yet), applying the new migrations to the production D1 first; any other push to `main` only runs the checks. A push to any other branch deploys a prerelease at `tarja-prerelease.albz.app`, with its own database.
 
-Decisions are in [docs/adr](docs/adr), how each part behaves in [docs/specs](docs/specs) and the visual rules in [design-system/DESIGN.md](design-system/DESIGN.md).
+Decisions are in [docs/adr](docs/adr), how each part behaves in [docs/specs](docs/specs) and the visual rules in [design-system/DESIGN.md](design-system/DESIGN.md). Each ADR and spec opens with a front matter that says what it covers ([docs/README.md](docs/README.md)).

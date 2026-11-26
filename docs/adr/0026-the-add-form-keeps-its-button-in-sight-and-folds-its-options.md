@@ -1,7 +1,13 @@
-# ADR-0026: The add form keeps its button in sight and folds its options
+---
+status: Accepted
+date: 2026-11-14
+refines: [ADR-0016, ADR-0024]
+tags: [expenses, design]
+specs: [balances.md, expenses.md, shared-expenses.md]
+summary: 'Below 40 rem the add form takes the whole screen with Add always in sight; the secondary fields fold under More options.'
+---
 
-- Status: Accepted
-- Date: 2026-11-14
+# ADR-0026: The add form keeps its button in sight and folds its options
 
 ## Context
 

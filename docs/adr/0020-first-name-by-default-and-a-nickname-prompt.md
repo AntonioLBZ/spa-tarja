@@ -1,7 +1,13 @@
-# ADR-0020: The first name by default, and a prompt for the nickname
+---
+status: Accepted
+date: 2026-11-12
+refines: [ADR-0014]
+tags: [people]
+specs: [invitations.md]
+summary: 'Without a nickname a person is shown by their first name; the app asks for one after each sign-in while there is none.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0020: The first name by default, and a prompt for the nickname
 
 ## Context
 

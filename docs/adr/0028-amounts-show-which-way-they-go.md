@@ -1,7 +1,13 @@
-# ADR-0028: Amounts show which way they go
+---
+status: Accepted
+date: 2026-11-15
+refines: [ADR-0012]
+tags: [balances, design, settings]
+specs: [balances.md, groups.md, settings.md, summary.md]
+summary: 'A shared Amount can show color, a sign and an arrow, each switchable in Settings; the person picks the currency symbol.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0028: Amounts show which way they go
 
 ## Context
 

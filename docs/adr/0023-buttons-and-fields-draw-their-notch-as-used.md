@@ -1,7 +1,12 @@
-# ADR-0023: Buttons and fields draw their notch as they are used
+---
+status: Accepted
+date: 2026-11-13
+tags: [design]
+specs: [expense-list.md]
+summary: 'A Button rests as its bottom edge and grows its left edge on hover and press; a field does the same with the focus.'
+---
 
-- Status: Accepted
-- Date: 2026-11-13
+# ADR-0023: Buttons and fields draw their notch as they are used
 
 ## Context
 

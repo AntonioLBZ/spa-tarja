@@ -1,7 +1,12 @@
-# ADR-0011: The design system is shown in Storybook, in a workspace folder of its own
+---
+status: Accepted
+date: 2026-10-29
+tags: [design, architecture]
+specs: [testing-and-ci.md]
+summary: 'The design system is a local Storybook in design-system/; nothing of it in src/.'
+---
 
-- Status: Accepted
-- Date: 2026-10-29
+# ADR-0011: The design system is shown in Storybook, in a workspace folder of its own
 
 ## Context
 

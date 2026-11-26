@@ -1,7 +1,12 @@
-# ADR-0043: The charts pick a category from the split and list what they count
+---
+status: Proposed
+date: 2026-11-25
+tags: [charts]
+specs: [charts.md]
+summary: 'The charts compare by the calendar, pick a category from the split and list the expenses they count.'
+---
 
-- Status: Proposed
-- Date: 2026-11-25
+# ADR-0043: The charts pick a category from the split and list what they count
 
 ## Context
 

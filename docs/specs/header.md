@@ -1,3 +1,10 @@
+---
+tags: [navigation, design]
+adrs: [ADR-0012, ADR-0015, ADR-0017, ADR-0018]
+code: [src/routes/__root.tsx, src/lib/viewport/]
+summary: 'The sticky header: logo, destinations, Add expense, hiding on scroll and the name of the prerelease.'
+---
+
 # Header
 
 - One row on `--color-bg-secondary` with an ink hairline under it, `--size-touch` tall plus the top safe area. From 40 rem up it has three zones on a grid (`minmax(max-content, 1fr) auto minmax(max-content, 1fr)`, `--size-2` apart): Expenses and the "Add expense" action on the left, `--size-4` apart, the logo in the middle, and Groups, Summary and Settings on the right, `--size-4` apart so they stop reading as one phrase. The words are at `--font-size-s` and every link is `--size-touch` tall. Below 40 rem the header holds the logo, in the middle, and, below a tab, a link back at its left; the words are the bottom bar ([bottom navigation](bottom-navigation.md)).

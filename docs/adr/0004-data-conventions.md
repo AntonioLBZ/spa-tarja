@@ -1,7 +1,12 @@
-# ADR-0004: Data conventions: hand-written SQL, text dates and money in cents
+---
+status: Accepted
+date: 2026-10-25
+tags: [data]
+specs: [data-model.md, shared-expenses.md]
+summary: 'SQL by hand, additive migrations before the code, dates as YYYY-MM-DD text, money as integer cents and a currency.'
+---
 
-- Status: Accepted
-- Date: 2026-10-25
+# ADR-0004: Data conventions: hand-written SQL, text dates and money in cents
 
 ## Context
 

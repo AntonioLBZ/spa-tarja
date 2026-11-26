@@ -1,7 +1,12 @@
-# ADR-0030: A ledger row says who paid and what it does to you
+---
+status: Accepted
+date: 2026-11-15
+tags: [ledger]
+specs: [shared-expenses.md]
+summary: 'A ledger row looks like a list row: its amount is what the entry does to your balance, its quiet line who paid.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0030: A ledger row says who paid and what it does to you
 
 ## Context
 

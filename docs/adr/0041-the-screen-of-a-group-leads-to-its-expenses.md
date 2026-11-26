@@ -1,7 +1,13 @@
-# ADR-0041: The screen of a group leads to its expenses
+---
+status: Accepted
+date: 2026-11-21
+refines: [ADR-0029]
+tags: [balances, ledger]
+specs: [balances.md, shared-expenses.md]
+summary: 'Every balance row starts folded; Settle up is a small action of the balances; the order of the ledger is tabs.'
+---
 
-- Status: Accepted
-- Date: 2026-11-21
+# ADR-0041: The screen of a group leads to its expenses
 
 ## Context
 

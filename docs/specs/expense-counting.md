@@ -1,3 +1,10 @@
+---
+tags: [counting]
+adrs: [ADR-0012]
+code: [core/expenses/counting.ts, core/expenses/]
+summary: 'What counts in a month and on which day: cards, installments, income and your part of shared expenses.'
+---
+
 # When an expense counts
 
 An expense is made on its `date` but can count on another day. The list keeps showing it on the day it was made; the totals and the charts use the day it counts.
