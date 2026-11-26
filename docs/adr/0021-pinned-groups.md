@@ -1,7 +1,12 @@
-# ADR-0021: Pinned groups
+---
+status: Accepted
+date: 2026-11-12
+tags: [groups, navigation]
+specs: [expense-list.md, groups.md, notifications.md]
+summary: 'Up to two open groups or friends can be pinned as tabs of the Expenses screen; pinning needs a connection.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0021: Pinned groups
 
 ## Context
 

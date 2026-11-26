@@ -1,3 +1,10 @@
+---
+tags: [navigation, design, motion]
+adrs: [ADR-0016, ADR-0017, ADR-0018, ADR-0035, ADR-0036]
+code: [src/components/bottom-nav/, src/lib/navigation/]
+summary: 'The tab bar of phones, its +, its shadow and the swipe between screens.'
+---
+
 # Bottom navigation
 
 On a phone the destinations are a bar at the bottom; from 40 rem up they stay in the header ([header](header.md)). Four words and the logo don't fit the width of a phone, and the thumb reaches the bottom of a tall phone ([`DESIGN.md`](../../design-system/DESIGN.md#1-principles)). The bar also holds, in the middle, the "+" that adds an expense ([ADR-0016](../adr/0016-forms-for-a-task-open-in-a-sheet.md), its look in [ADR-0017](../adr/0017-the-look-of-the-plus.md)).

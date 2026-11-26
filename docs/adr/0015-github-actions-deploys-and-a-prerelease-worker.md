@@ -1,7 +1,13 @@
-# ADR-0015: GitHub Actions deploys, and a prerelease Worker for branches
+---
+status: Accepted
+date: 2026-11-09
+supersedes: [ADR-0002]
+tags: [deploy]
+specs: [authentication.md, header.md, repository-structure.md, testing-and-ci.md]
+summary: 'GitHub Actions deploys main after CI, migrations first; any other branch deploys a prerelease Worker with its own D1.'
+---
 
-- Status: Accepted
-- Date: 2026-11-09
+# ADR-0015: GitHub Actions deploys, and a prerelease Worker for branches
 
 ## Context
 

@@ -1,3 +1,10 @@
+---
+tags: [budgets]
+adrs: [ADR-0009]
+code: [core/budgets/, src/features/budgets/, server/routes/budgets.ts]
+summary: 'Monthly limits per category and in total, the limit a month holds, its warnings and the budgets screen.'
+---
+
 # Budgets
 
 ## Rules

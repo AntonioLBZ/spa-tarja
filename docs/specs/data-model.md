@@ -1,3 +1,10 @@
+---
+tags: [data]
+adrs: [ADR-0004]
+code: [db/migrations/, server/db/]
+summary: 'The D1 schema: tables, ids, timestamps, the seq cursor, soft deletes and indexes.'
+---
+
 # Data model
 
 Hand-written SQL migrations in `db/migrations`, applied with `wrangler d1 migrations`; no ORM. The schema is small and `wrangler` already is the migration tool. Queries are typed next to the code that runs them and tested in `workerd` against a real D1.

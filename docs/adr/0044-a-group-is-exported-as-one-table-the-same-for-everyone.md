@@ -1,7 +1,12 @@
-# ADR-0044: A group is exported as one table, the same for everyone
+---
+status: Accepted
+date: 2026-11-24
+tags: [export, groups]
+specs: [export.md]
+summary: 'A group exports as one table, the same for everyone, a column per person, to print or download as CSV.'
+---
 
-- Status: Accepted
-- Date: 2026-11-24
+# ADR-0044: A group is exported as one table, the same for everyone
 
 ## Context
 

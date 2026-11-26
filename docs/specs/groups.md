@@ -1,3 +1,10 @@
+---
+tags: [groups, people]
+adrs: [ADR-0012, ADR-0014, ADR-0021, ADR-0028, ADR-0038]
+code: [core/groups/shared-group.ts, server/routes/groups.ts, server/routes/members.ts, src/features/groups/]
+summary: 'Groups and friends: members, dummies, merging, leaving and coming back, closing, pinning and the Groups screen.'
+---
+
 # Groups and friends
 
 The decision is in [ADR-0012](../adr/0012-shared-expenses.md). What the entries hold and how they are split is in [shared expenses](shared-expenses.md), the debts in [balances](balances.md), and how people become friends, are merged and leave the app in [invitations](invitations.md) and [ADR-0014](../adr/0014-people-in-groups.md).

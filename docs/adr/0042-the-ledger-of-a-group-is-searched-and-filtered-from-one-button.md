@@ -1,7 +1,13 @@
-# ADR-0042: The ledger of a group is searched and filtered from one button
+---
+status: Accepted
+date: 2026-11-23
+refines: [ADR-0024, ADR-0041]
+tags: [ledger, filters]
+specs: [export.md, shared-expenses.md]
+summary: 'The ledger of a group is searched and filtered from one button that opens the filters sheet.'
+---
 
-- Status: Accepted
-- Date: 2026-11-23
+# ADR-0042: The ledger of a group is searched and filtered from one button
 
 ## Context
 

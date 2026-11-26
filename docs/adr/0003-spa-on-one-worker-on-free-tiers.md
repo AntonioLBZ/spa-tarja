@@ -1,7 +1,12 @@
-# ADR-0003: A single-page app on one Cloudflare Worker, on free tiers
+---
+status: Accepted
+date: 2026-10-25
+tags: [architecture, deploy]
+specs: [repository-structure.md]
+summary: 'A SPA on one Cloudflare Worker with static assets, a Hono API and D1, on free tiers; no SSR.'
+---
 
-- Status: Accepted
-- Date: 2026-10-25
+# ADR-0003: A single-page app on one Cloudflare Worker, on free tiers
 
 ## Context
 

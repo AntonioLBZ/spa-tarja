@@ -1,7 +1,12 @@
-# ADR-0014: People: nicknames, friends by invitation link, merging a dummy and deleting an account
+---
+status: Accepted
+date: 2026-11-01
+tags: [people, groups, privacy]
+specs: [authentication.md, groups.md, invitations.md, settings.md]
+summary: 'Friends only from an accepted invitation link, dummies only inside a group, nicknames, no lookup of people, account deletion.'
+---
 
-- Status: Accepted
-- Date: 2026-11-01
+# ADR-0014: People: nicknames, friends by invitation link, merging a dummy and deleting an account
 
 ## Context
 

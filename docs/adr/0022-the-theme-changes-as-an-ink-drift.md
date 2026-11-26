@@ -1,7 +1,12 @@
-# ADR-0022: The theme changes as an ink drift
+---
+status: Accepted
+date: 2026-11-12
+tags: [design, motion, settings]
+specs: [settings.md]
+summary: 'A theme change is an ink drift from where the person pressed, a masked view transition with a fade as fallback.'
+---
 
-- Status: Accepted
-- Date: 2026-11-12
+# ADR-0022: The theme changes as an ink drift
 
 ## Context
 

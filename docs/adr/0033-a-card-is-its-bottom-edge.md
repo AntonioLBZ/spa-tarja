@@ -1,7 +1,12 @@
-# ADR-0033: A card is its bottom edge
+---
+status: Accepted
+date: 2026-11-15
+tags: [design]
+specs: [settings.md, summary.md]
+summary: 'Every Card is its bottom edge alone: no left edge and no L on hover.'
+---
 
-- Status: Accepted
-- Date: 2026-11-15
+# ADR-0033: A card is its bottom edge
 
 ## Context
 

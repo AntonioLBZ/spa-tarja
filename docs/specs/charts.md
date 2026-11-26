@@ -1,3 +1,10 @@
+---
+tags: [charts]
+adrs: [ADR-0039, ADR-0043]
+code: [core/reports/, src/features/charts/]
+summary: 'The charts screen: range, comparison, split by category, week rows and the expenses a chart counts.'
+---
+
 # Charts
 
 ## Rules

@@ -1,3 +1,10 @@
+---
+tags: [notifications, privacy]
+adrs: [ADR-0021, ADR-0025, ADR-0037]
+code: [core/groups/notices.ts, server/push/, src/features/notices/, src/features/notifications/, src/lib/push/]
+summary: 'What is told of a new shared expense: the watcher, the banner and Web Push.'
+---
+
 # Notifications
 
 How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/0025-shared-expenses-notify-the-people-they-concern.md)): a banner in the window that is open, and a system notification with the app closed.
@@ -17,7 +24,7 @@ How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/002
 - `GET /groups` answers each group's cursor as `seq`: `MAX(seq)` of its entries, 0 when it has none, and for a person who left, no more than their `left_seq` ([groups](groups.md)), so it never tells them a group moved after they left.
 - While the person is signed in, the page is visible and the device is online, the `groups` query refetches every 60 s (`WATCH_EVERY_MS`), besides the triggers it has (open, focus, reconnect); when the app loads (a reload, or a window a notification opens) it asks at once, however fresh the copy the device kept, and the minute counts from there; a hidden page asks nothing.
 - After each answer, the device pulls, with the same `syncGroup`, every open group whose `seq` is past the cursor it holds, whatever screen is showing, and only those. A group the device never pulled is pulled too, silently (first pull). A closed group is left to the rules it has ([offline sync](offline-sync.md)).
-- Every pull, whoever starts it (a screen, the watcher, a write, a push), hands its notices to `onNotices`, a listener of the user's data (`src/lib/offline`), so the banner hears of them wherever they come from and a pull is never run twice for them.
+- Every pull, whoever starts it (a screen, the watcher, a write, a push), hands its notices to `emitNotices`, which gives them to whoever listens for that user through `subscribeNotices` (`src/lib/offline`, the listeners kept by the user's query client), so the banner hears of them wherever they come from and a pull is never run twice for them.
 
 ## The banner
 
@@ -25,7 +32,7 @@ How a person hears of a shared expense somebody else adds ([ADR-0025](../adr/002
 - Two lines: a title (where it comes from) and a message (what happened). The title and the message together are one `<button>` that opens what the banner is about; beside it, a `glyph` ghost `Button` with the `close` icon, named by the `dismissLabel` the provider takes by props. A swipe to a side of more than a third of its width, or up by more than half its height ([ADR-0037](../adr/0037-a-toast-or-a-banner-is-swiped-away.md)), or Escape while the focus is inside it, dismisses it; a shorter swipe goes back, and so does a swipe down. The drag keeps the axis it went along first, and holds the count while it lasts. It goes away by itself after 8 s, and hovering it or holding the focus inside pauses the count. It never takes the focus. Its `role="status"` region is always in the page, so a banner that comes in is announced.
 - One at a time: notices that come while one shows are added to it, which then sums them up and starts its 8 s again.
 - It comes in from above and leaves the same way, with a fade and a vertical shift over `--duration-base`; dismissed by a swipe, it goes at once where it was let go, with no fade. With reduced motion it only appears and goes.
-- It is shown by `NoticeBanner` (`src/features/notices`), which listens to `onNotices` and words them with the names the group gives (`useGroupWords`), and does not show a notice of the group whose screen is showing (`/groups/$groupId`, or that group as a pinned tab of Expenses, [ADR-0021](../adr/0021-pinned-groups.md)): the person sees the row come in.
+- It is shown by `NoticeBanner` (`src/features/notices`), which listens through `subscribeNotices` and words them with the names the group gives (`useGroupWords`), and does not show a notice of the group whose screen is showing (`/groups/$groupId`, or that group as a pinned tab of Expenses, [ADR-0021](../adr/0021-pinned-groups.md)): the person sees the row come in.
 
 ### Copy
 

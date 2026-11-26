@@ -1,7 +1,12 @@
-# ADR-0045: Your expenses print as the list shows them
+---
+status: Accepted
+date: 2026-11-24
+tags: [export, list]
+specs: [export.md, settings.md]
+summary: 'Your own expenses print as the list shows them, from Your data, with the filters of the list.'
+---
 
-- Status: Accepted
-- Date: 2026-11-24
+# ADR-0045: Your expenses print as the list shows them
 
 ## Context
 

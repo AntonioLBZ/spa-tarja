@@ -1,7 +1,13 @@
-# ADR-0038: Making a group is a screen, and people are added by a search
+---
+status: Accepted
+date: 2026-11-17
+refines: [ADR-0016, ADR-0014]
+tags: [groups, people, navigation]
+specs: [groups.md, invitations.md]
+summary: "Making a group is a screen; people are added through one search in a sheet; a section's action sits in its heading."
+---
 
-- Status: Accepted
-- Date: 2026-11-17
+# ADR-0038: Making a group is a screen, and people are added by a search
 
 ## Context
 

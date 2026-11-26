@@ -1,3 +1,10 @@
+---
+tags: [categories]
+adrs: [ADR-0006]
+code: [core/categories/, src/features/categories/, server/routes/categories.ts]
+summary: 'Default and custom categories, the suggestion of one from the text and the history, the categories screen.'
+---
+
 # Categories
 
 ## Rules

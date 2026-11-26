@@ -1,7 +1,13 @@
-# ADR-0037: A toast or a banner is swiped away
+---
+status: Accepted
+date: 2026-11-17
+refines: [ADR-0025]
+tags: [motion, notifications]
+specs: [notifications.md, offline-sync.md]
+summary: 'The toast is swiped away to a side or down, the banner to a side or up.'
+---
 
-- Status: Accepted
-- Date: 2026-11-17
+# ADR-0037: A toast or a banner is swiped away
 
 ## Context
 
