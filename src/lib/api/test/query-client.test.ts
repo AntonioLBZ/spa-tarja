@@ -6,7 +6,7 @@ import { createQueryClient } from '@/lib/api/query-client';
 import type { QueryClient } from '@tanstack/react-query';
 
 async function failQuery(client: QueryClient, error: unknown) {
-    await client.fetchQuery({ queryKey: ['x'], queryFn: () => Promise.reject(error) }).catch(() => undefined);
+    await client.query({ queryKey: ['x'], queryFn: () => Promise.reject(error) }).catch(() => undefined);
 }
 
 async function failMutation(client: QueryClient, error: unknown) {

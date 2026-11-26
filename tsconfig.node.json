@@ -19,6 +19,7 @@
         "vitest.config.ts",
         "csp.config.ts",
         "push-worker.config.ts",
+        "pwa-assets.config.ts",
         "docs",
         "design-system/vite.config.ts"
     ]

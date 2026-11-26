@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -227,7 +227,7 @@ const SettleUp = (props: SettleUpProps) => {
 
     // Every problem is marked at once, each on its own field, and the first takes the focus; a second press while the
     // settlement is being kept does nothing
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (busy) return;
 

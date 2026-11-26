@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -78,7 +78,7 @@ const Budgets = () => {
         return (since.slice(0, 4) === month.slice(0, 4) ? monthOnly : monthFormat).format(day);
     };
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = changed.map((scope) => ({ scope, amountCents: centsOf(scope) }));
         const refused = parsed.filter((item) => item.amountCents === null).map((item) => item.scope);

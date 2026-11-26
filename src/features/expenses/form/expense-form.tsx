@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { ChoiceGroup } from '@/components/choice-group/choice-group';
@@ -304,7 +304,7 @@ const ExpenseForm = (props: ExpenseFormProps) => {
         }
     };
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (saving) return;
 

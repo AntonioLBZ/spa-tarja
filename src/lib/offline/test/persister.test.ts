@@ -76,7 +76,7 @@ describe('createPersistOptions', () => {
         const client = new QueryClient();
         client.setQueryData(EXPENSES_KEY, state);
         await client
-            .fetchQuery({ queryKey: EXPENSES_KEY, queryFn: () => Promise.reject(new Error('offline')), staleTime: 0 })
+            .query({ queryKey: EXPENSES_KEY, queryFn: () => Promise.reject(new Error('offline')), staleTime: 0 })
             .catch(() => undefined);
         expect(client.getQueryState(EXPENSES_KEY)?.status).toBe('error');
         const { dehydrateOptions } = createPersistOptions(createMemoryStorage());

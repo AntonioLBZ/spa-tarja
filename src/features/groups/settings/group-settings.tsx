@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -163,7 +163,7 @@ const GroupName = (props: SectionProps) => {
     const [busy, setBusy] = useState(false);
     const value = draft ?? group.name ?? '';
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = v.safeParse(sharedNameSchema, value);
         if (!parsed.success) {

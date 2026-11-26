@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -50,7 +50,7 @@ const NicknamePrompt = () => {
 
     if (!profile || !shown) return null;
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = v.safeParse(nicknameSchema, typed);
         if (!parsed.success) {

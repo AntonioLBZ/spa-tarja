@@ -149,7 +149,7 @@ describe('the links to be friends of the person', () => {
     it('keeps a new link first in the list on the device, and the list the server answers to a revoke', async () => {
         const app = await setup([], { pending: [older] });
         const listed = () => app.result.current.client.getQueryData<PendingInvitation[]>(PENDING_INVITATIONS_KEY);
-        await act(() => app.result.current.client.fetchQuery(pendingInvitationsQuery()));
+        await act(() => app.result.current.client.query(pendingInvitationsQuery()));
 
         const made = await act(() => app.result.current.actions.inviteFriend());
 

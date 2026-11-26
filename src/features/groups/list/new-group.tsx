@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -91,7 +91,7 @@ const NewGroup = () => {
         }
     };
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = v.safeParse(sharedNameSchema, name);
         if (!parsed.success) {

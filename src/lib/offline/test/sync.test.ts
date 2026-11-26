@@ -32,7 +32,7 @@ function setup(options: Parameters<typeof createFakeApi>[0] = {}) {
     const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
     // Goes through the query like the app does; staleTime 0 so each call really syncs
-    const sync = () => client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
+    const sync = () => client.query({ ...expensesQuery(outbox), staleTime: 0 });
     const cached = () => client.getQueryData<ExpensesState>(EXPENSES_KEY);
 
     return { api, client, outbox, storage, sync, cached };
@@ -113,7 +113,7 @@ describe('pushing the outbox', () => {
         await storage.set('tarja:outbox', [expense('saved-before')]);
         const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
-        await client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
+        await client.query({ ...expensesQuery(outbox), staleTime: 0 });
 
         expect(api.writes.map((item) => item.id)).toEqual(['saved-before']);
     });
@@ -136,7 +136,7 @@ describe('pushing the outbox', () => {
         await storage.set('tarja:outbox', [expense('older', { payment: 'voucher', chargeDate: '2026-11-12' })]);
         const outbox = createOutbox<Expense>(storage, OUTBOX_STORAGE_KEY);
 
-        await client.fetchQuery({ ...expensesQuery(outbox), staleTime: 0 });
+        await client.query({ ...expensesQuery(outbox), staleTime: 0 });
 
         expect(api.writes.map((item) => item.id)).toEqual(['older']);
         expect(api.writes[0]).not.toHaveProperty('personalCents');

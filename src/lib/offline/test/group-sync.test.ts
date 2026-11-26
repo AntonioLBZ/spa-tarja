@@ -31,7 +31,7 @@ function setup(options: Parameters<typeof createFakeApi>[0] = {}) {
     client.setQueryData(GROUPS_KEY, structuredClone(api.groups));
     const outbox = createOutbox<PendingEntry>(createMemoryStorage(), GROUP_OUTBOX_STORAGE_KEY);
 
-    const sync = (groupId = group.id) => client.fetchQuery({ ...groupEntriesQuery(outbox, groupId), staleTime: 0 });
+    const sync = (groupId = group.id) => client.query({ ...groupEntriesQuery(outbox, groupId), staleTime: 0 });
     const cached = (groupId = group.id) => client.getQueryData<GroupEntriesState>(groupEntriesKey(groupId));
     const cachedGroup = () => client.getQueryData<SharedGroup[]>(GROUPS_KEY)?.find((item) => item.id === group.id);
     const ids = (entries: ReadonlyArray<{ id: string }>) => entries.map((entry) => entry.id);
@@ -118,7 +118,7 @@ describe('pulling a group the person was brought back to', () => {
         const trip = setup({ entries: [first, sampleEntry(group)] });
         await trip.sync();
         await deleteMember(group.id, group.me);
-        await trip.client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+        await trip.client.query({ ...groupsQuery(), staleTime: 0 });
         trip.api.serverWriteEntry({ ...first, text: 'Edited while away', updatedAt: 2 }, bea);
         trip.api.serverWriteEntry(sampleEntry(group, { text: 'While away' }), bea);
         expect((await trip.sync()).final).toBe(true);
@@ -127,7 +127,7 @@ describe('pulling a group the person was brought back to', () => {
 
     async function broughtBack({ api, client }: Awaited<ReturnType<typeof left>>) {
         api.bringBack(group.id, group.me);
-        await client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+        await client.query({ ...groupsQuery(), staleTime: 0 });
     }
 
     it('goes on from its cursor with what the group wrote meanwhile, edits included, and is no longer final', async () => {
@@ -155,7 +155,7 @@ describe('pulling a group the person was brought back to', () => {
     it('leaves what it read alone while the group stays closed', async () => {
         const trip = await left();
 
-        await trip.client.fetchQuery({ ...groupsQuery(), staleTime: 0 });
+        await trip.client.query({ ...groupsQuery(), staleTime: 0 });
 
         expect(trip.client.getQueryState(groupEntriesKey(group.id))?.isInvalidated).toBe(false);
     });
@@ -464,7 +464,7 @@ describe('telling what a pull brought', () => {
         const told = listen(restored);
         api.serverWriteEntry({ ...held, text: 'Edited', updatedAt: 2 }, bea);
 
-        await restored.fetchQuery({
+        await restored.query({
             ...groupEntriesQuery(createOutbox<PendingEntry>(createMemoryStorage(), GROUP_OUTBOX_STORAGE_KEY), group.id),
             staleTime: 0,
         });

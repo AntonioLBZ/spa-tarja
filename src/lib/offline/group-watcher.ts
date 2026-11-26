@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { noop, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
 import { groupEntriesKey, groupsQuery, type GroupEntriesState } from '@/lib/api';
@@ -21,7 +21,9 @@ const useGroupWatcher = () => {
         for (const group of groups ?? []) {
             if (group.closed !== null) continue;
             const cursor = client.getQueryData<GroupEntriesState>(groupEntriesKey(group.id))?.cursor ?? 0;
-            if (group.seq > cursor) void client.prefetchQuery({ ...groupEntriesQuery(outbox, group.id), staleTime: 0 });
+            if (group.seq > cursor) {
+                void client.query({ ...groupEntriesQuery(outbox, group.id), staleTime: 0 }).catch(noop);
+            }
         }
     }, [groups, client, outbox]);
 };

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useMemo, useRef, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Actions } from '@/components/actions/actions';
@@ -147,7 +147,7 @@ const AddPeople = (props: AddPersonProps) => {
         setPlacing(null);
     };
 
-    const handlePlace = async (event: FormEvent<HTMLFormElement>) => {
+    const handlePlace = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!placing) return;
         if (await addAs(placing.friend, placed)) endPlacing(placing.friend.name);

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Button } from '@/components/button/button';
@@ -47,7 +47,7 @@ const IncomeForm = (props: IncomeFormProps) => {
         setFailure(null);
     }
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const amountCents = parseAmount(value, locale);
         if (amountCents === null || amountCents < 1) {

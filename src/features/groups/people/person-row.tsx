@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useId, useState, type SubmitEvent } from 'react';
 import { useTranslations } from 'use-intl';
 import * as v from 'valibot';
 
@@ -108,7 +108,7 @@ const PersonRow = (props: PersonRowProps) => {
         }
     };
 
-    const handleRename = (event: FormEvent<HTMLFormElement>) => {
+    const handleRename = (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         const parsed = v.safeParse(sharedNameSchema, draft);
         if (!parsed.success) {
