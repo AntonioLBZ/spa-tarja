@@ -85,6 +85,17 @@ const preview: Preview = {
     initialGlobals: { theme: 'light', locale: 'en', amounts: 'all cues' },
     parameters: {
         backgrounds: { disabled: true },
+        options: {
+            storySort: {
+                order: [
+                    'Getting started',
+                    'Foundations',
+                    ['Colors', 'Typography', 'Iconography', 'Spacing', 'Motion'],
+                    'Components',
+                    'Features',
+                ],
+            },
+        },
         viewport: { options: VIEWPORTS },
     },
 };

@@ -1,0 +1,33 @@
+.motion-tracks {
+    display: grid;
+    gap: var(--size-3);
+    justify-items: start;
+}
+
+.motion-row {
+    display: grid;
+    gap: var(--size-1);
+    inline-size: 100%;
+}
+
+.motion-row__name {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+}
+
+.motion-row__track {
+    background: var(--color-bg-secondary);
+    block-size: var(--size-8);
+    container-type: inline-size;
+}
+
+.motion-row__dot {
+    background: var(--color-accent);
+    block-size: 100%;
+    inline-size: var(--size-8);
+    transition: transform var(--demo-duration) var(--demo-ease);
+}
+
+.motion-tracks--moved .motion-row__dot {
+    transform: translateX(calc(100cqw - var(--size-8)));
+}

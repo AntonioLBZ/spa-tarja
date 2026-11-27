@@ -1,0 +1,18 @@
+.type-sample {
+    border-bottom: var(--size-px) solid var(--color-border-subtle);
+    display: grid;
+    gap: var(--size-1);
+    padding-block: var(--size-3);
+}
+
+.type-sample__meta {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+}
+
+.type-sample__text {
+    font-family: var(--sample-family, inherit);
+    font-size: var(--sample-size, inherit);
+    font-weight: var(--sample-weight, inherit);
+    margin: 0;
+}

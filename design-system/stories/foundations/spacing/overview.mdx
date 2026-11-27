@@ -1,0 +1,41 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Spacing
+
+One scale of sizes, multiples of 0.25 rem, for every gap, padding and margin, plus the touch target and the height of the bars on the edges of the screen.
+
+## Usage
+
+An option of a `ChoiceGroup`:
+
+```css
+.choice-group__text {
+    min-height: var(--size-touch);
+    padding-block: var(--size-1);
+    padding-inline: var(--size-4) var(--size-2);
+}
+```
+
+A distance is always a `--size-*`, never a raw value. Layouts are mobile-first and widen at 40 and 64 rem; what is anchored to an edge pads by `env(safe-area-inset-*)`, and a height on the screen is in `dvh`, never `vh`.
+
+## Scale
+
+From the hairline, `--size-px`, to `--size-16`.
+
+<Canvas of={Examples.Scale} sourceState="none" />
+
+## Touch target
+
+The least a control can be across, 44 px, so a finger finds it.
+
+<Canvas of={Examples.Touch} sourceState="none" />
+
+## Edges
+
+The header and the bottom bar of a phone, without the safe area. The bar grows when its words need it and writes its height into `--bottom-nav-height`; what is anchored to the bottom sits above it.
+
+<Canvas of={Examples.Edges} sourceState="none" />

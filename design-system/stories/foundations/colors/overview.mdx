@@ -1,0 +1,62 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Colors
+
+Flat colors only, no gradients and no blur: white or true black, text in the opposite one, neutral grays, one accent (a gray), one danger color, the two amount colors and the category palette. Each token is defined once with `light-dark()`, so it holds both themes.
+
+## Usage
+
+The quiet `Notice`:
+
+```css
+.notice--quiet {
+    border-left-color: var(--color-border-subtle);
+    color: var(--color-content-secondary);
+}
+```
+
+A component takes only the semantic `--color-*` tokens, never a raw value: those live in `tokens.css`. Meaning never rests on color alone, so a color always comes with words, an icon or a place. A new color needs a reason and a row in the palette table of `DESIGN.md`. In forced colors a component says again with system colors what it draws only with a background, in a block at the end of its own CSS.
+
+## Backgrounds
+
+The page, and the header and raised surfaces over it.
+
+<Canvas of={Examples.Backgrounds} sourceState="none" />
+
+## Content
+
+Text and icons, and the quieter secondary text.
+
+<Canvas of={Examples.Content} sourceState="none" />
+
+## Borders
+
+Ink for the structure, a hairline for the dividers, and the accent for the focus ring.
+
+<Canvas of={Examples.Borders} sourceState="none" />
+
+## Accent, danger and shadow
+
+The accent is the hue of the interface: links, selection and the primary action. Danger is for errors and what deletes, nothing else; there are no success or warning colors. The shadow is the color of `--shadow-popup`, the only shadow, for what opens over the page and where content scrolls under an edge.
+
+<Canvas of={Examples.Rest} sourceState="none" />
+
+## Amounts
+
+Which way an amount goes, from the side of whoever its line is about: they paint the text of the amount, its sign and its arrow, and nothing else. Owing is not an error, so they are tokens of their own, apart from danger.
+
+<Canvas of={Examples.Amounts} sourceState="none" />
+
+The person can pick the palette for color blindness in Settings → Amounts, a blue and an orange that `data-money-palette="color-blind"` swaps in.
+
+<Canvas of={Examples.AmountsColorBlind} sourceState="none" />
+
+## Categories
+
+They help find a category at a glance and paint its icon and its part of a chart, never text, borders or a fill behind text. The database keeps the key (`vermillion`), never the value.
+
+<Canvas of={Examples.Categories} sourceState="none" />

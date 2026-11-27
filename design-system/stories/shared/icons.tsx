@@ -13,4 +13,4 @@ const ICON_CONTROL = { control: 'select', options: ICON_CHOICES } as const;
 
 const iconOf = (choice: IconChoice) => (choice === 'none' ? undefined : <Icon name={choice} />);
 
-export { ICON_CHOICES, ICON_CONTROL, iconOf, type IconChoice };
+export { ICON_CONTROL, iconOf, type IconChoice };

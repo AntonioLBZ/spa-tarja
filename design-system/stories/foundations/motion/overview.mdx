@@ -1,0 +1,35 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Motion
+
+Things enter, leave and change with a transition: it is part of how the app looks. Every transition takes a duration and an easing from the tokens, and reduced motion turns them all off in one place.
+
+## Usage
+
+The edge that grows on a `Button`:
+
+```css
+.button:not(.button--ghost)::before {
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform var(--duration-base) var(--ease-standard);
+}
+```
+
+A transition always takes a `--duration-*` and an `--ease-*`, never a literal value, and animates `transform` and `opacity` where it can. With `prefers-reduced-motion` the durations are 0, so a component never checks it itself: what moved just changes.
+
+## Durations
+
+`fast`, `base` and `slow` for the interface; `reveal` only for the change of theme. Press Play to move them all, with `--ease-standard`.
+
+<Canvas of={Examples.Durations} sourceState="none" />
+
+## Easings
+
+`standard` for what moves or changes in place, `enter` for what comes in and `exit` for what leaves. Press Play to move them all over `--duration-slow`.
+
+<Canvas of={Examples.Easings} sourceState="none" />

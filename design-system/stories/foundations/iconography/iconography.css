@@ -1,0 +1,25 @@
+.icon-grid {
+    display: grid;
+    gap: var(--size-4);
+    grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.icon-grid__item {
+    display: grid;
+    gap: var(--size-2);
+    place-items: center;
+    text-align: center;
+}
+
+.icon-grid__glyph {
+    font-size: var(--font-size-xl);
+}
+
+.icon-grid__name {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    overflow-wrap: anywhere;
+}

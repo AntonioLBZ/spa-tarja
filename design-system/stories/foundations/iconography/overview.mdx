@@ -1,0 +1,31 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Iconography
+
+Material Symbols in their Sharp style, weight 400, with square ends and corners like the rest of the app. Only the icons in use are in the repository, as inline SVG: there is no icon font and no package at runtime.
+
+## Usage
+
+The search field of a list of people:
+
+```tsx
+<Field label={t('field')} icon={<Icon name="search" />}>
+```
+
+An icon is `Icon` with its name, drawn at 1.5 rem in `currentColor`, or in the color of its category. It is decoration, hidden from assistive technology, so the name always comes with it and it is never the only way to tell what something is. A new icon is its Sharp 400 path in `icon-paths.ts` and its name in one of the two lists below.
+
+## Interface
+
+The icons of the interface (`UI_ICONS`). `expand_more` ends a row that opens a panel and every `Select`; `chevron_right` ends a row that leads to another screen. A category can't take them.
+
+<Canvas of={Examples.Interface} sourceState="none" />
+
+## Categories
+
+The icons a category can take (`CATEGORY_ICONS`), in the order the picker shows them. The default categories use some of them, and a custom category with no pick shows `category`.
+
+<Canvas of={Examples.Categories} sourceState="none" />

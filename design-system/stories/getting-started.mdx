@@ -1,0 +1,57 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Getting started" />
+
+# Getting started
+
+The design system of Tarja: its tokens, its shared components and the pieces of its screens, drawn with the real code and styles of the app. It is a pnpm workspace package, `design-system/`, that imports from `src/` and `core/`; nothing imports from it.
+
+## Running it
+
+From the root of the repository:
+
+```bash
+pnpm install
+pnpm storybook                          # http://localhost:6006
+pnpm --filter design-system build       # a static build in design-system/storybook-static
+```
+
+It runs on its own Vite config, without the Worker, the router or the PWA of the app, so it needs no database and no sign-in. A piece that reads data gets a signed-in person and a fake server in the page.
+
+## The sections
+
+- **Foundations**: the tokens of `src/assets/styles/tokens.css` and the icons, read from the source, so a new one shows up on its own.
+- **Components**: the shared components of `src/components`, each with an Overview and a Playground to try its props.
+- **Features**: pieces of the screens of `src/features`, with sample data.
+
+## The toolbar
+
+Every story can be seen in the light or the dark theme, in English or Spanish, with the amount colors on, off or for color blindness, and at 320, 390, 640 or 1024 px. A choice is stored like the app stores it, so the story starts again.
+
+## The files
+
+```
+design-system/
+├── .storybook/          the config, and the preview that wraps every story in the providers of the app
+├── DESIGN.md            the visual and interaction rules, the source of truth
+└── stories/
+    ├── getting-started.mdx
+    ├── foundations/<name>/   meta-docs.stories.tsx, overview.mdx and the CSS of its samples
+    ├── components/<name>/    playground.stories.tsx, meta-docs.stories.tsx and overview.mdx
+    ├── features/<name>/      meta-docs.stories.tsx and overview.mdx
+    └── shared/               the helpers of the stories, imported as @stories/shared/*
+```
+
+## Adding a page
+
+A new shared component comes with its folder of stories, and so does a piece of a feature worth showing. The examples go in `meta-docs.stories.tsx`, hidden from the sidebar, and `overview.mdx` shows them with what the thing is and how it is used. The `stories-docs` skill of the repository (`.agents/skills/stories-docs`) has the details of each kind, and the checks before it is done:
+
+```bash
+npx tsc -p design-system --noEmit
+npx eslint design-system/stories/<section>/<name>
+npx prettier --write design-system/stories/<section>/<name>
+```
+
+## Where the rules are
+
+The visual rules are in `design-system/DESIGN.md`, how each part of the app behaves in `docs/specs/` and the decisions in `docs/adr/`. A change to a rule changes its document first.

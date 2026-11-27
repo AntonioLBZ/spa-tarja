@@ -1,0 +1,47 @@
+import { Canvas, Meta } from '@storybook/addon-docs/blocks';
+
+import * as Examples from './meta-docs.stories';
+
+<Meta of={Examples} name="Overview" />
+
+# Typography
+
+Everything is set in IBM Plex Mono, amounts included, so the digits line up like a ledger. The sizes are a minor third scale (×1.2) from a 1 rem base, and only the name of the app has a face of its own.
+
+## Usage
+
+The quiet line under a heading, the class `hint` of `base.css`:
+
+```css
+.hint {
+    color: var(--color-content-secondary);
+    font-size: var(--font-size-s);
+    margin: 0;
+}
+```
+
+The font comes from the page: a component never sets a family, and form controls take `font: inherit`, so they keep 16 px and iOS doesn't zoom on focus. A size is always a `--font-size-*`, never one outside the scale; hierarchy also uses the bold and case. Headings are set once in `base.css`, so a screen writes no size or margin for its titles, and a quiet line uses `hint` instead of a rule of its own.
+
+## Families
+
+The page font, with fallbacks for the moment before it loads, and the face of the logo, which ships only the letters of the name.
+
+<Canvas of={Examples.Families} sourceState="none" />
+
+## Sizes
+
+`s` for secondary text, `m` for the body and form controls, `l` for the title of a screen, `xl` for the title of the sign-in.
+
+<Canvas of={Examples.Sizes} sourceState="none" />
+
+## Weights
+
+The regular and the bold, the only two that ship.
+
+<Canvas of={Examples.Weights} sourceState="none" />
+
+## Logo
+
+The name of the app, set by `Brand`: in the header, and as the hero of the sign-in at `--font-size-logo`, sized apart from the scale.
+
+<Canvas of={Examples.Logo} sourceState="none" />
