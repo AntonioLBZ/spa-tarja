@@ -249,11 +249,8 @@
         },
         "typeface": {
             "title": "Tipografía",
-            "mono": "Mono",
-            "sans": "Sans",
-            "legible": "Legible",
-            "system": "Dispositivo",
-            "hint": "Mono es la de Tarja. Las otras se leen más sueltas en líneas largas."
+            "mono": "Monoespaciada",
+            "sans": "Proporcional"
         },
         "amounts": {
             "title": "Importes",

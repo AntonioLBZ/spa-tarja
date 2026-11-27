@@ -19,9 +19,9 @@ describe('the typeface', () => {
     });
 
     it('reads back what was stored', () => {
-        storeTypeface('legible');
+        storeTypeface('sans');
 
-        expect(readStoredTypeface()).toBe('legible');
+        expect(readStoredTypeface()).toBe('sans');
     });
 
     it('marks the root for a chosen face and leaves it bare for monospace', () => {

@@ -249,11 +249,8 @@
         },
         "typeface": {
             "title": "Typeface",
-            "mono": "Mono",
-            "sans": "Sans",
-            "legible": "Legible",
-            "system": "Device",
-            "hint": "Mono is Tarja's own. The others are easier on long lines."
+            "mono": "Monospace",
+            "sans": "Proportional"
         },
         "amounts": {
             "title": "Amounts",

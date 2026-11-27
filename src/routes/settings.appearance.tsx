@@ -34,16 +34,13 @@ const Appearance = () => {
                     onChange={(black) => setDarkTone(black ? 'black' : 'standard')}
                 />
             </div>
-            <div className="settings__typeface">
-                <ChoiceGroup
-                    legend={t('typeface.title')}
-                    name="typeface"
-                    options={TYPEFACES.map((value) => ({ value, label: t(`typeface.${value}`) }))}
-                    value={typeface}
-                    onChange={setTypeface}
-                />
-                <p className="hint">{t('typeface.hint')}</p>
-            </div>
+            <ChoiceGroup
+                legend={t('typeface.title')}
+                name="typeface"
+                options={TYPEFACES.map((value) => ({ value, label: t(`typeface.${value}`) }))}
+                value={typeface}
+                onChange={setTypeface}
+            />
             <AmountSettings />
         </section>
     );

@@ -23,9 +23,8 @@
                     tone = 'black';
                     document.documentElement.dataset.darkTone = tone;
                 }
-                var typeface = localStorage.getItem('tarja:typeface');
-                if (typeface === 'sans' || typeface === 'legible' || typeface === 'system') {
-                    document.documentElement.dataset.typeface = typeface;
+                if (localStorage.getItem('tarja:typeface') === 'sans') {
+                    document.documentElement.dataset.typeface = 'sans';
                 }
             } catch (error) {
                 // Storage can be blocked: the defaults then apply until the app starts

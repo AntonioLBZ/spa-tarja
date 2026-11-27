@@ -44,15 +44,15 @@ describe('the script that runs before the first paint', () => {
         expect(root.dataset.theme).toBe(theme);
     });
 
-    it.each(['sans', 'legible', 'system'])('puts a saved %s typeface on the root', (typeface) => {
-        localStorage.setItem('tarja:typeface', typeface);
+    it('puts the saved proportional typeface on the root', () => {
+        localStorage.setItem('tarja:typeface', 'sans');
 
         runFirstPaint();
 
-        expect(root.dataset.typeface).toBe(typeface);
+        expect(root.dataset.typeface).toBe('sans');
     });
 
-    it.each(['mono', 'serif'])('leaves the typeface off the root for %s', (typeface) => {
+    it.each(['mono', 'system'])('leaves the typeface off the root for %s', (typeface) => {
         localStorage.setItem('tarja:typeface', typeface);
 
         runFirstPaint();

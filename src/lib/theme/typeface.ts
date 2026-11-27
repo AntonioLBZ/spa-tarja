@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
-// The face the text is set in: monospace by default, the others for whoever prefers one
-const TYPEFACES = ['mono', 'sans', 'legible', 'system'] as const;
+// The face the text is set in: monospace by default, a proportional one for whoever prefers it
+const TYPEFACES = ['mono', 'sans'] as const;
 
 type Typeface = (typeof TYPEFACES)[number];
 
