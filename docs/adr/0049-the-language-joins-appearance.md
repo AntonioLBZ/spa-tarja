@@ -1,5 +1,5 @@
 ---
-status: Proposed
+status: Accepted
 date: 2026-11-27
 tags: [settings, navigation]
 refines: [ADR-0032]
