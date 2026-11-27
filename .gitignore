@@ -7,7 +7,7 @@ node_modules
 *.tsbuildinfo
 
 # Cloudflare: local D1 state, secrets
-/.wrangler
+.wrangler
 .dev.vars*
 !.dev.vars.example
 
@@ -23,10 +23,18 @@ pnpm-debug.log*
 .DS_Store
 *.pem
 
+# tool caches
+.tanstack/
+
 # editor
 .vscode/
 .idea/
 
 # AI
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/find-docs
+!.claude/skills/stories-docs
 skills-lock.json
+.superpowers/
