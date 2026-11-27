@@ -21,7 +21,7 @@ pnpm types:check         # tsc -b over app, server and node configs
 pnpm types:gen           # wrangler types -> worker-configuration.d.ts (rerun after editing wrangler.jsonc, with .dev.vars moved aside: it adds the secrets)
 pnpm lint / lint:fix     # eslint + stylelint (src/**/*.css and design-system/stories/**/*.css)
 pnpm format / format:check
-pnpm storybook           # the design system on :6006, local only (design-system/)
+pnpm storybook           # the design system on :6006 (design-system/)
 pnpm test                # vitest: `core` (node), `server` (workerd), `front` (jsdom) and `docs` (node: the front matter of the docs, `_headers`, the deploy workflows and the push worker) projects
 pnpm test -t "name"      # by test name
 pnpm test --project front path/to/file.test.tsx   # one project, one file
@@ -32,6 +32,7 @@ pnpm deploy:prod         # build and deploy to Cloudflare (`pnpm deploy` is pnpm
                          # CI runs both on a release (Deploys, below); by hand only as a fallback
 pnpm db:migrate:prerelease  # the same on the prerelease D1
 pnpm deploy:prerelease   # build, migrate and deploy the prerelease Worker; GitHub Actions runs it for any branch but main
+pnpm deploy:storybook    # build and deploy the public Storybook (tarja-storybook.albz.app); CI runs it after each release
 ```
 
 The Husky pre-commit hook runs `format:check`, `types:check`, `lint` and `test`, the same checks as CI (which also builds), so a commit takes a while and fails on any of them.

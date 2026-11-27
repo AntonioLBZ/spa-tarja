@@ -20,7 +20,8 @@
             "@/*": ["../src/*"],
             "@core/*": ["../core/*"],
             "@server/*": ["../server/*"],
-            "@stories/*": ["./stories/*"]
+            "@stories/*": ["./stories/*"],
+            "@storybook-config/*": ["./.storybook/*"]
         }
     },
     "include": [".storybook/**/*", "stories", "../worker-configuration.d.ts", "../server/secrets.d.ts"]

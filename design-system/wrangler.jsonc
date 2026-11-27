@@ -1,0 +1,8 @@
+{
+    "$schema": "../node_modules/wrangler/config-schema.json",
+    "name": "tarja-storybook",
+    "compatibility_date": "2026-10-19",
+    "workers_dev": false,
+    "routes": [{ "pattern": "tarja-storybook.albz.app", "custom_domain": true }],
+    "assets": { "directory": "./storybook-static" },
+}

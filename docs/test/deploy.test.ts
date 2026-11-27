@@ -246,3 +246,70 @@ describe('the tag job', () => {
         expect(tag).toContain('--target "$GITHUB_SHA"');
     });
 });
+
+describe('the storybook', () => {
+    const storybook = () => {
+        const { config, error } = ts.parseConfigFileTextToJson('wrangler.jsonc', read('design-system/wrangler.jsonc'));
+        expect(error).toBeUndefined();
+        return config as Record<string, unknown>;
+    };
+
+    it('is a Worker of static files only, on its own custom domain', () => {
+        const config = storybook();
+
+        expect(Object.keys(config).sort()).toEqual(
+            ['$schema', 'assets', 'compatibility_date', 'name', 'routes', 'workers_dev'].sort()
+        );
+        expect(config.name).toBe('tarja-storybook');
+        expect(config.workers_dev).toBe(false);
+        expect(config.assets).toEqual({ directory: './storybook-static' });
+        expect(config.routes).toEqual([{ pattern: 'tarja-storybook.albz.app', custom_domain: true }]);
+    });
+
+    it('is built and deployed with its own config', () => {
+        expect(scripts()['deploy:storybook']).toBe(
+            'pnpm --filter design-system build && wrangler deploy --config design-system/wrangler.jsonc'
+        );
+    });
+
+    it('is deployed after a release only, and the tag never waits for it', () => {
+        const text = workflow('ci.yml');
+        const storybookJob = job(text, 'storybook');
+
+        expect(storybookJob).toContain('needs: [version, release]');
+        expect(storybookJob).toContain("if: github.event_name == 'push' && needs.version.outputs.new == 'true'");
+        expect(storybookJob).toContain('run: pnpm deploy:storybook');
+        expect(job(text, 'tag')).not.toContain('storybook');
+        expect(job(text, 'check')).not.toContain('storybook');
+        expect(job(text, 'check')).not.toContain('design-system');
+        expect(workflow('prerelease.yml')).not.toContain('storybook');
+    });
+
+    it('holds the Cloudflare secrets only after the install', () => {
+        const storybookJob = job(workflow('ci.yml'), 'storybook');
+        const install = storybookJob.indexOf('run: pnpm install');
+
+        expect(install).toBeGreaterThan(-1);
+        expect(storybookJob.slice(0, install)).not.toContain('secrets.');
+        expect(storybookJob.slice(install)).toContain('secrets.CLOUDFLARE_API_TOKEN');
+        expect(storybookJob.slice(install)).toContain('secrets.CLOUDFLARE_ACCOUNT_ID');
+    });
+
+    it('sends headers against framing by other sites and sniffing', () => {
+        const headers = read('design-system/public/_headers');
+
+        expect(headers).toMatch(/^\/\*\n/);
+        expect(headers).toContain("Content-Security-Policy: frame-ancestors 'self'");
+        expect(headers).toContain('X-Frame-Options: SAMEORIGIN');
+        expect(headers).toContain('X-Content-Type-Options: nosniff');
+        expect(headers).toContain('Referrer-Policy: strict-origin');
+    });
+});
+
+describe('the storybook build', () => {
+    it('copies its own static folder, with the headers and the favicon', () => {
+        expect(read('design-system/.storybook/main.ts')).toContain("staticDirs: [\n        '../public',");
+        expect(files('design-system/public')).toEqual(['favicon.svg']);
+        expect(read('design-system/public/favicon.svg')).toContain('#009e73');
+    });
+});

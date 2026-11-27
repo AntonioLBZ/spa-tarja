@@ -1,0 +1,5 @@
+/*
+  Content-Security-Policy: frame-ancestors 'self'
+  Referrer-Policy: strict-origin
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
