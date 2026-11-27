@@ -236,7 +236,11 @@
             "title": "Theme",
             "system": "System",
             "light": "Light",
-            "dark": "Dark"
+            "dark": "Dark",
+            "oled": {
+                "label": "Pure black",
+                "hint": "For OLED screens: the dark theme on a black background instead of a dark gray."
+            }
         },
         "amounts": {
             "title": "Amounts",

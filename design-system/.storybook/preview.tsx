@@ -3,8 +3,8 @@ import { AmountsProvider } from '@/lib/amounts';
 import { DEFAULT_AMOUNT_PREFERENCES, storeAmounts } from '@/lib/amounts/amounts';
 import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18n';
 import { storeLocale } from '@/lib/i18n/locale';
-import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
-import { storeTheme } from '@/lib/theme/theme';
+import { DARK_TONES, THEMES, ThemeProvider, type DarkTone, type Theme } from '@/lib/theme';
+import { storeDarkTone, storeTheme } from '@/lib/theme/theme';
 
 import { ThemedDocsContainer } from './docs-container';
 
@@ -45,15 +45,17 @@ const preview: Preview = {
     decorators: [
         (Story, context) => {
             const theme = context.globals.theme as Theme;
+            const darkTone = context.globals.darkTone as DarkTone;
             const locale = context.globals.locale as AppLocale;
             const cues = context.globals.amounts as keyof typeof AMOUNT_CUES;
             // The providers start from the stored choice, so a change in the toolbar is stored and they start again
             storeTheme(theme);
+            storeDarkTone(darkTone);
             storeLocale(locale);
             storeAmounts({ ...DEFAULT_AMOUNT_PREFERENCES, ...AMOUNT_CUES[cues] });
 
             return (
-                <LocaleProvider key={`${theme}-${locale}-${cues}`}>
+                <LocaleProvider key={`${theme}-${darkTone}-${locale}-${cues}`}>
                     <ThemeProvider>
                         <AmountsProvider>
                             <FocusSource>
@@ -69,6 +71,10 @@ const preview: Preview = {
         theme: {
             description: 'Theme',
             toolbar: { title: 'Theme', icon: 'contrast', items: [...THEMES], dynamicTitle: true },
+        },
+        darkTone: {
+            description: 'How dark the dark theme is',
+            toolbar: { title: 'Dark tone', icon: 'circle', items: [...DARK_TONES], dynamicTitle: true },
         },
         // Only the features read these two: a component takes its copy and its cues by props, and a foundation neither
         amounts: {
@@ -90,7 +96,7 @@ const preview: Preview = {
             },
         },
     },
-    initialGlobals: { theme: 'light', locale: 'en', amounts: 'all cues' },
+    initialGlobals: { theme: 'light', darkTone: 'standard', locale: 'en', amounts: 'all cues' },
     parameters: {
         backgrounds: { disabled: true },
         docs: { container: ThemedDocsContainer },

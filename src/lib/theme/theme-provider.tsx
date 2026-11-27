@@ -2,18 +2,24 @@ import { createContext, use, useCallback, useLayoutEffect, useMemo, useRef, useS
 import { flushSync } from 'react-dom';
 
 import {
+    applyDarkTone,
     applyTheme,
+    readStoredDarkTone,
     readStoredTheme,
     resolveTheme,
     revealTheme,
+    storeDarkTone,
     storeTheme,
     syncThemeColor,
+    type DarkTone,
     type Theme,
 } from './theme';
 
 interface ThemeContextValue {
     theme: Theme;
     setTheme: (theme: Theme) => void;
+    darkTone: DarkTone;
+    setDarkTone: (tone: DarkTone) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -25,14 +31,16 @@ interface ThemeProviderProps {
 const ThemeProvider = (props: ThemeProviderProps) => {
     const { children } = props;
     const [theme, setThemeState] = useState(readStoredTheme);
+    const [darkTone, setDarkToneState] = useState(readStoredDarkTone);
 
     const current = useRef(theme);
 
     useLayoutEffect(() => {
         current.current = theme;
         applyTheme(theme);
-        syncThemeColor(theme);
-    }, [theme]);
+        applyDarkTone(darkTone);
+        syncThemeColor(theme, darkTone);
+    }, [theme, darkTone]);
 
     const setTheme = useCallback((next: Theme) => {
         storeTheme(next);
@@ -45,7 +53,18 @@ const ThemeProvider = (props: ThemeProviderProps) => {
         revealTheme(update);
     }, []);
 
-    const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
+    const setDarkTone = useCallback((next: DarkTone) => {
+        storeDarkTone(next);
+        const update = () => flushSync(() => setDarkToneState(next));
+        // The tone shows only while the page is dark
+        if (resolveTheme(current.current) === 'dark') {
+            revealTheme(update);
+            return;
+        }
+        update();
+    }, []);
+
+    const value = useMemo(() => ({ theme, setTheme, darkTone, setDarkTone }), [theme, setTheme, darkTone, setDarkTone]);
 
     return <ThemeContext value={value}>{children}</ThemeContext>;
 };

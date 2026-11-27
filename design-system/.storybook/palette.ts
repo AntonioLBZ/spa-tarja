@@ -7,7 +7,7 @@ interface Palette {
     colors: Record<Mode, Record<string, string>>;
 }
 
-// The colors of the tokens for each theme, with the tokens that point at another one resolved
+// The colors of the tokens for each theme, with the tokens that point at another one resolved; dark is the standard tone
 const paletteOf = (css: string): Palette => {
     const tokens = new Map(declarationsOf(blockOf(css, ':root')).map((token) => [token.name, token.value]));
     const resolve = (value: string): string => {
@@ -18,8 +18,8 @@ const paletteOf = (css: string): Palette => {
     for (const [name, value] of tokens) {
         const split = name.startsWith('--color-') ? splitLightDark(resolve(value)) : null;
         if (!split) continue;
-        colors.light[name] = split.light;
-        colors.dark[name] = split.dark;
+        colors.light[name] = resolve(split.light);
+        colors.dark[name] = resolve(split.dark);
     }
     return { font: tokens.get('--font-family') ?? 'monospace', colors };
 };

@@ -21,6 +21,7 @@ function addToolbarColors() {
 afterEach(() => {
     localStorage.clear();
     root.removeAttribute('data-theme');
+    root.removeAttribute('data-dark-tone');
     root.removeAttribute('data-accent');
     document.head.innerHTML = '';
     vi.restoreAllMocks();
@@ -87,7 +88,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#141414', '#141414']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#1e1e1e', '#1e1e1e']);
     });
 
     it('leaves one toolbar color per OS preference for the system theme', () => {
@@ -96,7 +97,7 @@ describe('the script that runs before the first paint', () => {
 
         runFirstPaint();
 
-        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
+        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#1e1e1e']);
     });
 
     it('points the toolbar at the light header surface when the storage is blocked', () => {
@@ -114,8 +115,55 @@ describe('the script that runs before the first paint', () => {
         const metas = addToolbarColors();
         runFirstPaint();
 
-        syncThemeColor('system');
+        syncThemeColor('system', 'standard');
 
+        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#1e1e1e']);
+    });
+
+    it('puts a saved OLED tone on the root, whatever the theme', () => {
+        localStorage.setItem('tarja:dark-tone', 'oled');
+
+        runFirstPaint();
+
+        expect(root.dataset.darkTone).toBe('oled');
+    });
+
+    it('leaves the tone off the root when none or an unknown one was saved', () => {
+        localStorage.setItem('tarja:dark-tone', 'dim');
+
+        runFirstPaint();
+
+        expect(root.hasAttribute('data-dark-tone')).toBe(false);
+    });
+
+    it('points every toolbar color at the black header surface for a saved dark theme in the OLED tone', () => {
+        localStorage.setItem('tarja:theme', 'dark');
+        localStorage.setItem('tarja:dark-tone', 'oled');
+        const metas = addToolbarColors();
+
+        runFirstPaint();
+
+        expect(metas.map((meta) => meta.content)).toEqual(['#141414', '#141414']);
+    });
+
+    it('keeps the light toolbar for a saved light theme in the OLED tone', () => {
+        localStorage.setItem('tarja:dark-tone', 'oled');
+        const metas = addToolbarColors();
+
+        runFirstPaint();
+
+        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#f4f4f4']);
+    });
+
+    it('gives the dark preference its black surface for the system theme in the OLED tone', () => {
+        localStorage.setItem('tarja:theme', 'system');
+        localStorage.setItem('tarja:dark-tone', 'oled');
+        const metas = addToolbarColors();
+
+        runFirstPaint();
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
+
+        syncThemeColor('system', 'standard');
+        expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#1e1e1e']);
     });
 });

@@ -8,6 +8,15 @@ const DEFAULT_THEME: Theme = 'light';
 
 const STORAGE_KEY = 'tarja:theme';
 
+// How dark the dark theme is: a dark gray, or pure black for OLED screens (ADR-0047)
+const DARK_TONES = ['standard', 'oled'] as const;
+
+type DarkTone = (typeof DARK_TONES)[number];
+
+const DEFAULT_DARK_TONE: DarkTone = 'standard';
+
+const DARK_TONE_KEY = 'tarja:dark-tone';
+
 const isTheme = (value: unknown): value is Theme => {
     return THEMES.some((theme) => theme === value);
 };
@@ -24,6 +33,27 @@ const readStoredTheme = (): Theme => {
 const storeTheme = (theme: Theme): void => {
     try {
         localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+        // Storage can be blocked; the choice then lasts for the session only
+    }
+};
+
+const isDarkTone = (value: unknown): value is DarkTone => {
+    return DARK_TONES.some((tone) => tone === value);
+};
+
+const readStoredDarkTone = (): DarkTone => {
+    try {
+        const stored = localStorage.getItem(DARK_TONE_KEY);
+        return isDarkTone(stored) ? stored : DEFAULT_DARK_TONE;
+    } catch {
+        return DEFAULT_DARK_TONE;
+    }
+};
+
+const storeDarkTone = (tone: DarkTone): void => {
+    try {
+        localStorage.setItem(DARK_TONE_KEY, tone);
     } catch {
         // Storage can be blocked; the choice then lasts for the session only
     }
@@ -51,6 +81,11 @@ const resolveTheme = (theme: Theme): 'light' | 'dark' => {
 // Light and dark force the color scheme; "system" leaves it to the OS. The tokens read it from the root.
 const applyTheme = (theme: Theme): void => {
     document.documentElement.dataset.theme = theme;
+};
+
+// The tone is written whatever the theme, so "system" turning dark later already has it
+const applyDarkTone = (tone: DarkTone): void => {
+    document.documentElement.dataset.darkTone = tone;
 };
 
 let colorTransitionTimer: ReturnType<typeof setTimeout> | undefined;
@@ -155,27 +190,36 @@ const readSurfaceColor = (): string => {
     return color;
 };
 
-// The static HTML carries one color per OS preference; an explicit theme overrides both
-const syncThemeColor = (theme: Theme, readColor: () => string = readSurfaceColor): void => {
+// The static HTML carries one color per OS preference, the dark one with its OLED tone beside it; an explicit theme
+// overrides both
+const syncThemeColor = (theme: Theme, tone: DarkTone, readColor: () => string = readSurfaceColor): void => {
     const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
     const surface = theme === 'system' ? null : readColor();
     for (const meta of metas) {
         meta.dataset.default ??= meta.content;
-        meta.content = surface ?? meta.dataset.default;
+        const preferred = tone === 'oled' ? (meta.dataset.oled ?? meta.dataset.default) : meta.dataset.default;
+        meta.content = surface ?? preferred;
     }
 };
 
 export {
+    DARK_TONES,
+    DEFAULT_DARK_TONE,
     DEFAULT_THEME,
     THEMES,
+    applyDarkTone,
     applyTheme,
     forgetStoredAccent,
+    isDarkTone,
     isTheme,
+    readStoredDarkTone,
     readStoredTheme,
     resolveTheme,
     revealTheme,
+    storeDarkTone,
     storeTheme,
     syncThemeColor,
     withColorTransition,
+    type DarkTone,
     type Theme,
 };

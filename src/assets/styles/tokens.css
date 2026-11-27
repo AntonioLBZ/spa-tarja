@@ -53,13 +53,18 @@
     --focus-offset: 0.125rem;
     --focus-inset: calc(-1 * (var(--size-1) + var(--focus-width)));
 
+    /* The surfaces of the dark theme: a dark gray by default, pure black with the OLED tone (ADR-0047) */
+    --dark-bg-primary: #121212;
+    --dark-bg-secondary: #1e1e1e;
+    --dark-border-subtle: #363636;
+
     /* Flat colors, one set of semantic tokens resolved per theme */
-    --color-bg-primary: light-dark(#fff, #000);
-    --color-bg-secondary: light-dark(#f4f4f4, #141414);
+    --color-bg-primary: light-dark(#fff, var(--dark-bg-primary));
+    --color-bg-secondary: light-dark(#f4f4f4, var(--dark-bg-secondary));
     --color-content-primary: light-dark(#000, #fff);
     --color-content-secondary: light-dark(#595959, #a3a3a3);
     --color-border: light-dark(#000, #fff);
-    --color-border-subtle: light-dark(#d4d4d4, #2e2e2e);
+    --color-border-subtle: light-dark(#d4d4d4, var(--dark-border-subtle));
     --color-border-focus: var(--color-accent);
     --color-accent: light-dark(#404040, #d4d4d4);
     --color-bg-accent: var(--color-accent);
@@ -91,6 +96,12 @@
 
 :root[data-theme='dark'] {
     color-scheme: dark;
+}
+
+[data-dark-tone='oled'] {
+    --dark-bg-primary: #000;
+    --dark-bg-secondary: #141414;
+    --dark-border-subtle: #2e2e2e;
 }
 
 /* The amount colors for color blindness: a blue and an orange the common deficiencies keep apart */

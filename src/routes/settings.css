@@ -3,6 +3,12 @@
     gap: var(--size-8);
 }
 
+/* The theme and its dark tone, close enough to read as one setting */
+.settings__theme {
+    display: grid;
+    gap: var(--size-4);
+}
+
 .settings__section {
     display: grid;
     gap: var(--size-2);

@@ -1,4 +1,4 @@
-import { splitLightDark, tokensUnder, tokensWith, type Token } from '@stories/shared/tokens';
+import { resolveToken, splitLightDark, tokensUnder, tokensWith, type Token } from '@stories/shared/tokens';
 
 import type { Meta } from '@storybook/react-vite';
 import type { CSSProperties } from 'react';
@@ -23,7 +23,7 @@ const Swatches = (props: SwatchesProps) => {
                         <div className="swatch__chip" style={{ '--swatch': `var(${token.name})` } as CSSProperties} />
                         <span className="swatch__name">{token.name}</span>
                         <span className="swatch__value">
-                            {pair ? `light ${pair.light} · dark ${pair.dark}` : token.value}
+                            {pair ? `light ${pair.light} · dark ${resolveToken(pair.dark)}` : token.value}
                         </span>
                     </li>
                 );
@@ -54,6 +54,17 @@ export const Rest = () => {
         <Swatches
             tokens={tokensWith('--color-').filter((token) => !GROUPS.some((group) => token.name.startsWith(group)))}
         />
+    );
+};
+
+export const DarkTones = () => {
+    return (
+        <div className="swatch-tones">
+            <Swatches tokens={tokensWith('--dark-')} />
+            <div data-dark-tone="oled">
+                <Swatches tokens={tokensUnder("[data-dark-tone='oled']")} />
+            </div>
+        </div>
     );
 };
 
