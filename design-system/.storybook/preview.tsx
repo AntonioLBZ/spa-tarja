@@ -3,15 +3,16 @@ import { AmountsProvider } from '@/lib/amounts';
 import { DEFAULT_AMOUNT_PREFERENCES, storeAmounts } from '@/lib/amounts/amounts';
 import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18n';
 import { storeLocale } from '@/lib/i18n/locale';
-import { ThemeProvider } from '@/lib/theme';
+import { TYPEFACES, ThemeProvider, type Typeface } from '@/lib/theme';
 import { storeDarkTone, storeTheme } from '@/lib/theme/theme';
+import { applyTypeface, storeTypeface } from '@/lib/theme/typeface';
+import { useLayoutEffect, type ReactNode } from 'react';
 
 import { ThemedDocsContainer } from './docs-container';
 import { useFrameGlobals } from './frame-globals';
 import { APPEARANCES, appearanceOf } from './themes';
 
 import type { Preview } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
 
 import '@/assets/styles/main.css';
 
@@ -48,10 +49,14 @@ interface StoryProvidersProps {
     children: ReactNode;
 }
 
+// The face the text is set in, as the app sets it on the root (ADR-0048)
+const typefaceOf = (value: unknown): Typeface => TYPEFACES.find((typeface) => typeface === value) ?? 'mono';
+
 const StoryProviders = (props: StoryProvidersProps) => {
     const { globals: own, children } = props;
     const globals = useFrameGlobals(own);
     const { theme, darkTone } = appearanceOf(globals.theme);
+    const typeface = typefaceOf(globals.typeface);
     const locale = globals.locale as AppLocale;
     const cues = globals.amounts as keyof typeof AMOUNT_CUES;
     // The providers start from the stored choice, so a change in the toolbar is stored and they start again
@@ -59,6 +64,9 @@ const StoryProviders = (props: StoryProvidersProps) => {
     storeDarkTone(darkTone);
     storeLocale(locale);
     storeAmounts({ ...DEFAULT_AMOUNT_PREFERENCES, ...AMOUNT_CUES[cues] });
+    storeTypeface(typeface);
+
+    useLayoutEffect(() => applyTypeface(typeface), [typeface]);
 
     return (
         <LocaleProvider key={`${theme}-${darkTone}-${locale}-${cues}`}>
@@ -89,6 +97,18 @@ const preview: Preview = {
                 dynamicTitle: true,
             },
         },
+        typeface: {
+            description: 'Typeface of the text: monospace, the default, or the proportional one a person may choose',
+            toolbar: {
+                title: 'Typeface',
+                icon: 'type',
+                items: [
+                    { value: 'mono', title: 'monospace' },
+                    { value: 'sans', title: 'proportional' },
+                ],
+                dynamicTitle: true,
+            },
+        },
         // Only the features read these two: a component takes its copy and its cues by props, and a foundation neither
         amounts: {
             description: 'How the amounts of the features show which way they go; components take their cues by props',
@@ -109,7 +129,7 @@ const preview: Preview = {
             },
         },
     },
-    initialGlobals: { theme: 'light', locale: 'en', amounts: 'all cues' },
+    initialGlobals: { theme: 'light', typeface: 'mono', locale: 'en', amounts: 'all cues' },
     parameters: {
         backgrounds: { disabled: true },
         docs: { container: ThemedDocsContainer },

@@ -2,7 +2,7 @@
 status: Proposed
 date: 2026-11-27
 tags: [design, settings]
-specs: [settings.md]
+specs: [settings.md, repository-structure.md]
 summary: 'Everything stays in IBM Plex Mono by default; IBM Plex Sans is a choice of the device.'
 ---
 
@@ -24,6 +24,7 @@ Everything is set in IBM Plex Mono: monospace lines the digits up and fits the l
 
 - The logo keeps Dot Matrix whatever the choice.
 - The dot leaders still work, since the box cuts them; their dots sit closer or further apart with the proportional face.
+- Storybook has a Typeface toolbar, beside the Theme one, so every story can be checked in either face.
 - The privacy notice lists the typeface among the preferences kept on the device.
 - The look is checked in monospace first; the proportional face is checked for what breaks (a word cut in a `ChoiceGroup`, a column measured in characters), not drawn for.
 
