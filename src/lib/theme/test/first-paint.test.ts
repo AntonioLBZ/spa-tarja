@@ -22,6 +22,7 @@ afterEach(() => {
     localStorage.clear();
     root.removeAttribute('data-theme');
     root.removeAttribute('data-dark-tone');
+    root.removeAttribute('data-typeface');
     root.removeAttribute('data-accent');
     document.head.innerHTML = '';
     vi.restoreAllMocks();
@@ -41,6 +42,22 @@ describe('the script that runs before the first paint', () => {
         runFirstPaint();
 
         expect(root.dataset.theme).toBe(theme);
+    });
+
+    it('puts the saved proportional typeface on the root', () => {
+        localStorage.setItem('tarja:typeface', 'sans');
+
+        runFirstPaint();
+
+        expect(root.dataset.typeface).toBe('sans');
+    });
+
+    it.each(['mono', 'system'])('leaves the typeface off the root for %s', (typeface) => {
+        localStorage.setItem('tarja:typeface', typeface);
+
+        runFirstPaint();
+
+        expect(root.hasAttribute('data-typeface')).toBe(false);
     });
 
     it('paints gray whatever app color an older version stored', () => {

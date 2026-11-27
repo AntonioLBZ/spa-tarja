@@ -20,8 +20,15 @@
     /* The header: its row and its hairline, without the safe area above it */
     --header-height: calc(var(--size-touch) + var(--size-px));
 
-    /* Everything is set in monospace; the fallbacks cover the moment before the font loads and a failed load */
+    /* Everything is set in monospace unless the person chose another typeface; the fallbacks cover the moment before
+       the font loads and a failed load */
     --font-family: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', 'Menlo', 'Consolas', monospace;
+
+    /* How the digits are spaced: monospace lines them up already, a proportional face takes tabular ones */
+    --font-numeric: normal;
+
+    /* How much wider than a "0" a word measured in characters may be: 1 in monospace */
+    --font-word-scale: 1;
 
     /* The logo's face: only the name is set in it, falling back to the page font */
     --font-family-brand: 'Dot Matrix', var(--font-family);
@@ -102,6 +109,13 @@
     --dark-bg-primary: #000;
     --dark-bg-secondary: #141414;
     --dark-border-subtle: #2e2e2e;
+}
+
+/* The proportional face a person may choose instead of the monospace one, from the same family */
+:root[data-typeface='sans'] {
+    --font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    --font-numeric: tabular-nums;
+    --font-word-scale: 1.3;
 }
 
 /* The amount colors for color blindness: a blue and an orange the common deficiencies keep apart */

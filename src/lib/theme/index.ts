@@ -13,3 +13,4 @@ export {
     type Theme,
 } from './theme';
 export { ThemeProvider, useTheme } from './theme-provider';
+export { DEFAULT_TYPEFACE, TYPEFACES, useTypeface, type Typeface } from './typeface';

@@ -1,5 +1,5 @@
 import { Brand } from '@/components/brand/brand';
-import { tokensWith } from '@stories/shared/tokens';
+import { tokensUnder, tokensWith } from '@stories/shared/tokens';
 
 import type { Meta } from '@storybook/react-vite';
 import type { CSSProperties } from 'react';
@@ -9,6 +9,14 @@ import './typography.css';
 const SAMPLE = 'The quick brown fox jumps over the lazy dog 0123456789';
 
 const WEIGHTS = [400, 700];
+
+// The proportional face a person may choose instead of the monospace one (ADR-0048)
+const PROPORTIONAL = tokensUnder(":root[data-typeface='sans']").find((token) => token.name === '--font-family');
+
+const FACES = [
+    { name: 'IBM Plex Mono', family: 'var(--font-family)' },
+    { name: 'IBM Plex Sans', family: PROPORTIONAL?.value ?? 'inherit' },
+];
 
 const Story: Meta = {
     title: 'Foundations/Typography',
@@ -31,6 +39,16 @@ export const Families = () => {
                     </p>
                 </div>
             ))}
+            {PROPORTIONAL && (
+                <div className="type-sample">
+                    <span className="type-sample__meta">
+                        {PROPORTIONAL.name} · data-typeface="sans" · {PROPORTIONAL.value}
+                    </span>
+                    <p className="type-sample__text" style={{ '--sample-family': PROPORTIONAL.value } as CSSProperties}>
+                        {SAMPLE}
+                    </p>
+                </div>
+            )}
         </div>
     );
 };
@@ -60,14 +78,21 @@ export const Sizes = () => {
 export const Weights = () => {
     return (
         <div>
-            {WEIGHTS.map((weight) => (
-                <div className="type-sample" key={weight}>
-                    <span className="type-sample__meta">IBM Plex Mono · {weight}</span>
-                    <p className="type-sample__text" style={{ '--sample-weight': weight } as CSSProperties}>
-                        {SAMPLE}
-                    </p>
-                </div>
-            ))}
+            {FACES.flatMap((face) =>
+                WEIGHTS.map((weight) => (
+                    <div className="type-sample" key={`${face.name}-${weight}`}>
+                        <span className="type-sample__meta">
+                            {face.name} · {weight}
+                        </span>
+                        <p
+                            className="type-sample__text"
+                            style={{ '--sample-family': face.family, '--sample-weight': weight } as CSSProperties}
+                        >
+                            {SAMPLE}
+                        </p>
+                    </div>
+                ))
+            )}
         </div>
     );
 };

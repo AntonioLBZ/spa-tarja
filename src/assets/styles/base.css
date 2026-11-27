@@ -193,6 +193,7 @@ body {
     color: var(--color-content-primary);
     font-family: var(--font-family);
     font-size: var(--font-size-m);
+    font-variant-numeric: var(--font-numeric);
     line-height: 1.5;
     margin: 0;
 }

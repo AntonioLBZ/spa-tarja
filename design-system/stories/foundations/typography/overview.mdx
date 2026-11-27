@@ -6,7 +6,7 @@ import * as Examples from './meta-docs.stories';
 
 # Typography
 
-Everything is set in IBM Plex Mono, amounts included, so the digits line up like a ledger. The sizes are a minor third scale (×1.2) from a 1 rem base, and only the name of the app has a face of its own.
+Everything is set in IBM Plex Mono, amounts included, so the digits line up like a ledger. A person may choose IBM Plex Sans instead in Settings → Appearance: `data-typeface="sans"` on `<html>` swaps `--font-family` for it, turns the digits tabular (`--font-numeric`) so amounts still line up, and gives a word measured in characters more room (`--font-word-scale`). Monospace stays the default, and the look is drawn for it. The sizes are a minor third scale (×1.2) from a 1 rem base, and only the name of the app has a face of its own.
 
 ## Usage
 
@@ -24,7 +24,7 @@ The font comes from the page: a component never sets a family, and form controls
 
 ## Families
 
-The page font, with fallbacks for the moment before it loads, and the face of the logo, which ships only the letters of the name.
+The page font, with fallbacks for the moment before it loads, the proportional face that can take its place, and the face of the logo, which ships only the letters of the name.
 
 <Canvas of={Examples.Families} sourceState="none" />
 
@@ -36,7 +36,7 @@ The page font, with fallbacks for the moment before it loads, and the face of th
 
 ## Weights
 
-The regular and the bold, the only two that ship.
+The regular and the bold of each face, the only two that ship.
 
 <Canvas of={Examples.Weights} sourceState="none" />
 
