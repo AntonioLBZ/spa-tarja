@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MAX_CLOSED_GROUPS } from '@core/groups/shared-group';
 import { app } from '@server/app';
@@ -229,13 +229,16 @@ describe('DELETE /api/account', () => {
         await env.DB.prepare(
             `CREATE TRIGGER refuse_user_delete BEFORE DELETE ON "user" BEGIN SELECT RAISE(ABORT, 'refused'); END`
         ).run();
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         try {
             const response = await deleteAccount(ana);
 
             expect(response.status).toBe(500);
+            expect(logged).toHaveBeenCalledOnce();
             expect([await rowsOf(ana.userId), await sharedRows()]).toEqual(before);
         } finally {
+            logged.mockRestore();
             await env.DB.prepare('DROP TRIGGER refuse_user_delete').run();
         }
     });

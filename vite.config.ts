@@ -9,8 +9,8 @@ import react from '@vitejs/plugin-react';
 import { build, defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-import { withScriptHashes } from './csp.config';
-import { PUSH_WORKER, pushWorkerBuild } from './push-worker.config';
+import { withScriptHashes } from './csp.config.ts';
+import { PUSH_WORKER, pushWorkerBuild } from './push-worker.config.ts';
 
 const prerelease = process.env.CLOUDFLARE_ENV === 'prerelease';
 

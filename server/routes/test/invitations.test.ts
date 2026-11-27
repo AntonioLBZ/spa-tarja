@@ -27,6 +27,7 @@ beforeEach(async () => {
 
 afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
 });
 
 async function error(response: Response, status: number) {
@@ -288,6 +289,7 @@ describe('making a link to be friends', () => {
     it('makes and shows no link without a secret to sign with', async () => {
         await linkMade(ana);
         const bare = { ...env, BETTER_AUTH_SECRET: '' };
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
 
         const answers = [
             await app.request('/api/invitations', { method: 'POST', headers: ana.headers }, bare),
@@ -295,6 +297,7 @@ describe('making a link to be friends', () => {
         ];
 
         expect(answers.map((answer) => answer.status)).toEqual([500, 500]);
+        expect(logged).toHaveBeenCalledTimes(2);
         expect((await Promise.all(answers.map((answer) => answer.text()))).join('')).not.toMatch(/\.[\w-]{43}/);
     });
 });
