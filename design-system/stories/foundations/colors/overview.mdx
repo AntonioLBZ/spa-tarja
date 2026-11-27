@@ -6,7 +6,7 @@ import * as Examples from './meta-docs.stories';
 
 # Colors
 
-Flat colors only, no gradients and no blur: white or true black, text in the opposite one, neutral grays, one accent (a gray), one danger color, the two amount colors and the category palette. Each token is defined once with `light-dark()`, so it holds both themes.
+Flat colors only, no gradients and no blur: white or a dark gray (true black with the black tone), text in the opposite one, neutral grays, one accent (a gray), one danger color, the two amount colors and the category palette. Each token is defined once with `light-dark()`, so it holds both themes.
 
 ## Usage
 
@@ -26,6 +26,12 @@ A component takes only the semantic `--color-*` tokens, never a raw value: those
 The page, and the header and raised surfaces over it.
 
 <Canvas of={Examples.Backgrounds} sourceState="none" />
+
+## Dark tones
+
+The dark theme comes in two tones: a dark gray by default, and pure black, which the person turns on in Settings → Appearance. Only the surfaces and the hairline change, through these three tokens that the dark side of their `--color-*` reads; `data-dark-tone="black"` on `<html>` swaps in the black ones. The Theme toolbar shows a story in either.
+
+<Canvas of={Examples.DarkTones} sourceState="none" />
 
 ## Content
 

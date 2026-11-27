@@ -1,4 +1,4 @@
-import { splitLightDark, tokensUnder, tokensWith, type Token } from '@stories/shared/tokens';
+import { resolveToken, splitLightDark, tokensUnder, tokensWith, type Token } from '@stories/shared/tokens';
 
 import type { Meta } from '@storybook/react-vite';
 import type { CSSProperties } from 'react';
@@ -9,10 +9,11 @@ const GROUPS = ['--color-bg-', '--color-content-', '--color-border', '--color-mo
 
 interface SwatchesProps {
     tokens: Token[];
+    literal?: boolean;
 }
 
 const Swatches = (props: SwatchesProps) => {
-    const { tokens } = props;
+    const { tokens, literal = false } = props;
 
     return (
         <ul className="swatch-grid">
@@ -20,10 +21,13 @@ const Swatches = (props: SwatchesProps) => {
                 const pair = splitLightDark(token.value);
                 return (
                     <li className="swatch" key={token.name}>
-                        <div className="swatch__chip" style={{ '--swatch': `var(${token.name})` } as CSSProperties} />
+                        <div
+                            className="swatch__chip"
+                            style={{ '--swatch': literal ? token.value : `var(${token.name})` } as CSSProperties}
+                        />
                         <span className="swatch__name">{token.name}</span>
                         <span className="swatch__value">
-                            {pair ? `light ${pair.light} · dark ${pair.dark}` : token.value}
+                            {pair ? `light ${pair.light} · dark ${resolveToken(pair.dark)}` : token.value}
                         </span>
                     </li>
                 );
@@ -54,6 +58,15 @@ export const Rest = () => {
         <Swatches
             tokens={tokensWith('--color-').filter((token) => !GROUPS.some((group) => token.name.startsWith(group)))}
         />
+    );
+};
+
+export const DarkTones = () => {
+    return (
+        <div className="swatch-tones">
+            <Swatches tokens={tokensWith('--dark-')} literal />
+            <Swatches tokens={tokensUnder(":root[data-dark-tone='black']")} literal />
+        </div>
     );
 };
 

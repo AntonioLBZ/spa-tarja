@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    DEFAULT_DARK_TONE,
     DEFAULT_THEME,
+    applyDarkTone,
     applyTheme,
     forgetStoredAccent,
+    isDarkTone,
     isTheme,
+    readStoredDarkTone,
     readStoredTheme,
+    storeDarkTone,
     storeTheme,
     syncThemeColor,
     resolveTheme,
@@ -18,6 +23,7 @@ const root = document.documentElement;
 afterEach(() => {
     localStorage.clear();
     root.removeAttribute('data-theme');
+    root.removeAttribute('data-dark-tone');
     root.removeAttribute('data-color-transition');
     root.removeAttribute('data-theme-reveal');
     root.style.removeProperty('--duration-slow');
@@ -34,6 +40,55 @@ describe('isTheme', () => {
         expect(['system', 'light', 'dark'].every(isTheme)).toBe(true);
         expect(isTheme('sepia')).toBe(false);
         expect(isTheme(null)).toBe(false);
+    });
+});
+
+describe('stored dark tone', () => {
+    it('knows the two tones only', () => {
+        expect(['standard', 'black'].every(isDarkTone)).toBe(true);
+        expect(isDarkTone('dim')).toBe(false);
+        expect(isDarkTone(null)).toBe(false);
+    });
+
+    it('defaults to the standard tone, also for whoever chose dark before there were two', () => {
+        localStorage.setItem('tarja:theme', 'dark');
+
+        expect(DEFAULT_DARK_TONE).toBe('standard');
+        expect(readStoredDarkTone()).toBe('standard');
+    });
+
+    it('reads back what was stored', () => {
+        storeDarkTone('black');
+
+        expect(readStoredDarkTone()).toBe('black');
+    });
+
+    it('ignores a stored value that is not a tone', () => {
+        localStorage.setItem('tarja:dark-tone', 'dim');
+
+        expect(readStoredDarkTone()).toBe('standard');
+    });
+
+    it('survives storage being blocked', () => {
+        vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+
+        expect(readStoredDarkTone()).toBe('standard');
+        expect(() => storeDarkTone('black')).not.toThrow();
+
+        vi.restoreAllMocks();
+    });
+
+    it('writes the tone on the root', () => {
+        applyDarkTone('black');
+        expect(root.dataset.darkTone).toBe('black');
+
+        applyDarkTone('standard');
+        expect(root.dataset.darkTone).toBe('standard');
     });
 });
 
@@ -304,17 +359,28 @@ describe('syncThemeColor', () => {
     it('points every toolbar color at the header surface for an explicit theme', () => {
         const metas = addMetas();
 
-        syncThemeColor('dark', () => 'rgb(20, 20, 20)');
+        syncThemeColor('dark', 'standard', () => 'rgb(20, 20, 20)');
 
         expect(metas.map((meta) => meta.content)).toEqual(['rgb(20, 20, 20)', 'rgb(20, 20, 20)']);
     });
 
     it('puts the per-preference colors back for the system theme', () => {
         const metas = addMetas();
-        syncThemeColor('dark', () => 'rgb(20, 20, 20)');
+        syncThemeColor('dark', 'standard', () => 'rgb(20, 20, 20)');
 
-        syncThemeColor('system', () => 'unused');
+        syncThemeColor('system', 'standard', () => 'unused');
 
+        expect(metas.map((meta) => meta.content)).toEqual(['#light', '#dark']);
+    });
+
+    it('gives the dark preference its black color for the system theme in the black tone', () => {
+        const metas = addMetas();
+        metas[1]!.dataset.black = '#black';
+
+        syncThemeColor('system', 'black', () => 'unused');
+        expect(metas.map((meta) => meta.content)).toEqual(['#light', '#black']);
+
+        syncThemeColor('system', 'standard', () => 'unused');
         expect(metas.map((meta) => meta.content)).toEqual(['#light', '#dark']);
     });
 });

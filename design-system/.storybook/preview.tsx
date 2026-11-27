@@ -3,10 +3,12 @@ import { AmountsProvider } from '@/lib/amounts';
 import { DEFAULT_AMOUNT_PREFERENCES, storeAmounts } from '@/lib/amounts/amounts';
 import { LOCALES, LOCALE_NAMES, LocaleProvider, type AppLocale } from '@/lib/i18n';
 import { storeLocale } from '@/lib/i18n/locale';
-import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
-import { storeTheme } from '@/lib/theme/theme';
+import { ThemeProvider } from '@/lib/theme';
+import { storeDarkTone, storeTheme } from '@/lib/theme/theme';
 
 import { ThemedDocsContainer } from './docs-container';
+import { useFrameGlobals } from './frame-globals';
+import { APPEARANCES, appearanceOf } from './themes';
 
 import type { Preview } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
@@ -41,34 +43,51 @@ const FocusSource = (props: FocusSourceProps) => {
     return children;
 };
 
+interface StoryProvidersProps {
+    globals: Record<string, unknown>;
+    children: ReactNode;
+}
+
+const StoryProviders = (props: StoryProvidersProps) => {
+    const { globals: own, children } = props;
+    const globals = useFrameGlobals(own);
+    const { theme, darkTone } = appearanceOf(globals.theme);
+    const locale = globals.locale as AppLocale;
+    const cues = globals.amounts as keyof typeof AMOUNT_CUES;
+    // The providers start from the stored choice, so a change in the toolbar is stored and they start again
+    storeTheme(theme);
+    storeDarkTone(darkTone);
+    storeLocale(locale);
+    storeAmounts({ ...DEFAULT_AMOUNT_PREFERENCES, ...AMOUNT_CUES[cues] });
+
+    return (
+        <LocaleProvider key={`${theme}-${darkTone}-${locale}-${cues}`}>
+            <ThemeProvider>
+                <AmountsProvider>
+                    <FocusSource>{children}</FocusSource>
+                </AmountsProvider>
+            </ThemeProvider>
+        </LocaleProvider>
+    );
+};
+
 const preview: Preview = {
     decorators: [
-        (Story, context) => {
-            const theme = context.globals.theme as Theme;
-            const locale = context.globals.locale as AppLocale;
-            const cues = context.globals.amounts as keyof typeof AMOUNT_CUES;
-            // The providers start from the stored choice, so a change in the toolbar is stored and they start again
-            storeTheme(theme);
-            storeLocale(locale);
-            storeAmounts({ ...DEFAULT_AMOUNT_PREFERENCES, ...AMOUNT_CUES[cues] });
-
-            return (
-                <LocaleProvider key={`${theme}-${locale}-${cues}`}>
-                    <ThemeProvider>
-                        <AmountsProvider>
-                            <FocusSource>
-                                <Story />
-                            </FocusSource>
-                        </AmountsProvider>
-                    </ThemeProvider>
-                </LocaleProvider>
-            );
-        },
+        (Story, context) => (
+            <StoryProviders globals={context.globals}>
+                <Story />
+            </StoryProviders>
+        ),
     ],
     globalTypes: {
         theme: {
-            description: 'Theme',
-            toolbar: { title: 'Theme', icon: 'contrast', items: [...THEMES], dynamicTitle: true },
+            description: 'Theme, and for dark whether it is pure black',
+            toolbar: {
+                title: 'Theme',
+                icon: 'contrast',
+                items: Object.entries(APPEARANCES).map(([value, { title }]) => ({ value, title })),
+                dynamicTitle: true,
+            },
         },
         // Only the features read these two: a component takes its copy and its cues by props, and a foundation neither
         amounts: {

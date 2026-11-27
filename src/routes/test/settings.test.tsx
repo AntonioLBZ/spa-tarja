@@ -23,6 +23,7 @@ async function radio(name: string) {
 afterEach(() => {
     localStorage.clear();
     root.removeAttribute('data-theme');
+    root.removeAttribute('data-dark-tone');
     root.removeAttribute('data-color-transition');
     root.style.removeProperty('--duration-slow');
     document.head.innerHTML = '';
@@ -224,6 +225,91 @@ describe('settings', () => {
             fireEvent.click(await radio(en.settings.theme.system));
             expect(root.dataset.theme).toBe('system');
             expect(localStorage.getItem('tarja:theme')).toBe('system');
+        });
+
+        it('keeps the pure black switch off and out of reach on the light theme', async () => {
+            renderApp({ path: '/settings/appearance' });
+
+            const black = await screen.findByRole('checkbox', { name: en.settings.theme.black.label });
+
+            expect((black as HTMLInputElement).checked).toBe(false);
+            expect((black as HTMLInputElement).disabled).toBe(true);
+            await waitFor(() => expect(root.dataset.darkTone).toBe('standard'));
+        });
+
+        it('turns the dark theme pure black and back, and remembers it', async () => {
+            localStorage.setItem('tarja:theme', 'dark');
+            renderApp({ path: '/settings/appearance' });
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
+            })) as HTMLInputElement;
+
+            fireEvent.click(black);
+            expect(root.dataset.darkTone).toBe('black');
+            expect(localStorage.getItem('tarja:dark-tone')).toBe('black');
+            expect(black.checked).toBe(true);
+
+            fireEvent.click(black);
+            expect(root.dataset.darkTone).toBe('standard');
+            expect(localStorage.getItem('tarja:dark-tone')).toBe('standard');
+        });
+
+        it('lets the system theme choose its dark tone too', async () => {
+            localStorage.setItem('tarja:theme', 'system');
+            localStorage.setItem('tarja:dark-tone', 'black');
+            renderApp({ path: '/settings/appearance' });
+
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
+            })) as HTMLInputElement;
+
+            expect(black.disabled).toBe(false);
+            expect(black.checked).toBe(true);
+            await waitFor(() => expect(root.dataset.darkTone).toBe('black'));
+        });
+
+        it('shows pure black off on the light theme and keeps the choice for when it is dark again', async () => {
+            localStorage.setItem('tarja:dark-tone', 'black');
+            renderApp({ path: '/settings/appearance' });
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
+            })) as HTMLInputElement;
+
+            expect(black.checked).toBe(false);
+            expect(black.disabled).toBe(true);
+
+            fireEvent.click(await radio(en.settings.theme.dark));
+
+            expect(black.checked).toBe(true);
+            expect(root.dataset.darkTone).toBe('black');
+        });
+
+        it('fades into the other tone while the page is dark', async () => {
+            localStorage.setItem('tarja:theme', 'dark');
+            root.style.setProperty('--duration-slow', '50ms');
+            renderApp({ path: '/settings/appearance' });
+
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.black.label }));
+
+            expect(root.dataset.darkTone).toBe('black');
+            expect(root.hasAttribute('data-color-transition')).toBe(true);
+            await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));
+        });
+
+        it('changes the tone at once while System shows the light theme', async () => {
+            vi.stubGlobal('matchMedia', (media: string) => ({
+                matches: !media.includes('dark'),
+                addEventListener: () => undefined,
+                removeEventListener: () => undefined,
+            }));
+            localStorage.setItem('tarja:theme', 'system');
+            root.style.setProperty('--duration-slow', '50ms');
+            renderApp({ path: '/settings/appearance' });
+
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.black.label }));
+
+            expect(root.dataset.darkTone).toBe('black');
+            expect(root.hasAttribute('data-color-transition')).toBe(false);
         });
 
         it('comes back with the stored theme', async () => {

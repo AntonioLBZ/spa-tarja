@@ -236,7 +236,11 @@
             "title": "Tema",
             "system": "Sistema",
             "light": "Claro",
-            "dark": "Oscuro"
+            "dark": "Oscuro",
+            "black": {
+                "label": "Negro puro",
+                "hint": "Solo con Oscuro o Sistema."
+            }
         },
         "amounts": {
             "title": "Importes",

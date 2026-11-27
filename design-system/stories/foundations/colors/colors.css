@@ -28,3 +28,8 @@
     font-size: var(--font-size-s);
     overflow-wrap: anywhere;
 }
+
+.swatch-tones {
+    display: grid;
+    gap: var(--size-4);
+}

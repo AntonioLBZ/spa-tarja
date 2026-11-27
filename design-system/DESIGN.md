@@ -19,16 +19,16 @@ Solid colors only: no gradients, no blur. Separation comes from borders and from
 
 ### Palette
 
-The base is white (light theme) or black (dark theme), with text in the opposite one. The dark theme is true black. Everything else is a neutral gray, one accent (a gray), one danger color, the two amount colors and the category palette.
+The base is white (light theme) or a dark gray (dark theme), with text in the opposite one. The dark theme has two tones ([ADR-0047](../docs/adr/0047-the-dark-theme-has-two-tones.md)): standard, the gray of the table and the default, and black, true black, which the person turns on with Pure black (see Themes). Everything else is a neutral gray, one accent (a gray), one danger color, the two amount colors and the category palette.
 
 | Token                       | Light       | Dark        | Use                                                                                                                                                  |
 | --------------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--color-bg-primary`        | `#fff`      | `#000`      | Page background, and the text of a toast                                                                                                             |
-| `--color-bg-secondary`      | `#f4f4f4`   | `#141414`   | Header and raised surfaces. The browser toolbar matches it                                                                                           |
+| `--color-bg-primary`        | `#fff`      | `#121212`   | Page background, and the text of a toast                                                                                                             |
+| `--color-bg-secondary`      | `#f4f4f4`   | `#1e1e1e`   | Header and raised surfaces. The browser toolbar matches it                                                                                           |
 | `--color-content-primary`   | `#000`      | `#fff`      | Text and icons                                                                                                                                       |
 | `--color-content-secondary` | `#595959`   | `#a3a3a3`   | Secondary text, and the thumb of a scrollbar                                                                                                         |
 | `--color-border`            | `#000`      | `#fff`      | Structural borders (ink), and the fill of a toast                                                                                                    |
-| `--color-border-subtle`     | `#d4d4d4`   | `#2e2e2e`   | Hairline dividers                                                                                                                                    |
+| `--color-border-subtle`     | `#d4d4d4`   | `#363636`   | Hairline dividers                                                                                                                                    |
 | `--color-accent`            | `#404040`   | `#d4d4d4`   | The interface hue: links, selection, primary action (a gray, see Accent)                                                                             |
 | `--color-bg-accent`         | accent      | accent      | Fill behind a primary action                                                                                                                         |
 | `--color-content-on-accent` | `#fff`      | `#000`      | Text on that fill                                                                                                                                    |
@@ -38,17 +38,19 @@ The base is white (light theme) or black (dark theme), with text in the opposite
 | `--color-money-in`          | `#166534`   | `#4ade80`   | What adds to a balance, on an amount that shows it (see Amount colors)                                                                               |
 | `--color-money-out`         | `#c81e1e`   | `#f87171`   | What takes from a balance, on an amount that shows it (see Amount colors)                                                                            |
 
+In the black tone the three surfaces are `--color-bg-primary` `#000`, `--color-bg-secondary` `#141414` and `--color-border-subtle` `#2e2e2e`; the rest of the dark column is the same in both tones. The dark side of those three reads `--dark-bg-primary`, `--dark-bg-secondary` and `--dark-border-subtle`, which `data-dark-tone="black"` on `<html>` redefines.
+
 Rules:
 
 - One accent and one danger color. There are no success or warning colors: use text, an icon or position instead. The amount colors (see Amount colors) say only which way an amount goes. A new color needs a reason and an update to this table.
 - Components use only the semantic `--color-*` tokens, never raw values. Raw values live in `tokens.css`.
 - Never convey meaning by color alone.
 - What someone owes or is owed is not an error: the words say it ("You owe", "owes you", "Nothing to settle"), and the amount may add its own colors (see Amount colors), never `--color-danger`, which stays for errors and for what deletes.
-- Contrast follows WCAG 2 AA: 4.5:1 for text, 3:1 for focus rings and the marks of a chart. Structural borders are ink, 18:1 or more. Two decorations are not held to 3:1, because something else says what they frame (owner decision, 2026-10-29):
+- Contrast follows WCAG 2 AA: 4.5:1 for text, 3:1 for focus rings and the marks of a chart. Structural borders are ink, 18:1 or more (16.7:1 on the header surface of the standard dark tone). Two decorations are not held to 3:1, because something else says what they frame (owner decision, 2026-10-29):
     - The hairline `--color-border-subtle`, 1.4 to 1.6:1 in both themes. It draws disabled notches, quiet notices, the Delete notch, the chart grid and the rules of the numbers table; the text names each box.
     - The ink notch on an accent fill (primary button, checked option of a choice group, pressed toggle), 1.5 to 2.4:1 in dark and 2.0 to 4.2:1 in light. The fill, at 4.5:1 or more against the page, is what marks the control.
 
-    Every other pair in the table was checked on 2026-10-25 (text on a background: 4.5:1 at worst; ink on background: 18:1 or more). Check again when a value changes.
+    Every other pair in the table was checked on 2026-10-25 (text on a background: 4.5:1 at worst; ink on background: 18:1 or more, 16.7:1 on the standard dark header). Check again when a value changes.
 
 - Category colors have their own rules (see Category colors).
 
@@ -65,7 +67,7 @@ An amount can show which way it goes, from the side of whoever its line is about
 | `--color-money-in`  | `#166534` | `#4ade80` | `#1d4ed8` / `#8aa4ff`          |
 | `--color-money-out` | `#c81e1e` | `#f87171` | `#9a4a00` / `#fb923c`          |
 
-- Each reaches 4.5:1 as text on both surfaces in its theme (the worst, on `--color-bg-secondary`: 6.5, 5.2, 6.1 and 5.7:1 in light; 10.6, 6.7, 7.8 and 8.1:1 in dark). Checked on 2026-11-15.
+- Each reaches 4.5:1 as text on both surfaces in its theme (the worst, on `--color-bg-secondary`: 6.5, 5.2, 6.1 and 5.7:1 in light; 10.6, 6.7, 7.8 and 8.1:1 in the black dark tone, 9.6, 6.0, 7.0 and 7.4:1 in the standard one). Checked on 2026-11-15, the standard tone on 2026-11-27.
 - `--color-money-out` has the value of `--color-danger` in the default palette but is a token of its own: owing is not an error, and the palette for color blindness changes one and not the other.
 
 ### Category colors
@@ -83,21 +85,21 @@ Every category has a color and an icon (see Icons). The color only helps to find
 | `yellow`     | `#978e0c` | `#f0e442` | Health, Personal |
 | `gray`       | `#767676` | `#767676` | Other            |
 
-- Seven of them are the Okabe-Ito set, designed for color-vision deficiency; gray is for "Other". Each tone is adjusted per theme to reach 3:1 against both surfaces (3.08:1 at worst in light, 3.55:1 in dark), the WCAG minimum for graphics.
+- Seven of them are the Okabe-Ito set, designed for color-vision deficiency; gray is for "Other". Each tone is adjusted per theme to reach 3:1 against both surfaces (3.08:1 at worst in light, 3.55:1 in the black dark tone and 3.21:1 in the standard one), the WCAG minimum for graphics.
 - Tokens are `--color-category-<key>`, defined with `light-dark()`. The database stores the key, never the value, so retuning a tone is a CSS change.
 - A category color paints its icon and, in the charts, its segment of the split by category (owner decision, 2026-10-29; the owner keeps the category colors, 2026-11-21), and nothing else. It is never used for text, borders or fills behind text.
 - Default categories have a fixed color and icon, defined in `core/` next to their ids. There are eleven and the palette has eight colors, with no ninth that color-vision deficiency keeps apart from the others, so three pairs of related categories share one: Treats has Leisure's purple, Personal has Health's yellow and Gifts has Housing's orange, and the icon and the name tell them apart, as they already do for the custom categories once every color is taken. Gray stays for Other alone. Custom categories choose one of the eight colors and one icon when created or edited, in a picker behind "Color and icon", two `ChoiceGroup`s of swatches: each color is drawn on the current icon and each icon in the current color, and the chosen one is filled with the accent like any other choice, its icon turning one color, so the preview next to the name (in the form that adds a category and in the one that edits it) is what shows the color chosen; the default is the least used by the user's own categories among the seven that stand out (the first one on ties, never gray) and the generic icon.
 
 ### Themes
 
-Three settings: light (the default), dark and system, which follows the OS.
+Three settings: light (the default), dark and system, which follows the OS. The dark theme, also when system makes it dark, has two tones: standard (the default) and black (true black), behind the Pure black switch under the theme, kept under `tarja:dark-tone` ([ADR-0047](../docs/adr/0047-the-dark-theme-has-two-tones.md)).
 
 - Tokens are defined once with `light-dark()`. `:root` has `color-scheme: light`, which is the default look; `data-theme="dark"` on `<html>` forces dark and `data-theme="system"` sets `color-scheme: light dark`, so the OS preference applies. Once the app runs the theme is always written on `<html>`, light included.
-- The default is no longer what the OS says, so a small inline script at the top of `index.html` copies the saved `tarja:theme` to `<html>` before the first paint: whoever chose dark or system doesn't see the default flash. It also sets the browser toolbar color (below) before the first paint. It is the only inline script, and its key is the one of `src/lib/theme`.
+- The default is no longer what the OS says, so a small inline script at the top of `index.html` copies the saved `tarja:theme` to `<html>` before the first paint: whoever chose dark or system doesn't see the default flash. It does the same for a saved black tone (`data-dark-tone` on `<html>`). It also sets the browser toolbar color (below) before the first paint. It is the only inline script, and its key is the one of `src/lib/theme`.
 - A theme change reveals the new theme as ink drifting in from where it was pressed (ADR-0022, see Motion); where the browser has no view transitions, or with reduced motion, `withColorTransition` fades the colors instead of snapping: it sets `data-color-transition` on `<html>` for `--duration-slow`.
-- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference, above the inline script. For an explicit theme (light, also when nothing was saved, and dark) the inline script points them all at that theme's header surface before the first paint, so a light app on a dark phone never opens under a dark toolbar; the app keeps them there and puts them back for "system".
+- The browser toolbar color (`<meta name="theme-color">`) mirrors `--color-bg-secondary`, the header surface. `index.html` carries one per OS preference, above the inline script; the dark one holds the standard surface and, in `data-black`, the black one, which the script and the app use in the black tone. For an explicit theme (light, also when nothing was saved, and dark) the inline script points them all at that theme's header surface before the first paint, so a light app on a dark phone never opens under a dark toolbar; the app keeps them there and puts them back for "system".
 - The web app manifest (`vite.config.ts`) holds a single `theme_color` and `background_color` and can't follow the theme: the dark variant (`color_scheme_dark`) is still a proposal that Chrome on Android doesn't read, and an installed app (a WebAPK) keeps the colors it was installed with until Chrome updates it. `background_color` has the light value of `--color-bg-primary`, as light is the default, so an installed app set to dark opens on a light splash screen (Android draws it from the manifest) until the page paints.
-- On Android the status bar of an installed app follows the meta tags, but the navigation bar at the bottom takes the manifest's `theme_color`. That one is the dark value of `--color-bg-secondary` (`#141414`), the owner's choice: the bar stays dark in the dark theme and is not far off in the light one. The toolbar still follows the meta tags. A change to it reaches a phone only after the app is reinstalled or Chrome updates it.
+- On Android the status bar of an installed app follows the meta tags, but the navigation bar at the bottom takes the manifest's `theme_color`. That one is `#141414`, the header surface of the black dark tone (the standard one is `#1e1e1e`, close to it), the owner's choice: the bar stays dark in the dark theme and is not far off in the light one. The toolbar still follows the meta tags. A change to it reaches a phone only after the app is reinstalled or Chrome updates it.
 - The choice lives in `localStorage` (`tarja:theme`). The settings screen (`/settings`, linked from the header) holds it, next to the language. Both are a `ChoiceGroup`: a radio group drawn as boxes, the checked one filled with the accent. The theme lists Light and Dark first and System last, since System follows the device and is not a look of its own.
 
 ### Forced colors

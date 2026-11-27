@@ -236,7 +236,11 @@
             "title": "Theme",
             "system": "System",
             "light": "Light",
-            "dark": "Dark"
+            "dark": "Dark",
+            "black": {
+                "label": "Pure black",
+                "hint": "Only with Dark or System."
+            }
         },
         "amounts": {
             "title": "Amounts",
