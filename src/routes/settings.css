@@ -25,6 +25,12 @@
     padding: 0;
 }
 
+/* Right under the title, the cards come up by the room a card leaves over its title, so the title of the first sits as
+   far from the heading as the first section of any other page */
+.screen-title + .settings__cards {
+    margin-block-start: calc(var(--size-4) - var(--size-8));
+}
+
 .settings__item {
     display: grid;
     gap: var(--size-1);

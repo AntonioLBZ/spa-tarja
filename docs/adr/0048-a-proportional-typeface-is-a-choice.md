@@ -18,7 +18,7 @@ Everything is set in IBM Plex Mono: monospace lines the digits up and fits the l
 - **IBM Plex Sans is the only alternative**: the proportional sister of Plex Mono, from the same family, so the app keeps its character and only reads looser. SIL OFL 1.1, from `@fontsource/ibm-plex-sans`, the latin subset in 400 and 700, about 23 KB each, served and precached by the app like Plex Mono and downloaded only when it is used; it is not preloaded.
 - **A choice of the device**: a `ChoiceGroup` "Typeface" (Monospace, Proportional) on Settings → Appearance, after the theme, kept in `localStorage` under `tarja:typeface` and written on `<html>` as `data-typeface="sans"`; monospace leaves the root bare. The inline script of `index.html` puts it on the page before the first paint, as it does for the theme.
 - **Named for what it is**, Monospace and Proportional, never after the font.
-- With the proportional face the digits are tabular (`--font-numeric`), so amounts still line up in columns and totals, and what is measured in characters gives a word more room (`--font-word-scale`), since its letters are not all as wide as a "0".
+- With the proportional face the digits are tabular (`--font-numeric`), so amounts still line up in columns and totals. What is measured in characters, the widest word of a `ChoiceGroup`, gets no more room: measured on the font, the words of its options take 77 to 95 % of as many zeros in IBM Plex Sans ("Monoespaciada" 113 px against 125 px in Plex Mono), so a group breaks into rows the same way in either face and doesn't jump when the typeface is switched.
 
 ## Consequences
 
@@ -26,6 +26,7 @@ Everything is set in IBM Plex Mono: monospace lines the digits up and fits the l
 - The dot leaders still work, since the box cuts them; their dots sit closer or further apart with the proportional face.
 - Storybook has a Typeface toolbar, beside the Theme one, so every story can be checked in either face.
 - The privacy notice lists the typeface among the preferences kept on the device.
+- A label of a few short words with capitals ("Gym") can run past its zeros in the proportional face, but a group sizes its columns by its widest word, which is always long.
 - The look is checked in monospace first; the proportional face is checked for what breaks (a word cut in a `ChoiceGroup`, a column measured in characters), not drawn for.
 
 ## Alternatives considered

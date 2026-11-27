@@ -45,18 +45,18 @@ describe('settings', () => {
 
     describe('language', () => {
         it('names each language in itself and marks the current one', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             expect((await radio('English')).checked).toBe(true);
             expect((await radio('Español')).checked).toBe(false);
         });
 
         it('switches the language, translates the page and keeps the choice', async () => {
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/appearance' });
 
             fireEvent.click(await radio('Español'));
 
-            expect(await screen.findByRole('heading', { name: es.settings.title })).toBeDefined();
+            expect(await screen.findByRole('heading', { level: 1, name: es.settings.appearance.title })).toBeDefined();
             expect(root.lang).toBe('es');
             expect(localStorage.getItem('tarja:locale')).toBe('es');
             expect((await radio('Español')).checked).toBe(true);
@@ -66,11 +66,11 @@ describe('settings', () => {
     describe('the page of settings', () => {
         const link = (name: string) => screen.getByRole('link', { name });
 
-        it('holds the language, the three cards together, Notifications and About, in this order', async () => {
+        it('holds the three cards together, Notifications and About, in this order', async () => {
             stubApi(createFakeApi().handler);
             renderApp({ path: '/settings' });
 
-            const language = await screen.findByRole('group', { name: en.settings.language.title });
+            await screen.findByRole('link', { name: en.settings.appearance.title });
             const links = [en.settings.appearance.title, en.settings.categories.title, en.settings.account.title].map(
                 link
             );
@@ -80,12 +80,13 @@ describe('settings', () => {
 
             expect(links.every((item) => item.closest('ul') === list)).toBe(true);
             expect(within(list).getAllByRole('link')).toEqual(links);
-            const order = [language, list, notifications, about];
+            const order = [list, notifications, about];
             for (let i = 1; i < order.length; i++) {
                 expect(
                     order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING
                 ).toBeTruthy();
             }
+            expect(screen.queryByRole('group', { name: en.settings.language.title })).toBeNull();
             expect(screen.queryByRole('group', { name: en.settings.theme.title })).toBeNull();
             expect(screen.queryByRole('heading', { name: en.settings.data.title })).toBeNull();
         });
@@ -178,15 +179,20 @@ describe('settings', () => {
     });
 
     describe('the page of appearance', () => {
-        it('has its title, the theme first and Amounts under it', async () => {
+        it('has its title, the language first, the theme and Amounts under it', async () => {
             renderApp({ path: '/settings/appearance' });
 
             const title = await screen.findByRole('heading', { level: 1, name: en.settings.appearance.title });
+            const language = screen.getByRole('group', { name: en.settings.language.title });
             const theme = screen.getByRole('group', { name: en.settings.theme.title });
             const amounts = screen.getByRole('heading', { name: en.settings.amounts.title });
 
-            expect(title.compareDocumentPosition(theme) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-            expect(theme.compareDocumentPosition(amounts) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            const order = [title, language, theme, amounts];
+            for (let i = 1; i < order.length; i++) {
+                expect(
+                    order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING
+                ).toBeTruthy();
+            }
         });
     });
 

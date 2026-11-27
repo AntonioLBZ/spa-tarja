@@ -234,8 +234,8 @@
             "title": "Language"
         },
         "appearance": {
-            "title": "Appearance",
-            "hint": "Theme and amounts"
+            "title": "Appearance and language",
+            "hint": "Language, theme, typeface and amounts"
         },
         "theme": {
             "title": "Theme",

@@ -234,8 +234,8 @@
             "title": "Idioma"
         },
         "appearance": {
-            "title": "Apariencia",
-            "hint": "Tema e importes"
+            "title": "Apariencia e idioma",
+            "hint": "Idioma, tema, tipografía e importes"
         },
         "theme": {
             "title": "Tema",

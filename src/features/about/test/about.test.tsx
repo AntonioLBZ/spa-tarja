@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
@@ -102,8 +102,8 @@ describe('About', () => {
 
     it('is written in Spanish when the language is', async () => {
         stubApi(createFakeApi().handler);
+        localStorage.setItem('tarja:locale', 'es');
         renderApp({ path: '/settings' });
-        fireEvent.click(await screen.findByRole('radio', { name: 'Español' }));
 
         const heading = await screen.findByRole('heading', { name: es.settings.about.title });
         const about = within(heading.closest('section')!);
@@ -135,7 +135,23 @@ describe('About', () => {
         expect(link.getAttribute('target')).toBe('_blank');
     });
 
-    it('links to the design system from the last row', async () => {
+    it('lists the status, the code, the design system and the version last, with nothing under them', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/settings' });
+
+        const about = await openAbout();
+
+        const terms = about.getAllByRole('term').map((term) => term.textContent);
+        expect(terms).toEqual([
+            en.settings.about.status.label,
+            en.settings.about.source.label,
+            en.settings.about.designSystem.label,
+            en.settings.about.version,
+        ]);
+        expect(about.queryByRole('button')).toBeNull();
+    });
+
+    it('links to the design system from a row of its own', async () => {
         stubApi(createFakeApi().handler);
         renderApp({ path: '/settings' });
 
