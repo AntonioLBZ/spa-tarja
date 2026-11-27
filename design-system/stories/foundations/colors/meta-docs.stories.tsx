@@ -9,10 +9,11 @@ const GROUPS = ['--color-bg-', '--color-content-', '--color-border', '--color-mo
 
 interface SwatchesProps {
     tokens: Token[];
+    literal?: boolean;
 }
 
 const Swatches = (props: SwatchesProps) => {
-    const { tokens } = props;
+    const { tokens, literal = false } = props;
 
     return (
         <ul className="swatch-grid">
@@ -20,7 +21,10 @@ const Swatches = (props: SwatchesProps) => {
                 const pair = splitLightDark(token.value);
                 return (
                     <li className="swatch" key={token.name}>
-                        <div className="swatch__chip" style={{ '--swatch': `var(${token.name})` } as CSSProperties} />
+                        <div
+                            className="swatch__chip"
+                            style={{ '--swatch': literal ? token.value : `var(${token.name})` } as CSSProperties}
+                        />
                         <span className="swatch__name">{token.name}</span>
                         <span className="swatch__value">
                             {pair ? `light ${pair.light} · dark ${resolveToken(pair.dark)}` : token.value}
@@ -60,10 +64,8 @@ export const Rest = () => {
 export const DarkTones = () => {
     return (
         <div className="swatch-tones">
-            <Swatches tokens={tokensWith('--dark-')} />
-            <div data-dark-tone="oled">
-                <Swatches tokens={tokensUnder("[data-dark-tone='oled']")} />
-            </div>
+            <Swatches tokens={tokensWith('--dark-')} literal />
+            <Swatches tokens={tokensUnder(":root[data-dark-tone='oled']")} literal />
         </div>
     );
 };

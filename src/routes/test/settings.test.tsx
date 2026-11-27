@@ -268,6 +268,50 @@ describe('settings', () => {
             await waitFor(() => expect(root.dataset.darkTone).toBe('oled'));
         });
 
+        it('shows pure black off on the light theme and keeps the choice for when it is dark again', async () => {
+            localStorage.setItem('tarja:dark-tone', 'oled');
+            renderApp({ path: '/settings/appearance' });
+            const oled = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.oled.label,
+            })) as HTMLInputElement;
+
+            expect(oled.checked).toBe(false);
+            expect(oled.disabled).toBe(true);
+
+            fireEvent.click(await radio(en.settings.theme.dark));
+
+            expect(oled.checked).toBe(true);
+            expect(root.dataset.darkTone).toBe('oled');
+        });
+
+        it('fades into the other tone while the page is dark', async () => {
+            localStorage.setItem('tarja:theme', 'dark');
+            root.style.setProperty('--duration-slow', '50ms');
+            renderApp({ path: '/settings/appearance' });
+
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.oled.label }));
+
+            expect(root.dataset.darkTone).toBe('oled');
+            expect(root.hasAttribute('data-color-transition')).toBe(true);
+            await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));
+        });
+
+        it('changes the tone at once while System shows the light theme', async () => {
+            vi.stubGlobal('matchMedia', (media: string) => ({
+                matches: !media.includes('dark'),
+                addEventListener: () => undefined,
+                removeEventListener: () => undefined,
+            }));
+            localStorage.setItem('tarja:theme', 'system');
+            root.style.setProperty('--duration-slow', '50ms');
+            renderApp({ path: '/settings/appearance' });
+
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.oled.label }));
+
+            expect(root.dataset.darkTone).toBe('oled');
+            expect(root.hasAttribute('data-color-transition')).toBe(false);
+        });
+
         it('comes back with the stored theme', async () => {
             localStorage.setItem('tarja:theme', 'dark');
 

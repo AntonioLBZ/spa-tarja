@@ -98,7 +98,7 @@
     color-scheme: dark;
 }
 
-[data-dark-tone='oled'] {
+:root[data-dark-tone='oled'] {
     --dark-bg-primary: #000;
     --dark-bg-secondary: #141414;
     --dark-border-subtle: #2e2e2e;

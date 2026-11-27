@@ -161,9 +161,28 @@ describe('the script that runs before the first paint', () => {
         const metas = addToolbarColors();
 
         runFirstPaint();
+
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
+    });
+
+    it('lets the app give the standard dark surface back after an OLED first paint', () => {
+        localStorage.setItem('tarja:theme', 'system');
+        localStorage.setItem('tarja:dark-tone', 'oled');
+        const metas = addToolbarColors();
+        runFirstPaint();
 
         syncThemeColor('system', 'standard');
+
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#1e1e1e']);
+    });
+
+    it('keeps the standard dark surface for a saved dark theme with an unknown tone', () => {
+        localStorage.setItem('tarja:theme', 'dark');
+        localStorage.setItem('tarja:dark-tone', 'dim');
+        const metas = addToolbarColors();
+
+        runFirstPaint();
+
+        expect(metas.map((meta) => meta.content)).toEqual(['#1e1e1e', '#1e1e1e']);
     });
 });

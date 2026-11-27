@@ -21,7 +21,7 @@ The dark theme has been true black since it was drawn. Black saves battery and l
 
 ## Consequences
 
-- In the standard tone the ink (`--color-border` and the text on the header) reaches 16.6:1 on `#1e1e1e` instead of the 18:1 of black; still far past AA.
+- In the standard tone the ink (`--color-border` and the text on the header) reaches 16.7:1 on `#1e1e1e` instead of the 18:1 of black; still far past AA.
 - The toolbar color of the dark preference has two values; `index.html` carries the OLED one beside it.
 - The manifest's `theme_color` (the navigation bar of an installed Android app) stays `#141414`, close to both tones.
 - Turning the switch while the page is dark reveals the new tone as an ink drift, like a theme change ([ADR-0022](0022-the-theme-changes-as-an-ink-drift.md)).

@@ -28,7 +28,7 @@ const Appearance = () => {
                 <Checkbox
                     label={t('theme.oled.label')}
                     hint={t('theme.oled.hint')}
-                    checked={darkTone === 'oled'}
+                    checked={theme !== 'light' && darkTone === 'oled'}
                     disabled={theme === 'light'}
                     onChange={(oled) => setDarkTone(oled ? 'oled' : 'standard')}
                 />

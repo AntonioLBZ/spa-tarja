@@ -239,7 +239,7 @@
             "dark": "Oscuro",
             "oled": {
                 "label": "Negro puro",
-                "hint": "Para pantallas OLED: el tema oscuro sobre fondo negro en vez de gris oscuro."
+                "hint": "Para pantallas OLED, con Oscuro o Sistema: el tema oscuro sobre fondo negro en vez de gris oscuro."
             }
         },
         "amounts": {
