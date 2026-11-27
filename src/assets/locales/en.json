@@ -239,7 +239,7 @@
             "dark": "Dark",
             "black": {
                 "label": "Pure black",
-                "hint": "The dark theme on a black background instead of a dark gray. Only with Dark or System."
+                "hint": "Only with Dark or System."
             }
         },
         "amounts": {

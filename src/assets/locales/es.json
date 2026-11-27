@@ -239,7 +239,7 @@
             "dark": "Oscuro",
             "black": {
                 "label": "Negro puro",
-                "hint": "El tema oscuro sobre fondo negro en vez de gris oscuro. Solo con Oscuro o Sistema."
+                "hint": "Solo con Oscuro o Sistema."
             }
         },
         "amounts": {

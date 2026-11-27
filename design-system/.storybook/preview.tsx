@@ -81,7 +81,7 @@ const preview: Preview = {
     ],
     globalTypes: {
         theme: {
-            description: 'Theme, and for the dark ones whether it is pure black',
+            description: 'Theme, and for dark whether it is pure black',
             toolbar: {
                 title: 'Theme',
                 icon: 'contrast',

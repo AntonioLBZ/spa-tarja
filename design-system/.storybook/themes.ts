@@ -55,13 +55,12 @@ const storybookThemes = (palette: Palette, version = ''): Record<Mode, ThemeVars
     };
 };
 
-// The choices of the Theme toolbar: the theme of the app and, for the ones that can be dark, its tone (ADR-0047)
+// The choices of the Theme toolbar: the theme of the app and, for dark, its tone (ADR-0047). The app's System only
+// picks one of these, so it has no choice of its own here
 const APPEARANCES = {
     light: { theme: 'light', darkTone: 'standard', title: 'light' },
     dark: { theme: 'dark', darkTone: 'standard', title: 'dark' },
     'dark-black': { theme: 'dark', darkTone: 'black', title: 'dark · pure black' },
-    system: { theme: 'system', darkTone: 'standard', title: 'system' },
-    'system-black': { theme: 'system', darkTone: 'black', title: 'system · pure black' },
 } as const;
 
 type AppearanceKey = keyof typeof APPEARANCES;
@@ -71,14 +70,11 @@ const appearanceOf = (value: unknown) => {
     return APPEARANCES[key ?? 'light'];
 };
 
-const DARK_SCHEME = '(prefers-color-scheme: dark)';
-
-// The value of the Theme toolbar as the look painted: `system` follows the device
+// The value of the Theme toolbar as the look painted
 const resolveTheme = (value: unknown): Mode => {
     const { theme, darkTone } = appearanceOf(value);
-    const dark = theme === 'dark' || (theme === 'system' && window.matchMedia(DARK_SCHEME).matches);
-    if (!dark) return 'light';
+    if (theme === 'light') return 'light';
     return darkTone === 'black' ? 'black' : 'dark';
 };
 
-export { APPEARANCES, DARK_SCHEME, appearanceOf, resolveTheme, storybookThemes, type AppearanceKey };
+export { APPEARANCES, appearanceOf, resolveTheme, storybookThemes, type AppearanceKey };
