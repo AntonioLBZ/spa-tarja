@@ -358,6 +358,10 @@
                 "label": "Source code",
                 "value": "GitHub"
             },
+            "designSystem": {
+                "label": "Design system",
+                "value": "Storybook"
+            },
             "version": "Version",
             "status": {
                 "label": "Status",

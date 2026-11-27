@@ -134,4 +134,16 @@ describe('About', () => {
         expect(link.getAttribute('href')).toBe('https://github.com/AntonioLBZ/spa-tarja');
         expect(link.getAttribute('target')).toBe('_blank');
     });
+
+    it('links to the design system from the last row', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/settings' });
+
+        const about = await openAbout();
+
+        const link = row(about, en.settings.about.designSystem.label).querySelector('a')!;
+        expect(link.textContent).toBe(en.settings.about.designSystem.value);
+        expect(link.getAttribute('href')).toBe('https://tarja-storybook.albz.app');
+        expect(link.getAttribute('target')).toBe('_blank');
+    });
 });
