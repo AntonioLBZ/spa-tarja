@@ -7,7 +7,7 @@ interface Palette {
     colors: Record<Mode, Record<string, string>>;
 }
 
-// The colors of `tokens.css` for each theme, with the tokens that point at another one resolved
+// The colors of the tokens for each theme, with the tokens that point at another one resolved
 const paletteOf = (css: string): Palette => {
     const tokens = new Map(declarationsOf(blockOf(css, ':root')).map((token) => [token.name, token.value]));
     const resolve = (value: string): string => {

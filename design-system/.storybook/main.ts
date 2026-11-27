@@ -12,7 +12,7 @@ const MANAGER_HEAD = `
 <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
 <script>
     window.TARJA_TOKENS_CSS = ${JSON.stringify(tokensCss).replaceAll('<', '\\u003c')};
-    window.TARJA_VERSION = ${JSON.stringify(version)};
+    window.TARJA_VERSION = ${JSON.stringify(version).replaceAll('<', '\\u003c')};
 </script>
 <style>
     @font-face {

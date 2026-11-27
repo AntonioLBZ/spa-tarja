@@ -281,6 +281,7 @@ describe('the storybook', () => {
         expect(storybookJob).toContain('run: pnpm deploy:storybook');
         expect(job(text, 'tag')).not.toContain('storybook');
         expect(job(text, 'check')).not.toContain('storybook');
+        expect(job(text, 'check')).not.toContain('design-system');
         expect(workflow('prerelease.yml')).not.toContain('storybook');
     });
 
@@ -302,5 +303,13 @@ describe('the storybook', () => {
         expect(headers).toContain('X-Frame-Options: SAMEORIGIN');
         expect(headers).toContain('X-Content-Type-Options: nosniff');
         expect(headers).toContain('Referrer-Policy: strict-origin');
+    });
+});
+
+describe('the storybook build', () => {
+    it('copies its own static folder, with the headers and the favicon', () => {
+        expect(read('design-system/.storybook/main.ts')).toContain("staticDirs: [\n        '../public',");
+        expect(files('design-system/public')).toEqual(['favicon.svg']);
+        expect(read('design-system/public/favicon.svg')).toContain('#009e73');
     });
 });

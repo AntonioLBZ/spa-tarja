@@ -1,7 +1,7 @@
 import tokensCss from '@/assets/styles/tokens.css?raw';
 import { blockOf, declarationsOf, splitLightDark, type Token } from '@storybook-config/token-values';
 
-// The rule of a selector in `tokens.css`
+// The rule of a selector among the tokens
 const blockOfTokens = (selector: string): string => blockOf(tokensCss, selector);
 
 // The first `:root` block is where the tokens are defined; the blocks after it only override some of them
