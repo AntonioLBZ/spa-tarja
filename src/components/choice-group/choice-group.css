@@ -22,11 +22,11 @@
     overflow: clip;
 }
 
-/* As many to a row as hold the widest word with their edge and room, and every row fills the line */
+/* As many to a row as hold the widest word with their edge and room, and every row fills the line. Measured in "0"s,
+   which the words of the proportional face never outgrow, so a group breaks the same in either face (ADR-0049) */
 .choice-group__option {
     display: grid;
-    flex: 1 1
-        min(100%, calc(var(--choice-word) * var(--font-word-scale) + var(--size-px) + var(--size-4) + var(--size-2)));
+    flex: 1 1 min(100%, calc(var(--choice-word) + var(--size-px) + var(--size-4) + var(--size-2)));
     min-width: 0;
     position: relative;
 }

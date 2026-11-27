@@ -32,7 +32,7 @@ const ChoiceGroup = <Value extends string>(props: ChoiceGroupProps<Value>) => {
     const legendClsx = clsx('choice-group__legend', { 'visually-hidden': tabs });
     const inputClsx = clsx('visually-hidden', 'choice-group__input');
     const textClsx = (checked: boolean) => (tabs ? clsx('tab', { 'tab--current': checked }) : 'choice-group__text');
-    // In characters, which a proportional typeface widens: a column has to hold the widest word whole
+    // In characters: a column has to hold the widest word whole
     const widestWord = Math.max(...options.flatMap((option) => option.label.split(/\s+/)).map((word) => word.length));
     const optionsStyle = swatch || tabs ? undefined : ({ '--choice-word': `${widestWord}ch` } as CSSProperties);
 

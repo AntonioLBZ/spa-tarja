@@ -27,9 +27,6 @@
     /* How the digits are spaced: monospace lines them up already, a proportional face takes tabular ones */
     --font-numeric: normal;
 
-    /* How much wider than a "0" a word measured in characters may be: 1 in monospace */
-    --font-word-scale: 1;
-
     /* The logo's face: only the name is set in it, falling back to the page font */
     --font-family-brand: 'Dot Matrix', var(--font-family);
 
@@ -115,7 +112,6 @@
 :root[data-typeface='sans'] {
     --font-family: 'IBM Plex Sans', system-ui, sans-serif;
     --font-numeric: tabular-nums;
-    --font-word-scale: 1.3;
 }
 
 /* The amount colors for color blindness: a blue and an orange the common deficiencies keep apart */

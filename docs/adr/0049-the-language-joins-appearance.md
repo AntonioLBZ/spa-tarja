@@ -2,7 +2,7 @@
 status: Proposed
 date: 2026-11-27
 tags: [settings, navigation]
-refines: [ADR-0032]
+refines: [ADR-0032, ADR-0048]
 specs: [settings.md]
 summary: 'The language joins Appearance; the privacy notice moves to Your data; the version goes last in About.'
 ---
@@ -19,11 +19,13 @@ ADR-0032 kept the language on `/settings` because it changes in a press. In prac
 - **`/settings`** holds the three cards, Notifications and About Tarja, in this order.
 - **The privacy notice moves to Your data**, on the account page: its ghost button goes after the downloads and the printable view. The sign-in screen keeps its own.
 - **About Tarja** is a list of four rows: Status, Source code, Design system, then Version, last.
+- **A word gets no extra room in the proportional face** (refining ADR-0048): a `ChoiceGroup` measures its widest word in characters, the width of a "0", in either face. Measured on the font, the words of its options take 77 to 95 % of that width in IBM Plex Sans ("Monoespaciada" 113 px against 125 px in Plex Mono), so the 30 % more room it had was never needed, and it made the Typeface group itself break into one row or two as it was switched, under the finger, on a phone about 390 px wide.
 
 ## Consequences
 
 - A person who ends up in a language they can't read finds it one tap deeper; the names of the languages are still written in themselves.
 - About Tarja is only rows, with no loose button under them.
+- `--font-word-scale` goes. A label of a few short words with capitals ("Gym") can run past its zeros in the proportional face, but a group sizes its columns by the widest word, which is always long.
 - The privacy notice still names where the controls are, under Account, and now sits beside them.
 
 ## Alternatives considered
