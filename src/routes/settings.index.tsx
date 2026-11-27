@@ -4,14 +4,12 @@ import { useId } from 'react';
 import { useTranslations } from 'use-intl';
 
 import { Card } from '@/components/card/card';
-import { ChoiceGroup } from '@/components/choice-group/choice-group';
 import { Icon } from '@/components/icon/icon';
 import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { About } from '@/features/about/about';
 import { NotificationsSection } from '@/features/notifications/notifications-section';
 import { profileQuery } from '@/lib/api';
 import { useUser } from '@/lib/auth';
-import { LOCALES, LOCALE_NAMES, useLocale } from '@/lib/i18n';
 import { personName } from '@core/groups/shared-group';
 
 import './settings.css';
@@ -60,21 +58,13 @@ const AccountCard = () => {
     );
 };
 
-// The language, the pages of the settings, the notifications and what the app is (ADR-0032)
+// The pages of the settings, the notifications and what the app is (ADR-0032, ADR-0049)
 const Settings = () => {
     const t = useTranslations('settings');
-    const { locale, setLocale } = useLocale();
 
     return (
         <section className="settings">
             <ScreenTitle>{t('title')}</ScreenTitle>
-            <ChoiceGroup
-                legend={t('language.title')}
-                name="locale"
-                options={LOCALES.map((value) => ({ value, label: LOCALE_NAMES[value] }))}
-                value={locale}
-                onChange={setLocale}
-            />
             <ul className="settings__cards" role="list">
                 <SettingsCard to="/settings/appearance" title={t('appearance.title')} hint={t('appearance.hint')} />
                 <SettingsCard to="/settings/categories" title={t('categories.title')} hint={t('categories.hint')} />

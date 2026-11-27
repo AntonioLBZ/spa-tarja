@@ -286,9 +286,10 @@ describe('a device where nobody is signed in', () => {
 
 describe('the privacy notice', () => {
     it('says what notifications keep and who carries them', async () => {
-        await openSettings();
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/settings/account' });
 
-        fireEvent.click(screen.getByRole('button', { name: en.privacy.open }));
+        fireEvent.click(await screen.findByRole('button', { name: en.privacy.open }));
 
         expect(await screen.findByText(en.privacy.stored.push)).toBeDefined();
         expect(screen.getByText(en.privacy.others.push)).toBeDefined();

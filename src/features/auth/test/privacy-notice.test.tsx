@@ -1,5 +1,5 @@
 import { onlineManager } from '@tanstack/react-query';
-import { fireEvent, screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import en from '@/assets/locales/en.json';
@@ -29,20 +29,30 @@ afterEach(() => {
 });
 
 describe('privacy notice in the settings', () => {
-    it('is a button in the section about Tarja, and the notice is closed until it is pressed', async () => {
+    it('is the last button of Your data on the account page, and the notice is closed until it is pressed', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
 
         const button = await openButton();
 
-        const about = screen.getByRole('heading', { name: en.settings.about.title });
-        expect(about.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const section = screen.getByRole('heading', { name: en.settings.data.title }).closest('section')!;
+        const buttons = within(section).getAllByRole('button');
+        expect(buttons[buttons.length - 1]).toBe(button);
         expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('is not on the main page of the settings', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/settings' });
+
+        await screen.findByRole('heading', { name: en.settings.about.title });
+
+        expect(screen.queryByRole('button', { name: en.privacy.open })).toBeNull();
     });
 
     it('opens as a dialog that takes the focus', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
 
         const dialog = await openNotice();
 
@@ -51,7 +61,7 @@ describe('privacy notice in the settings', () => {
 
     it('closes with its Close button and opens again', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const dialog = await openNotice();
 
         fireEvent.click(within(dialog).getByRole('button', { name: en.privacy.close }));
@@ -62,7 +72,7 @@ describe('privacy notice in the settings', () => {
 
     it('closes the way Escape closes it, which the browser may do at any time', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const dialog = (await openNotice()) as HTMLDialogElement;
         const cancel = new Event('cancel', { cancelable: true });
 
@@ -76,7 +86,7 @@ describe('privacy notice in the settings', () => {
 
     it('shows the email of the contact and links to it with the tag that tells the mail about the app apart', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const dialog = await openNotice();
 
         const link = within(dialog).getByRole('link', { name: 'antoniolozbez@gmail.com' });
@@ -89,7 +99,7 @@ describe('privacy notice in the settings', () => {
 
     it('points at the controls of the settings by the names they have there', async () => {
         stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const dialog = await openNotice();
 
         expect(dialog.textContent).toContain(en.settings.account.title);
@@ -100,9 +110,9 @@ describe('privacy notice in the settings', () => {
 
     it('sends no request of its own', async () => {
         const fetchMock = stubApi(createFakeApi().handler);
-        renderApp({ path: '/settings' });
+        renderApp({ path: '/settings/account' });
         const button = await openButton();
-        await screen.findByRole('heading', { name: en.settings.notifications.title });
+        await waitFor(() => expect(button.closest('section')!.querySelector('[disabled]')).toBeNull());
         const before = fetchMock.mock.calls.length;
 
         fireEvent.click(button);
@@ -115,7 +125,7 @@ describe('privacy notice in the settings', () => {
         it('has every section, the authority to complain to and the date of the last change', async () => {
             localStorage.setItem('tarja:locale', name);
             stubApi(createFakeApi().handler);
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/account' });
 
             const dialog = await openNotice(messages);
 
@@ -138,7 +148,7 @@ describe('privacy notice in the settings', () => {
         it('says the age, the basis, who can ask for a name to be taken out, where the data goes and for how long', async () => {
             localStorage.setItem('tarja:locale', name);
             stubApi(createFakeApi().handler);
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/account' });
 
             const dialog = await openNotice(messages);
 
@@ -160,7 +170,7 @@ describe('privacy notice in the settings', () => {
         it('reads in the order of its sections, with each added line where it belongs', async () => {
             localStorage.setItem('tarja:locale', name);
             stubApi(createFakeApi().handler);
-            renderApp({ path: '/settings' });
+            renderApp({ path: '/settings/account' });
 
             const dialog = await openNotice(messages);
 

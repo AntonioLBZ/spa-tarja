@@ -18,7 +18,7 @@ const Story: Meta = {
         withAppData,
     ],
     parameters: {
-        docs: { source: { type: 'dynamic' }, story: { inline: false, iframeHeight: 320 } },
+        docs: { source: { type: 'dynamic' }, story: { inline: false, iframeHeight: 380 } },
         appData: {
             categories: [...CUSTOM_CATEGORIES],
             expenses: [

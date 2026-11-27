@@ -4,10 +4,6 @@
     grid-template-columns: minmax(0, 1fr);
 }
 
-.about > .button {
-    justify-self: start;
-}
-
 .about__status--error {
     color: var(--color-danger);
 }

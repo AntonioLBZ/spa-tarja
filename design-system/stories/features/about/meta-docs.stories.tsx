@@ -8,7 +8,7 @@ const Story: Meta = {
     component: About,
     tags: ['!dev'],
     decorators: [withAppData],
-    parameters: { docs: { source: { type: 'dynamic' }, story: { inline: false, iframeHeight: 240 } } },
+    parameters: { docs: { source: { type: 'dynamic' }, story: { inline: false, iframeHeight: 220 } } },
 };
 
 export const Basic = () => {
