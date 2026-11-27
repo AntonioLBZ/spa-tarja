@@ -9,6 +9,11 @@
     gap: var(--size-4);
 }
 
+.settings__typeface {
+    display: grid;
+    gap: var(--size-1);
+}
+
 .settings__section {
     display: grid;
     gap: var(--size-2);

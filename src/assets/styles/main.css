@@ -1,5 +1,9 @@
 @import url('@fontsource/ibm-plex-mono/latin-400.css');
 @import url('@fontsource/ibm-plex-mono/latin-700.css');
+@import url('@fontsource/ibm-plex-sans/latin-400.css');
+@import url('@fontsource/ibm-plex-sans/latin-700.css');
+@import url('@fontsource/atkinson-hyperlegible-next/latin-400.css');
+@import url('@fontsource/atkinson-hyperlegible-next/latin-700.css');
 @import url('./fonts.css');
 @import url('./tokens.css');
 @import url('./base.css');
