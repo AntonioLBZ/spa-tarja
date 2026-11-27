@@ -156,6 +156,19 @@ describe('header', () => {
     );
 });
 
+describe('an address the app does not know', () => {
+    it('says so inside the layout, under a title of its own, with a link home', async () => {
+        stubApi(createFakeApi().handler);
+        renderApp({ path: '/nowhere' });
+
+        expect(await screen.findByRole('heading', { level: 1, name: en.notFound.title })).toBeDefined();
+        expect(screen.getByText(en.notFound.text)).toBeDefined();
+        expect(screen.getByRole('link', { name: en.notFound.home }).getAttribute('href')).toBe('/');
+        expect(document.title).toBe(`${en.notFound.title} – Tarja`);
+        expect(screen.getByRole('banner')).toBeDefined();
+    });
+});
+
 describe('prerelease logo', () => {
     afterEach(() => {
         vi.unstubAllEnvs();

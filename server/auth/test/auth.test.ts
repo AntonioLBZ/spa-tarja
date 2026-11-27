@@ -134,6 +134,7 @@ describe('/api/auth', () => {
     });
 
     it('refuses an error address on another site', async () => {
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
         const response = await post('/api/auth/sign-in/social', {
             provider: 'google',
             callbackURL: '/',
@@ -141,21 +142,29 @@ describe('/api/auth', () => {
         });
 
         expect(response.status).toBe(403);
+        expect(logged).toHaveBeenCalled();
+        logged.mockRestore();
     });
 
     it('refuses to send the person to another site once signed in', async () => {
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
         const response = await post('/api/auth/sign-in/social', {
             provider: 'google',
             callbackURL: 'https://evil.example/',
         });
 
         expect(response.status).toBe(403);
+        expect(logged).toHaveBeenCalled();
+        logged.mockRestore();
     });
 
     it('refuses a sign-out that comes from another origin', async () => {
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
         const response = await post('/api/auth/sign-out', {}, { origin: 'https://evil.example' });
 
         expect(response.status).toBe(403);
+        expect(logged).toHaveBeenCalled();
+        logged.mockRestore();
         const still = await request('/api/auth/get-session', asSession());
         expect(await still.json()).not.toBeNull();
     });

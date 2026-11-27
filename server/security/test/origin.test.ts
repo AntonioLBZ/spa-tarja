@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { app } from '@server/app';
 import { makeGroup } from '@server/testing/groups';
@@ -94,9 +94,12 @@ describe('a write from another origin', () => {
     });
 
     it('is left to Better Auth under /api/auth', async () => {
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
         const response = await from(SIBLING)('POST', '/auth/sign-out');
 
         expect(await response.text()).not.toContain('bad-origin');
+        expect(logged).toHaveBeenCalled();
+        logged.mockRestore();
         const own = await from(ORIGIN)('POST', '/auth/sign-out');
         expect(own.status).toBe(200);
     });
