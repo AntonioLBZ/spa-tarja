@@ -16,7 +16,7 @@ pnpm storybook                          # http://localhost:6006
 pnpm --filter design-system build       # a static build in design-system/storybook-static
 ```
 
-It runs on its own Vite config, without the Worker, the router or the PWA of the app, so it needs no database and no sign-in. A piece that reads data gets a signed-in person and a fake server in the page.
+Each release of the app also publishes it at https://tarja-storybook.albz.app (`pnpm deploy:storybook`). It runs on its own Vite config, without the Worker, the router or the PWA of the app, so it needs no database and no sign-in. A piece that reads data gets a signed-in person and a fake server in the page.
 
 ## The sections
 
@@ -26,7 +26,9 @@ It runs on its own Vite config, without the Worker, the router or the PWA of the
 
 ## The toolbar
 
-Every story can be seen in the light or the dark theme, in English or Spanish, with the amount colors on, off or for color blindness, and at 320, 390, 640 or 1024 px. A choice is stored like the app stores it, so the story starts again.
+Every story, and Storybook around it, can be seen in the light or the dark theme and at 320, 390, 640 or 1024 px. The language (English or Spanish) and the amount colors (on, off or for color blindness) change the features only, so the toolbar names them `features:`: a component takes its copy and its cues by props, and a foundation has neither. A choice is stored like the app stores it, so the story starts again.
+
+The sidebar header shows the version of the app the Storybook was built from.
 
 ## The files
 

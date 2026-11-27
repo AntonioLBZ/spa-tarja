@@ -71,6 +71,26 @@ jobs:
                   CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
                   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+    storybook:
+        needs: [version, release]
+        if: github.event_name == 'push' && needs.version.outputs.new == 'true'
+        runs-on: ubuntu-latest
+        concurrency:
+            group: storybook
+            cancel-in-progress: false
+        steps:
+            - uses: actions/checkout@v7
+            - uses: pnpm/action-setup@v6
+            - uses: actions/setup-node@v7
+              with:
+                  node-version-file: .nvmrc
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - run: pnpm deploy:storybook
+              env:
+                  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
     tag:
         needs: [version, release]
         if: github.event_name == 'push' && needs.version.outputs.new == 'true'

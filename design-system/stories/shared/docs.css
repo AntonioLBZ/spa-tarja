@@ -1,0 +1,5 @@
+/* The code under a story of a Docs page: Storybook paints it the page's color darkened, which stays black on black in
+   the dark theme, so a hairline parts it from the story */
+.docs-story + [id] {
+    border-block-start: var(--size-px) solid var(--color-border-subtle);
+}

@@ -6,6 +6,8 @@ import { storeLocale } from '@/lib/i18n/locale';
 import { THEMES, ThemeProvider, type Theme } from '@/lib/theme';
 import { storeTheme } from '@/lib/theme/theme';
 
+import { ThemedDocsContainer } from './docs-container';
+
 import type { Preview } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 
@@ -68,16 +70,22 @@ const preview: Preview = {
             description: 'Theme',
             toolbar: { title: 'Theme', icon: 'contrast', items: [...THEMES], dynamicTitle: true },
         },
+        // Only the features read these two: a component takes its copy and its cues by props, and a foundation neither
         amounts: {
-            description: 'How amounts show which way they go',
-            toolbar: { title: 'Amounts', icon: 'transfer', items: Object.keys(AMOUNT_CUES), dynamicTitle: true },
+            description: 'How the amounts of the features show which way they go; components take their cues by props',
+            toolbar: {
+                title: 'Amounts',
+                icon: 'transfer',
+                items: Object.keys(AMOUNT_CUES).map((cues) => ({ value: cues, title: `features: ${cues}` })),
+                dynamicTitle: true,
+            },
         },
         locale: {
-            description: 'Language',
+            description: 'Language of the features; components take their copy by props',
             toolbar: {
                 title: 'Language',
                 icon: 'globe',
-                items: LOCALES.map((locale) => ({ value: locale, title: LOCALE_NAMES[locale] })),
+                items: LOCALES.map((locale) => ({ value: locale, title: `features: ${LOCALE_NAMES[locale]}` })),
                 dynamicTitle: true,
             },
         },
@@ -85,6 +93,7 @@ const preview: Preview = {
     initialGlobals: { theme: 'light', locale: 'en', amounts: 'all cues' },
     parameters: {
         backgrounds: { disabled: true },
+        docs: { container: ThemedDocsContainer },
         options: {
             storySort: {
                 order: [
