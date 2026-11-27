@@ -7,7 +7,7 @@
         <meta name="referrer" content="strict-origin" />
         <title>Tarja</title>
         <meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#1e1e1e" data-oled="#141414" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#1e1e1e" data-black="#141414" media="(prefers-color-scheme: dark)" />
         <script>
             // Puts the saved theme and dark tone on the page before it paints, so a choice other than the default
             // (light, standard) doesn't flash. The keys and the values are those of src/lib/theme.
@@ -19,18 +19,18 @@
                     theme = saved;
                     document.documentElement.dataset.theme = theme;
                 }
-                if (localStorage.getItem('tarja:dark-tone') === 'oled') {
-                    tone = 'oled';
+                if (localStorage.getItem('tarja:dark-tone') === 'black') {
+                    tone = 'black';
                     document.documentElement.dataset.darkTone = tone;
                 }
             } catch (error) {
                 // Storage can be blocked: the defaults then apply until the app starts
             }
             // An explicit theme points every toolbar color at its own header surface, as syncThemeColor does later,
-            // keeping the per-preference colors for "system"; the OLED tone swaps the dark one for its own
+            // keeping the per-preference colors for "system"; the black tone swaps the dark one for its own
             var metas = document.querySelectorAll('meta[name="theme-color"]');
             var surfaceOf = function (meta) {
-                return tone === 'oled' && meta.dataset.oled ? meta.dataset.oled : meta.content;
+                return tone === 'black' && meta.dataset.black ? meta.dataset.black : meta.content;
             };
             var own =
                 theme === 'system'

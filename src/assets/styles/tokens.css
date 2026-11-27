@@ -53,7 +53,7 @@
     --focus-offset: 0.125rem;
     --focus-inset: calc(-1 * (var(--size-1) + var(--focus-width)));
 
-    /* The surfaces of the dark theme: a dark gray by default, pure black with the OLED tone (ADR-0047) */
+    /* The surfaces of the dark theme: a dark gray by default, pure black with the black tone (ADR-0047) */
     --dark-bg-primary: #121212;
     --dark-bg-secondary: #1e1e1e;
     --dark-border-subtle: #363636;
@@ -98,7 +98,7 @@
     color-scheme: dark;
 }
 
-:root[data-dark-tone='oled'] {
+:root[data-dark-tone='black'] {
     --dark-bg-primary: #000;
     --dark-bg-secondary: #141414;
     --dark-border-subtle: #2e2e2e;

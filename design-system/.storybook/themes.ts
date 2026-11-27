@@ -14,7 +14,7 @@ const themeFor = (palette: Palette, mode: Mode, version: string): ThemeVars => {
     const color = (name: string) => palette.colors[mode][`--color-${name}`] ?? '';
 
     return create({
-        base: mode,
+        base: mode === 'light' ? 'light' : 'dark',
         brandTitle: brandTitle(version),
         brandUrl: GETTING_STARTED,
         brandTarget: '_self',
@@ -48,16 +48,37 @@ const themeFor = (palette: Palette, mode: Mode, version: string): ThemeVars => {
 };
 
 const storybookThemes = (palette: Palette, version = ''): Record<Mode, ThemeVars> => {
-    return { light: themeFor(palette, 'light', version), dark: themeFor(palette, 'dark', version) };
+    return {
+        light: themeFor(palette, 'light', version),
+        dark: themeFor(palette, 'dark', version),
+        black: themeFor(palette, 'black', version),
+    };
+};
+
+// The choices of the Theme toolbar: the theme of the app and, for the ones that can be dark, its tone (ADR-0047)
+const APPEARANCES = {
+    light: { theme: 'light', darkTone: 'standard', title: 'light' },
+    dark: { theme: 'dark', darkTone: 'standard', title: 'dark' },
+    'dark-black': { theme: 'dark', darkTone: 'black', title: 'dark · pure black' },
+    system: { theme: 'system', darkTone: 'standard', title: 'system' },
+    'system-black': { theme: 'system', darkTone: 'black', title: 'system · pure black' },
+} as const;
+
+type AppearanceKey = keyof typeof APPEARANCES;
+
+const appearanceOf = (value: unknown) => {
+    const key = Object.keys(APPEARANCES).find((name) => name === value) as AppearanceKey | undefined;
+    return APPEARANCES[key ?? 'light'];
 };
 
 const DARK_SCHEME = '(prefers-color-scheme: dark)';
 
-// The value of the Theme toolbar as the theme painted: `system` follows the device
-const resolveTheme = (theme: unknown): Mode => {
-    if (theme === 'dark') return 'dark';
-    if (theme === 'system' && window.matchMedia(DARK_SCHEME).matches) return 'dark';
-    return 'light';
+// The value of the Theme toolbar as the look painted: `system` follows the device
+const resolveTheme = (value: unknown): Mode => {
+    const { theme, darkTone } = appearanceOf(value);
+    const dark = theme === 'dark' || (theme === 'system' && window.matchMedia(DARK_SCHEME).matches);
+    if (!dark) return 'light';
+    return darkTone === 'black' ? 'black' : 'dark';
 };
 
-export { DARK_SCHEME, resolveTheme, storybookThemes };
+export { APPEARANCES, DARK_SCHEME, appearanceOf, resolveTheme, storybookThemes, type AppearanceKey };

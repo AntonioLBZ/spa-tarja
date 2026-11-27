@@ -65,7 +65,7 @@ export const DarkTones = () => {
     return (
         <div className="swatch-tones">
             <Swatches tokens={tokensWith('--dark-')} literal />
-            <Swatches tokens={tokensUnder(":root[data-dark-tone='oled']")} literal />
+            <Swatches tokens={tokensUnder(":root[data-dark-tone='black']")} literal />
         </div>
     );
 };

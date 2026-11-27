@@ -237,9 +237,9 @@
             "system": "Sistema",
             "light": "Claro",
             "dark": "Oscuro",
-            "oled": {
+            "black": {
                 "label": "Negro puro",
-                "hint": "Para pantallas OLED, con Oscuro o Sistema: el tema oscuro sobre fondo negro en vez de gris oscuro."
+                "hint": "El tema oscuro sobre fondo negro en vez de gris oscuro. Solo con Oscuro o Sistema."
             }
         },
         "amounts": {

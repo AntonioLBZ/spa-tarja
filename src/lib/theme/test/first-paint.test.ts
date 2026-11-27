@@ -120,12 +120,12 @@ describe('the script that runs before the first paint', () => {
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#1e1e1e']);
     });
 
-    it('puts a saved OLED tone on the root, whatever the theme', () => {
-        localStorage.setItem('tarja:dark-tone', 'oled');
+    it('puts a saved black tone on the root, whatever the theme', () => {
+        localStorage.setItem('tarja:dark-tone', 'black');
 
         runFirstPaint();
 
-        expect(root.dataset.darkTone).toBe('oled');
+        expect(root.dataset.darkTone).toBe('black');
     });
 
     it('leaves the tone off the root when none or an unknown one was saved', () => {
@@ -136,9 +136,9 @@ describe('the script that runs before the first paint', () => {
         expect(root.hasAttribute('data-dark-tone')).toBe(false);
     });
 
-    it('points every toolbar color at the black header surface for a saved dark theme in the OLED tone', () => {
+    it('points every toolbar color at the black header surface for a saved dark theme in the black tone', () => {
         localStorage.setItem('tarja:theme', 'dark');
-        localStorage.setItem('tarja:dark-tone', 'oled');
+        localStorage.setItem('tarja:dark-tone', 'black');
         const metas = addToolbarColors();
 
         runFirstPaint();
@@ -146,8 +146,8 @@ describe('the script that runs before the first paint', () => {
         expect(metas.map((meta) => meta.content)).toEqual(['#141414', '#141414']);
     });
 
-    it('keeps the light toolbar for a saved light theme in the OLED tone', () => {
-        localStorage.setItem('tarja:dark-tone', 'oled');
+    it('keeps the light toolbar for a saved light theme in the black tone', () => {
+        localStorage.setItem('tarja:dark-tone', 'black');
         const metas = addToolbarColors();
 
         runFirstPaint();
@@ -155,9 +155,9 @@ describe('the script that runs before the first paint', () => {
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#f4f4f4']);
     });
 
-    it('gives the dark preference its black surface for the system theme in the OLED tone', () => {
+    it('gives the dark preference its black surface for the system theme in the black tone', () => {
         localStorage.setItem('tarja:theme', 'system');
-        localStorage.setItem('tarja:dark-tone', 'oled');
+        localStorage.setItem('tarja:dark-tone', 'black');
         const metas = addToolbarColors();
 
         runFirstPaint();
@@ -165,9 +165,9 @@ describe('the script that runs before the first paint', () => {
         expect(metas.map((meta) => meta.content)).toEqual(['#f4f4f4', '#141414']);
     });
 
-    it('lets the app give the standard dark surface back after an OLED first paint', () => {
+    it('lets the app give the standard dark surface back after a black first paint', () => {
         localStorage.setItem('tarja:theme', 'system');
-        localStorage.setItem('tarja:dark-tone', 'oled');
+        localStorage.setItem('tarja:dark-tone', 'black');
         const metas = addToolbarColors();
         runFirstPaint();
 

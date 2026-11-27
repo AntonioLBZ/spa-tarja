@@ -26,11 +26,11 @@ const Appearance = () => {
                     onChange={setTheme}
                 />
                 <Checkbox
-                    label={t('theme.oled.label')}
-                    hint={t('theme.oled.hint')}
-                    checked={theme !== 'light' && darkTone === 'oled'}
+                    label={t('theme.black.label')}
+                    hint={t('theme.black.hint')}
+                    checked={theme !== 'light' && darkTone === 'black'}
                     disabled={theme === 'light'}
-                    onChange={(oled) => setDarkTone(oled ? 'oled' : 'standard')}
+                    onChange={(black) => setDarkTone(black ? 'black' : 'standard')}
                 />
             </div>
             <AmountSettings />

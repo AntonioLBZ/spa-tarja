@@ -45,7 +45,7 @@ describe('isTheme', () => {
 
 describe('stored dark tone', () => {
     it('knows the two tones only', () => {
-        expect(['standard', 'oled'].every(isDarkTone)).toBe(true);
+        expect(['standard', 'black'].every(isDarkTone)).toBe(true);
         expect(isDarkTone('dim')).toBe(false);
         expect(isDarkTone(null)).toBe(false);
     });
@@ -58,9 +58,9 @@ describe('stored dark tone', () => {
     });
 
     it('reads back what was stored', () => {
-        storeDarkTone('oled');
+        storeDarkTone('black');
 
-        expect(readStoredDarkTone()).toBe('oled');
+        expect(readStoredDarkTone()).toBe('black');
     });
 
     it('ignores a stored value that is not a tone', () => {
@@ -78,14 +78,14 @@ describe('stored dark tone', () => {
         });
 
         expect(readStoredDarkTone()).toBe('standard');
-        expect(() => storeDarkTone('oled')).not.toThrow();
+        expect(() => storeDarkTone('black')).not.toThrow();
 
         vi.restoreAllMocks();
     });
 
     it('writes the tone on the root', () => {
-        applyDarkTone('oled');
-        expect(root.dataset.darkTone).toBe('oled');
+        applyDarkTone('black');
+        expect(root.dataset.darkTone).toBe('black');
 
         applyDarkTone('standard');
         expect(root.dataset.darkTone).toBe('standard');
@@ -373,11 +373,11 @@ describe('syncThemeColor', () => {
         expect(metas.map((meta) => meta.content)).toEqual(['#light', '#dark']);
     });
 
-    it('gives the dark preference its OLED color for the system theme in the OLED tone', () => {
+    it('gives the dark preference its black color for the system theme in the black tone', () => {
         const metas = addMetas();
-        metas[1]!.dataset.oled = '#black';
+        metas[1]!.dataset.black = '#black';
 
-        syncThemeColor('system', 'oled', () => 'unused');
+        syncThemeColor('system', 'black', () => 'unused');
         expect(metas.map((meta) => meta.content)).toEqual(['#light', '#black']);
 
         syncThemeColor('system', 'standard', () => 'unused');

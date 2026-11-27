@@ -8,8 +8,8 @@ const DEFAULT_THEME: Theme = 'light';
 
 const STORAGE_KEY = 'tarja:theme';
 
-// How dark the dark theme is: a dark gray, or pure black for OLED screens (ADR-0047)
-const DARK_TONES = ['standard', 'oled'] as const;
+// How dark the dark theme is: a dark gray, or pure black (ADR-0047)
+const DARK_TONES = ['standard', 'black'] as const;
 
 type DarkTone = (typeof DARK_TONES)[number];
 
@@ -190,14 +190,14 @@ const readSurfaceColor = (): string => {
     return color;
 };
 
-// The static HTML carries one color per OS preference, the dark one with its OLED tone beside it; an explicit theme
+// The static HTML carries one color per OS preference, the dark one with its black tone beside it; an explicit theme
 // overrides both
 const syncThemeColor = (theme: Theme, tone: DarkTone, readColor: () => string = readSurfaceColor): void => {
     const metas = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
     const surface = theme === 'system' ? null : readColor();
     for (const meta of metas) {
         meta.dataset.default ??= meta.content;
-        const preferred = tone === 'oled' ? (meta.dataset.oled ?? meta.dataset.default) : meta.dataset.default;
+        const preferred = tone === 'black' ? (meta.dataset.black ?? meta.dataset.default) : meta.dataset.default;
         meta.content = surface ?? preferred;
     }
 };

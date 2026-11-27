@@ -135,7 +135,7 @@ export default defineConfig({
                 start_url: '/',
                 scope: '/',
                 display: 'standalone',
-                // A manifest holds a single value: the dark --color-bg-secondary of the OLED tone (Android paints its
+                // A manifest holds a single value: the dark --color-bg-secondary of the black tone (Android paints its
                 // navigation bar with it) and the light --color-bg-primary (the splash screen)
                 theme_color: '#141414',
                 background_color: '#fff',

@@ -230,58 +230,58 @@ describe('settings', () => {
         it('keeps the pure black switch off and out of reach on the light theme', async () => {
             renderApp({ path: '/settings/appearance' });
 
-            const oled = await screen.findByRole('checkbox', { name: en.settings.theme.oled.label });
+            const black = await screen.findByRole('checkbox', { name: en.settings.theme.black.label });
 
-            expect((oled as HTMLInputElement).checked).toBe(false);
-            expect((oled as HTMLInputElement).disabled).toBe(true);
+            expect((black as HTMLInputElement).checked).toBe(false);
+            expect((black as HTMLInputElement).disabled).toBe(true);
             await waitFor(() => expect(root.dataset.darkTone).toBe('standard'));
         });
 
         it('turns the dark theme pure black and back, and remembers it', async () => {
             localStorage.setItem('tarja:theme', 'dark');
             renderApp({ path: '/settings/appearance' });
-            const oled = (await screen.findByRole('checkbox', {
-                name: en.settings.theme.oled.label,
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
             })) as HTMLInputElement;
 
-            fireEvent.click(oled);
-            expect(root.dataset.darkTone).toBe('oled');
-            expect(localStorage.getItem('tarja:dark-tone')).toBe('oled');
-            expect(oled.checked).toBe(true);
+            fireEvent.click(black);
+            expect(root.dataset.darkTone).toBe('black');
+            expect(localStorage.getItem('tarja:dark-tone')).toBe('black');
+            expect(black.checked).toBe(true);
 
-            fireEvent.click(oled);
+            fireEvent.click(black);
             expect(root.dataset.darkTone).toBe('standard');
             expect(localStorage.getItem('tarja:dark-tone')).toBe('standard');
         });
 
         it('lets the system theme choose its dark tone too', async () => {
             localStorage.setItem('tarja:theme', 'system');
-            localStorage.setItem('tarja:dark-tone', 'oled');
+            localStorage.setItem('tarja:dark-tone', 'black');
             renderApp({ path: '/settings/appearance' });
 
-            const oled = (await screen.findByRole('checkbox', {
-                name: en.settings.theme.oled.label,
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
             })) as HTMLInputElement;
 
-            expect(oled.disabled).toBe(false);
-            expect(oled.checked).toBe(true);
-            await waitFor(() => expect(root.dataset.darkTone).toBe('oled'));
+            expect(black.disabled).toBe(false);
+            expect(black.checked).toBe(true);
+            await waitFor(() => expect(root.dataset.darkTone).toBe('black'));
         });
 
         it('shows pure black off on the light theme and keeps the choice for when it is dark again', async () => {
-            localStorage.setItem('tarja:dark-tone', 'oled');
+            localStorage.setItem('tarja:dark-tone', 'black');
             renderApp({ path: '/settings/appearance' });
-            const oled = (await screen.findByRole('checkbox', {
-                name: en.settings.theme.oled.label,
+            const black = (await screen.findByRole('checkbox', {
+                name: en.settings.theme.black.label,
             })) as HTMLInputElement;
 
-            expect(oled.checked).toBe(false);
-            expect(oled.disabled).toBe(true);
+            expect(black.checked).toBe(false);
+            expect(black.disabled).toBe(true);
 
             fireEvent.click(await radio(en.settings.theme.dark));
 
-            expect(oled.checked).toBe(true);
-            expect(root.dataset.darkTone).toBe('oled');
+            expect(black.checked).toBe(true);
+            expect(root.dataset.darkTone).toBe('black');
         });
 
         it('fades into the other tone while the page is dark', async () => {
@@ -289,9 +289,9 @@ describe('settings', () => {
             root.style.setProperty('--duration-slow', '50ms');
             renderApp({ path: '/settings/appearance' });
 
-            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.oled.label }));
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.black.label }));
 
-            expect(root.dataset.darkTone).toBe('oled');
+            expect(root.dataset.darkTone).toBe('black');
             expect(root.hasAttribute('data-color-transition')).toBe(true);
             await waitFor(() => expect(root.hasAttribute('data-color-transition')).toBe(false));
         });
@@ -306,9 +306,9 @@ describe('settings', () => {
             root.style.setProperty('--duration-slow', '50ms');
             renderApp({ path: '/settings/appearance' });
 
-            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.oled.label }));
+            fireEvent.click(await screen.findByRole('checkbox', { name: en.settings.theme.black.label }));
 
-            expect(root.dataset.darkTone).toBe('oled');
+            expect(root.dataset.darkTone).toBe('black');
             expect(root.hasAttribute('data-color-transition')).toBe(false);
         });
 
