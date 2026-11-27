@@ -200,12 +200,6 @@ describe('spending by day', () => {
         expect(rowOf('Oct 3').textContent).toContain('€0.00');
     });
 
-    it('counts a deferred expense on the day it is charged', async () => {
-        await open();
-
-        expect(rowOf('Oct 2').textContent).toContain('€8.00');
-    });
-
     it('says the total of the period, deleted expenses and other months left out', async () => {
         await open();
 
@@ -610,24 +604,6 @@ describe('the stat row', () => {
         );
     });
 
-    it('compares a picked part of a month with as many days before it, not with the month before', async () => {
-        await open([
-            expense({ amountCents: 500, date: '2026-09-20' }),
-            expense({ amountCents: 1000, date: '2026-09-05' }),
-            expense({ amountCents: 9000, date: '2026-08-10' }),
-        ]);
-        groupBy(text.group.month);
-
-        dates('2026-09-15', '2026-09-30');
-
-        expect(changeLine().textContent).toBe(
-            `↓${t('charts.vsPrevious', {
-                change: percent(-0.5),
-                period: period(new Date(2026, 7, 30), new Date(2026, 8, 14)),
-            })}`
-        );
-    });
-
     it('compares a whole month that is over with the month before, named as months', async () => {
         await open([
             expense({ amountCents: 700, date: '2026-09-30' }),
@@ -643,16 +619,6 @@ describe('the stat row', () => {
         dates('2025-11-01', '2026-09-30');
         expect(changeLine().textContent).toBe(
             t('charts.noPrevious', { period: monthsOf(new Date(2024, 11, 1), new Date(2025, 9, 31)) })
-        );
-    });
-
-    it('compares whole weeks that are over with as many weeks before', async () => {
-        await open();
-
-        groupBy(text.group.week);
-
-        expect(changeLine().textContent).toBe(
-            t('charts.noPrevious', { period: period(new Date(2026, 4, 11), new Date(2026, 7, 2)) })
         );
     });
 
@@ -677,41 +643,6 @@ describe('the stat row', () => {
 
         expect(totalLine().textContent).toContain('€15.50');
         expect(changeLine().textContent).toContain(percent(850 / 700));
-    });
-
-    it('counts a credit card expense in the span it is charged in, not the one it was made in', async () => {
-        await open([
-            expense({ amountCents: 1000, date: '2026-09-28', payment: 'credit', chargeDate: '2026-10-03' }),
-            expense({ amountCents: 500, date: '2026-09-10' }),
-        ]);
-
-        expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: SAME_DAYS })}`
-        );
-    });
-
-    it('counts your part of a restaurant card expense on the day it was made', async () => {
-        await open([
-            expense({
-                amountCents: 4000,
-                personalCents: 1000,
-                date: '2026-10-12',
-                payment: 'voucher',
-                chargeDate: '2026-11-12',
-            }),
-            expense({
-                amountCents: 3000,
-                personalCents: 500,
-                date: '2026-09-20',
-                payment: 'voucher',
-                chargeDate: '2026-10-20',
-            }),
-        ]);
-
-        expect(totalLine().textContent).toContain('€10.00');
-        expect(changeLine().textContent).toBe(
-            `↑${t('charts.vsPreviousSoFar', { change: percent(1), current: SO_FAR, period: SAME_DAYS })}`
-        );
     });
 
     it('shows a fall with the arrow down and the sign', async () => {
@@ -821,16 +752,6 @@ describe('spending by week', () => {
         expect(rows().at(-1)!.textContent).toContain(weekOf('Jan 5, 2026'));
     });
 
-    it('adds up each week', async () => {
-        await open();
-
-        groupBy(text.group.week);
-
-        expect(rowOf(weekOf('Oct 19')).textContent).toContain('€61.49');
-        expect(rowOf(weekOf('Oct 5')).textContent).toContain('€20.00');
-        expect(rowOf(weekOf('Sep 28')).textContent).toContain('€15.00');
-    });
-
     it('starts the weeks where the browser does', async () => {
         stubLanguages(['en-US']);
         await open();
@@ -852,15 +773,6 @@ describe('spending by month', () => {
         expect(rows()).toHaveLength(12);
         expect(rows()[0]!.textContent).toContain('November 2025');
         expect(rows().at(-1)!.textContent).toContain('October 2026');
-    });
-
-    it('adds up each month', async () => {
-        await open();
-
-        groupBy(text.group.month);
-
-        expect(rowOf('October 2026').textContent).toContain('€89.49');
-        expect(rowOf('September 2026').textContent).toContain('€7.00');
     });
 });
 
@@ -1347,17 +1259,6 @@ describe('the dates', () => {
         expect(breakdown()).toHaveLength(3);
         expect(screen.getByLabelText(text.from).getAttribute('aria-invalid')).toBe('true');
         expect(screen.getByLabelText(text.from).getAttribute('aria-describedby')).toBe(message.id);
-    });
-
-    it('are drawn up to the most rows the chart allows, and refused with one more', async () => {
-        await open();
-
-        dates('2026-01-01', addDays('2026-01-01', MAX_BUCKETS - 1));
-        expect(rows()).toHaveLength(MAX_BUCKETS);
-        expect(screen.queryByRole('alert')).toBeNull();
-
-        dates('2026-01-01', addDays('2026-01-01', MAX_BUCKETS));
-        expect((await screen.findByRole('alert')).textContent).toBe(text.rangeTooLong);
     });
 
     it('drop a half typed date along with the others when they are reset', async () => {

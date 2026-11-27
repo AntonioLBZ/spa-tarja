@@ -9,6 +9,7 @@ import { BottomNav, type BottomNavItem } from '@/components/bottom-nav/bottom-na
 import { Brand } from '@/components/brand/brand';
 import { ButtonLink } from '@/components/button/button-link';
 import { Icon } from '@/components/icon/icon';
+import { ScreenTitle } from '@/components/screen-title/screen-title';
 import { ToastProvider } from '@/components/toast/toast';
 import { AddExpenseButton } from '@/features/expenses/sheet/add-expense-button';
 import { ExpenseSheet } from '@/features/expenses/sheet/expense-sheet';
@@ -310,4 +311,19 @@ const RootTabs = () => {
     );
 };
 
-export const Route = createRootRoute({ component: RootLayout });
+// What an address the app doesn't know shows, inside the layout, with the way home
+const RootNotFound = () => {
+    const t = useTranslations('notFound');
+
+    return (
+        <section className="root__not-found">
+            <ScreenTitle>{t('title')}</ScreenTitle>
+            <p className="hint">{t('text')}</p>
+            <ButtonLink block to="/">
+                {t('home')}
+            </ButtonLink>
+        </section>
+    );
+};
+
+export const Route = createRootRoute({ component: RootLayout, notFoundComponent: RootNotFound });

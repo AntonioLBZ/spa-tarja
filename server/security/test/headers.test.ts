@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { app } from '@server/app';
 import { withSecurityHeaders } from '@server/security/headers';
@@ -93,6 +93,7 @@ describe('the security headers', () => {
     });
 
     it('are on the redirect Better Auth answers when a sign-in comes back broken', async () => {
+        const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
         const response = await app.request(
             '/api/auth/callback/google?code=made-up&state=made-up',
             { headers: { origin: ORIGIN } },
@@ -102,6 +103,8 @@ describe('the security headers', () => {
         expect(response.status).toBe(302);
         expect(response.headers.get('location')).not.toBeNull();
         expect(security(response)).toEqual(SECURITY);
+        expect(logged).toHaveBeenCalled();
+        logged.mockRestore();
     });
 
     it('are on an answer whose headers cannot be changed', async () => {

@@ -145,6 +145,11 @@
     "toast": {
         "dismiss": "Dismiss"
     },
+    "notFound": {
+        "title": "Page not found",
+        "text": "There's nothing at this address. It may have been mistyped, or the page moved.",
+        "home": "Go to Expenses"
+    },
     "nav": {
         "account": "Account",
         "add": "Add expense",

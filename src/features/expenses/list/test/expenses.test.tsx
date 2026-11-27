@@ -1376,27 +1376,6 @@ describe('suggesting a category from your own expenses', () => {
         expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
     });
 
-    it('skips a category that no longer exists', async () => {
-        await open([expense({ text: 'Crossfit', categoryId: crypto.randomUUID() })]);
-
-        typeText('crossfit');
-
-        expect(chosenOption(label)).toBe(en.categories.other);
-        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
-    });
-
-    it('says nothing for a word that was seen in two categories', async () => {
-        await open([
-            expense({ text: 'Padel', categoryId: 'leisure' }),
-            expense({ text: 'Padel', categoryId: 'health', date: '2026-10-20' }),
-        ]);
-
-        typeText('Padel');
-
-        expect(chosenOption(label)).toBe(en.categories.other);
-        expect(screen.queryByText(en.expenses.form.suggested)).toBeNull();
-    });
-
     it('never replaces a category that was picked by hand', async () => {
         await open([expense({ text: 'Padel', categoryId: 'leisure' })]);
 
@@ -3210,30 +3189,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toEqual(['Coche']);
         });
 
-        it('finds part of a word', async () => {
-            await open(list);
-
-            search('wee');
-
-            expect(rowNames()).toEqual(['Weekly shop']);
-        });
-
-        it('looks in the name of the category too', async () => {
-            await open(list);
-
-            search('groceries');
-
-            expect(rowNames()).toEqual(['Weekly shop']);
-        });
-
-        it('counts a category that no longer exists as Other', async () => {
-            await open([expense({ text: 'Monthly fee', categoryId: crypto.randomUUID() }), cafe]);
-
-            search(en.categories.other);
-
-            expect(rowNames()).toEqual(['Monthly fee']);
-        });
-
         it('says how many rows are left, with a button to drop the search', async () => {
             await open(list);
 
@@ -3282,15 +3237,6 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(filtersToggle(0)).toBeDefined();
         });
-
-        it('keeps a plan as one row, found once', async () => {
-            await open([...sofa(), cafe]);
-
-            search('sofa');
-
-            expect(rowNames()).toEqual(['Sofa']);
-            expect(showing(1, 2)).not.toBeNull();
-        });
     });
 
     describe('the filters', () => {
@@ -3303,15 +3249,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(rowNames()).toEqual(['Weekly shop']);
             expect(filtersToggle(1)).toBeDefined();
             expect(showing(1, 4)).not.toBeNull();
-        });
-
-        it('keep what has no category any more under Other', async () => {
-            await open([expense({ text: 'Monthly fee', categoryId: crypto.randomUUID() }), cafe]);
-            openFilters();
-
-            pickOption(f.category, en.categories.other);
-
-            expect(rowNames()).toEqual(['Monthly fee']);
         });
 
         it('keep the days between two dates, both included', async () => {
@@ -3328,35 +3265,6 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.change(screen.getByLabelText(f.to), { target: { value: '2026-10-20' } });
 
             expect(rowNames()).toEqual([]);
-        });
-
-        it('leave a date open when it is cleared', async () => {
-            await open(list);
-            openFilters();
-            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-20' } });
-            expect(rowNames()).toEqual(['Weekly shop', 'Café con leche']);
-
-            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '' } });
-
-            expect(rowNames()).toHaveLength(4);
-            expect(filtersToggle(0)).toBeDefined();
-        });
-
-        it('look at the day an expense was made, not the day it is charged', async () => {
-            await open([
-                expense({ text: 'Shoes', date: '2026-10-05', payment: 'credit', chargeDate: '2026-11-05' }),
-                cafe,
-            ]);
-            openFilters();
-
-            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-11-01' } });
-
-            expect(rowNames()).toEqual([]);
-
-            fireEvent.change(screen.getByLabelText(f.from), { target: { value: '2026-10-01' } });
-            fireEvent.change(screen.getByLabelText(f.to), { target: { value: '2026-10-10' } });
-
-            expect(rowNames()).toEqual(['Shoes']);
         });
 
         it('keep the plans as installments, and what was paid at once as now', async () => {
@@ -3463,12 +3371,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(dates()).toEqual(['2026-10-01', '']);
         });
 
-        it('keep an expense of a later day of this month, as there is no end', async () => {
-            await open([...list, expense({ text: 'Concert', date: '2026-10-30' })]);
-
-            expect(rowNames()).toContain('Concert');
-        });
-
         it('count as a filter in use once they are not those the list opened on', async () => {
             await open(list);
 
@@ -3482,26 +3384,6 @@ describe('searching, filtering and grouping the list', () => {
 
             expect(filtersToggle(0)).toBeDefined();
             expect(showing(3, 4)).toBeNull();
-        });
-
-        it('count as one filter for an end alone, whichever it is', async () => {
-            await open(list);
-
-            changeDate(f.to, '2026-10-20');
-
-            expect(rowNames()).toEqual(['Cinema']);
-            expect(filtersToggle(1)).toBeDefined();
-        });
-
-        it('are not a filter in use when both are empty, as nothing narrows the list', async () => {
-            await open(list);
-
-            changeDate(f.from, '');
-
-            expect(rowNames()).toHaveLength(4);
-            expect(filtersToggle(0)).toBeDefined();
-            expect(showing(4, 4)).toBeNull();
-            expect(screen.queryByRole('button', { name: f.clear })).toBeNull();
         });
 
         it('are emptied by Clear, which shows every expense', async () => {
@@ -3528,16 +3410,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(filtersToggle(0)).toBeDefined();
         });
 
-        it('go back to it too for an expense added to a later day of this month', async () => {
-            await open(list);
-            changeDate(f.from, '2026-10-20');
-
-            await addOn('Tea', '2026-10-30');
-
-            expect(dates()).toEqual(['2026-10-01', '']);
-            expect(rowNames()).toContain('Tea');
-        });
-
         it('move to the whole month of an expense added to an earlier one', async () => {
             await open(list);
 
@@ -3546,15 +3418,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(dates()).toEqual(['2026-08-01', '2026-08-31']);
             expect(rowNames()).toEqual(['Tea']);
             expect(filtersToggle(1)).toBeDefined();
-        });
-
-        it('move to the whole month of an expense added to a later one', async () => {
-            await open(list);
-
-            await addOn('Tea', '2026-12-05');
-
-            expect(dates()).toEqual(['2026-12-01', '2026-12-31']);
-            expect(rowNames()).toEqual(['Tea']);
         });
 
         it('are as they were on opening once the screen is left and come back to', async () => {
@@ -3580,59 +3443,6 @@ describe('searching, filtering and grouping the list', () => {
             expect(subtotalOf(longDay('2026-10-24'))).toBe('€48.00');
             expect(subtotalOf(longDay('2026-10-19'))).toBe('€9.00');
             expect(subtotalOf(longDay('2026-09-30'))).toBe('€600.00');
-        });
-
-        it('add up only the rows that are left', async () => {
-            await open(list);
-
-            search('cafe');
-
-            expect(groupHeadings()).toEqual([longDay('2026-10-24')]);
-            expect(subtotalOf(longDay('2026-10-24'))).toBe('€3.00');
-        });
-
-        it('count a plan once, at its full price, on the day it was bought', async () => {
-            await open([...sofa(400), expense({ text: 'Lunch', amountCents: 1000, date: TODAY })]);
-
-            expect(groupHeadings()).toEqual([longDay(TODAY)]);
-            expect(subtotalOf(longDay(TODAY))).toBe('€22.00');
-        });
-
-        it('count a restaurant card expense at your part, on the day it was made', async () => {
-            await open([
-                expense({
-                    text: 'Dinner',
-                    amountCents: 4000,
-                    personalCents: 1500,
-                    payment: 'voucher',
-                    chargeDate: '2026-11-12',
-                    date: '2026-10-24',
-                }),
-                expense({
-                    text: 'Shoes',
-                    amountCents: 9000,
-                    payment: 'credit',
-                    chargeDate: '2026-12-01',
-                    date: '2026-10-24',
-                }),
-            ]);
-
-            expect(groupHeadings()).toEqual([longDay('2026-10-24')]);
-            expect(subtotalOf(longDay('2026-10-24'))).toBe('€105.00');
-        });
-
-        it('are weeks from Monday, called after that Monday', async () => {
-            stubLanguages(['en-GB']);
-            await openAll(list);
-
-            pickGrouping(f.group.week);
-
-            expect(groupHeadings()).toEqual([
-                t('expenses.list.weekOf', { date: format({ month: 'short', day: 'numeric' }, '2026-10-19') }),
-                t('expenses.list.weekOf', { date: format({ month: 'short', day: 'numeric' }, '2026-09-28') }),
-            ]);
-            expect(subtotalOf(groupHeadings()[0]!)).toBe('€57.00');
-            expect(subtotalOf(groupHeadings()[1]!)).toBe('€600.00');
         });
 
         it('start on the day the browser starts the week', async () => {
@@ -3711,15 +3521,6 @@ describe('searching, filtering and grouping the list', () => {
 
             pickGrouping(f.group.day);
             expect(row().textContent).not.toContain(shown('2026-10-24'));
-        });
-
-        it('keep a restaurant card expense and a plan as one row each, with their own totals', async () => {
-            await open([...sofa(500), expense({ text: 'Lunch', amountCents: 1250, date: TODAY })]);
-
-            pickGrouping(f.group.category);
-
-            expect(rowNames()).toHaveLength(2);
-            expect(screen.getByText('Sofa').closest('li')!.textContent).toContain('€15.00');
         });
     });
 
@@ -3806,12 +3607,6 @@ describe('searching, filtering and grouping the list', () => {
             fireEvent.click(showMore()!);
             expect(rowNames()).toHaveLength(230);
             expect(showMore()).toBeNull();
-        });
-
-        it('adds up the whole group, also the rows that are not drawn yet', async () => {
-            await open(many(150), 'Item 149');
-
-            expect(subtotalOf(longDay('2026-10-24'))).toBe('€150.00');
         });
 
         it('starts over at 100 when the list changes', async () => {

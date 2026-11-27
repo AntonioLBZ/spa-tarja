@@ -145,6 +145,11 @@
     "toast": {
         "dismiss": "Cerrar"
     },
+    "notFound": {
+        "title": "Página no encontrada",
+        "text": "No hay nada en esta dirección. Puede que esté mal escrita o que la página se haya movido.",
+        "home": "Ir a Gastos"
+    },
     "nav": {
         "account": "Cuenta",
         "add": "Añadir gasto",

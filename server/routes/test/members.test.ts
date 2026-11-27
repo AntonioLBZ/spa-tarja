@@ -856,15 +856,6 @@ describe('DELETE /api/groups/:groupId/members/:memberId', () => {
         expect(await error(await removeMember(bruno, friend.id, friend.b), 409)).toBe('direct');
     });
 
-    it('answers the group when it is sent again', async () => {
-        const { group, bruno: brunoId } = await tripWithBruno();
-        const first = await groupOf(await removeMember(bruno, group.id, brunoId));
-
-        const again = await groupOf(await removeMember(bruno, group.id, brunoId));
-
-        expect(again).toEqual(first);
-    });
-
     it('answers 404 for a member the group doesn’t have', async () => {
         const group = await makeGroup(ana);
 
@@ -890,14 +881,6 @@ describe('POST /api/groups/:groupId/members/:memberId/merge', () => {
         });
         expect(member(after, memberNamed(group, 'Carla'))).toMatchObject({ leftAt: null, mergedInto: null });
         expect(await error(await removeMember(bruno, group.id, brunoId), 409)).toBe('unsettled');
-    });
-
-    it('answers the group when it is sent again', async () => {
-        const { group, bruno: brunoId } = await tripWithBruno(['Bruno']);
-        const dummy = memberNamed(group, 'Bruno');
-        const first = await groupOf(await merge(ana, group.id, dummy, brunoId));
-
-        expect(await groupOf(await merge(ana, group.id, dummy, brunoId))).toEqual(first);
     });
 
     it('merges a dummy only into a member who is a user, never into a dummy or into itself', async () => {

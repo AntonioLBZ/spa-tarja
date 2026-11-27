@@ -142,6 +142,12 @@
     width: 100%;
 }
 
+.root__not-found {
+    display: grid;
+    gap: var(--size-6);
+    grid-template-columns: minmax(0, 1fr);
+}
+
 /* On a phone the bar has the bottom of the page: room for it, and for the safe area it pads itself with. A sideways
    drag is left to the swipe between screens, and the page still scrolls and zooms; while a slide runs the touch goes to
    the root, which then does the same. */

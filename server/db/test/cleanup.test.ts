@@ -1,6 +1,6 @@
 import { createExecutionContext, createScheduledController, waitOnExecutionContext } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ENDED_INVITATION_DAYS, INVITATION_DAYS } from '@core/groups/invitation';
 import { app } from '@server/app';
@@ -159,10 +159,13 @@ describe('the daily clean-up', () => {
             .run();
         const controller = createScheduledController({ scheduledTime: new Date(), cron: '0 4 * * *' });
         const ctx = createExecutionContext();
+        const logged = vi.spyOn(console, 'log').mockImplementation(() => {});
 
         await worker.scheduled(controller, env, ctx);
         await waitOnExecutionContext(ctx);
 
         expect(await count('session')).toBe(0);
+        expect(logged).toHaveBeenCalledWith('daily clean-up', { sessions: 1, verifications: 0, invitations: 0 });
+        logged.mockRestore();
     });
 });

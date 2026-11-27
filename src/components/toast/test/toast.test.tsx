@@ -134,30 +134,6 @@ describe('Toast', () => {
         expect((toast() as HTMLElement).style.getPropertyValue('--toast-duration')).toBe('8000ms');
     });
 
-    it('is held while the pointer is over it, so the bar holds with the count', () => {
-        setup();
-        show();
-        expect(toast()!.classList.contains('toast--held')).toBe(false);
-
-        fireEvent.mouseEnter(toast()!);
-        expect(toast()!.classList.contains('toast--held')).toBe(true);
-
-        fireEvent.mouseLeave(toast()!);
-        expect(toast()!.classList.contains('toast--held')).toBe(false);
-    });
-
-    it('is held while the focus is inside it, so the bar holds with the count', () => {
-        setup();
-        show();
-        const action = screen.getByRole('button', { name: 'Undo' });
-
-        act(() => action.focus());
-        expect(toast()!.classList.contains('toast--held')).toBe(true);
-
-        act(() => action.blur());
-        expect(toast()!.classList.contains('toast--held')).toBe(false);
-    });
-
     it('comes after the page in the document, so it is the last stop in the tab order', () => {
         setup();
 
@@ -227,16 +203,19 @@ describe('Toast', () => {
         expect(toast()).toBeNull();
     });
 
-    it('holds the count while the pointer is over it, and goes on with what was left', () => {
+    it('holds the count and its bar while the pointer is over it, and goes on with what was left', () => {
         setup();
         show();
         elapse(5_000);
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
 
         fireEvent.mouseEnter(toast()!);
         elapse(60_000);
         expect(toast()).not.toBeNull();
+        expect(toast()!.classList.contains('toast--held')).toBe(true);
 
         fireEvent.mouseLeave(toast()!);
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
         elapse(2_999);
         expect(toast()).not.toBeNull();
 
@@ -244,7 +223,7 @@ describe('Toast', () => {
         expect(toast()).toBeNull();
     });
 
-    it('holds the count while the focus is inside it, and goes on with what was left', () => {
+    it('holds the count and its bar while the focus is inside it, and goes on with what was left', () => {
         setup();
         show();
         elapse(3_000);
@@ -253,8 +232,10 @@ describe('Toast', () => {
         act(() => action.focus());
         elapse(60_000);
         expect(toast()).not.toBeNull();
+        expect(toast()!.classList.contains('toast--held')).toBe(true);
 
         act(() => action.blur());
+        expect(toast()!.classList.contains('toast--held')).toBe(false);
         elapse(4_999);
         expect(toast()).not.toBeNull();
 
